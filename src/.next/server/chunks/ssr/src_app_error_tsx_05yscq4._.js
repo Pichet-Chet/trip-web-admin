@@ -1,0 +1,3 @@
+module.exports=[23953,a=>{"use strict";var b=a.i(87924),c=a.i(72131);let d=new function({error:a,reset:d}){return(0,c.useEffect)(()=>{console.error(a)},[a]),(0,b.jsxs)("div",{className:"flex min-h-screen flex-col items-center justify-center gap-4",children:[(0,b.jsx)("h1",{className:"text-2xl font-bold",children:"Something went wrong"}),(0,b.jsx)("p",{className:"text-[var(--muted-foreground)]",children:"An unexpected error occurred."}),(0,b.jsx)(Button,{onClick:d,children:"Try Again"})]})}("Cannot find module '@/components/ui/button'");throw d.code="MODULE_NOT_FOUND",d}];
+
+//# sourceMappingURL=src_app_error_tsx_05yscq4._.js.map

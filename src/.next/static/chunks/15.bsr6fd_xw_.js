@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,39126,o=>{"use strict";o.i(43476),o.i(71645);let t=Error("Cannot find module '@/components/layout/sidebar'");throw t.code="MODULE_NOT_FOUND",t}]);

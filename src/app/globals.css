@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@layer theme {
+  :root {
+    /* ─── Blue Tone Design System ─── */
+    --primary: #1978e5;
+    --on-primary: #ffffff;
+    --primary-container: #d9e9ff;
+    --on-primary-container: #001b3f;
+
+    --secondary: #555f71;
+    --on-secondary: #ffffff;
+    --secondary-container: #b7cfff;
+    --on-secondary-container: #405882;
+
+    --tertiary: #6e5676;
+    --on-tertiary: #ffffff;
+    --tertiary-container: #f8d8ff;
+
+    --error: #ba1a1a;
+    --on-error: #ffffff;
+    --error-container: #ffdad6;
+
+    --outline: #74777f;
+    --outline-variant: #c4c6cf;
+
+    --surface: #f9f9ff;
+    --on-surface: #191c20;
+    --surface-variant: #e0e2ec;
+    --on-surface-variant: #44474f;
+    --surface-container: #ecedf7;
+    --surface-container-low: #f2f3fd;
+    --surface-container-high: #e6e8f1;
+    --surface-container-lowest: #ffffff;
+    --surface-bright: #f9f9ff;
+
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--outline-variant);
+  }
+  body {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    font-family: var(--font-noto-thai), 'Noto Sans Thai', sans-serif !important;
+  }
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Scrollbar styling */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
