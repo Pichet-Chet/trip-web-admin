@@ -2,159 +2,142 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FormInput } from "@/components/shared";
+import { FormInput, useToast } from "@/components/shared";
 
-type PlanId = "free" | "pro" | "business";
+type PackId = "single" | "pack5" | "pack10";
 
-const plans: { id: PlanId; name: string; price: string; priceNum: number; desc: string; features: string[]; badge?: string }[] = [
-  { id: "free", name: "Free", price: "฿0", priceNum: 0, desc: "สำหรับไกด์อิสระที่เริ่มต้นใช้งาน", features: ["3 ทริป", "ผู้ติดตาม 30 คน/ทริป", "แจ้งเตือน 10 ครั้ง/เดือน", "แก้ไขหลัง publish 2 ครั้ง/ทริป"], badge: "แพลนปัจจุบัน" },
-  { id: "pro", name: "Pro", price: "฿299", priceNum: 299, desc: "สำหรับบริษัททัวร์ที่กำลังเติบโต", features: ["30 ทริป", "ผู้ติดตาม 100 คน/ทริป", "แจ้งเตือน 200 ครั้ง/เดือน", "แก้ไขไม่จำกัด", "Custom Branding", "Analytics Dashboard"], badge: "แนะนำ" },
-  { id: "business", name: "Business", price: "฿599", priceNum: 599, desc: "สำหรับบริษัททัวร์ขนาดใหญ่", features: ["ทริปไม่จำกัด", "ผู้ติดตามไม่จำกัด", "แจ้งเตือนไม่จำกัด", "White-label (ซ่อน badge)", "API Access", "ผู้จัดการบัญชีเฉพาะ"] },
+const packs: { id: PackId; trips: number; price: number; perTrip: number; saving: string | null }[] = [
+  { id: "single", trips: 1, price: 49, perTrip: 49, saving: null },
+  { id: "pack5", trips: 5, price: 199, perTrip: 39.8, saving: "ประหยัด 19%" },
+  { id: "pack10", trips: 10, price: 349, perTrip: 34.9, saving: "ประหยัด 29%" },
 ];
 
 export default function UpgradePage(): React.ReactNode {
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>("pro");
-  const selected = plans.find((p) => p.id === selectedPlan)!;
+  const [selected, setSelected] = useState<PackId>("single");
+  const { toast } = useToast();
+  const pack = packs.find((p) => p.id === selected)!;
 
   return (
-    <>
+    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
+      <div>
+        <Link href="/dashboard/usage" className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1 mb-4">
+          <span className="material-symbols-outlined text-lg">arrow_back</span>
+          กลับหน้าการใช้งาน
+        </Link>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ซื้อทริปเพิ่ม</h1>
+        <p className="text-slate-500 mt-2 text-sm">จ่ายเฉพาะทริปที่ใช้ ไม่มี subscription ไม่ผูกมัด</p>
+      </div>
 
-      <div className="p-4 md:p-8 max-w-6xl mx-auto">
-        <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">เลือกแพลนที่เหมาะกับคุณ</h1>
-          <p className="text-slate-500 mt-2">ปลดล็อกฟีเจอร์ระดับมืออาชีพเพื่อขยายธุรกิจทัวร์ของคุณ</p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Pack Selection */}
+        <div className="lg:col-span-7 space-y-4">
+          <h2 className="font-bold text-slate-900">เลือกจำนวน</h2>
+          {packs.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setSelected(p.id)}
+              className={`w-full text-left p-5 rounded-xl border-2 flex items-center justify-between transition-all ${
+                selected === p.id ? "border-blue-600 bg-blue-50/30" : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <div>
+                <p className="font-bold text-slate-900">{p.trips} ทริป</p>
+                {p.saving && <span className="text-xs font-semibold text-blue-600">{p.saving}</span>}
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-black text-slate-900">฿{p.price}</p>
+                <p className="text-xs text-slate-400">฿{p.perTrip}/ทริป</p>
+              </div>
+            </button>
+          ))}
+
+          <div className="bg-white rounded-xl border border-slate-200 p-5 mt-6">
+            <h3 className="font-bold text-slate-900 mb-4">ทุกทริปที่ซื้อได้รับ</h3>
+            <div className="space-y-3">
+              {[
+                "ผู้ติดตามไม่จำกัด",
+                "แจ้งเตือน LINE + Web Push ไม่จำกัด",
+                "แก้ไขหลัง publish ไม่จำกัด",
+                "ไม่มี \"Powered by\" badge",
+                "QR Code + ลิงก์แชร์",
+                "ไม่มีวันหมดอายุ — ใช้ได้ตลอด",
+              ].map((f) => (
+                <div key={f} className="flex items-center gap-3 text-sm text-slate-600">
+                  <span className="material-symbols-outlined text-blue-600 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  {f}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* ── Plan Selection (7 cols) ── */}
-          <div className="lg:col-span-7 space-y-4">
-            {plans.map((plan) => {
-              const isCurrent = plan.id === "free";
-              const isSelected = plan.id === selectedPlan;
-              return (
-                <button
-                  key={plan.id}
-                  onClick={() => !isCurrent && setSelectedPlan(plan.id)}
-                  className={`relative w-full text-left p-6 rounded-xl border-2 flex items-start gap-4 transition-all ${
-                    isSelected
-                      ? "border-blue-600 bg-white shadow-xl ring-4 ring-blue-600/10"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
-                >
-                  {plan.badge && (
-                    <span className={`absolute -top-3 right-6 px-3 py-1 text-xs font-bold rounded-full ${
-                      plan.badge === "แนะนำ" ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-500"
-                    }`}>
-                      {plan.badge}
-                    </span>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-baseline">
-                      <h3 className={`text-xl font-bold ${isSelected ? "text-blue-600" : "text-slate-900"}`}>{plan.name}</h3>
-                      {plan.priceNum > 0 && (
-                        <div className="text-right">
-                          <span className="text-2xl font-extrabold text-slate-900">{plan.price}</span>
-                          <span className="text-slate-400 text-sm">/เดือน</span>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-500 mt-1">{plan.desc}</p>
-                    <ul className={`mt-4 ${plan.features.length > 4 ? "grid grid-cols-2 gap-y-2" : "space-y-2"}`}>
-                      {plan.features.map((f) => (
-                        <li key={f} className="flex items-center text-sm">
-                          <span className={`material-symbols-outlined text-sm mr-2 ${isSelected ? "text-blue-600" : "text-slate-400"}`} style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ── Payment (5 cols) ── */}
-          <div className="lg:col-span-5">
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-              {/* Order Summary */}
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">สรุปคำสั่งซื้อ</h3>
-                <div className="flex justify-between mb-2">
-                  <span className="text-slate-500">{selected.name} Plan (รายเดือน)</span>
-                  <span className="font-bold">{selected.priceNum.toFixed(2)} THB</span>
-                </div>
-                <div className="flex justify-between text-sm text-slate-400 mb-4">
-                  <span>ค่าธรรมเนียม</span>
-                  <span>0.00 THB</span>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-slate-100 text-xl">
-                  <span className="font-bold text-slate-900">รวมทั้งหมด</span>
-                  <span className="font-extrabold text-blue-600">{selected.priceNum.toFixed(2)} THB</span>
-                </div>
+        {/* Payment */}
+        <div className="lg:col-span-5">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 mb-4">สรุปคำสั่งซื้อ</h3>
+              <div className="flex justify-between mb-2">
+                <span className="text-slate-500">{pack.trips} ทริป</span>
+                <span className="font-bold text-slate-900">฿{pack.price.toFixed(2)}</span>
               </div>
-
-              {/* Payment Method Tabs */}
-              <div className="p-6 space-y-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-slate-900">ชำระเงิน</h3>
+              {pack.saving && (
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-blue-600 font-semibold">{pack.saving}</span>
+                  <span className="text-blue-600 font-semibold">-฿{((49 * pack.trips) - pack.price).toFixed(2)}</span>
                 </div>
-
-                {/* PromptPay Section */}
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-700">
-                    <span className="material-symbols-outlined text-lg">qr_code_2</span>
-                    PromptPay QR
-                  </div>
-                  <div className="w-40 h-40 mx-auto bg-white rounded-lg border border-slate-200 flex items-center justify-center">
-                    <span className="text-slate-300 text-sm">QR Code</span>
-                  </div>
-                  <p className="text-xs text-slate-400">สแกนด้วยแอปธนาคาร</p>
-                </div>
-
-                <div className="relative flex items-center">
-                  <div className="flex-grow border-t border-slate-200" />
-                  <span className="mx-4 text-xs text-slate-400">หรือจ่ายด้วยบัตร</span>
-                  <div className="flex-grow border-t border-slate-200" />
-                </div>
-
-                {/* Card Form */}
-                <div className="space-y-4">
-                  <FormInput label="หมายเลขบัตร" placeholder="xxxx xxxx xxxx xxxx" icon="credit_card" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormInput label="วันหมดอายุ" placeholder="MM/YY" />
-                    <FormInput label="CVC" placeholder="•••" />
-                  </div>
-                </div>
-
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 mt-6">
-                  อัปเกรดเลย
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
-
-                {/* Trust */}
-                <div className="flex items-center justify-center gap-4 pt-4 text-xs text-slate-400">
-                  <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">lock</span>
-                    SSL 256-bit
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">verified_user</span>
-                    Omise Verified
-                  </div>
-                </div>
+              )}
+              <div className="flex justify-between items-center pt-4 border-t border-slate-100 text-xl mt-4">
+                <span className="font-bold text-slate-900">รวม</span>
+                <span className="font-black text-blue-600">฿{pack.price.toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Info Note */}
-            <div className="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100">
-              <div className="flex gap-3">
-                <span className="material-symbols-outlined text-blue-600 shrink-0">info</span>
-                <p className="text-sm text-blue-700">คุณสามารถยกเลิกหรือเปลี่ยนแพลนได้ทุกเมื่อ อาจมีภาษีเพิ่มเติมตามพื้นที่ของคุณ</p>
+            <div className="p-6 space-y-5">
+              <h3 className="font-bold text-slate-900">ชำระเงิน</h3>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center space-y-3">
+                <p className="text-sm font-semibold text-slate-700">PromptPay QR</p>
+                <div className="w-36 h-36 mx-auto bg-white rounded-lg border border-slate-200 flex items-center justify-center">
+                  <span className="text-slate-300 text-xs">QR Code</span>
+                </div>
+                <p className="text-xs text-slate-400">สแกนด้วยแอปธนาคาร</p>
+              </div>
+
+              <div className="relative flex items-center">
+                <div className="grow border-t border-slate-200" />
+                <span className="mx-4 text-xs text-slate-400">หรือจ่ายด้วยบัตร</span>
+                <div className="grow border-t border-slate-200" />
+              </div>
+
+              <div className="space-y-4">
+                <FormInput label="หมายเลขบัตร" placeholder="xxxx xxxx xxxx xxxx" />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormInput label="วันหมดอายุ" placeholder="MM/YY" />
+                  <FormInput label="CVC" placeholder="•••" />
+                </div>
+              </div>
+
+              <button
+                onClick={() => toast("ชำระเงินสำเร็จ! ได้รับ " + pack.trips + " ทริป")}
+                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] transition-all"
+              >
+                ชำระ ฿{pack.price.toFixed(2)}
+              </button>
+
+              <div className="flex items-center justify-center gap-4 pt-2 text-xs text-slate-400">
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">lock</span>
+                  SSL 256-bit
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">verified_user</span>
+                  Omise Verified
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
