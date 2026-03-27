@@ -54,14 +54,31 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
       {/* Header */}
 
       <div className="p-4 md:p-8 space-y-8">
-        {/* Title + Tabs */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        {/* Title + Actions */}
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">จัดการทริป</h2>
-            <p className="text-slate-500 mt-1 text-sm">จัดการคำขอเข้าร่วม สมาชิก และผู้ติดตามทริปนี้</p>
+            <div className="flex items-center gap-3 mb-1">
+              <Link href="/dashboard/my-trips" className="text-slate-400 hover:text-slate-600 transition-colors">
+                <span className="material-symbols-outlined text-xl">arrow_back</span>
+              </Link>
+              <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">{trip.title}</h2>
+            </div>
+            <p className="text-slate-500 text-sm ml-9">{trip.destination} · {days.length} วัน · {trip.travelersCount} คน</p>
           </div>
-          <FilterTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+          <div className="flex items-center gap-2 ml-9 md:ml-0">
+            <Link href={ROUTES.tripEdit(id)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-lg">edit</span>
+              แก้ไขทริป
+            </Link>
+            <Link href={ROUTES.tripPreview(id)} className="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-1.5 shadow-sm">
+              <span className="material-symbols-outlined text-lg">visibility</span>
+              ดูตัวอย่าง
+            </Link>
+          </div>
         </div>
+
+        {/* Tabs */}
+        <FilterTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
         {/* ═══ Bento Grid ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
