@@ -8,7 +8,16 @@ import { StatusBadge, FilterTabs, IconButton, EmptyState } from "@/components/sh
 
 type FilterTab = "all" | "draft" | "published" | "active";
 
-// Toggle this to see onboarding state
+/**
+ * ONBOARDING SECTION
+ * ─────────────────
+ * แสดงเมื่อ: user สมัครใหม่ ยังไม่เคยสร้างทริป (0 ทริป)
+ * ซ่อนเมื่อ: user สร้างทริปแรกสำเร็จแล้ว หรือกด "ข้าม"
+ * เงื่อนไขจริง: trips.length === 0 && !user.dismissedOnboarding
+ *
+ * *** สำหรับ Demo: เปลี่ยน SHOW_ONBOARDING = true เพื่อดูตัวอย่าง
+ *     ในระบบจริงจะแสดง/ซ่อนอัตโนมัติจาก API
+ */
 const SHOW_ONBOARDING = true;
 
 export default function DashboardPage(): React.ReactNode {
@@ -73,11 +82,11 @@ export default function DashboardPage(): React.ReactNode {
         )}
 
         {/* ═══ Hero Bento ═══ */}
-        <section className="grid grid-cols-12 gap-6 lg:h-[420px]">
+        <section className="grid grid-cols-12 gap-6 lg:h-105">
           {/* Large CTA Card */}
           <div className="col-span-12 lg:col-span-7 relative overflow-hidden rounded-[2.5rem] bg-(--primary) group cursor-pointer shadow-2xl shadow-(--primary)/10 aspect-video lg:aspect-auto">
             <img className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700" src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80" alt="" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-(--primary) via-(--primary)/60 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-tr from-(--primary) via-(--primary)/60 to-transparent" />
             <div className="relative h-full flex flex-col justify-end p-6 md:p-12 text-(--on-primary)">
               <span className="inline-block w-fit px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest mb-4 border border-white/20">เริ่มต้น</span>
               <h2 className="text-3xl md:text-5xl font-extrabold leading-tight mb-6">สร้าง <br />ประสบการณ์ใหม่</h2>
