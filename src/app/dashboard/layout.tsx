@@ -93,6 +93,10 @@ export default function DashboardLayout({
                           <span className="material-symbols-outlined text-lg">person</span>
                           โปรไฟล์บริษัท
                         </a>
+                        <a href="/dashboard/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                          <span className="material-symbols-outlined text-lg">settings</span>
+                          ตั้งค่าบัญชี
+                        </a>
                         <a href="/dashboard/help" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
                           <span className="material-symbols-outlined text-lg">help</span>
                           ช่วยเหลือ

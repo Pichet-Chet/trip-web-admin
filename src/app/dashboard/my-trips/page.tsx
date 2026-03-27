@@ -114,17 +114,31 @@ function TripCard({ trip, onDelete, onClone }: { trip: TripPlan; onDelete?: (id:
 
 export default function MyTripsPage(): React.ReactNode {
   const [filter, setFilter] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { toast } = useToast();
-  const filtered = filter === "all" ? mockTrips : mockTrips.filter((t) => t.status === filter);
+
+  const filtered = mockTrips
+    .filter((t) => filter === "all" || t.status === filter)
+    .filter((t) => search === "" || t.title.toLowerCase().includes(search.toLowerCase()) || (t.destination ?? "").toLowerCase().includes(search.toLowerCase()));
 
   return (
     <>
       {/* Header */}
 
       <div className="p-4 md:p-8 space-y-6">
-        {/* Filter */}
-        <FilterTabs
+        {/* Search + Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="relative w-full sm:w-72">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+            <input
+              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              placeholder="ค้นหาชื่อทริป หรือจุดหมาย..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <FilterTabs
           tabs={[
             { value: "all" as FilterTab, label: "ทั้งหมด" },
             { value: "published" as FilterTab, label: "เผยแพร่แล้ว" },
@@ -134,10 +148,17 @@ export default function MyTripsPage(): React.ReactNode {
           active={filter}
           onChange={setFilter}
         />
+        </div>
 
         {/* Trip Grid — 4 columns */}
-        {filtered.length === 0 && filter !== "all" ? (
-          <EmptyState icon="filter_list_off" title="ไม่มีทริปในหมวดนี้" description="ลองเปลี่ยนตัวกรองหรือสร้างทริปใหม่" actionLabel="สร้างทริปใหม่" actionHref={ROUTES.tripNew} />
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={search ? "search_off" : "filter_list_off"}
+            title={search ? `ไม่พบ "${search}"` : "ไม่มีทริปในหมวดนี้"}
+            description={search ? "ลองค้นหาด้วยคำอื่น" : "ลองเปลี่ยนตัวกรองหรือสร้างทริปใหม่"}
+            actionLabel="สร้างทริปใหม่"
+            actionHref={ROUTES.tripNew}
+          />
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((trip) => (

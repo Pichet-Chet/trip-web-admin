@@ -4,9 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { mockTrips } from "@/lib/mock-data";
 import { ROUTES } from "@/constants/routes";
-import { StatusBadge, FilterTabs, IconButton } from "@/components/shared";
+import { StatusBadge, FilterTabs, IconButton, EmptyState } from "@/components/shared";
 
 type FilterTab = "all" | "draft" | "published" | "active";
+
+// Toggle this to see onboarding state
+const SHOW_ONBOARDING = false;
 
 export default function DashboardPage(): React.ReactNode {
   const [filter, setFilter] = useState<FilterTab>("all");
@@ -21,6 +24,39 @@ export default function DashboardPage(): React.ReactNode {
       {/* ═══ Header ═══ */}
 
       <div className="p-4 md:p-8 space-y-12">
+
+        {/* ═══ Onboarding (0 trips) ═══ */}
+        {SHOW_ONBOARDING && (
+          <section className="bg-white rounded-2xl border border-slate-200 p-8 md:p-12 text-center space-y-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">ยินดีต้อนรับ!</h2>
+            <p className="text-slate-500 max-w-md mx-auto">เริ่มต้นใช้งานด้วย 3 ขั้นตอนง่ายๆ</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-left">
+              <a href="/dashboard/profile" className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors group">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+                  <span className="text-sm font-bold text-slate-900">ตั้งค่าโปรไฟล์</span>
+                </div>
+                <p className="text-xs text-slate-400">ใส่ชื่อ โลโก้ ช่องทางติดต่อ</p>
+              </a>
+              <a href="/dashboard/trips/new" className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors group">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-500 text-xs font-bold flex items-center justify-center">2</span>
+                  <span className="text-sm font-bold text-slate-900">สร้างทริปแรก</span>
+                </div>
+                <p className="text-xs text-slate-400">ใส่ข้อมูลทริป กิจกรรม ที่พัก</p>
+              </a>
+              <div className="p-5 rounded-xl border border-slate-200 opacity-50">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-500 text-xs font-bold flex items-center justify-center">3</span>
+                  <span className="text-sm font-bold text-slate-900">แชร์ให้ลูกทริป</span>
+                </div>
+                <p className="text-xs text-slate-400">ส่งลิงก์หรือ QR Code</p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ═══ Hero Bento ═══ */}
         <section className="grid grid-cols-12 gap-6 lg:h-[420px]">
           {/* Large CTA Card */}
