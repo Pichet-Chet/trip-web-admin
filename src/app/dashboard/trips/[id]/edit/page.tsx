@@ -4,7 +4,7 @@ import { useState, use } from "react";
 import { getMockDays, getMockTrip } from "@/lib/mock-data";
 import { ROUTES } from "@/constants/routes";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FormTextarea, IconButton, IconWrapper, StatsSummary, FooterActionBar, ChangeSummaryModal } from "@/components/shared";
+import { FormInput, FormTextarea, IconButton, IconWrapper, StatsSummary, FooterActionBar, ChangeSummaryModal, EmptyState } from "@/components/shared";
 import { mockChangeLogs } from "@/lib/mock-data";
 import type { TripDay, TripActivity } from "@/types";
 
@@ -105,10 +105,8 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               {/* Activity Cards */}
               <div className="space-y-4">
                 {currentDay.activities.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-(--outline-variant) p-12 text-center">
-                    <span className="material-symbols-outlined text-(--outline) text-4xl mb-2">event_note</span>
-                    <p className="text-sm text-(--on-surface-variant) mb-3">ยังไม่มีกิจกรรม</p>
-                    <button onClick={addActivity} className="text-sm font-bold text-blue-600 hover:underline">+ เพิ่มกิจกรรมแรก</button>
+                  <div className="bg-white rounded-xl border border-(--outline-variant)">
+                    <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="เพิ่มกิจกรรมสำหรับวันนี้" />
                   </div>
                 ) : (
                   currentDay.activities.map((act) => (
@@ -170,7 +168,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               {trip && trip.accommodations.length > 0 && (
                 <div className="bg-white rounded-xl border border-(--outline-variant) p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-3">
-                    <IconWrapper icon="hotel" size="sm" color="bg-blue-100 text-blue-600" />
+                    <IconWrapper icon="hotel" size="sm" />
                     <h4 className="text-sm font-bold text-(--on-surface)">ที่พัก</h4>
                   </div>
                   {trip.accommodations.map((acc, i) => (
