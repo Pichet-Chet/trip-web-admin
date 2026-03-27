@@ -135,7 +135,7 @@ export default function DashboardPage(): React.ReactNode {
                     </div>
                     {/* Actions */}
                     <div className="flex flex-row md:flex-col items-end justify-end gap-2">
-                      <Link href={isDraft ? ROUTES.tripEdit(trip.id) : ROUTES.tripPublish(trip.id)}>
+                      <Link href={isDraft ? ROUTES.tripEdit(trip.id) : ROUTES.tripManage(trip.id)}>
                         <IconButton icon="edit" variant="primary" />
                       </Link>
                       <IconButton icon="more_vert" />
