@@ -56,6 +56,12 @@ function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) 
           <span className={`${s.bg} text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm`}>
             {isEnded ? "จบแล้ว" : s.text}
           </span>
+          {trip.visibility === "marketplace" && trip.reviewStatus === "approved" && (
+            <span className="bg-white/90 text-slate-700 text-[9px] font-bold px-2 py-1 rounded-md shadow-sm">Marketplace</span>
+          )}
+          {trip.visibility === "marketplace" && trip.reviewStatus === "pending" && (
+            <span className="bg-amber-500 text-white text-[9px] font-bold px-2 py-1 rounded-md shadow-sm">รอตรวจสอบ</span>
+          )}
         </div>
       </div>
 

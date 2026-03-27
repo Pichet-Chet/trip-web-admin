@@ -53,6 +53,8 @@ export type TripPlan = {
   emergencyContacts: EmergencyContact[];
   notes: string | null;
   status: TripStatus;
+  visibility: "link_only" | "marketplace";
+  reviewStatus: "pending" | "approved" | "rejected" | null;
   dayCount: number;
   activityCount: number;
   editCount: number;

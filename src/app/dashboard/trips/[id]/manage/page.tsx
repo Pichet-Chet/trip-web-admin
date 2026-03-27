@@ -473,6 +473,46 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
+            {/* Visibility Setting */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+              <h4 className="font-bold text-slate-900">การเข้าถึงทริป</h4>
+              <div className="space-y-3">
+                <button
+                  onClick={() => toast("เปลี่ยนเป็น เฉพาะคนที่มีลิงก์")}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${trip.visibility === "link_only" ? "border-blue-600 bg-blue-50/30" : "border-slate-200 hover:border-slate-300"}`}
+                >
+                  <p className={`text-sm font-bold ${trip.visibility === "link_only" ? "text-blue-600" : "text-slate-900"}`}>เฉพาะคนที่มีลิงก์</p>
+                  <p className="text-xs text-slate-400 mt-0.5">เฉพาะคนที่ได้รับลิงก์หรือ QR Code เท่านั้นที่เข้าดูได้</p>
+                </button>
+                <button
+                  onClick={() => toast("เปลี่ยนเป็น เปิดบน Marketplace")}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${trip.visibility === "marketplace" ? "border-blue-600 bg-blue-50/30" : "border-slate-200 hover:border-slate-300"}`}
+                >
+                  <p className={`text-sm font-bold ${trip.visibility === "marketplace" ? "text-blue-600" : "text-slate-900"}`}>เปิดบน Marketplace</p>
+                  <p className="text-xs text-slate-400 mt-0.5">ทริปจะแสดงบนหน้าเว็บ ค้นหาผ่าน Google ได้ เพิ่มโอกาสให้ลูกค้าเจอคุณ</p>
+                  {trip.visibility === "marketplace" && trip.reviewStatus === "approved" && (
+                    <span className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                      <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      ผ่านการตรวจสอบแล้ว
+                    </span>
+                  )}
+                  {trip.visibility === "marketplace" && trip.reviewStatus === "pending" && (
+                    <span className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                      <span className="material-symbols-outlined text-xs">schedule</span>
+                      รอทีมงานตรวจสอบ
+                    </span>
+                  )}
+                  {trip.visibility === "marketplace" && trip.reviewStatus === "rejected" && (
+                    <span className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded">
+                      <span className="material-symbols-outlined text-xs">cancel</span>
+                      ไม่ผ่านการตรวจสอบ
+                    </span>
+                  )}
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-400">ทริปที่เปิดบน Marketplace จะถูกตรวจสอบโดยทีมงานก่อนแสดง</p>
+            </div>
+
             {/* Trip Link + Slug */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
