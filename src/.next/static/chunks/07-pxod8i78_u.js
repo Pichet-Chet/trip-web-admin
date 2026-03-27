@@ -1,1 +1,0 @@
-(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,97251,o=>{"use strict";o.i(43476);let t=Error("Cannot find module '@/lib/mock-data'");throw t.code="MODULE_NOT_FOUND",t}]);
