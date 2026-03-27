@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Trip Builder - Itinerary Design</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+        h1, h2, h3, h4, .font-headline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .sidebar-item-active {
+            background-color: #1E293B;
+            color: white;
+        }
+        .step-active {
+            color: #2563EB;
+            border-bottom: 2px solid #2563EB;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#0F172A",
+                        secondary: "#2563EB",
+                        accent: "#38BDF8",
+                        background: "#F8FAFC",
+                        surface: "#FFFFFF",
+                        "surface-variant": "#F1F5F9",
+                        "on-surface": "#1E293B",
+                        "on-surface-variant": "#64748B",
+                        outline: "#E2E8F0"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+<!-- SideNavBar (Hidden on mobile, visible on lg) -->
+<aside class="hidden lg:flex h-screen w-64 fixed left-0 top-0 z-40 bg-white border-r border-outline flex-col p-6 gap-2">
+<div class="mb-8 px-2">
+<span class="text-xl font-extrabold text-primary tracking-tight block">Komorebi Admin</span>
+<span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Concierge Portal</span>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="font-semibold text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 sidebar-item-active rounded-lg shadow-sm transition-all" href="#">
+<span class="material-symbols-outlined text-xl">map</span>
+<span class="font-semibold text-sm">Trips</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">insights</span>
+<span class="font-semibold text-sm">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="font-semibold text-sm">Customers</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="font-semibold text-sm">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 flex flex-col gap-2 border-t border-outline">
+<button class="w-full py-2.5 px-4 bg-secondary text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition-all">
+                Create New Trip
+            </button>
+<a class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+<span class="font-semibold text-sm">Help Center</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 h-16 bg-white border-b border-outline flex justify-between items-center px-4 md:px-8">
+<div class="flex items-center gap-4 md:gap-8 overflow-x-auto no-scrollbar">
+<span class="text-lg font-bold text-primary whitespace-nowrap hidden md:block">Trip Builder</span>
+<nav class="flex gap-4 md:gap-6 items-center">
+<a class="text-on-surface-variant font-medium text-xs md:text-sm whitespace-nowrap" href="#">1: General</a>
+<a class="step-active pb-1 font-bold text-xs md:text-sm whitespace-nowrap" href="#">2: Itinerary</a>
+<a class="text-on-surface-variant font-medium text-xs md:text-sm whitespace-nowrap" href="#">3: Preview</a>
+</nav>
+</div>
+<div class="flex gap-2 md:gap-3 ml-4">
+<button class="px-3 md:px-4 py-1.5 rounded-lg text-on-surface font-semibold text-xs md:text-sm hover:bg-surface-variant transition-all">Save Draft</button>
+<button class="px-4 md:px-5 py-1.5 bg-primary text-white rounded-lg font-bold text-xs md:text-sm shadow-md hover:bg-slate-800 transition-all">Next Step</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-4 md:p-8 flex-1 max-w-7xl mx-auto w-full">
+<!-- Day Tabs Section -->
+<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex gap-1.5 p-1 bg-surface-variant/50 border border-outline rounded-xl overflow-x-auto no-scrollbar">
+<button class="px-4 py-2 bg-white text-primary rounded-lg shadow-sm font-bold flex items-center gap-2 border border-outline whitespace-nowrap">
+<span class="text-sm">Day 1</span>
+<span class="text-base">✈️</span>
+</button>
+<button class="px-4 py-2 text-on-surface-variant font-semibold hover:bg-white/50 rounded-lg transition-all flex items-center gap-2 whitespace-nowrap">
+<span class="text-sm">Day 2</span>
+<span class="text-base">🗼</span>
+</button>
+<button class="px-4 py-2 text-on-surface-variant font-semibold hover:bg-white/50 rounded-lg transition-all flex items-center gap-2 whitespace-nowrap">
+<span class="text-sm">Day 3</span>
+<span class="text-base">🗻</span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-primary rounded-lg transition-all border border-transparent hover:border-outline">
+<span class="material-symbols-outlined text-xl">add</span>
+</button>
+</div>
+<div class="flex items-center gap-4 justify-between md:justify-end">
+<span class="text-sm font-semibold text-on-surface-variant">October 14, 2024</span>
+<button class="text-secondary font-bold text-sm flex items-center gap-1.5 hover:text-blue-700 transition-colors">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                        Manage Dates
+                    </button>
+</div>
+</div>
+<!-- Editor Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left: Itinerary List -->
+<div class="lg:col-span-7 space-y-4">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-extrabold text-primary tracking-tight">Daily Schedule</h2>
+<button class="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg font-bold text-sm shadow-md hover:bg-blue-700 transition-all">
+<span class="material-symbols-outlined text-lg">add_circle</span>
+                            Add Activity
+                        </button>
+</div>
+<!-- Activity Cards Container -->
+<div class="space-y-4">
+<!-- Activity Card 1 -->
+<div class="group bg-white rounded-xl border border-outline hover:border-secondary/40 shadow-sm transition-all p-4 md:p-5">
+<div class="flex gap-3 md:gap-4 items-start">
+<div class="mt-2 text-on-surface-variant/30 cursor-grab active:cursor-grabbing hidden md:block">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 space-y-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="md:col-span-1">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Time</label>
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" type="text" value="09:00 AM"/>
+</div>
+<div class="md:col-span-3">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Activity Title</label>
+<div class="relative">
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg pl-10 pr-3 py-2 text-sm font-bold text-primary focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" type="text" value="Arrival &amp; Private Transfer"/>
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🛬</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Location / Details</label>
+<div class="flex gap-2">
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" placeholder="Narita International Airport (NRT)" type="text"/>
+<button class="p-2 border border-outline rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined text-xl">image</span>
+</button>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Concierge Notes</label>
+<textarea class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all resize-none" rows="2">Driver will be waiting at Gate B with a nameboard featuring the Komorebi logo.</textarea>
+</div>
+</div>
+<button class="mt-2 text-on-surface-variant/40 hover:text-red-600 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Activity Card 2 -->
+<div class="group bg-white rounded-xl border border-outline hover:border-secondary/40 shadow-sm transition-all p-4 md:p-5">
+<div class="flex gap-3 md:gap-4 items-start">
+<div class="mt-2 text-on-surface-variant/30 hidden md:block">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 space-y-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="md:col-span-1">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Time</label>
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" type="text" value="02:30 PM"/>
+</div>
+<div class="md:col-span-3">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Activity Title</label>
+<div class="relative">
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg pl-10 pr-3 py-2 text-sm font-bold text-primary focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" type="text" value="Team-Lab Borderless Experience"/>
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg">✨</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Location / Details</label>
+<div class="flex gap-2">
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" type="text" value="Azabudai Hills, Tokyo"/>
+<button class="p-2 border border-outline rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined text-xl">image</span>
+</button>
+</div>
+</div>
+</div>
+<button class="mt-2 text-on-surface-variant/40 hover:text-red-600 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Activity Card 3 -->
+<div class="group bg-white/60 rounded-xl border border-outline shadow-sm transition-all p-4 md:p-5 opacity-80">
+<div class="flex gap-3 md:gap-4 items-start">
+<div class="mt-2 text-on-surface-variant/30 hidden md:block">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-1 space-y-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="md:col-span-1">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Time</label>
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm font-semibold outline-none" type="text" value="07:00 PM"/>
+</div>
+<div class="md:col-span-3">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Activity Title</label>
+<div class="relative">
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg pl-10 pr-3 py-2 text-sm font-bold text-primary outline-none" type="text" value="Omakase Dinner"/>
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🍣</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">Location / Details</label>
+<div class="flex gap-2">
+<input class="w-full bg-surface-variant/30 border border-outline rounded-lg px-3 py-2 text-sm outline-none" type="text" value="Sushi Saito (Reservation Confirmed)"/>
+<button class="p-2 border border-outline rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined text-xl">image</span>
+</button>
+</div>
+</div>
+</div>
+<button class="mt-2 text-on-surface-variant/40 hover:text-red-600 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Visual Context & Settings -->
+<div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+<!-- Day Visual -->
+<div class="relative group h-64 md:h-80 rounded-2xl overflow-hidden shadow-lg">
+<img alt="Tokyo cityscape" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB59VP0LraNBlM9iRpzSJHzR7peCxGQsUSiJwbSdjkgKnP5CF4fHnwhO0LTSR0iUYQtnHvUeQM370msx6PqUEYMD2vuiULOhGUDZtoFmcMQsvPVzGriIO1Zzpm4xq5u1biq-7vbJOrLTRFg5CGxDnHn_tFTxgf90xHX89CIM2M4h6z8W_VPV_fzB-Prc_BGDXN4wj0rpC5gMQtZ3uZQXvPy48QVw11EoIDPI1usIGtRDOPvt6AC79WRPfKJF7QdW4TTvomsjw-Qag2w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent flex flex-col justify-end p-6 md:p-8">
+<span class="text-accent font-bold tracking-[0.2em] text-[10px] uppercase mb-2">Current Location</span>
+<h3 class="text-white text-3xl md:text-4xl font-black tracking-tight">Tokyo</h3>
+<p class="text-white/80 text-xs md:text-sm mt-2 font-medium">Modernity meets tradition in the heart of Japan.</p>
+</div>
+<button class="absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white p-2.5 rounded-full hover:bg-white/40 transition-all">
+<span class="material-symbols-outlined text-xl">photo_camera</span>
+</button>
+</div>
+<!-- Accomodation Card -->
+<div class="bg-white border border-outline rounded-2xl p-5 md:p-6 space-y-4 shadow-sm">
+<div class="flex items-center gap-3 mb-1">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">hotel</span>
+<h4 class="font-bold text-primary text-sm">Daily Lodging</h4>
+</div>
+<div class="bg-surface-variant/30 border border-outline p-3.5 rounded-xl flex gap-4 transition-all hover:bg-surface-variant/50">
+<img alt="Hotel room" class="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrkmXs716RI6T6hflVtXO2F_J6ckSU3HWgQbzu_RaoOH-ybkoh8Z43v49ElCIZS2CbUuGFxgL-9Bf03S0joaZJAbrPTSIF2MpYaHUaNJfG_H27Y-uyUAUGgp81iRACmR_b6tl4zRk0TY1vg4xBJVtcJt4HwcDjWz7CI1Cwvkgy3bwfz8UmmblAJuYcab5ieGdjKjjFn_sQUAEYdS3_LUC_iU54vOlaSVEh5EUYgG0eG7o_TIYmRkkQ0n4l37edAqbO8ePCallClkZO"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-primary truncate">Aman Tokyo</p>
+<p class="text-[11px] text-on-surface-variant mt-0.5 line-clamp-1">Deluxe Palace Garden View</p>
+<button class="mt-2 text-secondary text-xs font-bold hover:underline">Change Hotel</button>
+</div>
+</div>
+</div>
+<!-- Summary Stats -->
+<div class="px-2 space-y-3">
+<div class="flex justify-between items-center py-3 border-b border-outline">
+<span class="text-sm font-medium text-on-surface-variant">Total Activities</span>
+<span class="text-sm font-bold text-primary">5 Events</span>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-outline">
+<span class="text-sm font-medium text-on-surface-variant">Estimated Pacing</span>
+<span class="px-2.5 py-1 bg-blue-50 text-secondary border border-blue-100 rounded text-[10px] font-extrabold uppercase tracking-wide">Relaxed</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Navigation -->
+<footer class="mt-12 md:mt-20 pt-8 border-t border-outline flex flex-col md:flex-row gap-4 justify-between items-center">
+<button class="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-on-surface font-bold hover:bg-surface-variant transition-all group">
+<span class="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                    Previous: General Details
+                </button>
+<div class="w-full md:w-auto flex gap-3">
+<button class="flex-1 md:flex-none px-6 py-2.5 rounded-lg border border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all text-sm">
+                        Preview Full Trip
+                    </button>
+</div>
+</footer>
+</div>
+</main>
+<!-- Contextual FAB (AI Assistant) -->
+<button class="fixed bottom-6 right-6 md:bottom-8 md:right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
+</button>
+</body></html>

@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NatGan — System Development Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1e1b4b;
+    --indigo-light: #312e81;
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --purple-dark: #6d28d9;
+    --violet: #8b5cf6;
+    --blue: #2563eb;
+    --sky: #0ea5e9;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --green: #22c55e;
+    --teal: #0d9488;
+    --orange: #f97316;
+    --cream: #faf5ff;
+    --bg-card: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #4c1d95 50%, #6d28d9 75%, #7c3aed 100%);
+    color: white;
+    padding: 60px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(60deg, transparent, transparent 25px, rgba(255,255,255,0.02) 25px, rgba(255,255,255,0.02) 26px);
+  }
+  .header * { position: relative; }
+  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
+  .header .meta { display: flex; justify-content: center; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+  .header .meta span { background: rgba(255,255,255,0.15); padding: 4px 16px; border-radius: 20px; font-size: 0.85rem; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 48px; }
+
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--indigo);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--purple);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title .num {
+    background: var(--purple);
+    color: white;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+
+  .card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--indigo);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-subtitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: var(--purple-dark);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-bottom: 16px;
+  }
+  th {
+    background: #f1e8ff;
+    color: var(--indigo);
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--purple-light);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+  }
+  tr:hover td { background: #faf5ff; }
+
+  /* Code */
+  .code-block {
+    background: #1e1b4b;
+    color: #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    white-space: pre;
+  }
+
+  .code-inline {
+    background: #f1e8ff;
+    color: var(--purple-dark);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .badge-purple { background: #f3e8ff; color: #7c3aed; }
+  .badge-blue { background: #dbeafe; color: #2563eb; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-amber { background: #fef3c7; color: #d97706; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-teal { background: #ccfbf1; color: #0d9488; }
+  .badge-gray { background: #f1f5f9; color: #475569; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.8rem; }
+    table { font-size: 0.8rem; }
+    .code-block { font-size: 0.75rem; padding: 12px; }
+  }
+
+  /* Sprint bar */
+  .sprint-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .sprint-bar .label {
+    font-weight: 600;
+    min-width: 140px;
+    font-size: 0.9rem;
+  }
+  .sprint-bar .bar {
+    flex: 1;
+    height: 28px;
+    background: #f1f5f9;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .sprint-bar .fill {
+    height: 100%;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.78rem;
+    transition: width 0.5s;
+  }
+
+  /* Phase card */
+  .phase-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border-left: 5px solid;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+  }
+  .phase-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .phase-card .done-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+
+  /* ER Diagram */
+  .er-diagram {
+    background: #1e1b4b;
+    color: #c4b5fd;
+    padding: 24px;
+    border-radius: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* API row colors */
+  .api-auth { border-left: 4px solid #ef4444; }
+  .api-company { border-left: 4px solid #f59e0b; }
+  .api-trip { border-left: 4px solid #2563eb; }
+  .api-day { border-left: 4px solid #0ea5e9; }
+  .api-activity { border-left: 4px solid #8b5cf6; }
+  .api-public { border-left: 4px solid #22c55e; }
+  .api-follow { border-left: 4px solid #f97316; }
+  .api-noti { border-left: 4px solid #ec4899; }
+  .api-upload { border-left: 4px solid #0d9488; }
+
+  /* Permission matrix */
+  .perm-yes { color: #16a34a; font-weight: 700; }
+  .perm-no { color: #dc2626; font-weight: 700; }
+  .perm-na { color: #94a3b8; }
+
+  /* Flow diagram */
+  .flow-box {
+    background: white;
+    border: 2px solid var(--purple-light);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    position: relative;
+  }
+  .flow-box::after {
+    content: '▼';
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--purple);
+    font-size: 1.2rem;
+  }
+  .flow-box:last-child::after { content: ''; }
+  .flow-box .step-num {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--purple);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* Highlight quote */
+  .highlight-quote {
+    background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+    border-left: 4px solid var(--purple);
+    padding: 16px 20px;
+    border-radius: 0 12px 12px 0;
+    margin: 16px 0;
+    font-style: italic;
+    color: var(--indigo);
+  }
+
+  /* TOC */
+  .toc {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+  .toc h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--indigo);
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .toc-item:hover { background: #f3e8ff; }
+  .toc-item .num {
+    background: var(--purple);
+    color: white;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Security card */
+  .sec-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .sec-card .icon { font-size: 2rem; margin-bottom: 8px; }
+  .sec-card .label { font-weight: 700; font-size: 0.9rem; color: var(--indigo); }
+  .sec-card .desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* Tech stack */
+  .tech-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 4px;
+  }
+
+  /* Cost table highlight */
+  .cost-total td {
+    font-weight: 700;
+    background: #f3e8ff;
+    color: var(--purple-dark);
+  }
+
+  /* Page map */
+  .page-map {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .page-item {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+  }
+  .page-item .route {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--purple);
+    margin-bottom: 4px;
+  }
+  .page-item .name { font-weight: 600; }
+  .page-item .auth-badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.72rem;
+    padding: 1px 8px;
+    border-radius: 10px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>System Development Blueprint</h1>
+  <div class="subtitle">NatGan (นัดกัน) — Trip Communication Tool</div>
+  <div class="meta">
+    <span>Version 1.0</span>
+    <span>17 March 2026</span>
+    <span>MVP — 10-Week Sprint</span>
+    <span>Living Document</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Design Philosophy -->
+  <div class="highlight-quote">
+    "อยากรับรู้ แต่ไม่อยากรับเรื่อง" — เมื่อแผนเปลี่ยน ระบบจัดการแจ้งเตือนให้ ทัวร์ลีดเดอร์ไม่ต้องรับเรื่อง ลูกทัวร์รับรู้ทันที
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h2>สารบัญ</h2>
+    <div class="toc-grid">
+      <a href="#sec1" class="toc-item"><span class="num">1</span> System Overview</a>
+      <a href="#sec2" class="toc-item"><span class="num">2</span> Phase Development Plan</a>
+      <a href="#sec3" class="toc-item"><span class="num">3</span> Database Design</a>
+      <a href="#sec4" class="toc-item"><span class="num">4</span> API Design</a>
+      <a href="#sec5" class="toc-item"><span class="num">5</span> Frontend Page Structure</a>
+      <a href="#sec6" class="toc-item"><span class="num">6</span> API & Frontend Interaction Map</a>
+      <a href="#sec7" class="toc-item"><span class="num">7</span> Security Architecture</a>
+      <a href="#sec8" class="toc-item"><span class="num">8</span> Permission Model</a>
+      <a href="#sec9" class="toc-item"><span class="num">9</span> System Workflow</a>
+      <a href="#sec10" class="toc-item"><span class="num">10</span> Deliverables & DoD</a>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: SYSTEM OVERVIEW -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec1">
+    <div class="section-title"><span class="num">1</span> System Overview</div>
+
+    <div class="card">
+      <div class="card-title">Architecture Overview</div>
+<div class="er-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER                              │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌────────────────┐ │
+│  │  Admin Dashboard  │  │   Guest View     │  │  LINE App      │ │
+│  │  (CSR + Auth)     │  │   (SSR + Public) │  │  (Messaging)   │ │
+│  └────────┬─────────┘  └────────┬─────────┘  └───────┬────────┘ │
+└───────────┼─────────────────────┼─────────────────────┼──────────┘
+            │                     │                     │
+┌───────────┼─────────────────────┼─────────────────────┼──────────┐
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │            Next.js 15 API Routes (Vercel)                   │ │
+│  │  Auth │ Trip │ Noti │ Upload │ Public                       │ │
+│  └────────────────────────┬────────────────────────────────────┘ │
+│  ┌────────────────────────┼────────────────────────────────────┐ │
+│  │ Auth.js │ Rate Limiter │ Zod Validation │ CORS/CSRF        │ │
+│  └────────────────────────┼────────────────────────────────────┘ │
+│  ┌────────────────────────┼────────────────────────────────────┐ │
+│  │ PostgreSQL 16 │ Cloudflare R2 │ LINE Messaging API          │ │
+│  │ (Docker/VPS)  │ (Free 10GB)   │ + Web Push                 │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+</div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="card">
+      <div class="card-title">Tech Stack</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        <span class="tech-pill" style="background:#dbeafe;color:#1d4ed8;">Next.js 15</span>
+        <span class="tech-pill" style="background:#dbeafe;color:#1d4ed8;">Tailwind CSS v4</span>
+        <span class="tech-pill" style="background:#fef3c7;color:#92400e;">PostgreSQL 16</span>
+        <span class="tech-pill" style="background:#f3e8ff;color:#6d28d9;">Drizzle ORM</span>
+        <span class="tech-pill" style="background:#dcfce7;color:#166534;">Auth.js (v5)</span>
+        <span class="tech-pill" style="background:#ffe4e6;color:#be123c;">Cloudflare R2</span>
+        <span class="tech-pill" style="background:#d1fae5;color:#065f46;">LINE Messaging API</span>
+        <span class="tech-pill" style="background:#e0e7ff;color:#3730a3;">Web Push</span>
+        <span class="tech-pill" style="background:#fef9c3;color:#854d0e;">Zod</span>
+        <span class="tech-pill" style="background:#fee2e2;color:#991b1b;">AES-256-GCM</span>
+      </div>
+
+      <table>
+        <tr><th>Layer</th><th>Technology</th><th>Reason</th></tr>
+        <tr><td>Frontend</td><td>Next.js 15 + Tailwind v4</td><td>SSR + CSR, Thai ecosystem</td></tr>
+        <tr><td>Hosting</td><td>Vercel (Free)</td><td>Zero-config, edge CDN</td></tr>
+        <tr><td>Database</td><td>PostgreSQL 16 (Docker, VPS)</td><td>Self-host Thai DC, ~150-250 บ/เดือน</td></tr>
+        <tr><td>ORM</td><td>Drizzle ORM</td><td>Type-safe, lightweight</td></tr>
+        <tr><td>Auth</td><td>Auth.js (NextAuth v5)</td><td>Credentials + LINE Login</td></tr>
+        <tr><td>Storage</td><td>Cloudflare R2</td><td>S3-compatible, free 10GB</td></tr>
+        <tr><td>Notification</td><td>LINE Messaging API + Web Push</td><td>Free 500 msg + unlimited push</td></tr>
+        <tr><td>Validation</td><td>Zod</td><td>Runtime type checking</td></tr>
+        <tr><td>Encryption</td><td>AES-256-GCM</td><td>All data encrypted at rest</td></tr>
+      </table>
+    </div>
+
+    <!-- Monthly Cost -->
+    <div class="card">
+      <div class="card-title">Monthly Cost</div>
+      <table>
+        <tr><th>Item</th><th>Cost</th></tr>
+        <tr><td>VPS (1 vCPU, 1GB RAM, Thai DC)</td><td>~150-250 บ/เดือน</td></tr>
+        <tr><td>Vercel (Hobby)</td><td>ฟรี</td></tr>
+        <tr><td>Cloudflare R2 (10GB)</td><td>ฟรี</td></tr>
+        <tr><td>LINE Messaging API (500 msg)</td><td>ฟรี</td></tr>
+        <tr><td>Domain (natgan.com)</td><td>~400 บ/ปี</td></tr>
+        <tr class="cost-total"><td>รวม</td><td>~200-300 บ/เดือน</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: PHASE DEVELOPMENT PLAN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec2">
+    <div class="section-title"><span class="num">2</span> Phase Development Plan</div>
+
+    <div class="card">
+      <div class="card-title">Sprint Timeline (10 Weeks)</div>
+      <div class="sprint-bar">
+        <span class="label">Week 1-2: Foundation</span>
+        <div class="bar"><div class="fill" style="width:20%;background:linear-gradient(90deg,#7c3aed,#a78bfa);">20%</div></div>
+      </div>
+      <div class="sprint-bar">
+        <span class="label">Week 3-4: Trip Builder</span>
+        <div class="bar"><div class="fill" style="width:40%;background:linear-gradient(90deg,#2563eb,#60a5fa);">40%</div></div>
+      </div>
+      <div class="sprint-bar">
+        <span class="label">Week 5-6: Guest & Share</span>
+        <div class="bar"><div class="fill" style="width:60%;background:linear-gradient(90deg,#0d9488,#5eead4);">60%</div></div>
+      </div>
+      <div class="sprint-bar">
+        <span class="label">Week 7-8: Notification</span>
+        <div class="bar"><div class="fill" style="width:80%;background:linear-gradient(90deg,#f97316,#fdba74);">80%</div></div>
+      </div>
+      <div class="sprint-bar">
+        <span class="label">Week 9-10: Polish</span>
+        <div class="bar"><div class="fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#86efac);">100%</div></div>
+      </div>
+    </div>
+
+    <!-- Phase 1 -->
+    <div class="phase-card" style="border-color: #7c3aed;">
+      <h3 style="color:#7c3aed;">Phase 1 — Foundation (Week 1-2)</h3>
+      <table>
+        <tr><th>Task</th><th>Details</th><th>Deliverable</th></tr>
+        <tr><td>Project Setup</td><td>Next.js 15, Tailwind v4, Drizzle, Auth.js</td><td>Repo + CI/CD</td></tr>
+        <tr><td>Database</td><td>PostgreSQL Docker, Drizzle schema, migrations</td><td>8 tables ready</td></tr>
+        <tr><td>Auth System</td><td>Register, Login, JWT, session middleware</td><td>/login, /register</td></tr>
+        <tr><td>Company Profile</td><td>CRUD company info, logo upload to R2</td><td>/dashboard/profile</td></tr>
+        <tr><td>API Foundation</td><td>Error handling, Zod, rate limiting</td><td>Middleware stack</td></tr>
+      </table>
+      <div class="done-text">DoD: สมัครสมาชิก -> ล็อกอิน -> แก้ไขโปรไฟล์ -> อัปโหลดโลโก้</div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase-card" style="border-color: #2563eb;">
+      <h3 style="color:#2563eb;">Phase 2 — Trip Builder (Week 3-4)</h3>
+      <table>
+        <tr><th>Task</th><th>Details</th><th>Deliverable</th></tr>
+        <tr><td>Trip CRUD</td><td>Create/Read/Update/Delete trips</td><td>/dashboard/trips</td></tr>
+        <tr><td>Day Management</td><td>Add/Edit/Delete/Reorder days</td><td>Day tabs with drag</td></tr>
+        <tr><td>Activity Management</td><td>Add/Edit/Delete/Reorder activities</td><td>Activity editor</td></tr>
+        <tr><td>Image Upload</td><td>Cover images for trips, days</td><td>R2 upload pipeline</td></tr>
+        <tr><td>Auto-save</td><td>Draft auto-save every 30s</td><td>Unsaved indicator</td></tr>
+      </table>
+      <div class="done-text">DoD: สร้างทริป -> เพิ่มวัน/กิจกรรม -> ลากจัดลำดับ -> บันทึกร่าง</div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase-card" style="border-color: #0d9488;">
+      <h3 style="color:#0d9488;">Phase 3 — Guest View & Share (Week 5-6)</h3>
+      <table>
+        <tr><th>Task</th><th>Details</th><th>Deliverable</th></tr>
+        <tr><td>Publish Flow</td><td>Generate slug, set status</td><td>/publish page</td></tr>
+        <tr><td>Guest View (SSR)</td><td>Public trip page, mobile-first</td><td>/t/{slug}</td></tr>
+        <tr><td>Immigration View</td><td>Passport-friendly version</td><td>/t/{slug}/imm</td></tr>
+        <tr><td>QR Code</td><td>Generate + download with logo</td><td>QR component</td></tr>
+        <tr><td>Share Template</td><td>Copy URL, LINE share message</td><td>Share buttons</td></tr>
+      </table>
+      <div class="done-text">DoD: Publish ทริป -> แชร์ลิงก์/QR -> ลูกทัวร์เปิดดู -> มี view count</div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase-card" style="border-color: #f97316;">
+      <h3 style="color:#f97316;">Phase 4 — Notification Engine (Week 7-8)</h3>
+      <table>
+        <tr><th>Task</th><th>Details</th><th>Deliverable</th></tr>
+        <tr><td>Change Detection</td><td>Diff old vs new on trip edit</td><td>noti_change_logs</td></tr>
+        <tr><td>LINE Messaging API</td><td>Webhook, Add Friend flow</td><td>Follow via LINE</td></tr>
+        <tr><td>Web Push</td><td>VAPID, subscription, push</td><td>Follow via browser</td></tr>
+        <tr><td>Notification Dispatch</td><td>Send to LINE + Web Push</td><td>/api/notify/send</td></tr>
+        <tr><td>Read Receipt</td><td>Acknowledge + tracking dashboard</td><td>/receipts page</td></tr>
+      </table>
+      <div class="done-text">DoD: แก้ไข -> detect -> ส่ง LINE/Push -> ลูกทัวร์กด "รับทราบ" -> ดู read receipt</div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase-card" style="border-color: #22c55e;">
+      <h3 style="color:#22c55e;">Phase 5 — Polish & Launch (Week 9-10)</h3>
+      <table>
+        <tr><th>Task</th><th>Details</th><th>Deliverable</th></tr>
+        <tr><td>Usage & Limits</td><td>Free tier limits, upgrade prompts</td><td>/dashboard/usage</td></tr>
+        <tr><td>Error States</td><td>Empty states, loading, 404</td><td>UX polish</td></tr>
+        <tr><td>Performance</td><td>Image optimization, caching</td><td>Lighthouse 90+</td></tr>
+        <tr><td>Security Audit</td><td>OWASP checklist, pen test</td><td>Security report</td></tr>
+        <tr><td>Beta Launch</td><td>1-5 pilot companies</td><td>Live system</td></tr>
+      </table>
+      <div class="done-text">DoD: ระบบพร้อมใช้งานจริง, 5 บริษัทนำร่องเข้าใช้</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: DATABASE DESIGN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec3">
+    <div class="section-title"><span class="num">3</span> Database Design</div>
+
+    <div class="card">
+      <div class="card-title">Entity Relationship Diagram</div>
+<div class="er-diagram">
+mst_companies ─────────┬──────────────── mst_users
+     │ (1)              │ (1:Many)            │
+     │                  │                     │
+     └──── (1:Many) ────┤                     │
+                        │                     │
+                   trip_plans ────────────────┘ (changed_by)
+                     │ (1)
+                     │
+          ┌──────────┼──────────┐
+          │          │          │
+     (1:Many)   (1:Many)   (1:Many)
+          │          │          │
+     trip_days  noti_followers  noti_change_logs
+       │ (1)                        │ (1)
+       │                            │
+    (1:Many)                   (1:Many)
+       │                            │
+  trip_activities          noti_acknowledgements
+</div>
+      <div style="margin-top: 12px;">
+        <span class="badge badge-purple">mst_ = Master</span>
+        <span class="badge badge-blue">trip_ = Trip Data</span>
+        <span class="badge badge-amber">noti_ = Notification</span>
+      </div>
+    </div>
+
+    <!-- 8 Tables -->
+    <div class="card">
+      <div class="card-title">8 Tables — Complete Schema</div>
+
+      <div class="card-subtitle">1. mst_companies</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK, gen_random_uuid()</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">name</span></td><td>text</td><td>NOT NULL</td><td>ชื่อบริษัท/ไกด์</td></tr>
+        <tr><td><span class="code-inline">logo_url</span></td><td>text</td><td>nullable</td><td>URL โลโก้ (R2)</td></tr>
+        <tr><td><span class="code-inline">phone</span></td><td>text</td><td>nullable</td><td>เบอร์ติดต่อ</td></tr>
+        <tr><td><span class="code-inline">line_id</span></td><td>text</td><td>nullable</td><td>LINE ID</td></tr>
+        <tr><td><span class="code-inline">facebook</span></td><td>text</td><td>nullable</td><td>Facebook URL</td></tr>
+        <tr><td><span class="code-inline">instagram</span></td><td>text</td><td>nullable</td><td>Instagram URL</td></tr>
+        <tr><td><span class="code-inline">website</span></td><td>text</td><td>nullable</td><td>เว็บไซต์</td></tr>
+        <tr><td><span class="code-inline">tat_license</span></td><td>text</td><td>nullable</td><td>ใบอนุญาต ททท.</td></tr>
+        <tr><td><span class="code-inline">tier</span></td><td>subscription_tier</td><td>default 'free'</td><td>free/pro/business</td></tr>
+        <tr><td><span class="code-inline">created_at</span></td><td>timestamptz</td><td>default now()</td><td>วันสร้าง</td></tr>
+        <tr><td><span class="code-inline">updated_at</span></td><td>timestamptz</td><td>default now()</td><td>วันแก้ไขล่าสุด</td></tr>
+      </table>
+
+      <div class="card-subtitle">2. mst_users</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">company_id</span></td><td>uuid</td><td>FK mst_companies, ON DELETE SET NULL</td><td>บริษัทที่สังกัด</td></tr>
+        <tr><td><span class="code-inline">email</span></td><td>text</td><td>UNIQUE, NOT NULL</td><td>อีเมลล็อกอิน</td></tr>
+        <tr><td><span class="code-inline">password_hash</span></td><td>text</td><td>NOT NULL</td><td>bcrypt hash</td></tr>
+        <tr><td><span class="code-inline">name</span></td><td>text</td><td>nullable</td><td>ชื่อแสดง</td></tr>
+        <tr><td><span class="code-inline">role</span></td><td>user_role</td><td>default 'owner'</td><td>owner/editor</td></tr>
+        <tr><td><span class="code-inline">created_at</span></td><td>timestamptz</td><td>default now()</td><td>วันสร้าง</td></tr>
+      </table>
+
+      <div class="card-subtitle">3. trip_plans</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">company_id</span></td><td>uuid</td><td>FK, ON DELETE CASCADE</td><td>บริษัทเจ้าของ</td></tr>
+        <tr><td><span class="code-inline">title</span></td><td>text</td><td>NOT NULL</td><td>ชื่อทริป</td></tr>
+        <tr><td><span class="code-inline">slug</span></td><td>text</td><td>UNIQUE, NOT NULL</td><td>URL slug</td></tr>
+        <tr><td><span class="code-inline">destination</span></td><td>text</td><td>nullable</td><td>ประเทศ/ภูมิภาค</td></tr>
+        <tr><td><span class="code-inline">start_date</span></td><td>date</td><td>nullable</td><td>วันออกเดินทาง</td></tr>
+        <tr><td><span class="code-inline">end_date</span></td><td>date</td><td>nullable</td><td>วันกลับ</td></tr>
+        <tr><td><span class="code-inline">cover_image_url</span></td><td>text</td><td>nullable</td><td>ภาพปก</td></tr>
+        <tr><td><span class="code-inline">travelers_count</span></td><td>integer</td><td>default 0</td><td>จำนวนผู้เดินทาง</td></tr>
+        <tr><td><span class="code-inline">language</span></td><td>text</td><td>default 'th'</td><td>th/en/ja</td></tr>
+        <tr><td><span class="code-inline">airline_info</span></td><td>jsonb</td><td>default '[]'</td><td>ข้อมูลสายการบิน</td></tr>
+        <tr><td><span class="code-inline">accommodations</span></td><td>jsonb</td><td>default '[]'</td><td>ข้อมูลที่พัก</td></tr>
+        <tr><td><span class="code-inline">emergency_contacts</span></td><td>jsonb</td><td>default '[]'</td><td>เบอร์ฉุกเฉิน</td></tr>
+        <tr><td><span class="code-inline">notes</span></td><td>text</td><td>nullable</td><td>หมายเหตุ</td></tr>
+        <tr><td><span class="code-inline">status</span></td><td>trip_status</td><td>default 'draft'</td><td>draft/published/unpublished</td></tr>
+        <tr><td><span class="code-inline">edit_count</span></td><td>integer</td><td>default 0</td><td>จำนวนครั้งแก้ไข</td></tr>
+        <tr><td><span class="code-inline">view_count</span></td><td>integer</td><td>default 0</td><td>จำนวนครั้งดู</td></tr>
+        <tr><td><span class="code-inline">published_at</span></td><td>timestamptz</td><td>nullable</td><td>วันที่ publish</td></tr>
+        <tr><td><span class="code-inline">created_at</span></td><td>timestamptz</td><td>default now()</td><td>วันสร้าง</td></tr>
+        <tr><td><span class="code-inline">updated_at</span></td><td>timestamptz</td><td>default now()</td><td>วันแก้ไขล่าสุด</td></tr>
+      </table>
+
+      <div class="card-subtitle">4. trip_days</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">trip_id</span></td><td>uuid</td><td>FK trip_plans, CASCADE</td><td>ทริปต้นสังกัด</td></tr>
+        <tr><td><span class="code-inline">day_number</span></td><td>integer</td><td>NOT NULL</td><td>ลำดับวัน</td></tr>
+        <tr><td><span class="code-inline">title</span></td><td>text</td><td>nullable</td><td>ชื่อวัน</td></tr>
+        <tr><td><span class="code-inline">subtitle</span></td><td>text</td><td>nullable</td><td>คำบรรยาย/อิโมจิ</td></tr>
+        <tr><td><span class="code-inline">cover_image_url</span></td><td>text</td><td>nullable</td><td>ภาพปกวัน</td></tr>
+        <tr><td><span class="code-inline">date</span></td><td>date</td><td>nullable</td><td>วันที่จริง</td></tr>
+        <tr><td><span class="code-inline">sort_order</span></td><td>integer</td><td>default 0</td><td>ลำดับ drag-reorder</td></tr>
+        <tr><td><span class="code-inline">created_at</span></td><td>timestamptz</td><td>default now()</td><td>วันสร้าง</td></tr>
+      </table>
+
+      <div class="card-subtitle">5. trip_activities</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">day_id</span></td><td>uuid</td><td>FK trip_days, CASCADE</td><td>วันต้นสังกัด</td></tr>
+        <tr><td><span class="code-inline">time</span></td><td>time</td><td>nullable</td><td>เวลาเริ่ม</td></tr>
+        <tr><td><span class="code-inline">name</span></td><td>text</td><td>NOT NULL</td><td>ชื่อกิจกรรม</td></tr>
+        <tr><td><span class="code-inline">description</span></td><td>text</td><td>nullable</td><td>รายละเอียด</td></tr>
+        <tr><td><span class="code-inline">type</span></td><td>activity_type</td><td>default 'attraction'</td><td>attraction/restaurant/hotel/transport/shopping/other</td></tr>
+        <tr><td><span class="code-inline">place_name</span></td><td>text</td><td>nullable</td><td>ชื่อสถานที่</td></tr>
+        <tr><td><span class="code-inline">lat</span></td><td>decimal(10,7)</td><td>nullable</td><td>ละติจูด</td></tr>
+        <tr><td><span class="code-inline">lng</span></td><td>decimal(10,7)</td><td>nullable</td><td>ลองจิจูด</td></tr>
+        <tr><td><span class="code-inline">maps_link</span></td><td>text</td><td>nullable</td><td>Google Maps URL</td></tr>
+        <tr><td><span class="code-inline">image_url</span></td><td>text</td><td>nullable</td><td>รูปภาพ</td></tr>
+        <tr><td><span class="code-inline">emoji</span></td><td>text</td><td>default '📍'</td><td>ไอคอน</td></tr>
+        <tr><td><span class="code-inline">sort_order</span></td><td>integer</td><td>default 0</td><td>ลำดับ</td></tr>
+        <tr><td><span class="code-inline">created_at</span></td><td>timestamptz</td><td>default now()</td><td>วันสร้าง</td></tr>
+        <tr><td><span class="code-inline">updated_at</span></td><td>timestamptz</td><td>default now()</td><td>วันแก้ไข</td></tr>
+      </table>
+
+      <div class="card-subtitle">6. noti_followers</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">trip_id</span></td><td>uuid</td><td>FK trip_plans, CASCADE</td><td>ทริปที่ติดตาม</td></tr>
+        <tr><td><span class="code-inline">display_name</span></td><td>text</td><td>NOT NULL, default 'Guest'</td><td>ชื่อเล่น</td></tr>
+        <tr><td><span class="code-inline">channel</span></td><td>follow_channel</td><td>NOT NULL</td><td>line/web_push</td></tr>
+        <tr><td><span class="code-inline">line_user_id</span></td><td>text</td><td>nullable</td><td>LINE User ID</td></tr>
+        <tr><td><span class="code-inline">web_push_subscription</span></td><td>jsonb</td><td>nullable</td><td>Web Push subscription</td></tr>
+        <tr><td><span class="code-inline">followed_at</span></td><td>timestamptz</td><td>default now()</td><td>วันที่ follow</td></tr>
+      </table>
+
+      <div class="card-subtitle">7. noti_change_logs</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">trip_id</span></td><td>uuid</td><td>FK trip_plans, CASCADE</td><td>ทริปที่เปลี่ยน</td></tr>
+        <tr><td><span class="code-inline">changed_by</span></td><td>uuid</td><td>FK mst_users, nullable</td><td>ผู้แก้ไข</td></tr>
+        <tr><td><span class="code-inline">changes</span></td><td>jsonb</td><td>NOT NULL</td><td>รายละเอียดการเปลี่ยน</td></tr>
+        <tr><td><span class="code-inline">summary_text</span></td><td>text</td><td>NOT NULL</td><td>สรุปภาษาคน</td></tr>
+        <tr><td><span class="code-inline">noti_sent</span></td><td>boolean</td><td>default false</td><td>ส่งแจ้งเตือนแล้ว?</td></tr>
+        <tr><td><span class="code-inline">noti_sent_at</span></td><td>timestamptz</td><td>nullable</td><td>เวลาที่ส่ง</td></tr>
+        <tr><td><span class="code-inline">created_at</span></td><td>timestamptz</td><td>default now()</td><td>เวลาตรวจพบ</td></tr>
+      </table>
+
+      <div class="card-subtitle">8. noti_acknowledgements</div>
+      <table>
+        <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+        <tr><td><span class="code-inline">id</span></td><td>uuid</td><td>PK</td><td>Primary key</td></tr>
+        <tr><td><span class="code-inline">changelog_id</span></td><td>uuid</td><td>FK noti_change_logs, CASCADE</td><td>การเปลี่ยนแปลงที่รับทราบ</td></tr>
+        <tr><td><span class="code-inline">follower_id</span></td><td>uuid</td><td>FK noti_followers, CASCADE</td><td>ผู้รับทราบ</td></tr>
+        <tr><td><span class="code-inline">acknowledged_at</span></td><td>timestamptz</td><td>default now()</td><td>เวลากดรับทราบ</td></tr>
+      </table>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">UNIQUE constraint: (changelog_id, follower_id) — หนึ่ง follower ต่อหนึ่ง change</p>
+    </div>
+
+    <!-- Enums -->
+    <div class="card">
+      <div class="card-title">Enums (5 types)</div>
+<div class="code-block">CREATE TYPE trip_status       AS ENUM ('draft', 'published', 'unpublished');
+CREATE TYPE activity_type     AS ENUM ('attraction', 'restaurant', 'hotel', 'transport', 'shopping', 'other');
+CREATE TYPE follow_channel    AS ENUM ('line', 'web_push');
+CREATE TYPE subscription_tier AS ENUM ('free', 'pro', 'business');
+CREATE TYPE user_role         AS ENUM ('owner', 'editor');</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: API DESIGN -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec4">
+    <div class="section-title"><span class="num">4</span> API Design</div>
+
+    <div class="card">
+      <div class="card-title">API Convention</div>
+      <table>
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Base URL</td><td><span class="code-inline">https://natgan.com/api</span></td></tr>
+        <tr><td>Content-Type</td><td><span class="code-inline">application/json</span></td></tr>
+        <tr><td>Auth</td><td>JWT via httpOnly cookie (<span class="code-inline">next-auth.session-token</span>)</td></tr>
+        <tr><td>Validation</td><td>Zod schemas on all inputs</td></tr>
+        <tr><td>Rate Limiting</td><td>Per-endpoint, in-memory</td></tr>
+      </table>
+    </div>
+
+    <!-- Auth APIs -->
+    <div class="card api-auth">
+      <div class="card-title">Authentication <span class="badge badge-red">Auth</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/auth/register</span></td><td>-</td><td>สมัครสมาชิก</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/auth/login</span></td><td>-</td><td>ล็อกอิน</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/auth/logout</span></td><td>JWT</td><td>ล็อกเอาท์</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/auth/session</span></td><td>JWT</td><td>ดึง session</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/auth/refresh</span></td><td>JWT</td><td>ต่ออายุ token</td></tr>
+      </table>
+    </div>
+
+    <!-- Company APIs -->
+    <div class="card api-company">
+      <div class="card-title">Company Profile <span class="badge badge-amber">Company</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/company/me</span></td><td>JWT</td><td>ดึงข้อมูลบริษัท</td></tr>
+        <tr><td><span class="badge badge-amber">PUT</span></td><td><span class="code-inline">/api/company/me</span></td><td>JWT (Owner)</td><td>แก้ไขข้อมูล</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/company/me/logo</span></td><td>JWT (Owner)</td><td>อัปโหลดโลโก้</td></tr>
+      </table>
+    </div>
+
+    <!-- Trip APIs -->
+    <div class="card api-trip">
+      <div class="card-title">Trips CRUD <span class="badge badge-blue">Trips</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/trips</span></td><td>JWT</td><td>รายการทริป</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/trips</span></td><td>JWT</td><td>สร้างทริป (auto-gen days)</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/trips/:id</span></td><td>JWT</td><td>รายละเอียดทริป</td></tr>
+        <tr><td><span class="badge badge-amber">PUT</span></td><td><span class="code-inline">/api/trips/:id</span></td><td>JWT</td><td>แก้ไข + change log</td></tr>
+        <tr><td><span class="badge badge-red">DELETE</span></td><td><span class="code-inline">/api/trips/:id</span></td><td>JWT (Owner)</td><td>ลบ (draft only)</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/trips/:id/publish</span></td><td>JWT (Owner)</td><td>เผยแพร่</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/trips/:id/unpublish</span></td><td>JWT (Owner)</td><td>ยกเลิกเผยแพร่</td></tr>
+      </table>
+    </div>
+
+    <!-- Day APIs -->
+    <div class="card api-day">
+      <div class="card-title">Days Management <span class="badge badge-teal">Days</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/trips/:tripId/days</span></td><td>JWT</td><td>ดึงวันทั้งหมด</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/trips/:tripId/days</span></td><td>JWT</td><td>เพิ่มวัน</td></tr>
+        <tr><td><span class="badge badge-amber">PUT</span></td><td><span class="code-inline">/api/trips/:tripId/days/:dayId</span></td><td>JWT</td><td>แก้ไขวัน</td></tr>
+        <tr><td><span class="badge badge-red">DELETE</span></td><td><span class="code-inline">/api/trips/:tripId/days/:dayId</span></td><td>JWT</td><td>ลบวัน</td></tr>
+        <tr><td><span class="badge badge-amber">PUT</span></td><td><span class="code-inline">/api/trips/:tripId/days/reorder</span></td><td>JWT</td><td>จัดลำดับใหม่</td></tr>
+      </table>
+    </div>
+
+    <!-- Activity APIs -->
+    <div class="card api-activity">
+      <div class="card-title">Activities Management <span class="badge badge-purple">Activities</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/trips/:dayId/activities</span></td><td>JWT</td><td>เพิ่มกิจกรรม</td></tr>
+        <tr><td><span class="badge badge-amber">PUT</span></td><td><span class="code-inline">/api/trips/:dayId/activities/:actId</span></td><td>JWT</td><td>แก้ไขกิจกรรม</td></tr>
+        <tr><td><span class="badge badge-red">DELETE</span></td><td><span class="code-inline">/api/trips/:dayId/activities/:actId</span></td><td>JWT</td><td>ลบกิจกรรม</td></tr>
+        <tr><td><span class="badge badge-amber">PUT</span></td><td><span class="code-inline">/api/trips/:dayId/activities/reorder</span></td><td>JWT</td><td>จัดลำดับใหม่</td></tr>
+      </table>
+    </div>
+
+    <!-- Public APIs -->
+    <div class="card api-public">
+      <div class="card-title">Public / Guest Access <span class="badge badge-green">Public</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/public/t/:slug</span></td><td>-</td><td>ดูทริป (guest view)</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/public/t/:slug/imm</span></td><td>-</td><td>Immigration view</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/public/t/:slug/view</span></td><td>-</td><td>นับ view</td></tr>
+      </table>
+    </div>
+
+    <!-- Follow APIs -->
+    <div class="card api-follow">
+      <div class="card-title">Follow / Subscribe <span class="badge badge-amber">Follow</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/follow/line/webhook</span></td><td>Signature</td><td>LINE webhook</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/follow/web-push/subscribe</span></td><td>-</td><td>สมัคร Web Push</td></tr>
+        <tr><td><span class="badge badge-red">DELETE</span></td><td><span class="code-inline">/api/follow/:followerId/unfollow</span></td><td>-</td><td>ยกเลิกติดตาม</td></tr>
+      </table>
+    </div>
+
+    <!-- Notification & Ack APIs -->
+    <div class="card api-noti">
+      <div class="card-title">Notification & Acknowledge <span class="badge badge-purple">Noti</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/notify/send/:changelogId</span></td><td>JWT</td><td>ส่งแจ้งเตือน</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/notify/resend/:changelogId</span></td><td>JWT</td><td>ส่งซ้ำคนที่ยังไม่อ่าน</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/acknowledge/:changelogId</span></td><td>-</td><td>กดรับทราบ</td></tr>
+      </table>
+    </div>
+
+    <!-- Upload & Health -->
+    <div class="card api-upload">
+      <div class="card-title">Upload & Health <span class="badge badge-teal">Utils</span></div>
+      <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><span class="code-inline">/api/upload/image</span></td><td>JWT</td><td>อัปโหลดรูปไป R2</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><span class="code-inline">/api/health</span></td><td>-</td><td>Health check</td></tr>
+      </table>
+    </div>
+
+    <!-- Status Codes -->
+    <div class="card">
+      <div class="card-title">Response Status Codes</div>
+      <table>
+        <tr><th>Code</th><th>Meaning</th><th>When</th></tr>
+        <tr><td><span class="badge badge-green">200</span></td><td>OK</td><td>สำเร็จ</td></tr>
+        <tr><td><span class="badge badge-green">201</span></td><td>Created</td><td>สร้างสำเร็จ</td></tr>
+        <tr><td><span class="badge badge-gray">204</span></td><td>No Content</td><td>ลบสำเร็จ</td></tr>
+        <tr><td><span class="badge badge-amber">400</span></td><td>Bad Request</td><td>Zod validation failed</td></tr>
+        <tr><td><span class="badge badge-red">401</span></td><td>Unauthorized</td><td>ไม่มี JWT / หมดอายุ</td></tr>
+        <tr><td><span class="badge badge-red">403</span></td><td>Forbidden</td><td>ไม่มีสิทธิ์</td></tr>
+        <tr><td><span class="badge badge-amber">404</span></td><td>Not Found</td><td>ไม่พบ / unpublished</td></tr>
+        <tr><td><span class="badge badge-amber">409</span></td><td>Conflict</td><td>ซ้ำ (duplicate slug)</td></tr>
+        <tr><td><span class="badge badge-red">429</span></td><td>Too Many Requests</td><td>Rate limit เกิน</td></tr>
+        <tr><td><span class="badge badge-red">500</span></td><td>Server Error</td><td>Internal error</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: FRONTEND PAGE STRUCTURE -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec5">
+    <div class="section-title"><span class="num">5</span> Frontend Page Structure</div>
+
+    <div class="card">
+      <div class="card-title">Page Map — 13 Screens</div>
+      <div class="page-map">
+        <div class="page-item">
+          <div class="route">/register</div>
+          <div class="name">A1: สมัครสมาชิก</div>
+          <span class="auth-badge" style="background:#dcfce7;color:#166534;">Public</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/login</div>
+          <div class="name">A2: ล็อกอิน</div>
+          <span class="auth-badge" style="background:#dcfce7;color:#166534;">Public</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard</div>
+          <div class="name">A3: รายการทริป</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/profile</div>
+          <div class="name">A4: โปรไฟล์บริษัท</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/trips/new</div>
+          <div class="name">A5: สร้างทริป (Step 1)</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/trips/[id]/edit</div>
+          <div class="name">A6: แก้ไขวัน/กิจกรรม</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/trips/[id]/preview</div>
+          <div class="name">A7: ดูตัวอย่าง</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/trips/[id]/publish</div>
+          <div class="name">A8: Publish & Share</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/trips/[id]/receipts</div>
+          <div class="name">A9: Read Receipt</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/dashboard/usage</div>
+          <div class="name">A10: Usage & Limits</div>
+          <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Auth Required</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/t/[slug]</div>
+          <div class="name">G1: Guest View</div>
+          <span class="auth-badge" style="background:#dcfce7;color:#166534;">Public (SSR)</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/t/[slug]/imm</div>
+          <div class="name">G2: Immigration View</div>
+          <span class="auth-badge" style="background:#dcfce7;color:#166534;">Public (SSR)</span>
+        </div>
+        <div class="page-item">
+          <div class="route">/</div>
+          <div class="name">Landing Page</div>
+          <span class="auth-badge" style="background:#dcfce7;color:#166534;">Public</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: API & FRONTEND INTERACTION MAP -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec6">
+    <div class="section-title"><span class="num">6</span> API & Frontend Interaction Map</div>
+
+    <div class="card">
+      <div class="card-title">Button -> API Mapping (Complete)</div>
+<div class="code-block" style="font-size:0.78rem;">
+── AUTHENTICATION ──
+[สมัครสมาชิก]                       POST /api/auth/register
+[เข้าสู่ระบบ]                       POST /api/auth/login
+[ออกจากระบบ]                       POST /api/auth/logout
+Page load (auth pages)              GET  /api/auth/session
+
+── COMPANY ──
+Page load (profile)                 GET  /api/company/me
+[บันทึก] (profile)                  PUT  /api/company/me
+Logo drag-drop                      POST /api/company/me/logo
+
+── TRIPS ──
+Page load (dashboard)               GET  /api/trips
+[+ สร้างทริป] -> [ถัดไป]            POST /api/trips
+Page load (edit/preview)            GET  /api/trips/:id
+Auto-save (edit)                    PUT  /api/trips/:id
+[ลบทริป]                           DELETE /api/trips/:id
+[เผยแพร่]                          POST /api/trips/:id/publish
+[ยกเลิกเผยแพร่]                    POST /api/trips/:id/unpublish
+
+── DAYS ──
+[+ วัน]                             POST /api/trips/:t/days
+Auto-save (day fields)              PUT  /api/trips/:t/days/:d
+[ลบวัน]                            DELETE /api/trips/:t/days/:d
+Drag reorder (tabs)                 PUT  /api/trips/:t/days/reorder
+
+── ACTIVITIES ──
+[+ เพิ่มกิจกรรม]                    POST /api/trips/:d/activities
+Auto-save (fields)                  PUT  /api/trips/:d/activities/:a
+[ลบกิจกรรม]                        DELETE /api/trips/:d/activities/:a
+Drag reorder                        PUT  /api/trips/:d/activities/reorder
+
+── IMAGES ──
+Any image upload                    POST /api/upload/image
+
+── PUBLIC / GUEST ──
+Page load (/t/slug)                 GET  /api/public/t/:slug
+Page load (imm)                     GET  /api/public/t/:slug/imm
+Auto (on visit)                     POST /api/public/t/:slug/view
+
+── FOLLOW / SUBSCRIBE ──
+LINE Add Friend -> webhook          POST /api/follow/line/webhook
+[Web Push ติดตาม]                   POST /api/follow/web-push/subscribe
+[ยกเลิกติดตาม]                     DELETE /api/follow/:f/unfollow
+
+── NOTIFICATIONS ──
+Auto (after trip edit)              POST /api/notify/send/:c
+[ส่งซ้ำ]                           POST /api/notify/resend/:c
+
+── ACKNOWLEDGE ──
+[รับทราบ]                          POST /api/acknowledge/:c
+
+── ANALYTICS ──
+Page load (receipts)                GET  /api/trips/:t/changelog
+Page load (receipts detail)         GET  /api/trips/:t/followers/:c
+Page load (stats)                   GET  /api/trips/:t/stats
+</div>
+    </div>
+
+    <!-- Flow: Create Trip -->
+    <div class="card">
+      <div class="card-title">Data Flow: Create Trip</div>
+      <div class="flow-box">
+        <span class="step-num">1</span>
+        <strong>User fills form -> [ถัดไป]</strong><br>
+        <span class="code-inline">POST /api/upload/image</span> (cover image)<br>
+        -> returns <span class="code-inline">{ url: "https://cdn.natgan.com/..." }</span>
+      </div>
+      <div class="flow-box">
+        <span class="step-num">2</span>
+        <strong>Create trip with auto-generated days</strong><br>
+        <span class="code-inline">POST /api/trips</span> body: { title, destination, dates, ... }<br>
+        -> Server auto-creates N days from date range<br>
+        -> returns trip object with empty days[]
+      </div>
+      <div class="flow-box">
+        <span class="step-num">3</span>
+        <strong>Redirect to editor</strong><br>
+        -> <span class="code-inline">/dashboard/trips/[id]/edit</span>
+      </div>
+    </div>
+
+    <!-- Flow: Edit & Notify -->
+    <div class="card">
+      <div class="card-title">Data Flow: Edit & Notify</div>
+      <div class="flow-box">
+        <span class="step-num">1</span>
+        <strong>User edits activity (e.g., time 08:30 -> 09:00)</strong><br>
+        <span class="code-inline">PUT /api/trips/:dayId/activities/:actId</span><br>
+        -> Server: update + increment edit_count + create noti_change_logs
+      </div>
+      <div class="flow-box">
+        <span class="step-num">2</span>
+        <strong>Automatic notification dispatch</strong><br>
+        <span class="code-inline">POST /api/notify/send/:changelogId</span><br>
+        -> Query followers -> Send LINE push + Web Push<br>
+        -> Returns: <span class="code-inline">{ sent: { line: 18, web_push: 12 } }</span>
+      </div>
+      <div class="flow-box">
+        <span class="step-num">3</span>
+        <strong>Follower receives & acknowledges</strong><br>
+        LINE: Tap link -> /t/slug -> [รับทราบ] -> <span class="code-inline">POST /api/acknowledge/:c</span><br>
+        Web Push: Click -> /t/slug -> [รับทราบ] -> <span class="code-inline">POST /api/acknowledge/:c</span>
+      </div>
+    </div>
+
+    <!-- Flow: Follow via LINE -->
+    <div class="card">
+      <div class="card-title">Data Flow: Follow via LINE</div>
+      <div class="flow-box">
+        <span class="step-num">1</span>
+        <strong>Guest View -> [ติดตามทริปนี้] -> [LINE]</strong><br>
+        Redirect to LINE Add Friend: <span class="code-inline">line.me/R/ti/p/@natgan-oa</span>
+      </div>
+      <div class="flow-box">
+        <span class="step-num">2</span>
+        <strong>LINE Platform sends "follow" event</strong><br>
+        <span class="code-inline">POST /api/follow/line/webhook</span><br>
+        -> Verify signature -> Create noti_followers entry<br>
+        -> Reply: "สวัสดี! กำลังติดตามทริป: Tokyo Winter 2026"
+      </div>
+      <div class="flow-box">
+        <span class="step-num">3</span>
+        <strong>Follower is now subscribed</strong><br>
+        จะได้รับแจ้งเตือนทุกครั้งที่แผนเปลี่ยน
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: SECURITY ARCHITECTURE -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec7">
+    <div class="section-title"><span class="num">7</span> Security Architecture</div>
+
+    <!-- Security Icons -->
+    <div class="grid-4" style="margin-bottom: 20px;">
+      <div class="sec-card">
+        <div class="icon">🔐</div>
+        <div class="label">Auth.js JWT</div>
+        <div class="desc">httpOnly cookie, bcrypt</div>
+      </div>
+      <div class="sec-card">
+        <div class="icon">🛡️</div>
+        <div class="label">AES-256-GCM</div>
+        <div class="desc">All data encrypted at rest</div>
+      </div>
+      <div class="sec-card">
+        <div class="icon">⚡</div>
+        <div class="label">Rate Limiting</div>
+        <div class="desc">Per-endpoint throttle</div>
+      </div>
+      <div class="sec-card">
+        <div class="icon">✅</div>
+        <div class="label">Zod Validation</div>
+        <div class="desc">All inputs validated</div>
+      </div>
+    </div>
+
+    <!-- OWASP -->
+    <div class="card">
+      <div class="card-title">OWASP Top 10 Checklist</div>
+      <table>
+        <tr><th>#</th><th>Threat</th><th>Mitigation</th></tr>
+        <tr><td>A01</td><td>Broken Access Control</td><td>App-level auth, company_id filter ทุก query</td></tr>
+        <tr><td>A02</td><td>Cryptographic Failures</td><td>AES-256-GCM at rest, TLS in transit</td></tr>
+        <tr><td>A03</td><td>Injection</td><td>Parameterized queries (Drizzle ORM), Zod validation</td></tr>
+        <tr><td>A04</td><td>Insecure Design</td><td>Least privilege, Guest เห็นแค่ published trips</td></tr>
+        <tr><td>A05</td><td>Security Misconfiguration</td><td>CSP, X-Frame-Options, HSTS headers</td></tr>
+        <tr><td>A06</td><td>Vulnerable Components</td><td>npm audit + Dependabot</td></tr>
+        <tr><td>A07</td><td>Auth Failures</td><td>bcrypt + JWT, lockout after 5 fails</td></tr>
+        <tr><td>A08</td><td>Software Integrity</td><td>Vercel signed deployments</td></tr>
+        <tr><td>A09</td><td>Logging Failures</td><td>Structured logging: auth, errors, rate limits</td></tr>
+        <tr><td>A10</td><td>SSRF</td><td>No user-controlled URLs fetched server-side</td></tr>
+      </table>
+    </div>
+
+    <!-- Rate Limiting -->
+    <div class="card">
+      <div class="card-title">Rate Limiting Rules</div>
+      <table>
+        <tr><th>Endpoint Group</th><th>Limit</th><th>Window</th><th>Action</th></tr>
+        <tr><td><span class="code-inline">/api/auth/login</span></td><td>5 req</td><td>15 min</td><td>429 + 15 min lockout</td></tr>
+        <tr><td><span class="code-inline">/api/auth/register</span></td><td>3 req</td><td>1 hour</td><td>429 + block IP</td></tr>
+        <tr><td><span class="code-inline">/api/trips/*</span> (write)</td><td>60 req</td><td>1 min</td><td>429</td></tr>
+        <tr><td><span class="code-inline">/api/trips/*</span> (read)</td><td>120 req</td><td>1 min</td><td>429</td></tr>
+        <tr><td><span class="code-inline">/api/upload/image</span></td><td>20 req</td><td>1 min</td><td>429</td></tr>
+        <tr><td><span class="code-inline">/api/public/*</span></td><td>300 req</td><td>1 min</td><td>429</td></tr>
+        <tr><td><span class="code-inline">/api/follow/*</span></td><td>30 req</td><td>1 min</td><td>429</td></tr>
+        <tr><td><span class="code-inline">/api/notify/*</span></td><td>10 req</td><td>1 min</td><td>429</td></tr>
+      </table>
+    </div>
+
+    <!-- Auth Flow -->
+    <div class="card">
+      <div class="card-title">Authentication Flow</div>
+<div class="code-block" style="font-size:0.78rem;">
+Client                          Server
+──────                          ──────
+POST /login                     1. Zod validate
+{email, password}  ────────►    2. Find user by email
+                                3. bcrypt.compare(password)
+                                4. Generate JWT (exp: 7d)
+                                5. Set httpOnly cookie
+◄──── 200 + Set-Cookie             (next-auth.session-token)
+
+GET /api/trips                  1. Verify JWT signature
+Cookie: next-auth... ──────►    2. Check expiry
+                                3. Extract user.id, company_id
+                                4. Query WHERE company_id = ?
+◄──── 200 {trips}
+</div>
+      <div style="margin-top: 12px;">
+        <strong>JWT Payload:</strong>
+        <span class="code-inline">{ sub, email, name, role, company_id, iat, exp }</span>
+      </div>
+      <div style="margin-top: 8px;">
+        <strong>Cookie:</strong>
+        <span class="code-inline">httpOnly: true, secure: true, sameSite: "lax", maxAge: 7d</span>
+      </div>
+    </div>
+
+    <!-- HTTP Headers -->
+    <div class="card">
+      <div class="card-title">HTTP Security Headers</div>
+      <table>
+        <tr><th>Header</th><th>Value</th></tr>
+        <tr><td>X-Content-Type-Options</td><td><span class="code-inline">nosniff</span></td></tr>
+        <tr><td>X-Frame-Options</td><td><span class="code-inline">DENY</span></td></tr>
+        <tr><td>X-XSS-Protection</td><td><span class="code-inline">1; mode=block</span></td></tr>
+        <tr><td>Referrer-Policy</td><td><span class="code-inline">strict-origin-when-cross-origin</span></td></tr>
+        <tr><td>Strict-Transport-Security</td><td><span class="code-inline">max-age=63072000; includeSubDomains; preload</span></td></tr>
+        <tr><td>Content-Security-Policy</td><td><span class="code-inline">default-src 'self'; img-src 'self' cdn.natgan.com</span></td></tr>
+        <tr><td>Permissions-Policy</td><td><span class="code-inline">camera=(), microphone=(), geolocation=()</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: PERMISSION MODEL -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec8">
+    <div class="section-title"><span class="num">8</span> Permission Model</div>
+
+    <div class="card">
+      <div class="card-title">Role-Based Access Matrix</div>
+      <table>
+        <tr><th>Action</th><th>Owner</th><th>Editor</th><th>Guest</th><th>No Auth</th></tr>
+        <tr><td>Register / Login</td><td class="perm-na">-</td><td class="perm-na">-</td><td class="perm-na">-</td><td class="perm-yes">✅</td></tr>
+        <tr><td>View dashboard</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Create trip</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Edit trip</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Delete trip</td><td class="perm-yes">✅</td><td class="perm-no">❌</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Publish / Unpublish</td><td class="perm-yes">✅</td><td class="perm-no">❌</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Edit company profile</td><td class="perm-yes">✅</td><td class="perm-no">❌</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Upload logo</td><td class="perm-yes">✅</td><td class="perm-no">❌</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>View read receipts</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>Send notifications</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-na">-</td><td class="perm-na">-</td></tr>
+        <tr><td>View published trip</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td></tr>
+        <tr><td>Follow trip</td><td class="perm-na">-</td><td class="perm-na">-</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td></tr>
+        <tr><td>Acknowledge change</td><td class="perm-na">-</td><td class="perm-na">-</td><td class="perm-yes">✅</td><td class="perm-na">-</td></tr>
+      </table>
+    </div>
+
+    <!-- Data Isolation -->
+    <div class="card">
+      <div class="card-title">Multi-tenant Data Isolation</div>
+      <div class="highlight-quote">
+        ทุก query ต้อง filter <span class="code-inline">WHERE company_id = auth.companyId</span> เสมอ — ป้องกัน IDOR
+      </div>
+<div class="code-block">// ❌ WRONG — ไม่ filter company
+const trip = await db.select().from(tripPlans)
+  .where(eq(tripPlans.id, tripId));
+
+// ✅ CORRECT — filter company เสมอ
+const trip = await db.select().from(tripPlans)
+  .where(and(
+    eq(tripPlans.id, tripId),
+    eq(tripPlans.companyId, auth.companyId)
+  ));</div>
+    </div>
+
+    <!-- Free Tier Limits -->
+    <div class="card">
+      <div class="card-title">Tier Limits</div>
+      <table>
+        <tr><th>Resource</th><th><span class="badge badge-gray">Free</span></th><th><span class="badge badge-blue">Pro 299บ</span></th><th><span class="badge badge-purple">Business 999บ</span></th></tr>
+        <tr><td>Active trips</td><td>3</td><td>20</td><td>Unlimited</td></tr>
+        <tr><td>Edits per trip</td><td>50</td><td>Unlimited</td><td>Unlimited</td></tr>
+        <tr><td>Followers per trip</td><td>50</td><td>500</td><td>Unlimited</td></tr>
+        <tr><td>Image storage</td><td>100 MB</td><td>1 GB</td><td>10 GB</td></tr>
+        <tr><td>LINE messages/month</td><td>500</td><td>5,000</td><td>25,000</td></tr>
+        <tr><td>Custom slug</td><td class="perm-no">❌</td><td class="perm-yes">✅</td><td class="perm-yes">✅</td></tr>
+        <tr><td>Remove branding</td><td class="perm-no">❌</td><td class="perm-no">❌</td><td class="perm-yes">✅</td></tr>
+        <tr><td>Team members</td><td>1</td><td>3</td><td>10</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: SYSTEM WORKFLOW -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec9">
+    <div class="section-title"><span class="num">9</span> System Workflow</div>
+
+    <div class="card">
+      <div class="card-title">Complete User Journey (7 Steps)</div>
+
+      <div style="display:grid;gap:16px;">
+        <div style="background:#f3e8ff;border-radius:12px;padding:16px;border-left:4px solid #7c3aed;">
+          <strong style="color:#7c3aed;">1. Register & Setup</strong><br>
+          สมัครสมาชิก (email + password + ชื่อบริษัท) -> สร้าง mst_companies + mst_users -> กรอก Company Profile
+        </div>
+        <div style="background:#dbeafe;border-radius:12px;padding:16px;border-left:4px solid #2563eb;">
+          <strong style="color:#2563eb;">2. Create Trip</strong><br>
+          [+ สร้างทริป] -> Step 1: กรอกข้อมูล -> [ถัดไป] -> auto-generate วัน -> Step 2: เพิ่มกิจกรรม, drag-drop, auto-save
+        </div>
+        <div style="background:#ccfbf1;border-radius:12px;padding:16px;border-left:4px solid #0d9488;">
+          <strong style="color:#0d9488;">3. Preview & Publish</strong><br>
+          [ดูตัวอย่าง] -> เห็น Guest View -> [เผยแพร่] -> ได้ลิงก์ natgan.com/t/{slug} + QR Code
+        </div>
+        <div style="background:#fef3c7;border-radius:12px;padding:16px;border-left:4px solid #d97706;">
+          <strong style="color:#d97706;">4. Share & Follow</strong><br>
+          แชร์ลิงก์/QR -> ลูกทัวร์เปิดดู -> [ติดตาม] -> LINE Add Friend / Web Push subscribe
+        </div>
+        <div style="background:#fee2e2;border-radius:12px;padding:16px;border-left:4px solid #dc2626;">
+          <strong style="color:#dc2626;">5. Edit & Notify</strong><br>
+          แก้ไขกิจกรรม -> detect changes -> สร้าง change log -> ส่ง LINE Push + Web Push อัตโนมัติ
+        </div>
+        <div style="background:#dcfce7;border-radius:12px;padding:16px;border-left:4px solid #16a34a;">
+          <strong style="color:#16a34a;">6. Acknowledge & Track</strong><br>
+          ลูกทัวร์เห็นแจ้งเตือน -> เปิดลิงก์ -> [รับทราบ] -> ทัวร์ลีดเดอร์ดู Read Receipt Dashboard
+        </div>
+        <div style="background:#e0e7ff;border-radius:12px;padding:16px;border-left:4px solid #4338ca;">
+          <strong style="color:#4338ca;">7. Immigration View</strong><br>
+          ลูกทัวร์ที่สนามบิน -> /t/{slug}/imm -> ดูโรงแรม/เที่ยวบิน/เบอร์ฉุกเฉิน -> [พิมพ์]
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Engine -->
+    <div class="card">
+      <div class="card-title">Notification Engine Workflow</div>
+<div class="er-diagram">
+Trip Edit Saved
+     │
+     ▼
+┌──────────────┐
+│ Diff Engine   │  Compare old vs new state
+│               │  Generate changes[] JSONB
+│               │  Generate summary_text (Thai)
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ Change Log   │  INSERT INTO noti_change_logs
+│              │  { trip_id, changed_by, changes, summary }
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ Dispatcher   │  Query noti_followers WHERE trip_id
+│              │  Group by channel
+└──────┬───────┘
+       │
+  ┌────┴────┐
+  ▼         ▼
+┌──────┐ ┌──────────┐
+│ LINE │ │ Web Push │
+│ Push │ │ Notif.   │
+└──┬───┘ └────┬─────┘
+   │          │
+   ▼          ▼
+┌──────────────────┐
+│ noti_sent = true │
+│ noti_sent_at     │
+└──────────────────┘
+</div>
+    </div>
+
+    <!-- LINE Message Format -->
+    <div class="card">
+      <div class="card-title">LINE Notification Message Format</div>
+      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:20px;font-size:0.95rem;line-height:1.8;">
+        🔔 <strong>NatGan — Tokyo Winter 2026</strong><br><br>
+        ⚠️ มีการเปลี่ยนแปลง:<br>
+        • Day 2: เปลี่ยนเวลา teamLab 08:30 → 09:00<br>
+        • Day 2: เพิ่ม 'แวะ 7-Eleven' เวลา 08:00<br>
+        • Day 3: ยกเลิก 'ตลาดวโรรส' (ปิดปรับปรุง)<br><br>
+        👉 ดูรายละเอียด + กดรับทราบ:<br>
+        <span style="color:var(--purple);text-decoration:underline;">natgan.com/t/tokyo-winter-2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: DELIVERABLES -->
+  <!-- ============================================================ -->
+  <div class="section" id="sec10">
+    <div class="section-title"><span class="num">10</span> Deliverables & Definition of Done</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Week 1-2: Foundation</div>
+        <ul style="font-size:0.88rem;line-height:2;">
+          <li>Next.js 15 + Tailwind v4 initialized</li>
+          <li>PostgreSQL Docker on VPS</li>
+          <li>Drizzle schema + migrations (8 tables)</li>
+          <li>Auth.js (credentials provider)</li>
+          <li>Register + Login pages</li>
+          <li>Company Profile + logo upload</li>
+          <li>R2 integration</li>
+          <li>Rate limiting + Zod + error handling</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Week 3-4: Trip Builder</div>
+        <ul style="font-size:0.88rem;line-height:2;">
+          <li>Trip list on dashboard</li>
+          <li>Create trip wizard (Step 1)</li>
+          <li>Trip editor with day tabs</li>
+          <li>Activity CRUD + drag-reorder</li>
+          <li>JSONB editors (airlines, hotels)</li>
+          <li>Image upload for covers</li>
+          <li>Auto-save draft every 30s</li>
+          <li>Trip deletion (draft only)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Week 5-6: Guest & Share</div>
+        <ul style="font-size:0.88rem;line-height:2;">
+          <li>Publish flow + slug generation</li>
+          <li>Guest View (SSR, mobile-first)</li>
+          <li>Immigration View</li>
+          <li>QR Code generation + download</li>
+          <li>Share template + copy buttons</li>
+          <li>View counter</li>
+          <li>OG meta tags for social</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Week 7-8: Notification</div>
+        <ul style="font-size:0.88rem;line-height:2;">
+          <li>Change detection engine</li>
+          <li>LINE Messaging API integration</li>
+          <li>Web Push (VAPID)</li>
+          <li>Follow modal on guest page</li>
+          <li>Notification dispatch</li>
+          <li>Acknowledge system</li>
+          <li>Read Receipt dashboard</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="border: 2px solid var(--green);">
+      <div class="card-title" style="color:var(--green);">Week 9-10: Polish & Launch</div>
+      <div class="grid-2">
+        <ul style="font-size:0.88rem;line-height:2;">
+          <li>Usage & Limits page</li>
+          <li>Free tier enforcement</li>
+          <li>Empty states & error pages</li>
+          <li>Loading skeletons</li>
+          <li>Performance (Lighthouse 90+)</li>
+        </ul>
+        <ul style="font-size:0.88rem;line-height:2;">
+          <li>OWASP security audit</li>
+          <li>AES-256 encryption verified</li>
+          <li>HTTP security headers</li>
+          <li>5 pilot companies onboarded</li>
+          <li>Production deployment ✅</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- File Structure -->
+    <div class="card">
+      <div class="card-title">Project File Structure</div>
+<div class="code-block" style="font-size:0.75rem;">
+natgan/
+├── app/
+│   ├── (auth)/login/page.tsx, register/page.tsx
+│   ├── (dashboard)/
+│   │   ├── dashboard/page.tsx               # Trip list
+│   │   ├── dashboard/profile/page.tsx       # Company profile
+│   │   ├── dashboard/usage/page.tsx         # Usage & limits
+│   │   └── dashboard/trips/
+│   │       ├── new/page.tsx                 # Step 1: General info
+│   │       └── [id]/edit, preview, publish, receipts
+│   ├── t/[slug]/page.tsx                    # Guest View (SSR)
+│   ├── t/[slug]/imm/page.tsx                # Immigration View
+│   └── api/                                 # 30+ API routes
+│       ├── auth/[...nextauth]/route.ts
+│       ├── company/me/route.ts
+│       ├── trips/route.ts, [id]/route.ts
+│       ├── public/t/[slug]/route.ts
+│       ├── follow/line/webhook/route.ts
+│       ├── notify/send/[changelogId]/route.ts
+│       └── ...
+├── lib/
+│   ├── db/schema.ts, index.ts, migrate.ts  # Drizzle
+│   ├── auth/options.ts, session.ts          # Auth.js
+│   ├── storage/r2.ts                        # Cloudflare R2
+│   ├── notifications/line.ts, web-push.ts   # Notification
+│   ├── crypto.ts                            # AES-256-GCM
+│   ├── rate-limit.ts                        # Rate limiter
+│   └── validations/auth.ts, trip.ts         # Zod schemas
+├── components/ui/, trip/, dashboard/, guest/
+├── drizzle/migrations/
+└── .env.local, next.config.ts, package.json
+</div>
+    </div>
+
+    <!-- ENV vars -->
+    <div class="card">
+      <div class="card-title">Environment Variables</div>
+      <table>
+        <tr><th>Variable</th><th>Purpose</th></tr>
+        <tr><td><span class="code-inline">DATABASE_URL</span></td><td>PostgreSQL connection string</td></tr>
+        <tr><td><span class="code-inline">NEXTAUTH_URL</span></td><td>https://natgan.com</td></tr>
+        <tr><td><span class="code-inline">NEXTAUTH_SECRET</span></td><td>JWT signing secret</td></tr>
+        <tr><td><span class="code-inline">ENCRYPTION_KEY</span></td><td>AES-256 encryption key (64 hex)</td></tr>
+        <tr><td><span class="code-inline">R2_ACCOUNT_ID</span></td><td>Cloudflare R2 account</td></tr>
+        <tr><td><span class="code-inline">R2_ACCESS_KEY_ID</span></td><td>R2 access key</td></tr>
+        <tr><td><span class="code-inline">R2_SECRET_ACCESS_KEY</span></td><td>R2 secret key</td></tr>
+        <tr><td><span class="code-inline">R2_BUCKET_NAME</span></td><td>natgan-assets</td></tr>
+        <tr><td><span class="code-inline">R2_PUBLIC_URL</span></td><td>https://cdn.natgan.com</td></tr>
+        <tr><td><span class="code-inline">LINE_CHANNEL_ID</span></td><td>LINE Messaging API channel</td></tr>
+        <tr><td><span class="code-inline">LINE_CHANNEL_SECRET</span></td><td>LINE webhook verification</td></tr>
+        <tr><td><span class="code-inline">LINE_CHANNEL_ACCESS_TOKEN</span></td><td>LINE push message token</td></tr>
+        <tr><td><span class="code-inline">NEXT_PUBLIC_VAPID_PUBLIC_KEY</span></td><td>Web Push public key</td></tr>
+        <tr><td><span class="code-inline">VAPID_PRIVATE_KEY</span></td><td>Web Push private key</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <strong>NatGan</strong> — System Development Blueprint v1.0<br>
+  Living Document | อ่านแล้วมองเห็นภาพรวมทั้งโปรเจค<br>
+  <span style="opacity:0.7;">natgan.com | 17 March 2026</span>
+</div>
+
+</body>
+</html>

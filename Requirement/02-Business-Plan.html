@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NatGan — Business Plan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #EEF2FF;
+            --primary-dark: #3730A3;
+            --accent: #F59E0B;
+            --accent-light: #FEF3C7;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --info: #3B82F6;
+            --info-light: #DBEAFE;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-500: #6B7280;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            color: var(--gray-800);
+            line-height: 1.8;
+            background: var(--gray-50);
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        .doc-header {
+            background: linear-gradient(135deg, #1E1B4B, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 60px 48px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .doc-header::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            right: -15%;
+            width: 500px;
+            height: 500px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .doc-header::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 50%;
+        }
+        .doc-header .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        .doc-header h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .doc-header .subtitle {
+            font-size: 1.15rem;
+            opacity: 0.85;
+            margin-bottom: 24px;
+        }
+        .doc-header .pitch {
+            background: rgba(255,255,255,0.12);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        .doc-header .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            opacity: 0.75;
+        }
+        .doc-header .meta span {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 36px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid var(--gray-200);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 28px 0 12px;
+        }
+        h3:first-child { margin-top: 0; }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 20px 0 8px;
+        }
+
+        p { margin-bottom: 12px; }
+        strong { color: var(--gray-900); }
+
+        ul, ol { margin: 8px 0 16px 24px; }
+        li { margin-bottom: 6px; }
+        li ul { margin-top: 6px; }
+
+        /* Tables */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        thead { background: var(--primary-light); }
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-dark);
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px 16px;
+            border-top: 1px solid var(--gray-100);
+        }
+        tbody tr:hover { background: var(--gray-50); }
+
+        /* Code */
+        pre {
+            background: var(--gray-900);
+            color: #E5E7EB;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            margin: 16px 0;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--gray-100);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--primary-dark);
+        }
+        pre code { background: none; padding: 0; color: inherit; }
+
+        /* Callouts */
+        .callout {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-weight: 500;
+        }
+        .callout-primary { background: var(--primary-light); border-left: 4px solid var(--primary); color: var(--primary-dark); }
+        .callout-warning { background: var(--accent-light); border-left: 4px solid var(--accent); color: #92400E; }
+        .callout-success { background: var(--success-light); border-left: 4px solid var(--success); color: #065F46; }
+        .callout-danger { background: var(--danger-light); border-left: 4px solid var(--danger); color: #991B1B; }
+        .callout-info { background: var(--info-light); border-left: 4px solid var(--info); color: #1E40AF; }
+
+        /* Stat cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        /* SWOT */
+        .swot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .swot-card {
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .swot-card h4 { margin-top: 0; }
+        .swot-card ul { margin-left: 16px; }
+        .swot-s { background: #ECFDF5; border: 1px solid #A7F3D0; }
+        .swot-s h4 { color: #065F46; }
+        .swot-w { background: #FEF2F2; border: 1px solid #FECACA; }
+        .swot-w h4 { color: #991B1B; }
+        .swot-o { background: #EFF6FF; border: 1px solid #BFDBFE; }
+        .swot-o h4 { color: #1E40AF; }
+        .swot-t { background: #FFFBEB; border: 1px solid #FDE68A; }
+        .swot-t h4 { color: #92400E; }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-primary { background: var(--primary-light); color: var(--primary-dark); }
+        .badge-success { background: var(--success-light); color: #065F46; }
+        .badge-danger { background: var(--danger-light); color: #991B1B; }
+        .badge-warning { background: var(--accent-light); color: #92400E; }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--gray-200);
+            margin: 24px 0;
+        }
+
+        /* Timeline */
+        .timeline {
+            border-left: 3px solid var(--primary-light);
+            padding-left: 24px;
+            margin: 20px 0 20px 12px;
+        }
+        .timeline-item {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid white;
+        }
+        .timeline-item h4 {
+            margin-top: 0;
+            color: var(--gray-800);
+        }
+        .timeline-item .date {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        /* TOC */
+        .toc {
+            background: var(--gray-100);
+            border-radius: 10px;
+            padding: 24px 28px;
+            margin-bottom: 32px;
+        }
+        .toc h3 { margin-top: 0; color: var(--gray-700); }
+        .toc ol { margin-bottom: 0; }
+        .toc a { color: var(--primary); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        /* Highlight box */
+        .highlight-box {
+            background: linear-gradient(135deg, var(--primary-light), #F0EBFF);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+        .highlight-box h3 { color: var(--primary-dark); margin-top: 0; }
+
+        /* Summary table */
+        .summary-table td:first-child {
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+
+        /* Footer */
+        .doc-footer {
+            text-align: center;
+            padding: 32px;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        @media print {
+            body { background: white; }
+            .container { padding: 0; }
+            .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+            .doc-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 16px; }
+            .doc-header { padding: 32px 24px; }
+            .doc-header h1 { font-size: 1.5rem; }
+            .section { padding: 20px; }
+            .swot-grid { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: 1fr 1fr; }
+            h2 { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="doc-header">
+        <div class="label">Business Plan</div>
+        <h1>NatGan</h1>
+        <div class="subtitle">Trip Communication Platform</div>
+        <div class="pitch">"แก้ plan เมื่อไหร่ ลูกทริปรู้เมื่อนั้น"</div>
+        <div class="meta">
+            <span>Version 1.0</span>
+            <span>17 March 2026</span>
+            <span>Confidential</span>
+            <span>Investor Presentation</span>
+        </div>
+    </div>
+
+    <!-- TOC -->
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ol>
+            <li><a href="#s1">Executive Summary</a></li>
+            <li><a href="#s2">Problem</a></li>
+            <li><a href="#s3">Solution</a></li>
+            <li><a href="#s4">Market Analysis</a></li>
+            <li><a href="#s5">Competitive Analysis</a></li>
+            <li><a href="#s6">Business Model</a></li>
+            <li><a href="#s7">Go-to-Market Strategy</a></li>
+            <li><a href="#s8">Financial Projections</a></li>
+            <li><a href="#s9">SWOT Analysis</a></li>
+            <li><a href="#s10">Hidden Insights</a></li>
+            <li><a href="#s11">Team</a></li>
+            <li><a href="#s12">Milestones &amp; Timeline</a></li>
+            <li><a href="#s13">The Ask</a></li>
+            <li><a href="#s14">Summary</a></li>
+        </ol>
+    </div>
+
+    <!-- 1. Executive Summary -->
+    <div class="section" id="s1">
+        <h2>1. Executive Summary</h2>
+        <p><strong>NatGan</strong> คือ SaaS platform สำหรับบริษัททัวร์และไกด์อิสระ ที่เปลี่ยนวิธีสื่อสาร itinerary กับลูกทริป จากการส่ง PDF/รูปใน LINE ที่จมหาย → เป็นระบบ <strong>live itinerary</strong> ที่แก้ไขได้ แจ้งเตือนอัตโนมัติ และรู้ว่าใครเห็นแล้วใครยังไม่เห็น</p>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="number">8,000+</div>
+                <div class="label">บริษัททัวร์ไทย (active)</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">20,000+</div>
+                <div class="label">ไกด์อิสระ</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">200M</div>
+                <div class="label">ทริปในประเทศ/ปี</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">0</div>
+                <div class="label">Direct competitors (ไทย)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Problem -->
+    <div class="section" id="s2">
+        <h2>2. Problem</h2>
+
+        <h3>2.1 สถานการณ์จริงที่เกิดขึ้นทุกวัน</h3>
+        <pre><code>บริษัททัวร์ส่ง itinerary ทาง LINE
+        ↓
+ลูกทัวร์ 30 คน อ่านบ้าง ไม่อ่านบ้าง
+        ↓
+วันเดินทาง: สถานที่ปิด / ฝนตก / เปลี่ยนร้านอาหาร
+        ↓
+ไกด์ส่ง LINE: "เปลี่ยนจุดนัดพบนะคะ"
+        ↓
+5 คนไม่เห็น → ไปผิดที่ → โทรตามกัน
+        ↓
+ลูกทัวร์หงุดหงิด → ไกด์เหนื่อย → รีวิวไม่ดี</code></pre>
+
+        <h3>2.2 ทำไมปัญหานี้ยังไม่ถูกแก้</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Solution ที่มีอยู่</th><th>ทำไมแก้ไม่ได้</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>LINE Group</strong></td><td>ข้อมูลจมในแชท, ไม่มี read receipt สำหรับ itinerary, ส่งรูปแล้วหาไม่เจอ</td></tr>
+                    <tr><td><strong>PDF / Canva</strong></td><td>Static, แก้ทีต้องส่งไฟล์ใหม่, ลูกทริปไม่รู้ว่าอันไหนล่าสุด</td></tr>
+                    <tr><td><strong>AI Gen Trip</strong></td><td>สวยแต่เป็นภาพนิ่ง, แก้ไขไม่ได้, ไม่มี notification, ไม่รองรับ B2B</td></tr>
+                    <tr><td><strong>LINE OA</strong></td><td>ค่าใช้จ่ายสูง (1,500+ บ/เดือน), ไม่ได้ออกแบบมาเพื่อ itinerary</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>2.3 ขนาดของปัญหา</h3>
+        <ul>
+            <li>บริษัททัวร์เฉลี่ยมีการเปลี่ยน itinerary <strong>3-5 ครั้ง/เดือน</strong></li>
+            <li>ไกด์ใช้เวลา <strong>30 นาที - 1 ชั่วโมง/ครั้ง</strong> ในการแจ้งและโทรตามลูกทริป</li>
+            <li><strong>ลูกทริปที่ไม่เห็นข้อความ = ปัญหาหน้างานทุกครั้ง</strong></li>
+        </ul>
+    </div>
+
+    <!-- 3. Solution -->
+    <div class="section" id="s3">
+        <h2>3. Solution</h2>
+
+        <div class="callout callout-primary">
+            <strong>NatGan = Trip Communication Tool</strong> — ไม่ใช่แค่ trip planner
+        </div>
+
+        <h3>3.1 How it works</h3>
+        <pre><code>Admin (บริษัททัวร์/ไกด์)          ลูกทริป
+┌──────────────────┐            ┌────────────────────┐
+│ สร้าง Trip Plan  │            │ เปิด link/QR ดูได้ │
+│ Publish → URL+QR │───────────→│ ไม่ต้องสมัคร       │
+│                  │            │ ไม่ต้องโหลด app    │
+│ แก้ไข Plan       │            │                    │
+│      ↓           │            │                    │
+│ ระบบตรวจจับ      │  LINE      │ ได้ noti ทันที     │
+│ การเปลี่ยนแปลง   │──MSG API─→│ กด "รับทราบ"       │
+│      ↓           │            │                    │
+│ เห็นว่าใครรู้แล้ว │←──────────│                    │
+│ ใครยังไม่รู้      │            │                    │
+│ (โทรตามแค่ 2 คน) │            │                    │
+└──────────────────┘            └────────────────────┘</code></pre>
+
+        <h3>3.2 Killer Features</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>ทำไมสำคัญ</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Change Notification</strong></td><td>แก้ plan ครั้งเดียว → ลูกทริปทุกคนรู้ทันที ผ่าน LINE + Web Push</td></tr>
+                    <tr><td><strong>Read Receipt + รับทราบ</strong></td><td>รู้ว่าใครเห็นแล้ว ใครยังไม่เห็น → โทรตามแค่คนที่ไม่เห็น</td></tr>
+                    <tr><td><strong>Live Itinerary</strong></td><td>URL เดียว ข้อมูลล่าสุดเสมอ ไม่ต้องส่งไฟล์ใหม่</td></tr>
+                    <tr><td><strong>แจ้งเตือนก่อนวันถัดไป</strong></td><td>อัตโนมัติ ไกด์ไม่ต้องพิมพ์ LINE ทุกคืน</td></tr>
+                    <tr><td><strong>QR Code</strong></td><td>พิมพ์แจก ณ จุดนัดพบ scan แล้วเห็น plan ทันที</td></tr>
+                    <tr><td><strong>Company Branding</strong></td><td>ใส่ logo + ช่องทางติดต่อ ดูเป็นมืออาชีพ</td></tr>
+                    <tr><td><strong>โหมดยื่น ตม.</strong></td><td>ยื่นหน้าจอแทนปริ้นกระดาษ — แสดงภาษาท้องถิ่น destination อัตโนมัติ ใช้ offline ได้</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>3.3 ทำไมต้องเป็นเรา</h3>
+        <ol>
+            <li><strong>เข้าใจ pain point จากประสบการณ์ตรง</strong> — ทีมเคยจัดทริปและเจอปัญหานี้เอง</li>
+            <li><strong>มี working prototype แล้ว</strong> — ไม่ใช่แค่ idea, มี trip plan ที่ใช้งานได้จริง, UX สวย, responsive, รองรับ 3 ภาษา</li>
+            <li><strong>ต้นทุนพัฒนาต่ำ</strong> — ทีมพัฒนาเองได้ ไม่ต้องจ้าง outsource</li>
+            <li><strong>ไม่แข่งกับ LINE แต่ใช้ LINE + Web Push</strong> — ส่ง noti ผ่าน LINE Messaging API (LINE OA) + Web Push Notification ลูกทริปไม่ต้องเปลี่ยนพฤติกรรม รองรับทั้งคนไทยและต่างชาติ</li>
+            <li><strong>Product = Marketing</strong> — ทุก trip plan ที่ถูกแชร์ มี "Powered by NatGan" = viral loop ฟรี</li>
+            <li><strong>แก้ปัญหาที่ไม่มีใครแก้: ปริ้นเอกสารให้ ตม.</strong> — ลูกทัวร์ยื่นหน้าจอแทนกระดาษ แสดงภาษาท้องถิ่น destination อัตโนมัติ</li>
+        </ol>
+    </div>
+
+    <!-- 4. Market -->
+    <div class="section" id="s4">
+        <h2>4. Market Analysis</h2>
+
+        <h3>4.1 Target Market</h3>
+        <h4>Primary: B2B — บริษัททัวร์ + ไกด์อิสระ</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Segment</th><th>จำนวน</th><th>ลักษณะ</th><th>ทำไมเป็น target</th></tr></thead>
+                <tbody>
+                    <tr><td>บริษัททัวร์ SME</td><td>~8,000 ราย</td><td>1-10 คน, 5-20 ทริป/เดือน</td><td>ไม่มีระบบ ใช้ LINE + PDF</td></tr>
+                    <tr><td>ไกด์อิสระ</td><td>~20,000 คน</td><td>ทำคนเดียว, 2-5 ทริป/เดือน</td><td>ต้องการเครื่องมือดูเป็นมืออาชีพ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>Secondary: B2C — คนทั่วไป (awareness channel)</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Segment</th><th>ลักษณะ</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td>"คนจัดทริป" ในกลุ่มเพื่อน</td><td>มีทุกกลุ่ม 1 คน</td><td>ใช้ free tier, สร้าง awareness</td></tr>
+                    <tr><td>ผู้จัดงาน outing บริษัท</td><td>HR / Admin</td><td>อาจ convert เป็น paying user</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>4.2 Market Size</h3>
+        <pre><code>TAM (Total Addressable Market):
+  บริษัททัวร์ SME:  8,000 × 299 บ/เดือน × 12 = 28.7 ล้านบาท/ปี
+  ไกด์อิสระ:       20,000 × 39 บ/เดือน × 12  =  9.4 ล้านบาท/ปี
+  TAM รวม:        ~38 ล้านบาท/ปี
+
+SAM (10% ใน 3 ปี): ~3.8 ล้านบาท/ปี</code></pre>
+
+        <h3>4.3 Realistic Target (SOM)</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ปี</th><th>B2B Customers</th><th>B2C Users (free)</th><th>Monthly Revenue</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>ปี 1</strong></td><td>15-30 ราย</td><td>500 คน</td><td>5,000-15,000 บ</td></tr>
+                    <tr><td><strong>ปี 2</strong></td><td>80-150 ราย</td><td>3,000 คน</td><td>30,000-80,000 บ</td></tr>
+                    <tr><td><strong>ปี 3</strong></td><td>300-500 ราย</td><td>10,000 คน</td><td>100,000-250,000 บ</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. Competitive -->
+    <div class="section" id="s5">
+        <h2>5. Competitive Analysis</h2>
+
+        <h3>5.1 Competitive Landscape</h3>
+        <pre><code>                    สวย/Interactive
+                         ↑
+                         │
+      AI Gen Trip        │       NatGan ★
+      (Wanderlog,        │       (Live + Notification)
+       TripAdvisor AI)   │
+                         │
+ Static ────────────────┼────────────────── Live/Real-time
+                         │
+      PDF / Canva        │       LINE OA
+      (บริษัททัวร์ใช้อยู่)  │       (แพง, ไม่เหมาะ)
+                         │
+                         ↓
+                    ทางการ/Plain</code></pre>
+
+        <h3>5.2 Head-to-head Comparison</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>LINE Group</th><th>PDF/Canva</th><th>AI Gen Trip</th><th>NatGan</th></tr></thead>
+                <tbody>
+                    <tr><td>สร้าง itinerary</td><td>❌</td><td>✅ สวย</td><td>✅ สวยมาก</td><td><strong>✅ สวย + functional</strong></td></tr>
+                    <tr><td>แก้ไข real-time</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ แก้ได้ทันที</strong></td></tr>
+                    <tr><td>แจ้งเตือนเมื่อเปลี่ยน</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ อัตโนมัติ (LINE + Web Push)</strong></td></tr>
+                    <tr><td>รู้ว่าใครเห็นแล้ว</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ read receipt</strong></td></tr>
+                    <tr><td>Google Maps link</td><td>❌</td><td>❌</td><td>⚠️ บางที</td><td><strong>✅ ทุกสถานที่</strong></td></tr>
+                    <tr><td>Branding บริษัท</td><td>❌</td><td>✅</td><td>❌</td><td><strong>✅ logo + contacts</strong></td></tr>
+                    <tr><td>QR แชร์</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ อัตโนมัติ</strong></td></tr>
+                    <tr><td>ราคา</td><td>ฟรี</td><td>ฟรี-500บ</td><td>ฟรี-$10</td><td><strong>ฟรี-599บ</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>5.3 Competitive Moat</h3>
+        <ol>
+            <li><strong>Network Effect</strong> — ยิ่งมีบริษัทใช้มาก → ลูกทริปเห็นมากขึ้น → แนะนำบริษัทอื่น</li>
+            <li><strong>Switching Cost</strong> — มี trip portfolio บนแพลตฟอร์มแล้ว ไม่อยากย้าย</li>
+            <li><strong>Viral Distribution</strong> — ทุก trip plan = marketing ฟรี ผ่าน "Powered by" badge</li>
+            <li><strong>Localization</strong> — ออกแบบมาสำหรับตลาดไทย + ใช้ LINE เป็น delivery channel</li>
+        </ol>
+    </div>
+
+    <!-- 6. Business Model -->
+    <div class="section" id="s6">
+        <h2>6. Business Model</h2>
+
+        <h3>6.1 Revenue Streams</h3>
+        <pre><code>┌────────────────────────────────────────────────────┐
+│              Revenue Model: SaaS + Usage            │
+│                                                    │
+│  ┌──────────────┐  ┌──────────┐  ┌──────────────┐ │
+│  │ Subscription │  │ Pay-per- │  │ Future:      │ │
+│  │ (Monthly)    │  │ slot     │  │ Enterprise   │ │
+│  │ Pro: 299 บ   │  │ 39 บ/   │  │ API license  │ │
+│  │ Biz: 599 บ   │  │ slot    │  │ Custom       │ │
+│  └──────────────┘  └──────────┘  └──────────────┘ │
+│       70%              20%            10%          │
+└────────────────────────────────────────────────────┘</code></pre>
+
+        <h3>6.2 Pricing Strategy</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Tier</th><th>ราคา</th><th>Target</th><th>จุดขาย</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Free</strong></td><td>0 บาท</td><td>ไกด์เล็กๆ, คนทั่วไป</td><td>ทดลองใช้, สร้าง awareness</td></tr>
+                    <tr><td><strong>Pro</strong></td><td>299 บ/เดือน</td><td>ไกด์อิสระ, ทัวร์เล็ก</td><td>Unlimited edits, 30 slots, analytics</td></tr>
+                    <tr><td><strong>Business</strong></td><td>599 บ/เดือน</td><td>บริษัททัวร์ SME</td><td>Unlimited slots, white-label, priority support</td></tr>
+                    <tr><td><strong>Pay-per-slot</strong></td><td>39 บ/slot</td><td>Free user ต้องการเพิ่ม</td><td>ยืดหยุ่น ไม่ต้อง commit</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout callout-info">
+            <strong>Pricing Rationale:</strong> 299 บ/เดือน &lt; ค่ากาแฟ 2 แก้ว → barrier ต่ำมาก | เทียบ LINE OA (1,500+ บ/เดือน) ถูกกว่า 5 เท่า | ประหยัดเวลา 2.5 ชม./เดือน
+        </div>
+
+        <h3>6.3 Unit Economics</h3>
+        <pre><code>ARPA (blended):          ~400 บ/เดือน
+Cost per account:        ~40 บ/เดือน
+Gross Margin:            90%
+
+LTV (18 เดือน avg):     7,200 บาท
+CAC (Phase 1):           ~0 บ (viral)
+CAC (Phase 2):           ~500-1,000 บ (ads)
+
+LTV:CAC Ratio:           7:1 → 14:1  ✅ (healthy &gt; 3:1)</code></pre>
+    </div>
+
+    <!-- 7. GTM -->
+    <div class="section" id="s7">
+        <h2>7. Go-to-Market Strategy</h2>
+
+        <h3>7.1 Phase 1: Validate (เดือน 1-3) — งบ: 0 บาท</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>สัปดาห์</th><th>Action</th><th>KPI</th></tr></thead>
+                <tbody>
+                    <tr><td>1-2</td><td>ให้เพื่อน 1 บริษัทใช้ pilot (ทริปในประเทศ)</td><td>สร้าง 3 ทริปจริง</td></tr>
+                    <tr><td>3-4</td><td>สังเกต + เก็บ feedback จากเพื่อนและลูกทริป</td><td>NPS &gt; 7</td></tr>
+                    <tr><td>5-8</td><td>ปรับ product ตาม feedback</td><td>ลูกทริปเปิดดูจริง &gt; 80%</td></tr>
+                    <tr><td>9-12</td><td>ขอ referral → 3-5 บริษัทเพิ่ม</td><td>5 companies, 15+ ทริป</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="callout callout-warning">
+            <strong>คำถามสำคัญที่ต้องได้คำตอบใน Phase 1:</strong><br>
+            1. บริษัททัวร์ใช้จริงไหม? (ไม่ใช่แค่ "น่าสนใจ")<br>
+            2. ลูกทริปเปิดดูจริงไหม? (ไม่ใช่แค่ "ดีนะ")<br>
+            3. ฟีเจอร์ notification + รับทราบ มีคนใช้จริงไหม?
+        </div>
+
+        <h3>7.2 Phase 2: Early Adopters (เดือน 4-6) — งบ: ~5,000 บ/เดือน</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Channel</th><th>วิธี</th><th>งบ</th></tr></thead>
+                <tbody>
+                    <tr><td>Facebook Groups</td><td>โพสต์ใน "ชมรมไกด์" "กลุ่มบริษัททัวร์"</td><td>ฟรี</td></tr>
+                    <tr><td>Referral program</td><td>ลูกค้าแนะนำ → ได้ 1 เดือนฟรี</td><td>~1,000 บ</td></tr>
+                    <tr><td>Facebook Ads</td><td>Target: เจ้าของธุรกิจท่องเที่ยว, ไกด์</td><td>~3,000 บ</td></tr>
+                    <tr><td>Content marketing</td><td>เขียนบทความ "ปัญหาส่ง itinerary"</td><td>~1,000 บ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>7.3 Phase 3: Growth (เดือน 7-12) — งบ: ~15,000 บ/เดือน</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Channel</th><th>วิธี</th><th>งบ</th></tr></thead>
+                <tbody>
+                    <tr><td>Organic (Powered by)</td><td>ลูกทริปเห็น → แนะนำบริษัทตัวเอง</td><td>ฟรี</td></tr>
+                    <tr><td>SEO</td><td>"ระบบจัดการทัวร์" "ส่ง itinerary ลูกค้า"</td><td>~3,000 บ</td></tr>
+                    <tr><td>Partnership</td><td>ร่วมมือกับ สมาคมไกด์ / TAT</td><td>~2,000 บ</td></tr>
+                    <tr><td>Facebook/Google Ads</td><td>Scale ads ที่ work จาก Phase 2</td><td>~10,000 บ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>7.4 Viral Loop</h3>
+        <div class="highlight-box">
+            <h3>เครื่องจักรโตฟรี</h3>
+            <pre style="background: rgba(0,0,0,0.05); color: var(--gray-800); border-radius: 8px;"><code>บริษัททัวร์สร้าง 1 ทริป
+  → ลูกทริป 30 คนเปิดดู
+    → 10 คนแชร์ให้เพื่อน/ครอบครัว
+      → 40+ คนเห็น "Powered by NatGan"
+        → บางคนเป็นเจ้าของธุรกิจทัวร์ / ไกด์
+          → สมัครใช้งาน → วงจรซ้ำ
+
+10 บริษัท × 10 ทริป/เดือน × 40 คนเห็น
+= 4,000 impressions/เดือน ฟรี</code></pre>
+        </div>
+    </div>
+
+    <!-- 8. Financial -->
+    <div class="section" id="s8">
+        <h2>8. Financial Projections</h2>
+
+        <h3>8.1 Investment Required</h3>
+        <h4>เงินลงทุนเริ่มต้น</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>รายการ</th><th>จำนวน</th><th>หมายเหตุ</th></tr></thead>
+                <tbody>
+                    <tr><td>จดบริษัท</td><td>15,000 บาท</td><td>บจก. หรือ หจก.</td></tr>
+                    <tr><td>Domain + Branding</td><td>3,000 บาท</td><td>.co domain + logo</td></tr>
+                    <tr><td>Infrastructure (6 เดือนแรก)</td><td>12,000 บาท</td><td>Hosting + DB + services</td></tr>
+                    <tr><td>Marketing (6 เดือนแรก)</td><td>30,000 บาท</td><td>Ads + content</td></tr>
+                    <tr><td>Legal (PDPA, Terms)</td><td>10,000 บาท</td><td>ว่าจ้างทำ</td></tr>
+                    <tr><td>Contingency (20%)</td><td>14,000 บาท</td><td>สำรอง</td></tr>
+                    <tr><td><strong>รวม</strong></td><td><strong>~84,000 บาท</strong></td><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout callout-success">
+            <strong>ต้นทุนพัฒนา = 0 บาท</strong> (ทีมพัฒนาเอง) — ถ้าต้องจ้าง dev จะเพิ่ม ~200,000-400,000 บาท
+        </div>
+
+        <h4>ต้นทุนรายเดือน (หลัง launch)</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>รายการ</th><th>เดือน 1-6</th><th>เดือน 7-12</th><th>ปีที่ 2</th></tr></thead>
+                <tbody>
+                    <tr><td>Hosting (Vercel)</td><td>700</td><td>700</td><td>1,400</td></tr>
+                    <tr><td>Database (PostgreSQL self-host VPS)</td><td>0 (free)</td><td>900</td><td>900</td></tr>
+                    <tr><td>Email service</td><td>0</td><td>300</td><td>300</td></tr>
+                    <tr><td>Marketing</td><td>5,000</td><td>15,000</td><td>20,000</td></tr>
+                    <tr><td>Payment gateway fee</td><td>0</td><td>500</td><td>2,000</td></tr>
+                    <tr><td>Misc</td><td>500</td><td>1,000</td><td>2,000</td></tr>
+                    <tr><td><strong>รวม/เดือน</strong></td><td><strong>~6,200</strong></td><td><strong>~18,400</strong></td><td><strong>~26,600</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>8.2 Revenue Forecast (3 ปี)</h3>
+        <h4>Scenario: Conservative</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th></th><th>ปี 1</th><th>ปี 2</th><th>ปี 3</th></tr></thead>
+                <tbody>
+                    <tr><td>Free accounts</td><td>200</td><td>1,000</td><td>3,000</td></tr>
+                    <tr><td>Paying accounts</td><td>15</td><td>80</td><td>250</td></tr>
+                    <tr><td>ARPA</td><td>300 บ</td><td>350 บ</td><td>400 บ</td></tr>
+                    <tr><td>Monthly revenue (ธ.ค.)</td><td>8,000</td><td>35,000</td><td>100,000</td></tr>
+                    <tr><td><strong>Annual revenue</strong></td><td><strong>~60,000</strong></td><td><strong>~280,000</strong></td><td><strong>~900,000</strong></td></tr>
+                    <tr><td>Annual cost</td><td>~180,000</td><td>~260,000</td><td>~350,000</td></tr>
+                    <tr style="background: #ECFDF5;"><td><strong>Net P&amp;L</strong></td><td style="color: #991B1B;"><strong>-120,000</strong></td><td style="color: #065F46;"><strong>+20,000</strong></td><td style="color: #065F46;"><strong>+550,000</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>Scenario: Optimistic</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th></th><th>ปี 1</th><th>ปี 2</th><th>ปี 3</th></tr></thead>
+                <tbody>
+                    <tr><td>Paying accounts</td><td>30</td><td>200</td><td>600</td></tr>
+                    <tr><td>Monthly revenue (ธ.ค.)</td><td>15,000</td><td>80,000</td><td>270,000</td></tr>
+                    <tr><td><strong>Annual revenue</strong></td><td><strong>~120,000</strong></td><td><strong>~650,000</strong></td><td><strong>~2,400,000</strong></td></tr>
+                    <tr style="background: #ECFDF5;"><td><strong>Net P&amp;L</strong></td><td style="color: #991B1B;"><strong>-80,000</strong></td><td style="color: #065F46;"><strong>+300,000</strong></td><td style="color: #065F46;"><strong>+1,900,000</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>8.3 Break-even Analysis</h3>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="number">39</div>
+                <div class="label">paying accounts to break-even</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">14-18</div>
+                <div class="label">เดือน (conservative)</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">8-12</div>
+                <div class="label">เดือน (optimistic)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. SWOT -->
+    <div class="section" id="s9">
+        <h2>9. SWOT Analysis</h2>
+        <div class="swot-grid">
+            <div class="swot-card swot-s">
+                <h4>Strengths (จุดแข็ง)</h4>
+                <ul>
+                    <li>Working prototype พร้อมใช้</li>
+                    <li>ทีมพัฒนาเอง = ต้นทุนต่ำ</li>
+                    <li>Pain point ชัดเจน เฉพาะเจาะจง</li>
+                    <li>Dual notification (LINE + Web Push) รองรับทั้งคนไทยและต่างชาติ</li>
+                    <li>Product = Marketing (viral loop)</li>
+                    <li>i18n 3 ภาษาพร้อม</li>
+                    <li>Gross margin สูง (~90%)</li>
+                </ul>
+            </div>
+            <div class="swot-card swot-w">
+                <h4>Weaknesses (จุดอ่อน)</h4>
+                <ul>
+                    <li>ทีมเล็ก (1-2 คน)</li>
+                    <li>ไม่มี network ในวงการทัวร์</li>
+                    <li>ยังไม่มี brand awareness</li>
+                    <li>Revenue per account ต่ำ</li>
+                    <li>ขึ้นอยู่กับ external API (LINE Messaging API) — แต่มี Web Push คู่กันตั้งแต่ launch</li>
+                </ul>
+            </div>
+            <div class="swot-card swot-o">
+                <h4>Opportunities (โอกาส)</h4>
+                <ul>
+                    <li>ตลาดท่องเที่ยวฟื้นตัวหลัง COVID</li>
+                    <li>ไกด์อิสระเพิ่มขึ้นมาก</li>
+                    <li>Inbound tourism กลับมา</li>
+                    <li>ยังไม่มี direct competitor ในไทย</li>
+                    <li>ขยายไป SEA ได้</li>
+                    <li>Partnership กับ TAT / สมาคมไกด์</li>
+                    <li>Trip plan เก่า = Portfolio / Sales tool</li>
+                </ul>
+            </div>
+            <div class="swot-card swot-t">
+                <h4>Threats (ภัยคุกคาม)</h4>
+                <ul>
+                    <li>AI Gen Trip พัฒนาจนมี notification</li>
+                    <li>LINE เปิด feature itinerary เอง</li>
+                    <li>บริษัททัวร์ไม่เปลี่ยนพฤติกรรม</li>
+                    <li>คู่แข่งต่างชาติเข้าไทย</li>
+                    <li>Revenue ต่ำเกินกว่าจะ sustain</li>
+                    <li>LINE Messaging API เปลี่ยน pricing/policy (หมายเหตุ: LINE Notify ถูกยกเลิกแล้ว เม.ย. 2025 — ปัจจุบันใช้ LINE Messaging API แทน, มี Web Push รองรับ)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Hidden Insights -->
+    <div class="section" id="s10">
+        <h2>10. สิ่งที่ตลาดยังมองไม่เห็น</h2>
+
+        <div class="callout callout-primary">
+            <h4 style="margin-top:0; color: var(--primary-dark);">10.1 Trip Plan เก่า ≠ ขยะ แต่ = Sales Tool</h4>
+            <p>ทุกคนมอง itinerary เป็น "ของใช้แล้วทิ้ง" — ความจริง: trip plan เก่าที่ยังเข้าถึงได้ = <strong>portfolio ที่ขายตัวเอง</strong></p>
+            <ul>
+                <li>ลูกทริปแชร์ให้เพื่อน → เพื่อนเห็น route → สนใจ → ติดต่อบริษัท</li>
+                <li>บริษัทส่ง link ทริปเก่าให้ลูกค้าใหม่ดู → "เราจัดแบบนี้ สนใจไหม"</li>
+                <li><strong>หยุดจ่าย → portfolio หาย → เสีย sales tool → ยอมจ่ายต่อ</strong> (churn ต่ำ)</li>
+            </ul>
+        </div>
+
+        <div class="callout callout-success">
+            <h4 style="margin-top:0; color: #065F46;">10.2 "คนจัดทริป" ในกลุ่มเพื่อน = Micro-influencer ฟรี</h4>
+            <p>ทุกกลุ่มเพื่อนมี 1 คนที่เป็น "คนจัดทริป" — คนนี้คือ power user ของ free tier</p>
+            <ul>
+                <li>เขาจัดทริป → 10-15 คนเห็นแพลตฟอร์ม</li>
+                <li>ถ้าในกลุ่มมีคนทำธุรกิจทัวร์ → เห็น → สมัคร B2B</li>
+                <li><strong>B2C free users = distribution channel ที่ดีที่สุด</strong></li>
+            </ul>
+        </div>
+
+        <div class="callout callout-danger">
+            <h4 style="margin-top:0; color: #991B1B;">10.3 Notification ≠ Feature แต่ = ความรับผิดชอบ</h4>
+            <p>การไม่แจ้งลูกค้าเมื่อ plan เปลี่ยน = <strong>ความเสี่ยงทางธุรกิจ</strong></p>
+            <ul>
+                <li>ลูกทริปไปผิดที่ → complain → รีวิวแย่ → เสียลูกค้า</li>
+                <li>กรณีเลวร้าย: เหตุฉุกเฉิน ที่ลูกทริปไม่รู้ → ปัญหาทางกฎหมาย</li>
+                <li><strong>Frame การขาย: "ใช้เพื่อความรับผิดชอบต่อลูกค้า"</strong> ไม่ใช่แค่ "ใช้เพื่อความสะดวก"</li>
+            </ul>
+        </div>
+
+        <div class="callout callout-info">
+            <h4 style="margin-top:0; color: #1E40AF;">10.4 ตลาด Inbound ที่ยังไม่มีใครจับ</h4>
+            <p>บริษัททัวร์ไทยที่รับลูกค้าต่างชาติ (จีน, ญี่ปุ่น, เกาหลี, ฝรั่ง):</p>
+            <ul>
+                <li>ต้องส่ง itinerary เป็นภาษาลูกค้า — ปัจจุบัน: แปลเอง ส่ง PDF</li>
+                <li><strong>NatGan: สร้าง plan เดียว → แสดงหลายภาษา → i18n ที่มีอยู่แล้วตอบโจทย์</strong></li>
+                <li>ยังไม่มี competitor เลยในตลาดไทย</li>
+            </ul>
+        </div>
+
+        <div class="callout callout-warning">
+            <h4 style="margin-top:0; color: #92400E;">10.5 ยื่นหน้าจอแทนปริ้นกระดาษให้ ตม. — Pain Point ที่ไม่มีใครพูดถึง</h4>
+            <p>ทุกทริปต่างประเทศ บริษัททัวร์ต้องปริ้น itinerary <strong>30 ชุด × 5-8 หน้า = 150-240 แผ่น ต่อทริป</strong> ถ้ามีเปลี่ยนแปลง → ปริ้นใหม่ทั้งหมด</p>
+            <p><strong>NatGan: ลูกทัวร์เปิด link → กด "โหมดยื่น ตม." → ยื่นหน้าจอ → จบ</strong></p>
+            <ul>
+                <li>แสดงภาษาท้องถิ่นของ destination อัตโนมัติ (ไปญี่ปุ่น → ญี่ปุ่น, ไปอังกฤษ → อังกฤษ)</li>
+                <li>ข้อมูลครบ: เที่ยวบิน, ที่พัก, itinerary รายวัน, ข้อมูลบริษัททัวร์</li>
+                <li>ใช้ offline ได้ (cache ไว้ตอนยังมี WiFi)</li>
+                <li><strong>ลดต้นทุนกระดาษ + ลดงานบริษัท + ลูกทัวร์สะดวก → win-win-win</strong></li>
+                <li>ทำให้ NatGan ไม่ใช่แค่ "nice to have" แต่เป็น <strong>เครื่องมือที่ขาดไม่ได้สำหรับทริปต่างประเทศ</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 11. Team -->
+    <div class="section" id="s11">
+        <h2>11. Team</h2>
+        <h3>ปัจจุบัน</h3>
+        <ul>
+            <li><strong>Founder/Developer</strong> — Full-stack developer, มีประสบการณ์พัฒนา web application, เข้าใจ pain point จากการจัดทริปเอง</li>
+        </ul>
+        <h3>ในอนาคต (เมื่อ revenue &gt; 50,000 บ/เดือน)</h3>
+        <ul>
+            <li><strong>Part-time BD/Sales</strong> — คนที่มี network ในวงการทัวร์</li>
+            <li><strong>Part-time Designer</strong> — ปรับ UX/UI ตาม user feedback</li>
+        </ul>
+    </div>
+
+    <!-- 12. Timeline -->
+    <div class="section" id="s12">
+        <h2>12. Milestones &amp; Timeline</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>2026 Q2 (เม.ย. - มิ.ย.)</h4>
+                <ul>
+                    <li>MVP development complete</li>
+                    <li>Pilot กับเพื่อน 1 บริษัท</li>
+                    <li>Collect feedback round 1</li>
+                    <li><span class="badge badge-success">Go/No-go decision</span></li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>2026 Q3 (ก.ค. - ก.ย.)</h4>
+                <ul>
+                    <li>Onboard 5-10 บริษัท (free)</li>
+                    <li>Launch payment system</li>
+                    <li>First paying customer</li>
+                    <li><span class="badge badge-success">Product-market fit signal</span></li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>2026 Q4 (ต.ค. - ธ.ค.)</h4>
+                <ul>
+                    <li>30+ paying accounts</li>
+                    <li>Launch B2C free tier publicly</li>
+                    <li>Content marketing + SEO</li>
+                    <li><span class="badge badge-success">Break-even on infrastructure</span></li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>2027 H1</h4>
+                <ul>
+                    <li>80-150 paying accounts</li>
+                    <li>Launch template system</li>
+                    <li>Partnership with ไกด์ associations</li>
+                    <li><span class="badge badge-success">Net profitable</span></li>
+                </ul>
+            </div>
+            <div class="timeline-item">
+                <h4>2027 H2</h4>
+                <ul>
+                    <li>200-300 paying accounts</li>
+                    <li>Multilingual trip plan</li>
+                    <li>Explore SEA expansion</li>
+                    <li><span class="badge badge-success">Monthly revenue &gt; 100,000 บ</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13. Ask -->
+    <div class="section" id="s13">
+        <h2>13. The Ask</h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+            <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 20px;">
+                <h4 style="margin-top: 0;">Bootstrap (แนะนำ)</h4>
+                <ul>
+                    <li><strong>เงินลงทุน:</strong> ~84,000 บาท</li>
+                    <li><strong>เวลา:</strong> 3-4 เดือน part-time</li>
+                    <li><strong>Break-even:</strong> เดือนที่ 14-18</li>
+                    <li><strong>ข้อดี:</strong> เป็นเจ้าของ 100%, ตัดสินใจเร็ว</li>
+                </ul>
+            </div>
+            <div style="background: var(--primary-light); border: 1px solid var(--primary); border-radius: 10px; padding: 20px;">
+                <h4 style="margin-top: 0; color: var(--primary-dark);">Angel / Pre-seed</h4>
+                <ul>
+                    <li><strong>จำนวน:</strong> 300,000 - 500,000 บาท</li>
+                    <li><strong>Equity:</strong> 10-15%</li>
+                    <li><strong>Break-even:</strong> เดือนที่ 8-12</li>
+                    <li><strong>ข้อดี:</strong> ไปเร็วกว่า, ได้ network</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="callout callout-success">
+            <strong>Recommended:</strong> Bootstrap → Validate → Raise (ถ้าจำเป็น)<br>
+            ลงทุนเริ่มต้นต่ำพอที่จะ bootstrap ได้ — validate ก่อน แล้วค่อย raise เมื่อมี traction จริง → valuation ดีกว่า, เสีย equity น้อยกว่า
+        </div>
+    </div>
+
+    <!-- 14. Summary -->
+    <div class="section" id="s14">
+        <h2>14. Summary</h2>
+
+        <div class="highlight-box">
+            <h3>NatGan แก้ปัญหาที่มีอยู่จริง ในตลาดที่ยังไม่มีใครแก้</h3>
+        </div>
+
+        <div class="table-wrap">
+            <table class="summary-table">
+                <tbody>
+                    <tr><td>ปัญหา</td><td>แก้ plan แล้วลูกทริปไม่รู้</td></tr>
+                    <tr><td>Solution</td><td>Live itinerary + LINE &amp; Web Push notification + read receipt</td></tr>
+                    <tr><td>ตลาด</td><td>28,000+ บริษัททัวร์ + ไกด์อิสระในไทย</td></tr>
+                    <tr><td>Revenue</td><td>SaaS 299-599 บ/เดือน + pay-per-slot</td></tr>
+                    <tr><td>ลงทุน</td><td>~84,000 บาท (bootstrap)</td></tr>
+                    <tr><td>Break-even</td><td>เดือนที่ 14-18</td></tr>
+                    <tr><td>Moat</td><td>Viral loop + switching cost + dual notification (LINE + Web Push)</td></tr>
+                    <tr><td>สิ่งที่ต้องพิสูจน์</td><td>บริษัททัวร์ใช้จริง + ลูกทริปเปิดดูจริง + ยอมจ่าย</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="callout callout-warning" style="text-align: center; font-size: 1.05rem;">
+            <strong>Next step:</strong> Pilot กับเพื่อน 1 บริษัท — ถ้าเขาใช้แล้วบอกว่า<br>
+            "ดีกว่าส่ง PDF ทาง Line จริงๆ" → เรามี business
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-footer">
+        <p><strong>NatGan — Business Plan v1.0</strong></p>
+        <p>Confidential — Not for public distribution</p>
+        <p>Coex Team &middot; March 2026</p>
+    </div>
+
+</div>
+</body>
+</html>

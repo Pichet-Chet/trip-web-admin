@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NatGan — Go-to-Market Strategy</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1b2a4a;
+    --indigo-light: #2d4373;
+    --blue: #2563eb;
+    --blue-light: #60a5fa;
+    --blue-dark: #1d4ed8;
+    --sky: #0ea5e9;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --green: #22c55e;
+    --purple: #7c3aed;
+    --orange: #f97316;
+    --teal: #0d9488;
+    --cream: #f0f9ff;
+    --bg-card: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 30%, #2563eb 50%, #1d4ed8 70%, #1e3a5f 100%);
+    color: white;
+    padding: 60px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(60deg, transparent, transparent 25px, rgba(255,255,255,0.02) 25px, rgba(255,255,255,0.02) 26px);
+  }
+  .header * { position: relative; }
+  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
+  .header .meta { display: flex; justify-content: center; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+  .header .meta span { background: rgba(255,255,255,0.15); padding: 4px 16px; border-radius: 20px; font-size: 0.85rem; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 1.5rem; font-weight: 800; color: var(--indigo);
+    margin-bottom: 20px; padding-bottom: 8px;
+    border-bottom: 3px solid var(--blue);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .num {
+    background: var(--blue); color: white;
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+
+  /* Principle Cards */
+  .principle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+  .principle-card {
+    background: var(--bg-card); border-radius: 16px;
+    padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--blue);
+    text-align: center;
+  }
+  .principle-card .icon { font-size: 2rem; margin-bottom: 8px; }
+  .principle-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 4px; }
+  .principle-card p { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* ICP Box */
+  .icp-box {
+    background: var(--bg-card); border-radius: 16px;
+    padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left: 5px solid var(--blue); margin-bottom: 24px;
+  }
+  .icp-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--blue-dark); }
+  .icp-row { display: flex; gap: 8px; padding: 6px 0; font-size: 0.9rem; }
+  .icp-row .label { font-weight: 600; min-width: 80px; color: var(--text-muted); }
+
+  /* Persona Cards */
+  .persona-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+  .persona-card {
+    background: var(--bg-card); border-radius: 16px;
+    padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .persona-card .persona-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+  .persona-card .persona-role { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+  .persona-card .pain { font-size: 0.85rem; background: #fef2f2; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; color: #991b1b; }
+  .persona-card .trigger { font-size: 0.85rem; background: #f0fdf4; padding: 8px 12px; border-radius: 8px; color: #166534; }
+
+  /* Pricing Box */
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-bottom: 24px;
+  }
+  .pricing-card {
+    background: var(--bg-card); border-radius: 16px;
+    padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    text-align: center; position: relative;
+  }
+  .pricing-card.featured {
+    border: 3px solid var(--blue);
+    transform: scale(1.03);
+  }
+  .pricing-card.featured::after {
+    content: 'แนะนำ'; position: absolute; top: -12px; left: 50%;
+    transform: translateX(-50%); background: var(--blue); color: white;
+    padding: 2px 16px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;
+  }
+  .pricing-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .pricing-card .price { font-size: 2rem; font-weight: 800; color: var(--blue-dark); }
+  .pricing-card .unit { font-size: 0.8rem; color: var(--text-muted); }
+  .pricing-card ul { list-style: none; text-align: left; margin-top: 16px; }
+  .pricing-card li { padding: 4px 0; font-size: 0.85rem; }
+  .pricing-card li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+  .pricing-card li.no::before { content: '✗ '; color: #cbd5e1; }
+
+  /* Phase Cards */
+  .phase-card {
+    background: var(--bg-card); border-radius: 16px;
+    padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 20px; border-left: 5px solid var(--blue);
+  }
+  .phase-card.phase-0 { border-left-color: #94a3b8; }
+  .phase-card.phase-1 { border-left-color: var(--green); }
+  .phase-card.phase-2 { border-left-color: var(--amber); }
+  .phase-card.phase-3 { border-left-color: var(--orange); }
+  .phase-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+  }
+  .phase-header h3 { font-size: 1.1rem; font-weight: 800; }
+  .phase-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+  .phase-badge.free { background: #dcfce7; color: #166534; }
+  .phase-badge.low { background: #fef3c7; color: #92400e; }
+  .phase-badge.med { background: #ffedd5; color: #9a3412; }
+
+  /* Channel Table */
+  .channel-table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+    background: var(--bg-card); border-radius: 12px; overflow: hidden;
+    margin: 12px 0;
+  }
+  .channel-table th {
+    background: var(--indigo); color: white; padding: 10px 14px;
+    text-align: left; font-weight: 600;
+  }
+  .channel-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .channel-table tr:nth-child(even) { background: #f8fafc; }
+
+  /* Metrics Grid */
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .metric-card {
+    background: var(--bg-card); border-radius: 12px;
+    padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+  }
+  .metric-card .metric-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-card .metric-value { font-size: 1.5rem; font-weight: 800; color: var(--blue-dark); margin: 4px 0; }
+  .metric-card .metric-target { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Viral Flow */
+  .viral-box {
+    background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+    border: 2px solid var(--blue); border-radius: 20px;
+    padding: 28px; margin-bottom: 24px;
+  }
+  .viral-box h3 { color: var(--blue-dark); font-size: 1.1rem; margin-bottom: 16px; text-align: center; }
+  .viral-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; font-size: 0.9rem;
+  }
+  .viral-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--blue); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+  }
+  .viral-arrow { text-align: center; color: var(--blue); font-size: 1.2rem; padding: 4px 0 4px 40px; }
+
+  /* Objection Cards */
+  .objection-grid { display: grid; gap: 12px; margin-bottom: 24px; }
+  .objection-card {
+    background: var(--bg-card); border-radius: 12px;
+    padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .objection-card .question { font-weight: 700; color: var(--red); font-size: 0.9rem; margin-bottom: 6px; }
+  .objection-card .answer { font-size: 0.85rem; color: var(--text-muted); padding-left: 16px; border-left: 3px solid var(--green); }
+
+  /* Timeline */
+  .timeline {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 24px;
+  }
+  .timeline-item {
+    background: var(--bg-card); border-radius: 12px;
+    padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center; position: relative;
+  }
+  .timeline-item::after {
+    content: '→'; position: absolute; right: -10px; top: 50%;
+    transform: translateY(-50%); color: var(--blue); font-weight: 700;
+  }
+  .timeline-item:last-child::after { display: none; }
+  .timeline-item h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+  .timeline-item .period { font-size: 0.7rem; color: var(--text-muted); }
+  .timeline-item .target { font-size: 0.8rem; font-weight: 600; color: var(--blue-dark); margin-top: 8px; }
+  .timeline-item .budget { font-size: 0.7rem; color: var(--green); }
+
+  /* Engine Box */
+  .engine-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+  .engine-card {
+    background: var(--bg-card); border-radius: 16px;
+    padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .engine-card .engine-icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .engine-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .engine-card .engine-cost { font-size: 0.8rem; font-weight: 600; padding: 2px 12px; border-radius: 12px; display: inline-block; margin-bottom: 8px; }
+  .engine-card .engine-cost.free { background: #dcfce7; color: #166534; }
+  .engine-card .engine-cost.low { background: #fef3c7; color: #92400e; }
+  .engine-card .engine-cost.mid { background: #dbeafe; color: #1e40af; }
+  .engine-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* Summary */
+  .summary-box {
+    background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+    border: 2px solid var(--blue); border-radius: 20px;
+    padding: 32px; text-align: center; margin-top: 40px;
+  }
+  .summary-box h2 { font-size: 1.3rem; font-weight: 800; color: var(--blue-dark); margin-bottom: 16px; }
+  .key-points { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; text-align: left; }
+  .key-point { background: white; border-radius: 12px; padding: 14px; font-size: 0.85rem; font-weight: 600; }
+  .key-point .num { color: var(--blue); font-weight: 800; }
+
+  .footer { text-align: center; padding: 40px 24px; color: var(--text-muted); font-size: 0.85rem; }
+
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.8rem; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-card.featured { transform: none; }
+    .timeline { grid-template-columns: 1fr 1fr; }
+    .timeline-item::after { display: none; }
+    .container { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Go-to-Market Strategy</h1>
+  <div class="subtitle">NatGan (นัดกัน) — กลยุทธ์เข้าสู่ตลาด</div>
+  <div class="meta">
+    <span>v1.0</span>
+    <span>17 March 2026</span>
+    <span>Draft</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- GTM Principles -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">1</span> GTM Principles</h2>
+
+    <div style="background: var(--indigo); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 24px; font-size: 1.1rem; font-weight: 600;">
+      ให้เพื่อน 1 บริษัทใช้จนติด → ขอ referral → ให้ product ขายตัวเองผ่าน "Powered by NatGan"
+    </div>
+
+    <div class="principle-grid">
+      <div class="principle-card">
+        <div class="icon">🚀</div>
+        <h4>Product-Led Growth</h4>
+        <p>ทุก trip link = marketing ฟรี ผ่าน "Powered by NatGan"</p>
+      </div>
+      <div class="principle-card">
+        <div class="icon">⬆️</div>
+        <h4>Bottom-Up Adoption</h4>
+        <p>เริ่มจาก 1 คนใน บ.ทัวร์ → ทั้ง บ. ใช้</p>
+      </div>
+      <div class="principle-card">
+        <div class="icon">💰</div>
+        <h4>Zero Budget Start</h4>
+        <p>เดือน 1-3 งบ = 0 บาท viral + referral อย่างเดียว</p>
+      </div>
+      <div class="principle-card">
+        <div class="icon">🤝</div>
+        <h4>Trust > Ads</h4>
+        <p>Referral จากเพื่อนในวงการ > Facebook Ads</p>
+      </div>
+      <div class="principle-card">
+        <div class="icon">👥</div>
+        <h4>Guest = Channel</h4>
+        <p>ลูกทริปเห็น NatGan → แนะนำ บ.ทัวร์ตัวเอง</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ICP + Persona -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">2</span> Target Customer</h2>
+
+    <div class="icp-box">
+      <h3>Ideal Customer Profile (ICP)</h3>
+      <div class="icp-row"><span class="label">ใคร</span><span>บริษัททัวร์ขนาดเล็ก-กลาง ในไทย</span></div>
+      <div class="icp-row"><span class="label">ขนาด</span><span>1-20 คน (micro-SME ถึง SME)</span></div>
+      <div class="icp-row"><span class="label">ทำอะไร</span><span>จัด group tour ต่างประเทศ</span></div>
+      <div class="icp-row"><span class="label">ปัญหา</span><span>ส่ง itinerary ทาง LINE → ข้อมูลจม + ไม่รู้ใครเห็น</span></div>
+      <div class="icp-row"><span class="label">ใช้อยู่</span><span>LINE Group + PDF/Canva</span></div>
+      <div class="icp-row"><span class="label">งบ IT</span><span>0-500 บ/เดือน</span></div>
+    </div>
+
+    <div class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-name">พี่นก</div>
+        <div class="persona-role">The Overwhelmed Owner — มีทริป 5 อันพร้อมกัน</div>
+        <div class="pain">ลูกทริปโทรถามซ้ำเรื่อง flight time ทุกวัน ส่ง PDF ไม่ไหว</div>
+        <div class="trigger">Trigger: "ส่ง link เดียว ลูกทริปดูเองได้ตลอด"</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-name">เจ ไกด์</div>
+        <div class="persona-role">The Tech-Savvy Guide — อยากให้ลูกทริปเตรียมตัวดี</div>
+        <div class="pain">เห็น NatGan จากทริปที่ตัวเองไป อยากใช้บ้าง</div>
+        <div class="trigger">Trigger: "Powered by NatGan" → คลิก → สมัคร</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-name">คุณสมชาย MD</div>
+        <div class="persona-role">The Growing Agency — บริษัทโตเร็ว</div>
+        <div class="pain">เสียลูกค้าเพราะส่ง itinerary ผิดเวอร์ชัน</div>
+        <div class="trigger">Trigger: ต้องการระบบ professional + read receipt</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">3</span> Pricing Strategy</h2>
+
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <h4>Free</h4>
+        <div class="price">0</div>
+        <div class="unit">บาท/เดือน</div>
+        <ul>
+          <li>3 active trips</li>
+          <li>30 guests / trip</li>
+          <li>Web Push notification</li>
+          <li>Basic branding</li>
+          <li class="no" style="color: #94a3b8;">"Powered by NatGan" badge</li>
+          <li class="no" style="color: #94a3b8;">Read receipt dashboard</li>
+        </ul>
+      </div>
+      <div class="pricing-card featured">
+        <h4>Pro</h4>
+        <div class="price">299</div>
+        <div class="unit">บาท/เดือน</div>
+        <ul>
+          <li><strong>Unlimited</strong> trips</li>
+          <li>100 guests / trip</li>
+          <li>LINE + Web Push notification</li>
+          <li>Full company branding</li>
+          <li>ซ่อน NatGan badge (optional)</li>
+          <li><strong>Read receipt dashboard</strong></li>
+        </ul>
+      </div>
+      <div class="pricing-card" style="opacity: 0.6;">
+        <h4>Business</h4>
+        <div class="price">TBD</div>
+        <div class="unit">Phase 3</div>
+        <ul>
+          <li>Enterprise features</li>
+          <li>Multi-user team</li>
+          <li>API access</li>
+          <li>Priority support</li>
+          <li>Custom domain</li>
+          <li>SLA guarantee</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 16px; font-size: 0.85rem;">
+      <strong>Conversion Triggers:</strong> สร้างทริปที่ 4 → upgrade prompt | Guest > 30 คน → upgrade prompt | อยากส่ง LINE noti → Pro only | อยากซ่อน badge → Pro only | อยากดู read receipt dashboard → Pro only
+    </div>
+  </div>
+
+  <!-- GTM Phases -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">4</span> GTM Phases</h2>
+
+    <div class="phase-card phase-0">
+      <div class="phase-header">
+        <h3>Phase 0: Pre-Launch (สัปดาห์ 1-10)</h3>
+        <span class="phase-badge free">งบ: 0 บาท</span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;"><strong>เป้าหมาย:</strong> สร้าง product ให้พร้อมใช้ + Landing page + LINE OA + หา pilot 1 บริษัท</p>
+      <table class="channel-table">
+        <tr><th>สัปดาห์</th><th>Action</th><th>Output</th></tr>
+        <tr><td>1-10</td><td>Dev MVP ตาม MVP Scope Lock</td><td>Product พร้อม pilot</td></tr>
+        <tr><td>8</td><td>สร้าง LINE OA "NatGan นัดกัน"</td><td>LINE OA verified</td></tr>
+        <tr><td>9</td><td>สร้าง Landing Page (natgan.com)</td><td>Waitlist form</td></tr>
+        <tr><td>10</td><td>หา pilot company (เพื่อน)</td><td>Commitment</td></tr>
+      </table>
+    </div>
+
+    <div class="phase-card phase-1">
+      <div class="phase-header">
+        <h3>Phase 1: Pilot (เดือน 1-3)</h3>
+        <span class="phase-badge free">งบ: 0 บาท</span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;"><strong>เป้าหมาย:</strong> พิสูจน์ product-market fit กับ 1 บริษัท → referral ได้ 5 บริษัท</p>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Trips Created</div>
+          <div class="metric-value">3+</div>
+          <div class="metric-target">ทริปจริง ไม่ใช่ทดสอบ</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Guest View Rate</div>
+          <div class="metric-value">>80%</div>
+          <div class="metric-target">เปิดดูอย่างน้อย 1 ครั้ง</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Noti Open Rate</div>
+          <div class="metric-value">>60%</div>
+          <div class="metric-target">notification ถูกเปิด</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">NPS Score</div>
+          <div class="metric-value">8+</div>
+          <div class="metric-target">จาก pilot company</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Willingness to Pay</div>
+          <div class="metric-value">Yes</div>
+          <div class="metric-target">"จ่าย 299 บ ได้เลย"</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Referrals</div>
+          <div class="metric-value">3+</div>
+          <div class="metric-target">บริษัทที่แนะนำ</div>
+        </div>
+      </div>
+
+      <div style="background: #fef2f2; border-radius: 12px; padding: 16px; font-size: 0.85rem;">
+        <strong style="color: var(--red);">Red Flags:</strong> เพื่อนหยุดใช้หลัง 2 สัปดาห์ | Guest view < 30% | ไม่มีใครกด follow | "ฟรีก็ใช้ แต่จ่ายไม่จ่าย" | ลูกทริปบ่น "PDF ง่ายกว่า"
+      </div>
+    </div>
+
+    <div class="phase-card phase-2">
+      <div class="phase-header">
+        <h3>Phase 2: Early Adopters (เดือน 4-6)</h3>
+        <span class="phase-badge low">งบ: ~5,000 บ/เดือน</span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;"><strong>เป้าหมาย:</strong> 30 accounts (5-10 paying)</p>
+      <table class="channel-table">
+        <tr><th>Channel</th><th>วิธี</th><th>งบ</th><th>คาดหวัง</th></tr>
+        <tr><td><strong>Referral</strong></td><td>ลูกค้าเดิมแนะนำ → ทั้งคู่ได้ Pro ฟรี 1 เดือน</td><td>~1,000 บ</td><td>10-15 accounts</td></tr>
+        <tr><td><strong>FB Groups</strong></td><td>โพสต์ใน "ชมรมไกด์" "กลุ่มบริษัททัวร์"</td><td>ฟรี</td><td>5-8 accounts</td></tr>
+        <tr><td><strong>FB Ads</strong></td><td>Target: เจ้าของธุรกิจท่องเที่ยว</td><td>~3,000 บ</td><td>5-10 accounts</td></tr>
+        <tr><td><strong>Content</strong></td><td>บทความ "5 ปัญหาส่ง itinerary"</td><td>~1,000 บ</td><td>SEO long-term</td></tr>
+        <tr><td><strong>Powered by</strong></td><td>ลูกทริปเห็น badge → แนะนำ บ.ทัวร์</td><td>ฟรี</td><td>3-5 accounts</td></tr>
+      </table>
+    </div>
+
+    <div class="phase-card phase-3">
+      <div class="phase-header">
+        <h3>Phase 3: Growth (เดือน 7-12)</h3>
+        <span class="phase-badge med">งบ: ~15,000 บ/เดือน</span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;"><strong>เป้าหมาย:</strong> 100+ accounts, 30+ paying, product-market fit ชัดเจน</p>
+      <table class="channel-table">
+        <tr><th>Channel</th><th>งบ/เดือน</th><th>คาดหวัง</th><th>CAC</th></tr>
+        <tr><td>Organic (Powered by)</td><td>ฟรี</td><td>10-20 signups</td><td>0 บ</td></tr>
+        <tr><td>Referral Program</td><td>~2,000 บ</td><td>5-10 signups</td><td>~300 บ</td></tr>
+        <tr><td>SEO + Blog</td><td>~3,000 บ</td><td>5-10 signups</td><td>~500 บ</td></tr>
+        <tr><td>Facebook/Google Ads</td><td>~8,000 บ</td><td>10-15 signups</td><td>~600 บ</td></tr>
+        <tr><td>Partnerships</td><td>~2,000 บ</td><td>5-10 signups</td><td>~300 บ</td></tr>
+        <tr style="font-weight: 700; background: #eff6ff;"><td>รวม</td><td>~15,000 บ</td><td>35-65 signups</td><td>~350 บ</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Viral Loop -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">5</span> Viral Loop Engine</h2>
+
+    <div class="viral-box">
+      <h3>Viral Loop ของ NatGan</h3>
+      <div class="viral-step"><div class="viral-num">1</div><div>บริษัททัวร์สร้างทริป + Publish → Share link ทาง LINE</div></div>
+      <div class="viral-arrow">↓</div>
+      <div class="viral-step"><div class="viral-num">2</div><div>ลูกทริป <strong>30 คน</strong> เปิดดู → เห็น "Powered by NatGan"</div></div>
+      <div class="viral-arrow">↓</div>
+      <div class="viral-step"><div class="viral-num">3</div><div>10 คนแชร์ให้เพื่อน/ครอบครัว → <strong>40+ คน</strong> เห็น NatGan</div></div>
+      <div class="viral-arrow">↓</div>
+      <div class="viral-step"><div class="viral-num">4</div><div>2-3 คนเป็นเจ้าของ บ.ทัวร์ / ไกด์ → คลิก Powered by → Landing page</div></div>
+      <div class="viral-arrow">↓</div>
+      <div class="viral-step"><div class="viral-num">5</div><div>สมัครใช้งาน → สร้างทริปใหม่ → <strong>วนลูปซ้ำ</strong></div></div>
+
+      <div style="text-align: center; margin-top: 20px; padding: 12px; background: white; border-radius: 12px; font-size: 0.9rem;">
+        <strong>10 บริษัท</strong> × 10 ทริป/เดือน × 40 คนเห็น = <strong style="color: var(--blue-dark);">4,000 impressions/เดือน ฟรี</strong>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Viral Coefficient (K)</div>
+        <div class="metric-value">>0.3</div>
+        <div class="metric-target">guests × share × convert</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Powered by CTR</div>
+        <div class="metric-value">>2%</div>
+        <div class="metric-target">clicks / guest views</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Badge → Signup</div>
+        <div class="metric-value">>5%</div>
+        <div class="metric-target">signups / badge clicks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Time to Viral</div>
+        <div class="metric-value"><30d</div>
+        <div class="metric-target">trip create → new account</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales Playbook -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">6</span> Sales & Objection Handling</h2>
+
+    <div class="objection-grid">
+      <div class="objection-card">
+        <div class="question">"LINE ก็ส่งได้อยู่แล้ว"</div>
+        <div class="answer">ลูกทริปหา flight time ในแชทเจอไหม? แล้วรู้ไหมว่าใครเห็นข้อมูลล่าสุดแล้ว?</div>
+      </div>
+      <div class="objection-card">
+        <div class="question">"PDF สวยกว่า"</div>
+        <div class="answer">NatGan สวยเหมือนกัน แถม update ได้แบบ live ไม่ต้องส่งไฟล์ใหม่ทุกครั้ง</div>
+      </div>
+      <div class="objection-card">
+        <div class="question">"ลูกค้าไม่น่าจะดู"</div>
+        <div class="answer">ทดสอบแล้ว 80%+ เปิดดูครับ เพราะเข้าง่ายมาก ไม่ต้อง login ไม่ต้องลง app</div>
+      </div>
+      <div class="objection-card">
+        <div class="question">"แพง"</div>
+        <div class="answer">Free tier ใช้ได้เลยไม่เสียตังค์ ถ้าชอบค่อย upgrade แค่ 299 บ — ถูกกว่ากาแฟวันละแก้ว</div>
+      </div>
+      <div class="objection-card">
+        <div class="question">"ข้อมูลปลอดภัยไหม"</div>
+        <div class="answer">ใช้ PostgreSQL + Vercel infrastructure + encryption ทุกชั้น + PDPA compliant</div>
+      </div>
+      <div class="objection-card">
+        <div class="question">"ใช้ยากไหม"</div>
+        <div class="answer">สร้างทริปแรกใน 5 นาที ลูกทริปเปิด link ดูได้เลยไม่ต้องสอน</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">7</span> Key Metrics (AARRR)</h2>
+
+    <div style="background: var(--indigo); color: white; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
+      <div style="font-size: 0.8rem; opacity: 0.7;">NORTH STAR METRIC</div>
+      <div style="font-size: 1.3rem; font-weight: 800;">จำนวน trip links ที่ถูกเปิดดูโดย guest / สัปดาห์</div>
+      <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 4px;">วัดทั้ง supply (บ.ทัวร์สร้างทริป) และ demand (ลูกทริปใช้จริง) ในตัวเดียว</div>
+    </div>
+
+    <table class="channel-table">
+      <tr><th>Stage</th><th>Metric</th><th>Target (6 เดือน)</th><th>วัดจาก</th></tr>
+      <tr><td><strong>Acquisition</strong></td><td>New signups / เดือน</td><td>30+</td><td>Auth.js / database</td></tr>
+      <tr><td><strong>Activation</strong></td><td>สร้างทริปแรกใน 7 วัน</td><td>> 60%</td><td>Database</td></tr>
+      <tr><td><strong>Retention</strong></td><td>ใช้งานเดือนที่ 2</td><td>> 50%</td><td>Login activity</td></tr>
+      <tr><td><strong>Revenue</strong></td><td>Free → Pro conversion</td><td>> 10%</td><td>Subscription</td></tr>
+      <tr><td><strong>Referral</strong></td><td>Referral signups / total</td><td>> 20%</td><td>Referral code</td></tr>
+    </table>
+  </div>
+
+  <!-- Timeline -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">8</span> Timeline</h2>
+
+    <div class="timeline">
+      <div class="timeline-item" style="border-top: 4px solid #94a3b8;">
+        <h4>Pre-Launch</h4>
+        <div class="period">สัปดาห์ 1-10</div>
+        <div class="target">Product ready</div>
+        <div class="budget">งบ: 0 บ</div>
+      </div>
+      <div class="timeline-item" style="border-top: 4px solid var(--green);">
+        <h4>Pilot</h4>
+        <div class="period">เดือน 1-3</div>
+        <div class="target">1 บ.ทัวร์ → 5 บ.ทัวร์</div>
+        <div class="budget">งบ: 0 บ</div>
+      </div>
+      <div class="timeline-item" style="border-top: 4px solid var(--amber);">
+        <h4>Early Adopters</h4>
+        <div class="period">เดือน 4-6</div>
+        <div class="target">30 accounts</div>
+        <div class="budget">งบ: 5K/เดือน</div>
+      </div>
+      <div class="timeline-item" style="border-top: 4px solid var(--orange);">
+        <h4>Growth</h4>
+        <div class="period">เดือน 7-12</div>
+        <div class="target">100+ accounts</div>
+        <div class="budget">งบ: 15K/เดือน</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-box">
+    <h2>GTM ของ NatGan = 3 เครื่องยนต์</h2>
+
+    <div class="engine-grid">
+      <div class="engine-card">
+        <div class="engine-icon">🔄</div>
+        <h4>Viral Loop</h4>
+        <span class="engine-cost free">ฟรี</span>
+        <p>"Powered by NatGan" ทุก trip link<br>30 ลูกทริป/ทริป × เห็น badge<br>= signups ฟรีทุกเดือน</p>
+      </div>
+      <div class="engine-card">
+        <div class="engine-icon">🤝</div>
+        <h4>Referral</h4>
+        <span class="engine-cost low">CAC ~300 บ</span>
+        <p>ลูกค้าแนะนำเพื่อนในวงการ<br>ทั้งคู่ได้ Pro ฟรี 1 เดือน<br>= growth ต้นทุนต่ำ</p>
+      </div>
+      <div class="engine-card">
+        <div class="engine-icon">📢</div>
+        <h4>Content + Ads</h4>
+        <span class="engine-cost mid">CAC ~600 บ</span>
+        <p>Blog + SEO + Facebook Ads<br>long-term organic + short-term boost<br>= scalable acquisition</p>
+      </div>
+    </div>
+
+    <div class="key-points">
+      <div class="key-point"><span class="num">1.</span> Pilot ต้องสำเร็จ — ถ้าเพื่อน 1 คนใช้แล้วชอบ ทุกอย่างจะง่ายขึ้น</div>
+      <div class="key-point"><span class="num">2.</span> Powered by badge ต้องมีคนคลิก — นี่คือ growth engine ที่ CAC = 0</div>
+      <div class="key-point"><span class="num">3.</span> 299 บ ต้อง feel cheap — ลูกค้าต้องรู้สึกว่า "แค่นี้เอง"</div>
+      <div class="key-point"><span class="num">4.</span> Content ต้อง authentic — ใช้เรื่องจริง คนจริง ไม่ใช่ marketing speak</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  NatGan Go-to-Market Strategy v1.0 — 17 March 2026
+</div>
+
+</body>
+</html>

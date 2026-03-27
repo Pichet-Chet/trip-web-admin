@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VoyagePremium - Guest Trip View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#964400",
+              "surface-container-highest": "#e0e2ec",
+              "outline": "#717785",
+              "surface-bright": "#f9f9ff",
+              "on-primary-fixed": "#001b3e",
+              "on-tertiary-fixed": "#321200",
+              "inverse-surface": "#2d3038",
+              "on-surface-variant": "#414753",
+              "on-secondary-fixed-variant": "#2e4770",
+              "surface": "#f9f9ff",
+              "primary-container": "#0873df",
+              "surface-container-high": "#e6e8f1",
+              "secondary": "#465f89",
+              "on-secondary-container": "#405882",
+              "tertiary-fixed-dim": "#ffb68c",
+              "primary": "#005ab4",
+              "secondary-container": "#b7cfff",
+              "on-error": "#ffffff",
+              "on-background": "#181c22",
+              "background": "#f9f9ff",
+              "on-primary-fixed-variant": "#00458d",
+              "surface-container": "#ecedf7",
+              "tertiary-fixed": "#ffdbc9",
+              "secondary-fixed": "#d6e3ff",
+              "inverse-primary": "#aac7ff",
+              "surface-container-low": "#f2f3fd",
+              "on-tertiary-fixed-variant": "#763400",
+              "error-container": "#ffdad6",
+              "surface-tint": "#005db8",
+              "outline-variant": "#c1c6d5",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-variant": "#e0e2ec",
+              "on-tertiary": "#ffffff",
+              "tertiary-container": "#bd5700",
+              "on-secondary-fixed": "#001b3e",
+              "on-tertiary-container": "#fffbff",
+              "on-error-container": "#93000a",
+              "surface-dim": "#d8dae3",
+              "on-primary-container": "#fefcff",
+              "on-primary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "inverse-on-surface": "#eff0fa",
+              "primary-fixed-dim": "#aac7ff",
+              "on-surface": "#181c22",
+              "error": "#ba1a1a",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed": "#d6e3ff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center px-6 h-16 w-full max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-blue-700 dark:text-blue-300">VoyagePremium</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-blue-700 dark:text-blue-300 border-b-2 border-blue-600 pb-1 font-sans text-sm font-medium tracking-tight" href="#">Itinerary</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-sans text-sm font-medium tracking-tight transition-colors" href="#">Documents</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 font-sans text-sm font-medium tracking-tight transition-colors" href="#">Support</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:opacity-80">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:opacity-80">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="pb-24">
+<!-- Premium Hero Section -->
+<section class="relative h-[614px] min-h-[450px] w-full overflow-hidden">
+<img alt="Tokyo Cityscape" class="absolute inset-0 w-full h-full object-cover" data-alt="Cinematic wide angle view of Tokyo skyline at dusk with glowing neon lights and Mount Fuji in the distant hazy background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxw-9AXnJb2ycxquADWVAFPmEu2U0LyTIGKsfxLgcf4pOMP_CWVMOQUWld9WijlegRTGEyeFL8OQnqO5g6_39NVudEKhgOMN_Go3VXbP-fq7k1VHn_Uijx8L7yfO_BiUW0hMhjx_7oHPgzVaFfPfwV_9WYawYHa4TQ1vkrqnmP4ykQ0Au6jucLMgG6QW9nUMNiokKwsnLt_vsOCoE9KJOAqft-HDvAfQLzAaduPMnz6OPCf_uAmoMw6QuWKYuA4mKKz_ZQqvkZOJ1j"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 md:p-12 max-w-screen-2xl mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-4">
+<div class="inline-flex items-center px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md border border-white/20 text-white text-xs font-bold uppercase tracking-widest">
+<span class="mr-2">Tokyo, Japan</span>
+<span class="w-1 h-1 rounded-full bg-white mr-2"></span>
+<span>12 Days to Go!</span>
+</div>
+<h1 class="text-4xl md:text-6xl font-headline font-extrabold text-white tracking-tight">Grand Tokyo Explorer</h1>
+<p class="text-white/80 max-w-xl text-lg font-medium">A 10-day curated journey through the heart of Japan's most vibrant metropolis.</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="bg-primary hover:bg-primary-container text-white px-8 py-4 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/30 active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                            Follow this Trip
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Sticky Day Switcher -->
+<div class="sticky top-16 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-outline-variant/30">
+<div class="max-w-screen-2xl mx-auto px-6 py-4">
+<div class="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-primary text-white font-bold text-sm shadow-md">Day 1</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-semibold text-sm hover:bg-primary-container/10 transition-colors">Day 2</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-semibold text-sm hover:bg-primary-container/10 transition-colors">Day 3</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-semibold text-sm hover:bg-primary-container/10 transition-colors">Day 4</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-semibold text-sm hover:bg-primary-container/10 transition-colors">Day 5</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-semibold text-sm hover:bg-primary-container/10 transition-colors">Day 6</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-semibold text-sm hover:bg-primary-container/10 transition-colors">Day 7</button>
+</div>
+</div>
+</div>
+<!-- Itinerary Content -->
+<div class="max-w-screen-2xl mx-auto px-6 mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Timeline Column -->
+<div class="lg:col-span-8 space-y-8">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-headline font-bold text-on-surface">Arrival &amp; Shinjuku Night</h2>
+<span class="text-on-surface-variant font-medium">Monday, Oct 14</span>
+</div>
+<!-- Flight Activity -->
+<div class="relative pl-12 before:absolute before:left-[19px] before:top-8 before:bottom-[-32px] before:w-[2px] before:bg-outline-variant/50">
+<div class="absolute left-0 top-0 w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white z-10">
+<span class="material-symbols-outlined">flight_takeoff</span>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Airplane wing" class="w-full h-full object-cover" data-alt="A passenger jet wing against a clear blue sky above a bed of white fluffy clouds during daytime" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSeMKn6XNmqT3cXHic_hJ3ygl-gJUCXVBeeNb4nlQDd-w09WmmrHTvNuxnNw2sHTRsHQXD4oaTHTRmlzqKymhNJGivGj6UuQnCOkGQ8rrfwJsLZehwp0ugK3pUTiJ-KTmVEUoI43TrMeFincwVxkGCArDzX7lLKDizu3UadlwJXAoUarrt5qM_vmtU6bLx5PF_psEG-VWEZiKmEdVIwNb-2wzTmp3oYytERCFeOUr7pCWSo_GWABCxxR7l0D3JLpIBjh5nuQRFTzFd"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs font-bold text-primary uppercase tracking-widest">Flight • JL001</span>
+<h3 class="text-xl font-bold mt-1">SFO to Haneda Airport</h3>
+</div>
+<span class="text-on-surface-variant font-semibold">10:45 AM</span>
+</div>
+<p class="text-on-surface-variant mt-2 text-sm leading-relaxed">Check-in at International Terminal A. Please arrive 3 hours before departure. Meal service included.</p>
+<div class="mt-4 flex items-center gap-4">
+<button class="text-primary text-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">confirmation_number</span>
+                                        View Boarding Pass
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Accommodation Activity -->
+<div class="relative pl-12 before:absolute before:left-[19px] before:top-8 before:bottom-[-32px] before:w-[2px] before:bg-outline-variant/50">
+<div class="absolute left-0 top-0 w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-white z-10">
+<span class="material-symbols-outlined">hotel</span>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Luxury Hotel" class="w-full h-full object-cover" data-alt="Interior of a luxury hotel room in Tokyo with minimalist Japanese design elements and a large window overlooking the city" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl0XzmPYtCEvT-yTZ3dt9UyLSTHh9icldhBXtSe9djoFfFu-GCkwTSkloYNRuZkiUPdinzp5JNm7rz_Ej8NKW46sOAFo6hZSMPWKZiIShebtCMnFsR3jb08oHTAt0dagCmpkp1JxX1uP1CeaaT1s2uR9kQH84XVzmMl-s2cH4qlLmCMJnmkWVrRlQhJuRn8-w6cYi03np4dYkwZnxHJM5YPk35uo_HLOQ0IC3n9KbjBfRwwXBnJYK_KEgJXbTDqa80YLEsdDnvoVMq"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs font-bold text-tertiary uppercase tracking-widest">Accommodation</span>
+<h3 class="text-xl font-bold mt-1">Park Hyatt Tokyo</h3>
+</div>
+<span class="text-on-surface-variant font-semibold">4:00 PM</span>
+</div>
+<p class="text-on-surface-variant mt-2 text-sm leading-relaxed">Check-in at the 41st floor lobby. Stunning views of Shinjuku and Mount Fuji.</p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container rounded-full text-xs font-medium">Free Wi-Fi</span>
+<span class="px-3 py-1 bg-surface-container rounded-full text-xs font-medium">Breakfast Included</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tour Activity -->
+<div class="relative pl-12">
+<div class="absolute left-0 top-0 w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white z-10">
+<span class="material-symbols-outlined">explore</span>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Shinjuku at Night" class="w-full h-full object-cover" data-alt="Vibrant night scene of Shinjuku district with glowing neon signs, wet pavement reflecting lights, and crowds of people" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIMRsUjrIe7W-lSwQaWKCyeUQkqHbDr7sJNeEG1mgy3x45OFNCiFm1DLX6rhdppoSzE_R24Ut3FxysU8Ijx0tTOBWu_IXgGZpPrg5ZuBPIuY6XDWnb20rJmyvXuQTXdRgEgMs20X1gcQk3YC94HGXgqkuiA_48oleSKhJyvKK0PrY4ED4wnI65wy04q8Iityj-DAq_oMlOS2Slz1ho61XKFguodKRAHbv8JR6eoIH_tY-2RHUVEWJJFdyFCvOaTuGEfNna6lx6Bd1I"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs font-bold text-secondary uppercase tracking-widest">Tour • Guided</span>
+<h3 class="text-xl font-bold mt-1">Shinjuku Neon Walking Tour</h3>
+</div>
+<span class="text-on-surface-variant font-semibold">7:30 PM</span>
+</div>
+<p class="text-on-surface-variant mt-2 text-sm leading-relaxed">Meet guide 'Kenji' in front of the East Exit of Shinjuku Station. Explore Omoide Yokocho and Golden Gai.</p>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">location_on</span>
+<span class="text-sm font-medium">Shinjuku Station East</span>
+</div>
+<button class="bg-primary-container/10 text-primary-container px-4 py-2 rounded-lg text-sm font-bold">Details</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Info -->
+<div class="lg:col-span-4 space-y-6">
+<!-- Trip Map Card -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-outline-variant/20">
+<div class="h-48 w-full relative">
+<img alt="Map of Tokyo" class="w-full h-full object-cover" data-alt="Stylized map showing central Tokyo districts with custom icons for hotel and tour locations" data-location="Tokyo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoNy2N8M_vXQI_GRasgaB1LG4uCWaX2dM7K6ISTF3jqQVBwL-htJhC62KofwZL28ofSuL70BYOcUI-4XeMZDIbMb6N24gA__W1sdpD3XTpo_2GECiP8_BFX9PnUXNiAtfO54ljfB-Tpw_LsX-Reib2uQQmb2_FdJxfms_GNQPXe0DNV1Ee-lb5oafVXhe_I2S6wW4_IVGf2LJ64PuVAEFA_7Sa0UedtqPcYsx587M1uHfML_NvNJ62yhwl0N0az9qPV14E7rirLiPG"/>
+<div class="absolute inset-0 bg-primary/10"></div>
+</div>
+<div class="p-6">
+<h3 class="font-bold text-lg mb-2">Location Guide</h3>
+<p class="text-sm text-on-surface-variant mb-4">You'll be staying in Shinjuku, the business and entertainment hub of Tokyo.</p>
+<button class="w-full py-3 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-colors">
+                            Open in Maps
+                        </button>
+</div>
+</div>
+<!-- Weather Card -->
+<div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-lg">Local Weather</h3>
+<span class="material-symbols-outlined text-3xl">wb_sunny</span>
+</div>
+<div class="text-center py-4">
+<span class="text-5xl font-extrabold">22°C</span>
+<p class="mt-2 font-medium opacity-90">Partly Cloudy • Tokyo</p>
+</div>
+<div class="grid grid-cols-4 gap-2 mt-6">
+<div class="text-center">
+<span class="text-xs opacity-80">Tue</span>
+<span class="block text-sm font-bold">21°</span>
+</div>
+<div class="text-center">
+<span class="text-xs opacity-80">Wed</span>
+<span class="block text-sm font-bold">19°</span>
+</div>
+<div class="text-center">
+<span class="text-xs opacity-80">Thu</span>
+<span class="block text-sm font-bold">23°</span>
+</div>
+<div class="text-center">
+<span class="text-xs opacity-80">Fri</span>
+<span class="block text-sm font-bold">24°</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar / Shell -->
+<div class="fixed bottom-0 left-0 w-full z-50">
+<!-- Footer Quick Actions -->
+<div class="max-w-screen-2xl mx-auto px-6 mb-4 flex justify-between items-center">
+<button class="bg-inverse-surface text-inverse-on-surface px-6 py-3 rounded-full flex items-center gap-2 shadow-xl hover:scale-105 transition-transform active:scale-95 font-bold">
+<span class="material-symbols-outlined">qr_code_2</span>
+                Immigration Mode
+            </button>
+<button class="w-12 h-12 rounded-full bg-white dark:bg-slate-800 shadow-xl border border-outline-variant/30 flex items-center justify-center hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-primary">help</span>
+</button>
+</div>
+<!-- BottomNavBar -->
+<div class="w-full flex justify-around items-center px-4 py-3 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] rounded-t-2xl">
+<a class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-xl px-3 py-1 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="text-[11px] font-semibold Inter">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[11px] font-semibold Inter">Map</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[11px] font-semibold Inter">Schedule</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-[11px] font-semibold Inter">Messages</span>
+</a>
+</div>
+</div>
+</body></html>

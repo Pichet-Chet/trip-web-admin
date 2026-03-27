@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NatGan — UX Flow & Screen Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1b2a4a;
+    --indigo-light: #2d4373;
+    --sakura: #ff8fa8;
+    --sakura-light: #ffb8c6;
+    --gold: #c5a572;
+    --cream: #f5ebe0;
+    --warm-white: #faf3ea;
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --teal: #0d9488;
+    --amber: #f59e0b;
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--cream);
+    color: var(--indigo);
+    line-height: 1.7;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--indigo) 50%, var(--purple) 100%);
+    color: white;
+    padding: 60px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '🎨';
+    position: absolute;
+    right: 40px;
+    top: 30px;
+    font-size: 80px;
+    opacity: 0.15;
+  }
+  .header::after {
+    content: '📱';
+    position: absolute;
+    left: 40px;
+    bottom: 20px;
+    font-size: 60px;
+    opacity: 0.15;
+  }
+  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
+  .header .meta {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .header .meta span {
+    background: rgba(255,255,255,0.15);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Container */
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--indigo);
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--purple);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title .num {
+    background: var(--purple);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  /* Cards */
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--indigo);
+  }
+
+  /* Philosophy Card */
+  .philosophy-card {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--indigo) 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+  .philosophy-card h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .philosophy-card .quote {
+    font-size: 1.2rem;
+    font-weight: 300;
+    opacity: 0.9;
+    border-left: 3px solid var(--gold);
+    padding-left: 16px;
+    margin: 16px 0;
+  }
+  .philosophy-card .principles {
+    list-style: none;
+    margin-top: 20px;
+  }
+  .philosophy-card .principles li {
+    padding: 8px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.95rem;
+  }
+  .philosophy-card .principles li .num-badge {
+    background: rgba(255,255,255,0.2);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Critique Table */
+  .critique-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .critique-table th {
+    background: var(--indigo);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .critique-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+  .critique-table tr:hover td { background: rgba(124,58,237,0.04); }
+
+  /* Screen Map */
+  .screen-map {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .screen-map { grid-template-columns: 1fr; } }
+  .screen-group {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .screen-group h4 {
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-group .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .badge-admin { background: var(--purple); color: white; }
+  .badge-guest { background: var(--teal); color: white; }
+  .screen-group ul { list-style: none; font-size: 0.88rem; }
+  .screen-group ul li {
+    padding: 6px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-group ul li:last-child { border-bottom: none; }
+  .screen-id {
+    font-family: monospace;
+    font-size: 0.75rem;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--purple);
+    font-weight: 600;
+  }
+
+  /* Flow Card */
+  .flow-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .flow-header {
+    padding: 20px 24px;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .flow-header .flow-num {
+    background: rgba(255,255,255,0.25);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  .flow-body { padding: 24px; }
+
+  .bg-purple { background: linear-gradient(135deg, var(--purple), var(--indigo-light)); }
+  .bg-teal { background: linear-gradient(135deg, var(--teal), #065f5b); }
+  .bg-amber { background: linear-gradient(135deg, var(--amber), #b45309); }
+  .bg-green { background: linear-gradient(135deg, var(--green), #15803d); }
+  .bg-red { background: linear-gradient(135deg, var(--red), #b91c1c); }
+  .bg-indigo { background: linear-gradient(135deg, var(--indigo), var(--indigo-light)); }
+
+  /* Wireframe */
+  .wireframe {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 16px 0;
+    font-size: 0.88rem;
+    line-height: 1.9;
+  }
+  .wireframe-mobile {
+    background: #1e293b;
+    border-radius: 24px;
+    padding: 8px;
+    max-width: 340px;
+    margin: 16px auto;
+  }
+  .wireframe-mobile .screen {
+    background: var(--cream);
+    border-radius: 18px;
+    padding: 16px;
+    min-height: 500px;
+    font-size: 0.82rem;
+    overflow: hidden;
+  }
+  .wireframe-mobile .notch {
+    width: 80px;
+    height: 6px;
+    background: #334155;
+    border-radius: 3px;
+    margin: 4px auto 8px;
+  }
+
+  /* Screen Section Inside Wireframe */
+  .w-hero {
+    background: linear-gradient(135deg, var(--indigo), var(--purple));
+    color: white;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .w-hero h4 { font-size: 1rem; font-weight: 700; }
+  .w-hero .date { font-size: 0.75rem; opacity: 0.8; }
+  .w-hero .badges { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .w-hero .badges span {
+    background: rgba(255,255,255,0.15);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+  }
+  .w-countdown {
+    background: var(--gold);
+    color: white;
+    text-align: center;
+    padding: 4px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+  .w-follow-btn {
+    background: var(--purple);
+    color: white;
+    text-align: center;
+    padding: 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-top: 8px;
+    cursor: pointer;
+  }
+  .w-nav {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+    overflow-x: auto;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 10px;
+  }
+  .w-nav span {
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .w-nav span.active {
+    background: var(--indigo);
+    color: white;
+  }
+  .w-daycard {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+  .w-daycard .day-head {
+    padding: 8px 12px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .w-daycard .day-body { padding: 8px 12px; }
+  .w-activity {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 4px 0;
+    font-size: 0.75rem;
+    border-bottom: 1px dotted #f1f5f9;
+  }
+  .w-activity:last-child { border-bottom: none; }
+  .w-activity .time {
+    background: rgba(27,42,74,0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.68rem;
+    white-space: nowrap;
+    color: var(--indigo);
+  }
+  .w-footer {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 10px;
+  }
+
+  /* Critique Box */
+  .critique-box {
+    background: linear-gradient(135deg, #fef3c7, #fffbeb);
+    border-left: 4px solid var(--amber);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .critique-box h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 8px;
+  }
+  .critique-box ul { padding-left: 20px; font-size: 0.88rem; }
+  .critique-box li { margin-bottom: 6px; }
+
+  .proposal-box {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border-left: 4px solid var(--green);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .proposal-box h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #065f46;
+    margin-bottom: 8px;
+  }
+  .proposal-box ul { padding-left: 20px; font-size: 0.88rem; }
+  .proposal-box li { margin-bottom: 6px; }
+
+  /* Notification Mock */
+  .noti-mock {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    max-width: 360px;
+    margin: 12px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .noti-mock .noti-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--indigo);
+    margin-bottom: 8px;
+  }
+  .noti-mock .noti-body { font-size: 0.82rem; color: #475569; line-height: 1.6; }
+  .noti-mock .noti-link { color: var(--purple); font-weight: 600; font-size: 0.8rem; margin-top: 8px; display: block; }
+
+  /* Banner Mock */
+  .banner-mock {
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+  }
+  .banner-warning {
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    color: #92400e;
+  }
+  .banner-success {
+    background: #dcfce7;
+    border: 1px solid #4ade80;
+    color: #166534;
+  }
+  .banner-mock .ack-btn {
+    background: var(--green);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.82rem;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  /* Immigration Mock */
+  .immigration-mock {
+    background: white;
+    border: 2px solid #1e3a5f;
+    border-radius: 4px;
+    padding: 24px;
+    max-width: 500px;
+    margin: 12px auto;
+    font-family: 'Noto Sans Thai', Arial, sans-serif;
+  }
+  .immigration-mock h3 {
+    color: #1e3a5f;
+    border-bottom: 2px solid #1e3a5f;
+    padding-bottom: 8px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .immigration-mock .imm-subtitle {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
+  .immigration-mock table {
+    width: 100%;
+    font-size: 0.85rem;
+    margin: 12px 0;
+  }
+  .immigration-mock table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  .immigration-mock table td:first-child {
+    font-weight: 600;
+    color: #475569;
+    width: 40%;
+  }
+
+  /* Decision Table */
+  .decision-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .decision-table th {
+    background: var(--purple);
+    color: white;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .decision-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+  .decision-table tr:nth-child(even) td { background: #faf5ff; }
+  .decision-id {
+    font-family: monospace;
+    font-weight: 700;
+    color: var(--purple);
+  }
+
+  /* Priority Badge */
+  .priority-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .priority-rank {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .priority-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+  .priority-card p { font-size: 0.85rem; color: #64748b; }
+
+  /* Target Table */
+  .target-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 16px; }
+  .target-table th {
+    background: #f1f5f9;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--indigo);
+  }
+  .target-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+  .target-val { font-weight: 700; color: var(--purple); }
+
+  /* Demo critique card */
+  .demo-review {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) { .demo-review { grid-template-columns: 1fr; } }
+  .demo-good, .demo-fix {
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .demo-good {
+    background: #ecfdf5;
+    border: 1px solid #86efac;
+  }
+  .demo-fix {
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+  }
+  .demo-good h4 { color: #065f46; font-size: 0.9rem; margin-bottom: 8px; }
+  .demo-fix h4 { color: #92400e; font-size: 0.9rem; margin-bottom: 8px; }
+  .demo-good ul, .demo-fix ul { padding-left: 16px; font-size: 0.82rem; }
+  .demo-good li, .demo-fix li { margin-bottom: 4px; }
+
+  /* Color Swatch */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .color-swatch {
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .color-swatch .hex { opacity: 0.7; font-family: monospace; font-size: 0.7rem; }
+
+  /* Print */
+  @media print {
+    .header { padding: 30px 20px; }
+    .flow-card { break-inside: avoid; }
+    .wireframe-mobile { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>🎨 UX Flow & Screen Design</h1>
+  <div class="subtitle">NatGan (นัดกัน) — Trip Communication Platform</div>
+  <div class="meta">
+    <span>📄 Version 1.0</span>
+    <span>📅 17 March 2026</span>
+    <span>📋 Draft</span>
+    <span>📱 13 Screens</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Section 0: Philosophy -->
+  <div class="section">
+    <div class="philosophy-card">
+      <h2>🎯 Design Philosophy</h2>
+      <div class="quote">"อยากรับรู้ แต่ไม่อยากรับเรื่อง"</div>
+      <p style="opacity:0.8; font-size:0.9rem; margin-bottom:12px;">ลูกทริปจ่ายเงินไปเที่ยว ไม่ใช่ไปทำงาน — ระบบต้อง:</p>
+      <ul class="principles">
+        <li><span class="num-badge">1</span> <strong>ภาพนำ ข้อความตาม</strong> — Cover image ใหญ่, emoji เป็นสัญลักษณ์, ข้อความสั้นกระชับ</li>
+        <li><span class="num-badge">2</span> <strong>สร้างบรรยากาศร่วม</strong> — เปิด trip มาแล้วตื่นเต้น ไม่ใช่เปิดมาแล้วปวดหัว</li>
+        <li><span class="num-badge">3</span> <strong>Zero Learning Curve ฝั่ง Guest</strong> — เปิด link = เห็นทุกอย่าง ไม่ต้องกดอะไรก่อน</li>
+        <li><span class="num-badge">4</span> <strong>ข้อมูลจุดสำคัญเท่านั้น</strong> — เวลา + สถานที่ + emoji พอ, detail ปล่อยให้ไกด์บอกหน้างาน</li>
+        <li><span class="num-badge">5</span> <strong>แจ้งเตือนแบบ passive</strong> — noti มาถึงเอง ไม่ต้องเข้าไปเช็ค</li>
+      </ul>
+    </div>
+
+    <!-- Competitor Critique -->
+    <div class="card">
+      <h3>🔍 วิจารณ์ปัญหาของคู่แข่ง</h3>
+      <table class="critique-table">
+        <thead>
+          <tr>
+            <th>ปัญหาที่เจอ</th>
+            <th>ตัวอย่าง</th>
+            <th>NatGan แก้ยังไง</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ข้อความยุบยิบ แน่นเกินไป</td>
+            <td>Wanderlog, TripAdvisor — 20+ fields ต่อ activity</td>
+            <td><strong>≤4 fields:</strong> เวลา, สถานที่, emoji, หมายเหตุสั้น</td>
+          </tr>
+          <tr>
+            <td>UI ออกแบบสำหรับคนจัด ไม่ใช่คนไป</td>
+            <td>Google Sheets — ตารางเต็มจอ</td>
+            <td><strong>แยก</strong> Admin view (ตาราง) vs Guest view (visual card)</td>
+          </tr>
+          <tr>
+            <td>ไม่มีอารมณ์ร่วม</td>
+            <td>PDF itinerary — ขาวดำ ตัวอักษรเล็ก</td>
+            <td><strong>Cover image + gradient + emoji</strong> = ความตื่นเต้น</td>
+          </tr>
+          <tr>
+            <td>ต้อง login ก่อนดู</td>
+            <td>บาง app ต้องสมัครก่อน</td>
+            <td><strong>เปิด URL จบ</strong> ไม่ต้อง login</td>
+          </tr>
+          <tr>
+            <td>Mobile unfriendly</td>
+            <td>หลาย app ออกแบบ desktop-first</td>
+            <td><strong>Mobile-first</strong> ทุกหน้า (80%+ เปิดจาก LINE)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Demo Review -->
+    <div class="card">
+      <h3>📱 วิจารณ์ Demo App ที่มีอยู่</h3>
+      <div class="demo-review">
+        <div class="demo-good">
+          <h4>✅ สิ่งที่ดีมาก → เอาไปใช้ต่อ</h4>
+          <ul>
+            <li>Hero section มีรูป cover ใหญ่ สร้างอารมณ์</li>
+            <li>Day card มี cover image + gradient header</li>
+            <li>Sticky day navigation กดเลือกวันได้ทันที</li>
+            <li>Activity item เรียบง่าย: เวลา + emoji + ชื่อ</li>
+            <li>Map link กดเปิด Google Maps ได้เลย</li>
+            <li>Route link รวม waypoints ทั้งวัน</li>
+            <li>Emergency + Phrases section useful</li>
+          </ul>
+        </div>
+        <div class="demo-fix">
+          <h4>⚠️ สิ่งที่ต้องปรับสำหรับ SaaS</h4>
+          <ul>
+            <li>ข้อมูลทั้งหมด hardcode → ต้องมาจาก DB</li>
+            <li>ไม่มี notification flow → เพิ่ม Follow + Acknowledge</li>
+            <li>ไม่มี company branding → แสดง logo + contacts</li>
+            <li>ไม่มี Immigration view → เพิ่มปุ่มสลับโหมด</li>
+            <li>Cover image ใช้ Unsplash → Admin upload หรือ preset</li>
+            <li>💡 เพิ่ม Trip Countdown "อีก 12 วัน!"</li>
+            <li>💡 เพิ่ม Weather Preview (icon + องศา)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 1: Screen Map -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">1</span> Screen Map — ทุกหน้าจอใน MVP</h2>
+    <div class="screen-map">
+      <div class="screen-group">
+        <h4>👔 Admin Side <span class="badge badge-admin">Login Required</span></h4>
+        <ul>
+          <li><span class="screen-id">A1</span> Login / Register</li>
+          <li><span class="screen-id">A2</span> Company Profile Setup</li>
+          <li><span class="screen-id">A3</span> Dashboard (Trip List)</li>
+          <li><span class="screen-id">A4</span> Trip Builder — ข้อมูลทั่วไป</li>
+          <li><span class="screen-id">A5</span> Trip Builder — Day & Activity</li>
+          <li><span class="screen-id">A6</span> Trip Builder — Preview</li>
+          <li><span class="screen-id">A7</span> Publish & Share</li>
+          <li><span class="screen-id">A8</span> Read Receipt Dashboard</li>
+          <li><span class="screen-id">A9</span> Usage & Limits</li>
+        </ul>
+      </div>
+      <div class="screen-group">
+        <h4>👤 Guest Side <span class="badge badge-guest">No Login</span></h4>
+        <ul>
+          <li><span class="screen-id">G1</span> Trip View — Hero + Day Cards</li>
+          <li><span class="screen-id">G2</span> Follow Modal (LINE / Web Push)</li>
+          <li><span class="screen-id">G3</span> Acknowledge Banner</li>
+          <li><span class="screen-id">G4</span> Immigration-Friendly View</li>
+        </ul>
+        <div style="margin-top:12px; padding:10px; background:#f0fdf4; border-radius:8px; font-size:0.8rem; color:#166534;">
+          <strong>รวม 13 หน้า</strong> — lean พอสำหรับ MVP
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Admin Flows -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">2</span> Admin Journey — บริษัททัวร์</h2>
+
+    <!-- Flow 2.1 -->
+    <div class="flow-card">
+      <div class="flow-header bg-purple">
+        <span class="flow-num">2.1</span> First-time Setup
+      </div>
+      <div class="flow-body">
+        <div class="wireframe">
+          <strong>[A1] Register</strong> → Email + Password + ยืนยัน email<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+          <strong>[A2] Company Profile</strong> ← First login เด้งมาหน้านี้<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── 🏢 ชื่อบริษัท / ชื่อไกด์<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── 📷 Upload Logo (drag & drop ปุ่มเดียว)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── 📞 เบอร์โทร, LINE ID, Facebook, Instagram<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── 💾 บันทึก → ไป Dashboard<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+          <strong>[A3] Dashboard</strong> — Empty State + CTA ชัด<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;🌏 [+ สร้างทริปแรก]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"สร้างทริปแรกของคุณ ส่งให้ลูกทริปภายใน 5 นาที"
+        </div>
+        <div class="critique-box">
+          <h4>💡 วิจารณ์ & ข้อเสนอ</h4>
+          <ul>
+            <li><strong>Empty state ต้องไม่ว่างเปล่า</strong> — illustration + คำชวน + ปุ่มเด่น</li>
+            <li>"ส่งให้ลูกทริปภายใน 5 นาที" สร้าง expectation → ต้อง deliver ได้จริง</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow 2.2 -->
+    <div class="flow-card">
+      <div class="flow-header bg-purple">
+        <span class="flow-num">2.2</span> สร้างทริปใหม่ (Core Admin Flow)
+      </div>
+      <div class="flow-body">
+        <p style="font-size:0.9rem; margin-bottom:16px;"><strong>3 ขั้นตอน:</strong> ข้อมูลทั่วไป → Day & Activity → Preview</p>
+
+        <div class="wireframe">
+          <strong>[A4] Step 1: ข้อมูลทั่วไป</strong><br><br>
+          📷 <strong>Cover Image</strong><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;[ลากรูป หรือ คลิกเลือก]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;หรือเลือกจาก preset: 🏖️ ทะเล &nbsp; 🏔️ ภูเขา &nbsp; 🗼 ญี่ปุ่น &nbsp; 🇰🇷 เกาหลี<br><br>
+          ชื่อทริป: [Tokyo Winter Trip 2026]<br>
+          วันเริ่ม: [2026-04-15] → วันสิ้นสุด: [2026-04-22]<br>
+          จุดหมาย: [Japan] &nbsp; จำนวนผู้เดินทาง: [25]<br>
+          ภาษาหลัก: (●) ไทย &nbsp;( ) EN &nbsp;( ) JP<br><br>
+          ─── ข้อมูลการเดินทาง ───<br>
+          สายการบิน: [Xiamen Air] &nbsp; เที่ยวบิน: [MF834]<br><br>
+          ─── ที่พัก ───<br>
+          ชื่อ: [The QUBE Hotel Chiba] &nbsp; เบอร์โทร: [+81-XX-XXXX]<br>
+          [+ เพิ่มที่พักอีก]<br><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ถัดไป →]
+        </div>
+
+        <div class="wireframe" style="margin-top:16px;">
+          <strong>[A5] Step 2: Day & Activity Editor</strong><br><br>
+          Day tabs: [Day 1 ✈️] [Day 2 🗼] [Day 3 🗻] [+]<br>
+          ═══════════════════════════<br><br>
+          <strong>Day 1 — 15 เม.ย. 2026</strong><br>
+          ชื่อวัน: [เดินทาง กรุงเทพ → โตเกียว] &nbsp; 📷 [เลือกรูป]<br><br>
+          ┌─────────────────────────────────┐<br>
+          │ ⠿ 🧳 [ก่อน 15:40] [สนามบินสุวรรณภูมิ]<br>
+          │ &nbsp;&nbsp;&nbsp;หมายเหตุ: [เช็คอิน counter E] &nbsp;&nbsp;&nbsp;[🗑️]<br>
+          └─────────────────────────────────┘<br>
+          ┌─────────────────────────────────┐<br>
+          │ ⠿ ✈️ [17:40] [สนามบินสุวรรณภูมิ]<br>
+          │ &nbsp;&nbsp;&nbsp;หมายเหตุ: [MF834 → เซียเมิน] &nbsp;&nbsp;&nbsp;[🗑️]<br>
+          └─────────────────────────────────┘<br><br>
+          [+ เพิ่มกิจกรรม]<br><br>
+          &nbsp;&nbsp;[← ก่อนหน้า] &nbsp;&nbsp;&nbsp; [Preview 👁️]
+        </div>
+
+        <div class="proposal-box">
+          <h4>💡 ข้อเสนอใหม่</h4>
+          <ul>
+            <li><strong>Preset Cover Image สำคัญมาก</strong> — Admin ไม่มีรูปสวย กดเลือกจากชุดสำเร็จรูป 10-15 รูป ลด friction</li>
+            <li><strong>Activity ต้อง drag-to-reorder</strong> — ⠿ icon ลากเรียงได้ เพราะไกด์ปรับลำดับบ่อย</li>
+            <li><strong>Auto-generate Day จากวันที่</strong> — ใส่วันเริ่ม-สิ้นสุด → Day 1, 2, 3... โผล่เลย</li>
+            <li><strong>"Quick Add" mode</strong> — พิมพ์ "09:00 วัดอรุณ" → ระบบ parse เป็น time + place (Phase 2)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow 2.3 -->
+    <div class="flow-card">
+      <div class="flow-header bg-green">
+        <span class="flow-num">2.3</span> Publish & Share
+      </div>
+      <div class="flow-body">
+        <div class="wireframe">
+          <strong>[A7] Publish & Share</strong><br><br>
+          ✅ <strong>Trip Published!</strong><br><br>
+          🔗 URL: <code>natgan.com/t/tokyo-winter-2026</code> &nbsp; [📋 Copy]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;[แก้ slug]<br><br>
+          📱 QR Code: [███████]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;[📥 Download PNG] &nbsp; [📥 Download พร้อม Logo]<br><br>
+          ─── แชร์ให้ลูกทริป ───<br>
+          [📤 Share via LINE] &nbsp; [📋 Copy Link]<br><br>
+          ─── ข้อความสำเร็จรูป ───<br>
+          ┌────────────────────────────────┐<br>
+          │ สวัสดีค่ะ 🙏<br>
+          │ ทริป Tokyo Winter 2026 พร้อมแล้วค่ะ<br>
+          │ เปิดดู itinerary ได้ที่:<br>
+          │ 👉 natgan.com/t/tokyo-winter-2026<br>
+          │<br>
+          │ กด "ติดตาม" เพื่อรับแจ้งเตือน<br>
+          │ เมื่อมีการเปลี่ยนแปลงค่ะ 🔔<br>
+          └────────────────────────────────┘<br>
+          [📋 Copy ข้อความ]
+        </div>
+        <div class="proposal-box">
+          <h4>💡 Killer UX ตรงนี้</h4>
+          <ul>
+            <li><strong>"ข้อความสำเร็จรูป"</strong> — Admin copy แปะใน LINE group ได้ทันที ไม่ต้องพิมพ์เอง</li>
+            <li><strong>QR Code พร้อม Logo</strong> — ใช้ปริ้นแปะบนเอกสาร/ป้ายได้เลย</li>
+            <li><strong>Slug กำหนดเองได้</strong> — ลูกทริปเห็น URL สวยๆ จำง่าย</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow 2.4 -->
+    <div class="flow-card">
+      <div class="flow-header bg-amber">
+        <span class="flow-num">2.4</span> แก้ไข Trip Plan (หลัง Publish)
+      </div>
+      <div class="flow-body">
+        <div class="wireframe">
+          <strong>แก้ไขเสร็จ → กด [บันทึก]</strong><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+          ⚡ ระบบ detect การเปลี่ยนแปลง อัตโนมัติ<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+          <strong>📝 สรุปการเปลี่ยนแปลง</strong><br>
+          Day 2 (16 เม.ย.):<br>
+          &nbsp;&nbsp;• เปลี่ยนเวลา teamLab: 08:30 → 09:00<br>
+          &nbsp;&nbsp;• เพิ่มกิจกรรม: "แวะ 7-Eleven" เวลา 08:00<br><br>
+          [✅ ส่งแจ้งเตือนให้ 18 คนที่ follow]<br>
+          [❌ บันทึกอย่างเดียว ไม่ส่ง noti]
+        </div>
+        <div class="critique-box">
+          <h4>💡 สำคัญมาก</h4>
+          <ul>
+            <li><strong>Admin ต้องเลือกได้ว่าจะส่ง noti หรือไม่</strong> — บางทีแก้แค่ typo ไม่ต้องรบกวนลูกทริป ถ้า auto-send ทุกครั้ง Admin จะไม่กล้าแก้</li>
+            <li><strong>สรุปเป็นภาษาคน</strong> — "เปลี่ยนเวลา X จาก A เป็น B" ไม่ใช่ JSON diff</li>
+            <li><strong>แสดง edits ที่เหลือ</strong> — "แก้ไขครั้งที่ 1/2 (free tier)"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow 2.5 -->
+    <div class="flow-card">
+      <div class="flow-header bg-indigo">
+        <span class="flow-num">2.5</span> Read Receipt Dashboard
+      </div>
+      <div class="flow-body">
+        <div class="wireframe">
+          <strong>[A8] Read Receipt Dashboard</strong><br><br>
+          🔔 การเปลี่ยนแปลงวันที่ 10 เม.ย. 14:32<br>
+          "เปลี่ยนเวลา teamLab: 08:30 → 09:00"<br><br>
+          <span style="color:#22c55e; font-weight:700;">✅ รับทราบแล้ว (12/18)</span><br>
+          &nbsp;&nbsp;✅ สมชาย — 14:35 (LINE)<br>
+          &nbsp;&nbsp;✅ นิดา — 14:36 (Web Push)<br>
+          &nbsp;&nbsp;✅ แพท — 14:40 (LINE)<br>
+          &nbsp;&nbsp;...<br><br>
+          <span style="color:#ef4444; font-weight:700;">❌ ยังไม่เห็น (6/18)</span><br>
+          &nbsp;&nbsp;⏳ วิชัย — ยังไม่เปิด<br>
+          &nbsp;&nbsp;⏳ อรทัย — ยังไม่เปิด<br>
+          &nbsp;&nbsp;...<br><br>
+          [🔄 ส่ง noti ซ้ำเฉพาะคนที่ยังไม่เห็น]
+        </div>
+        <div class="proposal-box">
+          <h4>💡 ข้อเสนอ</h4>
+          <ul>
+            <li><strong>ตัวเลขใหญ่ชัด "12/18"</strong> — glance ก็รู้สถานการณ์</li>
+            <li><strong>"ส่งซ้ำเฉพาะคนที่ยังไม่เห็น"</strong> — killer feature ที่ LINE ทำไม่ได้</li>
+            <li><strong>แสดงช่องทาง (LINE) (Web Push)</strong> — ช่วย debug ถ้ามีปัญหา</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Guest Journey -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">3</span> Guest Journey — ลูกทริป</h2>
+
+    <!-- Flow 3.1: Guest View -->
+    <div class="flow-card">
+      <div class="flow-header bg-teal">
+        <span class="flow-num">3.1</span> เปิด Trip Plan ครั้งแรก (Mobile Preview)
+      </div>
+      <div class="flow-body">
+        <p style="font-size:0.88rem; color:#64748b; margin-bottom:16px;">Context: ลูกทริปได้รับ link จาก LINE group → กดเปิด</p>
+
+        <div class="wireframe-mobile">
+          <div class="notch"></div>
+          <div class="screen">
+            <!-- Hero -->
+            <div class="w-hero">
+              <div style="font-size:0.65rem; background:rgba(255,255,255,0.15); display:inline-block; padding:2px 8px; border-radius:10px; margin-bottom:6px;">🌸 Amazing Tour</div>
+              <h4>🌸 Tokyo Winter Trip 🌸</h4>
+              <div class="date">15-22 เม.ย. 2026</div>
+              <div class="badges">
+                <span>👥 25 คน</span>
+                <span>✈️ Xiamen Air</span>
+                <span>🏨 3 โรงแรม</span>
+                <span>📅 8 วัน</span>
+              </div>
+              <div class="w-countdown">🎉 อีก 12 วัน!</div>
+              <div class="w-follow-btn">🔔 ติดตามทริปนี้</div>
+            </div>
+
+            <!-- Day Nav -->
+            <div class="w-nav">
+              <span class="active">✈️ D1</span>
+              <span>🗼 D2</span>
+              <span>🗻 D3</span>
+              <span>🏰 D4</span>
+              <span>⛩️ D5</span>
+              <span>🛍️ D6</span>
+            </div>
+
+            <!-- Day 1 -->
+            <div class="w-daycard">
+              <div class="day-head" style="background:linear-gradient(135deg, #3b82f6, #4f46e5);">
+                ✈️ Day 1 · 15 เม.ย. — เดินทาง กรุงเทพ → โตเกียว
+              </div>
+              <div class="day-body">
+                <div class="w-activity">
+                  <span class="time">ก่อน 15:40</span>
+                  <span>🧳 เช็คอิน สุวรรณภูมิ</span>
+                </div>
+                <div class="w-activity">
+                  <span class="time">17:40</span>
+                  <span>✈️ ออกเดินทาง MF834</span>
+                </div>
+                <div class="w-activity">
+                  <span class="time">22:05</span>
+                  <span>🛬 ถึงเซียเมิน</span>
+                </div>
+                <div class="w-activity">
+                  <span class="time">23:00</span>
+                  <span>🏨 เข้าที่พัก</span>
+                </div>
+                <div style="text-align:center; margin-top:6px;">
+                  <span style="font-size:0.7rem; color:var(--teal); font-weight:600;">🗺️ ดูเส้นทางทั้งวัน</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="w-daycard">
+              <div class="day-head" style="background:linear-gradient(135deg, #0ea5e9, #06b6d4);">
+                🗼 Day 2 · 16 เม.ย. — Tokyo Sightseeing
+              </div>
+              <div class="day-body">
+                <div class="w-activity">
+                  <span class="time">08:30</span>
+                  <span>🎨 teamLab Planets 📍</span>
+                </div>
+                <div class="w-activity">
+                  <span class="time">11:00</span>
+                  <span>🏰 Tokyo Disneyland 📍</span>
+                </div>
+                <div class="w-activity">
+                  <span class="time">21:00</span>
+                  <span>🌙 กลับที่พัก</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="w-footer">
+              <div style="font-weight:600; margin-bottom:4px;">Amazing Tour Co., Ltd.</div>
+              📞 02-XXX-XXXX &nbsp; LINE: @amazingtour<br>
+              <span style="font-size:0.65rem; opacity:0.6; margin-top:4px; display:block;">🛂 โหมดยื่น ตม. &nbsp;·&nbsp; Powered by NatGan</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="critique-box">
+          <h4>💡 วิจารณ์ & ข้อเสนอสำคัญ</h4>
+          <ul>
+            <li><strong>"ติดตามทริปนี้" ต้องอยู่ใน Hero</strong> — เห็นตั้งแต่เปิดมา → conversion สูงกว่ามาก</li>
+            <li><strong>Countdown "อีก 12 วัน!"</strong> — ระหว่างเดินทางเปลี่ยนเป็น "Day 3 of 8 — วันนี้!"</li>
+            <li><strong>Follow button ต้องอยู่ 2 ที่</strong> — Hero (primary) + sticky bottom bar (สำหรับคนที่ scroll ผ่าน)</li>
+            <li><strong>Auto-highlight current activity</strong> — glow/pulse เบาๆ "คุณอยู่ตรงนี้"</li>
+            <li><strong>Company branding อยู่ล่างสุด</strong> — content สำคัญกว่า แต่ footer ต้องชัด</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow 3.2: Follow -->
+    <div class="flow-card">
+      <div class="flow-header bg-teal">
+        <span class="flow-num">3.2</span> Follow ทริป — เลือกช่องทาง
+      </div>
+      <div class="flow-body">
+        <div style="max-width:340px; margin:0 auto;">
+          <div style="background:white; border-radius:16px; padding:24px; border:1px solid #e2e8f0; text-align:center;">
+            <div style="font-size:1.5rem; margin-bottom:8px;">🔔</div>
+            <h4 style="margin-bottom:4px;">ติดตามทริปนี้</h4>
+            <p style="font-size:0.8rem; color:#64748b; margin-bottom:16px;">รับแจ้งเตือนเมื่อ plan เปลี่ยน</p>
+
+            <div style="background:#dcfce7; border:1px solid #86efac; border-radius:12px; padding:14px; margin-bottom:10px; cursor:pointer; text-align:left;">
+              <div style="font-weight:700; font-size:0.9rem;">💚 LINE (LINE OA)</div>
+              <div style="font-size:0.75rem; color:#64748b;">เพิ่มเพื่อน LINE OA ของ NatGan</div>
+              <div style="font-size:0.7rem; color:#22c55e; font-weight:600; margin-top:2px;">แนะนำสำหรับคนไทย ⭐</div>
+            </div>
+
+            <div style="background:#f0f9ff; border:1px solid #93c5fd; border-radius:12px; padding:14px; margin-bottom:16px; cursor:pointer; text-align:left;">
+              <div style="font-weight:700; font-size:0.9rem;">🔔 Web Push</div>
+              <div style="font-size:0.75rem; color:#64748b;">แจ้งเตือนผ่านเบราว์เซอร์ (ไม่ต้องมี LINE)</div>
+            </div>
+
+            <div style="text-align:left; margin-bottom:12px;">
+              <div style="font-size:0.8rem; font-weight:600; margin-bottom:4px;">ชื่อของคุณ:</div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; font-size:0.85rem; color:#94a3b8;">สมชาย...</div>
+              <div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">ไกด์จะเห็นว่าคุณรับทราบแล้ว</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="critique-box" style="margin-top:16px;">
+          <h4>💡 วิจารณ์ & ข้อเสนอ</h4>
+          <ul>
+            <li><strong>ต้องถามชื่อ</strong> — เพื่อ read receipt แสดง "สมชาย รับทราบ" แทน "Follower #7"</li>
+            <li><strong>LINE (ผ่าน LINE OA) เป็นตัวเลือกแรก</strong> — คนไทย 90%+ ใช้ LINE ติด badge "แนะนำ" (ใช้ LINE OA + Messaging API แทน LINE Notify ที่ถูกยกเลิกไปแล้ว)</li>
+            <li><strong>MVP เลือกได้อย่างเดียว</strong> — ลด complexity, Phase 2 เลือกทั้ง 2 ได้</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow 3.3: Notification -->
+    <div class="flow-card">
+      <div class="flow-header bg-amber">
+        <span class="flow-num">3.3</span> รับแจ้งเตือน + กดรับทราบ
+      </div>
+      <div class="flow-body">
+        <p style="font-size:0.88rem; font-weight:600; margin-bottom:12px;">ไกด์แก้ Plan → ลูกทริปได้รับ:</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div class="noti-mock">
+            <div class="noti-header">💚 LINE Notification</div>
+            <div class="noti-body">
+              🔔 <strong>NatGan - Tokyo Winter 2026</strong><br><br>
+              ⚠️ มีการเปลี่ยนแปลง:<br>
+              • Day 2: เปลี่ยนเวลา teamLab 08:30 → 09:00<br>
+              • Day 2: เพิ่ม "แวะ 7-Eleven" เวลา 08:00
+            </div>
+            <span class="noti-link">👉 ดูรายละเอียด + กดรับทราบ</span>
+          </div>
+          <div class="noti-mock">
+            <div class="noti-header">🔔 Web Push</div>
+            <div class="noti-body" style="padding:8px 0;">
+              <strong>Tokyo Winter 2026 มีการเปลี่ยน</strong><br>
+              Day 2: เปลี่ยนเวลา teamLab →...
+            </div>
+            <span class="noti-link">[กดดู]</span>
+          </div>
+        </div>
+
+        <p style="font-size:0.88rem; font-weight:600; margin-bottom:12px;">กดลิงก์ → เห็น Acknowledge Banner:</p>
+
+        <div class="banner-mock banner-warning">
+          ⚠️ <strong>มีการเปลี่ยนแปลง!</strong><br>
+          Day 2: เปลี่ยนเวลา teamLab 08:30 → 09:00<br>
+          Day 2: เพิ่ม "แวะ 7-Eleven" เวลา 08:00<br>
+          <span class="ack-btn">✅ รับทราบแล้ว</span>
+        </div>
+
+        <p style="font-size:0.85rem; margin:8px 0;">กด "รับทราบแล้ว" →</p>
+
+        <div class="banner-mock banner-success">
+          ✅ <strong>รับทราบแล้ว</strong> — ขอบคุณค่ะ 🙏 <span style="font-size:0.75rem; opacity:0.6;">(แสดง 3 วินาที แล้วจางหายไป)</span>
+        </div>
+
+        <div class="critique-box" style="margin-top:16px;">
+          <h4>💡 วิจารณ์ & ข้อเสนอสำคัญ</h4>
+          <ul>
+            <li><strong>Banner ต้อง sticky อยู่ด้านบน</strong> — เปิดมาต้องเห็นทันที ไม่ต้อง scroll</li>
+            <li><strong>Activity ที่เปลี่ยนต้อง highlight</strong> — badge [NEW] / [แก้ไข] สีส้ม + border glow</li>
+            <li><strong>"รับทราบ" = 1 กด จบ</strong> — ไม่ต้องยืนยันซ้ำ ไม่ต้องกรอก</li>
+            <li><strong>LINE noti ต้องสั้น</strong> — แค่ "เปลี่ยนอะไร → กดดู" พอ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Immigration View -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">4</span> Immigration-Friendly View</h2>
+
+    <div class="flow-card">
+      <div class="flow-header bg-indigo">
+        <span class="flow-num">🛂</span> โหมดยื่น ตม.
+      </div>
+      <div class="flow-body">
+        <p style="font-size:0.88rem; color:#64748b; margin-bottom:16px;">กดปุ่ม "🛂 โหมดยื่น ตม." จาก footer ของ Guest View</p>
+
+        <div class="immigration-mock">
+          <h3>🛂 TRAVEL ITINERARY</h3>
+          <div class="imm-subtitle">For Immigration Purposes</div>
+
+          <div style="font-size:0.8rem; color:#64748b; margin-bottom:12px;">
+            Guest of: <strong>Amazing Tour Co., Ltd.</strong><br>
+            TAT License: XX-XXXXX
+          </div>
+
+          <table>
+            <tr><td>Destination</td><td>Japan</td></tr>
+            <tr><td>Duration</td><td>15 Apr – 22 Apr 2026 (8 days)</td></tr>
+            <tr><td>Travelers</td><td>25 persons</td></tr>
+          </table>
+
+          <div style="font-weight:700; font-size:0.9rem; margin:16px 0 8px; color:#1e3a5f;">FLIGHT INFORMATION</div>
+          <table>
+            <tr><td>✈ Departure</td><td>MF834 &nbsp; 17:40 &nbsp; BKK → XMN</td></tr>
+            <tr><td>✈ Return</td><td>MF833 &nbsp; 08:50 &nbsp; XMN → BKK</td></tr>
+          </table>
+
+          <div style="font-weight:700; font-size:0.9rem; margin:16px 0 8px; color:#1e3a5f;">ACCOMMODATION</div>
+          <table>
+            <tr><td>🏨 Hotel</td><td>The QUBE Hotel Chiba</td></tr>
+            <tr><td>Address</td><td>1-2-3 Chiba, Japan</td></tr>
+            <tr><td>Tel</td><td>+81-XX-XXXX-XXXX</td></tr>
+          </table>
+
+          <div style="font-weight:700; font-size:0.9rem; margin:16px 0 8px; color:#1e3a5f;">DAILY ITINERARY</div>
+          <div style="font-size:0.82rem; line-height:1.8;">
+            Day 1 (15 Apr): Bangkok → Tokyo<br>
+            Day 2 (16 Apr): Tokyo Sightseeing<br>
+            Day 3 (17 Apr): Mt. Fuji Excursion<br>
+            Day 4 (18 Apr): Disneyland<br>
+            ...
+          </div>
+
+          <div style="margin-top:16px; padding-top:12px; border-top:2px solid #1e3a5f; font-size:0.8rem;">
+            <strong>TOUR OPERATOR</strong><br>
+            Amazing Tour Co., Ltd.<br>
+            Tel: +66-2-XXX-XXXX
+          </div>
+        </div>
+
+        <div style="text-align:center; font-size:0.8rem; color:#64748b; margin:8px 0;">
+          📶 Available offline &nbsp; · &nbsp; [← กลับหน้าทริป]
+        </div>
+
+        <div class="critique-box" style="margin-top:16px;">
+          <h4>💡 วิจารณ์ & ข้อเสนอ</h4>
+          <ul>
+            <li><strong>ภาษา auto-detect ตาม destination</strong> — ไปญี่ปุ่น = English เพราะ ตม. อ่านไทยไม่ออก</li>
+            <li><strong>Design "official" ไม่ใช่ "สวย"</strong> — ไม่มี gradient, font ตรง, พื้นขาว → น่าเชื่อถือ</li>
+            <li><strong>ข้อมูลเฉพาะที่ ตม. ต้องการ</strong> — ไฟลท์, ที่พัก, ระยะเวลา, ชื่อบริษัท</li>
+            <li><strong>Offline cache สำคัญมาก</strong> — เพิ่งลงเครื่อง ยังไม่มี SIM/internet</li>
+            <li><strong>ข้อเสนอใหม่: ปุ่ม Fullscreen</strong> — ยื่นมือถือให้ ตม. ไม่มี address bar รบกวน</li>
+            <li><strong>ข้อเสนอใหม่: QR code เล็กๆ</strong> — ตม. สแกน verify ว่าเป็นของจริง</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Design System -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">5</span> Design System</h2>
+
+    <div class="card">
+      <h3>🎨 Color System</h3>
+
+      <h4 style="font-size:0.85rem; font-weight:600; margin:12px 0 8px;">Guest View (จาก Demo App)</h4>
+      <div class="color-grid">
+        <div class="color-swatch" style="background:#1b2a4a; color:white;">Indigo-JP<br><span class="hex">#1b2a4a</span></div>
+        <div class="color-swatch" style="background:#ff8fa8; color:white;">Sakura<br><span class="hex">#ff8fa8</span></div>
+        <div class="color-swatch" style="background:#c5a572; color:white;">Gold-JP<br><span class="hex">#c5a572</span></div>
+        <div class="color-swatch" style="background:#f5ebe0; color:#1b2a4a;">Cream<br><span class="hex">#f5ebe0</span></div>
+        <div class="color-swatch" style="background:#faf3ea; color:#1b2a4a; border:1px solid #e2e8f0;">Warm-white<br><span class="hex">#faf3ea</span></div>
+      </div>
+
+      <h4 style="font-size:0.85rem; font-weight:600; margin:16px 0 8px;">Admin + System</h4>
+      <div class="color-grid">
+        <div class="color-swatch" style="background:#22c55e; color:white;">Success<br><span class="hex">#22c55e</span></div>
+        <div class="color-swatch" style="background:#f59e0b; color:white;">Warning<br><span class="hex">#f59e0b</span></div>
+        <div class="color-swatch" style="background:#ef4444; color:white;">Danger<br><span class="hex">#ef4444</span></div>
+        <div class="color-swatch" style="background:#ffffff; color:#1b2a4a; border:1px solid #e2e8f0;">Admin BG<br><span class="hex">#ffffff</span></div>
+      </div>
+
+      <h4 style="font-size:0.85rem; font-weight:600; margin:16px 0 8px;">Immigration View</h4>
+      <div class="color-grid">
+        <div class="color-swatch" style="background:#1e3a5f; color:white;">Official Blue<br><span class="hex">#1e3a5f</span></div>
+        <div class="color-swatch" style="background:#111111; color:white;">Text<br><span class="hex">#111111</span></div>
+        <div class="color-swatch" style="background:#ffffff; color:#111; border:1px solid #d1d5db;">White BG<br><span class="hex">#ffffff</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📐 Responsive Strategy</h3>
+      <table class="target-table">
+        <thead>
+          <tr><th>Breakpoint</th><th>Guest View</th><th>Admin</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="target-val">&lt; 640px</span></td>
+            <td>1 column, full-width cards, day nav scroll</td>
+            <td>1 column, stacked forms</td>
+          </tr>
+          <tr>
+            <td><span class="target-val">640-1024px</span></td>
+            <td>1 column wider, larger images</td>
+            <td>Sidebar nav visible</td>
+          </tr>
+          <tr>
+            <td><span class="target-val">&gt; 1024px</span></td>
+            <td>max-width 7xl, timeline visible</td>
+            <td>Sidebar + main content</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 6: Critical Paths -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">6</span> Critical Paths — ต้อง Smooth ที่สุด</h2>
+
+    <div class="priority-card">
+      <div class="priority-rank" style="background:var(--red);">P1</div>
+      <div>
+        <h4>🏆 Viral Loop</h4>
+        <p>ลูกทริปได้ link → เปิด → ว้าว! → กด follow → ได้ noti → กดรับทราบ<br>
+        <strong style="color:var(--red);">ถ้า path นี้ไม่ smooth → ล้มเหลวทั้ง product</strong></p>
+      </div>
+    </div>
+
+    <div class="priority-card">
+      <div class="priority-rank" style="background:var(--amber);">P2</div>
+      <div>
+        <h4>📝 Admin Creation</h4>
+        <p>สมัคร → ใส่ข้อมูลบริษัท → สร้างทริป → publish → ส่ง link<br>
+        <strong style="color:var(--amber);">ถ้า path นี้นานเกินไป → Admin กลับไปใช้ LINE</strong></p>
+      </div>
+    </div>
+
+    <div class="priority-card">
+      <div class="priority-rank" style="background:var(--teal);">P3</div>
+      <div>
+        <h4>🔔 Change Notification</h4>
+        <p>แก้ plan → สรุป change → ส่ง noti → ลูกทริปรับทราบ → Admin เห็น<br>
+        <strong style="color:var(--teal);">ถ้า path นี้ไม่ work → ไม่ต่างจาก static PDF</strong></p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h3>⏱️ Target Completion Time</h3>
+      <table class="target-table">
+        <thead>
+          <tr><th>Flow</th><th>Target</th><th>วัดยังไง</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ลูกทริปเปิด link → เห็น trip plan</td>
+            <td><span class="target-val">&lt; 2 วินาที</span></td>
+            <td>First Contentful Paint</td>
+          </tr>
+          <tr>
+            <td>ลูกทริปเปิด → กด follow สำเร็จ</td>
+            <td><span class="target-val">&lt; 30 วินาที</span></td>
+            <td>Follow completion rate</td>
+          </tr>
+          <tr>
+            <td>Admin สร้างทริปใหม่ (5 วัน 15 activities)</td>
+            <td><span class="target-val">&lt; 15 นาที</span></td>
+            <td>สร้าง → publish</td>
+          </tr>
+          <tr>
+            <td>Admin แก้ plan → noti ถึงลูกทริป</td>
+            <td><span class="target-val">&lt; 1 นาที</span></td>
+            <td>Change → delivery</td>
+          </tr>
+          <tr>
+            <td>ลูกทริปเห็น noti → กดรับทราบ</td>
+            <td><span class="target-val">&lt; 10 วินาที</span></td>
+            <td>Noti → acknowledge</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 7: Decision Log -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">7</span> Design Decision Log</h2>
+    <div class="card" style="overflow-x:auto;">
+      <table class="decision-table">
+        <thead>
+          <tr><th>#</th><th>Decision</th><th>เหตุผล</th><th>Alternative ที่ตัด</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="decision-id">D1</span></td>
+            <td>Guest view ไม่ต้อง login</td>
+            <td>ลด friction สูงสุด</td>
+            <td>ต้อง login → 80% drop off</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D2</span></td>
+            <td>ภาพนำ ข้อความตาม</td>
+            <td>ลูกทริปไม่ได้อยากอ่าน อยากรู้สึก</td>
+            <td>Text-heavy table itinerary</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D3</span></td>
+            <td>Follow button ใน Hero</td>
+            <td>เห็นตั้งแต่เปิดมา → high conversion</td>
+            <td>ซ่อนไว้ล่างสุด</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D4</span></td>
+            <td>Admin เลือกได้ว่าจะส่ง noti ไหม</td>
+            <td>ไม่ lock Admin ว่าแก้ทีต้อง noti</td>
+            <td>Auto-send ทุกครั้ง → Admin ไม่กล้าแก้</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D5</span></td>
+            <td>Acknowledge = 1 กดจบ</td>
+            <td>Zero friction</td>
+            <td>ต้องพิมพ์ comment → ไม่มีใครทำ</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D6</span></td>
+            <td>Immigration view = official ไม่ใช่สวย</td>
+            <td>ตม. ต้องเชื่อถือได้</td>
+            <td>ใช้ design เดียวกับ guest view</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D7</span></td>
+            <td>Mobile-first ทุกหน้า Guest</td>
+            <td>80%+ เปิดจาก LINE mobile</td>
+            <td>Desktop-first</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D8</span></td>
+            <td>Preset cover images</td>
+            <td>ลด friction Admin ที่ไม่มีรูป</td>
+            <td>ต้อง upload ทุกครั้ง</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D9</span></td>
+            <td>ข้อความสำเร็จรูปตอน publish</td>
+            <td>copy แปะ LINE group ได้เลย</td>
+            <td>Admin ต้องพิมพ์เอง</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">D10</span></td>
+            <td>Trip Countdown บน Hero</td>
+            <td>สร้างอารมณ์ตื่นเต้น</td>
+            <td>แค่แสดงวันที่</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div style="text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.8rem; border-top:1px solid #e2e8f0; margin-top:20px;">
+  NatGan (นัดกัน) — UX Flow & Screen Design v1.0 · March 2026
+</div>
+
+</body>
+</html>

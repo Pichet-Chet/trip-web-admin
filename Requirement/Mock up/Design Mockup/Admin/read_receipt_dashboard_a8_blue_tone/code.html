@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Read Receipt Dashboard - Tokyo Spring 2024</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9ff;
+        }
+        h1, h2, h3, .headline-font {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-tertiary-container": "#fffbff",
+                "on-surface-variant": "#414753",
+                "on-primary-container": "#fefcff",
+                "tertiary-fixed": "#ffdbc9",
+                "secondary": "#465f89",
+                "surface-container-high": "#e6e8f1",
+                "surface-container": "#ecedf7",
+                "on-background": "#181c22",
+                "surface-container-low": "#f2f3fd",
+                "on-secondary-container": "#405882",
+                "on-secondary-fixed": "#001b3e",
+                "surface": "#f9f9ff",
+                "primary": "#1978e5",
+                "on-primary-fixed": "#001b3e",
+                "on-error-container": "#93000a",
+                "on-error": "#ffffff",
+                "on-surface": "#181c22",
+                "inverse-primary": "#aac7ff",
+                "surface-container-highest": "#e0e2ec",
+                "surface-bright": "#f9f9ff",
+                "on-secondary-fixed-variant": "#2e4770",
+                "on-tertiary": "#ffffff",
+                "surface-dim": "#d8dae3",
+                "error-container": "#ffdad6",
+                "surface-container-lowest": "#ffffff",
+                "on-primary-fixed-variant": "#00458d",
+                "secondary-fixed-dim": "#afc7f7",
+                "surface-variant": "#e0e2ec",
+                "on-primary": "#ffffff",
+                "tertiary-fixed-dim": "#ffb68c",
+                "tertiary-container": "#bd5700",
+                "on-tertiary-fixed-variant": "#763400",
+                "secondary-fixed": "#d6e3ff",
+                "tertiary": "#964400",
+                "outline": "#717785",
+                "secondary-container": "#b7cfff",
+                "primary-container": "#1978e5",
+                "primary-fixed-dim": "#aac7ff",
+                "background": "#f9f9ff",
+                "inverse-surface": "#2d3038",
+                "inverse-on-surface": "#eff0fa",
+                "on-secondary": "#ffffff",
+                "error": "#ba1a1a",
+                "on-tertiary-fixed": "#321200",
+                "surface-tint": "#1978e5",
+                "primary-fixed": "#d6e3ff",
+                "outline-variant": "#c1c6d5"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full transition-colors active:scale-95 duration-200">arrow_back</button>
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-primary tracking-tighter headline-font">Trip Concierge</span>
+<div class="h-4 w-px bg-slate-200 hidden md:block"></div>
+<span class="font-semibold text-sm tracking-tight text-slate-600 dark:text-slate-400 hidden md:block">Tokyo Spring 2024</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full transition-colors">notifications</button>
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full transition-colors">settings</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200">
+<img alt="Admin Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFs3W_U5_1JmmS_JNUaS7rrI3Qx_MxAXnOlHF1Ol5-rSVed3hZhWrSBSpY-iHeyAEwGWnqfaxjV-aR66rDUJfb7Hq10Cv_DYYkpCF9gg5QHyjy0V3wBdLh13RTNE60RwBGC1CJb1cs3H9yBynk_2zz9BE-qwTOseL8eIDhXrSnO_zYshcXE2Ag1Aou6xr74IkC7s7R0O9Fsrq3w90Y8bijmL07B6gIArsC66ABJS46w9AZmM_rPlCT6PkqMbCGaP13RbfCYWqTgRXq"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 z-40 bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-4 gap-2 pt-24">
+<div class="mb-6 px-2">
+<h2 class="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Admin Panel</h2>
+<p class="text-xs text-slate-500">Trip Management</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-blue-50 dark:bg-blue-900/20 rounded-lg font-medium transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span>Guests</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span>Itinerary</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span>Documents</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 px-2 mb-4">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">A</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold">Admin Workspace</span>
+<span class="text-[10px] text-slate-500">Premium Tier</span>
+</div>
+</div>
+<button class="w-full bg-primary text-white rounded-lg py-2.5 font-bold text-sm shadow-sm active:scale-95 transition-transform">New Trip</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 pb-12 px-6 lg:px-12 max-w-7xl mx-auto">
+<!-- Section: Change Summary -->
+<section class="mb-10">
+<div class="bg-blue-50 border border-blue-100 rounded-xl p-6 relative overflow-hidden group">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+<div class="space-y-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">campaign</span>
+<h3 class="headline-font font-bold text-primary uppercase tracking-wider text-xs">Latest Update Details</h3>
+</div>
+<div class="space-y-2">
+<div class="flex items-start gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2"></span>
+<p class="text-on-surface font-medium">Change in teamLab Planets timing: <span class="line-through opacity-50">08:30</span> → <span class="text-primary font-bold">09:00</span></p>
+</div>
+<div class="flex items-start gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2"></span>
+<p class="text-on-surface font-medium">New activity added: <span class="font-bold">Visit 7-Eleven at 08:00</span></p>
+</div>
+</div>
+</div>
+<button class="bg-primary text-white rounded-lg px-8 py-3.5 font-bold text-sm shadow-md flex items-center gap-2 hover:bg-primary/90 transition-all active:scale-95 shrink-0">
+<span class="material-symbols-outlined">send</span>
+                    Resend to all Pending guests
+                </button>
+</div>
+</div>
+</section>
+<!-- Section: Global Status Cards (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+<div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+<div class="space-y-1">
+<p class="text-slate-500 text-sm font-medium">Acknowledged</p>
+<h2 class="text-4xl font-extrabold text-slate-900 headline-font">12<span class="text-lg font-normal opacity-40">/18</span></h2>
+</div>
+<div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+<div class="space-y-1">
+<p class="text-slate-500 text-sm font-medium">Pending Recognition</p>
+<h2 class="text-4xl font-extrabold text-slate-900 headline-font">6<span class="text-lg font-normal opacity-40">/18</span></h2>
+</div>
+<div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-3xl">hourglass_empty</span>
+</div>
+</div>
+</section>
+<!-- Section: Guest List Table -->
+<section class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100">
+<div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
+<h3 class="headline-font font-bold text-slate-900 text-xl">Guest Receipt Tracking</h3>
+<div class="flex items-center gap-2 text-slate-500 text-sm cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+<span>Filter by Status</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50">
+<th class="px-8 py-4 font-bold text-xs uppercase tracking-widest text-slate-500">Guest Name</th>
+<th class="px-8 py-4 font-bold text-xs uppercase tracking-widest text-slate-500 text-center">Channel</th>
+<th class="px-8 py-4 font-bold text-xs uppercase tracking-widest text-slate-500">Status</th>
+<th class="px-8 py-4 font-bold text-xs uppercase tracking-widest text-slate-500">Acknowledgement Time</th>
+<th class="px-8 py-4 font-bold text-xs uppercase tracking-widest text-slate-500 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-sm">S</div>
+<span class="font-bold text-slate-900">Somchai</span>
+</div>
+</td>
+<td class="px-8 py-5 text-center">
+<span class="material-symbols-outlined text-[#06C755]" title="LINE Notification">chat</span>
+</td>
+<td class="px-8 py-5">
+<span class="bg-blue-100 text-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Acknowledged</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-slate-500 text-sm tabular-nums">14 Mar, 09:22</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">P</div>
+<span class="font-bold text-slate-900">Pat</span>
+</div>
+</td>
+<td class="px-8 py-5 text-center">
+<span class="material-symbols-outlined text-slate-300" title="Web Push">notifications_active</span>
+</td>
+<td class="px-8 py-5">
+<span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Pending</span>
+</td>
+<td class="px-8 py-5">
+<span class="italic text-slate-400 text-sm">Waiting...</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 rounded-lg text-primary hover:bg-blue-50 transition-all flex items-center gap-2 ml-auto">
+<span class="text-xs font-bold font-['Inter']">Resend</span>
+<span class="material-symbols-outlined text-lg">replay</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-sm">O</div>
+<span class="font-bold text-slate-900">Orathai</span>
+</div>
+</td>
+<td class="px-8 py-5 text-center">
+<span class="material-symbols-outlined text-[#06C755]" title="LINE Notification">chat</span>
+</td>
+<td class="px-8 py-5">
+<span class="bg-blue-100 text-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Acknowledged</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-slate-500 text-sm tabular-nums">14 Mar, 08:45</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">K</div>
+<span class="font-bold text-slate-900">Kanya</span>
+</div>
+</td>
+<td class="px-8 py-5 text-center">
+<span class="material-symbols-outlined text-slate-300" title="Web Push">notifications_active</span>
+</td>
+<td class="px-8 py-5">
+<span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Pending</span>
+</td>
+<td class="px-8 py-5">
+<span class="italic text-slate-400 text-sm">Waiting...</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 rounded-lg text-primary hover:bg-blue-50 transition-all flex items-center gap-2 ml-auto">
+<span class="text-xs font-bold font-['Inter']">Resend</span>
+<span class="material-symbols-outlined text-lg">replay</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-4 bg-slate-50/50 flex justify-between items-center">
+<p class="text-xs text-slate-500 font-medium">Showing 4 of 18 guests</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-white transition-colors"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-white transition-colors"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+</section>
+<!-- Aesthetic Imagery Component -->
+<section class="mt-20 flex flex-col md:flex-row gap-12 items-center">
+<div class="flex-1 space-y-6">
+<h2 class="text-3xl font-extrabold text-slate-900 headline-font leading-tight">Effortless Group Coordination</h2>
+<p class="text-lg text-slate-500 leading-relaxed">Ensure every traveler is in sync. Our Digital Concierge tracks real-time acknowledgments so you can focus on the journey, not the logistics.</p>
+<div class="flex items-center gap-6 pt-4">
+<div class="flex -space-x-3">
+<div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="professional portrait of a young traveler woman smiling in soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaQKImczGrWP3DoJ2lGUURlniljChdTGP-WvWIDm9gHck0iT8IJPAu77vXSy5Coa2YNEwFQz-tEg0RNF8XXHQrCLxooXwKSpmCQ7bGJXvM3GVcrWcN310GVbDyHjzlcML05I06fqP9hcPbiBz8Y-snHb2flntYpT7HAc4Q_21Hz7l57tE1_BZeo3JWHH66XCeEWX4q_L3L0e6CdkCAsu9iLzSMv3DymGqHvKPtKiENE1DXTSP1AW3LEkXtIL0G1Hy2yfYG3Cv4kvKP"/>
+</div>
+<div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="portrait of a man with sunglasses in urban tokyo setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC9nH2k2JcCBVeIP5agsh3QQQG2rcm114ehAyJd8NMmoaifvxvNZ12V9pWbWCNC82s5Z5QSEYJDeEuoCN7kJ3RrMYYikVU_X1XiOKkpDjbmCxvRGozcwmTetpYtTx7Cdsh7WkiPFYX0MZJa6cERH7vFZGkKYD-JMPfv7FB-MbGMD9tCdOBijruZKSoXsHl6grpPxOWvjwjRetGNj2iUZlYn-ikexYzcp1IsSp8f5WXrhXWeY91_EXa6UsT698FycJzeF3Qh8V8yzlb"/>
+</div>
+<div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="close up of a cheerful guest in a stylish setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhMC0kWAYVjvU56Cp8U4lvGewRYgWwXB3-8npk-DuGl1D6r8sUPSCbyGBFA6B8zEJHBfw5l47Z3RHxegPLJFk4b5sV3NwzpJT2w7LoxFuJ7wZwTbjlHMrL3XDDeBOWQ1iCKq5YlbDXYEFKpjgrkc_kIuYN8WJSJWGAW1bckTWuteLg5MxKiVqakJOC13LZ1jslBaAeXylyYQu-ypMfomZ_J_OHis-Su8zDM-0zPz8ey_E2Qv62B0Pjjk96qTzdN-lW97q-tbZo-rej"/>
+</div>
+<div class="w-12 h-12 rounded-full border-2 border-white bg-primary flex items-center justify-center text-white text-xs font-bold">+15</div>
+</div>
+<span class="text-sm font-bold text-primary">Verified Trip Guests</span>
+</div>
+</div>
+<div class="flex-1 w-full h-80 rounded-2xl overflow-hidden relative shadow-xl">
+<img class="w-full h-full object-cover" data-alt="stunning wide angle shot of a traditional japanese temple surrounded by blooming cherry blossoms in spring" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAednSShYkfH6sZiDUY2YtEjicy5WB3GYFohb7454oa1wZqQaznOzfV71V-yksws2S4ultcSJAIOkYYYVRMREeRJ1_NnsnbxW7ETcGDFcoimRvZOBkuD2K-tQRemGVPK8_UFnc4femhfUPY1LZmYyBj70S9NqW1RXb8b6apeDNP9TSZN42pQfzalVwKEWQjLDGSIGN_xfTpnUR6H3zv_miSlHY4NlnP0hi28S6vPc7io-KLcW0x-A2myoEDHu3SRYThZleFa0sdgsh2"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<p class="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Destination Focus</p>
+<h4 class="text-xl font-bold headline-font italic">Kyoto Extension?</h4>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200 px-6 py-3 z-50 flex justify-between items-center">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-bold">Itinerary</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="text-[10px] font-bold">Guests</span>
+</a>
+<div class="relative -mt-12">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-[10px] font-bold">Pay</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold">Settings</span>
+</a>
+</nav>
+</body></html>

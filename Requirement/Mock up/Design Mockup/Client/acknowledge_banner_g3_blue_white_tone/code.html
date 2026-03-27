@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1978e5",
+              "on-primary": "#ffffff",
+              "primary-container": "#e0efff",
+              "on-primary-container": "#001b3d",
+              "secondary": "#545f71",
+              "background": "#ffffff",
+              "surface": "#ffffff",
+              "on-surface": "#1a1c1e",
+              "on-surface-variant": "#43474e",
+              "outline": "#73777f",
+              "outline-variant": "#c3c7cf",
+              "surface-container-low": "#f7f9fc",
+              "surface-container": "#f1f4f9",
+              "surface-container-high": "#ebeef4",
+              "brand-blue": "#1978e5"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Be Vietnam Pro"],
+              "inter": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Be Vietnam Pro', sans-serif;
+        background-color: #ffffff;
+      }
+      h1, h2, h3 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+    </style>
+</head>
+<body class="text-on-surface antialiased pb-32">
+<!-- TopAppBar (Center-Aligned) -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm border-b border-surface-container-high">
+<div class="flex justify-between items-center px-6 py-4 w-full mx-auto max-w-7xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-brand-blue" data-icon="travel">travel</span>
+<span class="text-2xl font-bold text-brand-blue tracking-tight font-headline">TripItinerary</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-brand-blue font-semibold font-headline transition-opacity hover:opacity-80" href="#">Explore</a>
+<a class="text-on-surface/60 font-headline transition-opacity hover:opacity-80" href="#">Trips</a>
+<a class="text-on-surface/60 font-headline transition-opacity hover:opacity-80" href="#">Saved</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface cursor-pointer" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- TopAppBar (Medium - Update Banner) - Updated to Blue/White Contrast -->
+<section class="sticky top-16 w-full z-40 bg-white border-b border-brand-blue/10 shadow-sm flex flex-col md:flex-row justify-between items-center px-8 py-3 w-full gap-4">
+<div class="flex items-center gap-3">
+<div class="bg-brand-blue/10 p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-brand-blue text-[20px] font-bold" data-icon="info">info</span>
+</div>
+<p class="text-on-surface font-medium text-sm md:text-sm font-inter tracking-tight">Trip Update: Changes detected in your itinerary. Time change for teamLab Borderless. Now starts at 14:30.</p>
+</div>
+<button class="bg-brand-blue text-white px-6 py-1.5 rounded-lg font-semibold text-sm font-inter transition-all hover:bg-brand-blue/90 active:scale-95 duration-150 shadow-sm">
+        Acknowledge
+    </button>
+</section>
+<main class="max-w-7xl mx-auto px-6 pt-28 space-y-20">
+<!-- Hero Trip Section -->
+<section class="relative h-[400px] w-full rounded-3xl overflow-hidden shadow-xl">
+<img alt="Tokyo Skyline" class="w-full h-full object-cover" data-alt="Modern Tokyo city skyline at dusk with glowing neon lights and Mt Fuji in the distant background under a clear sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAZkdabdx7WzwH-wxmdrhWZxM9_nNG6r5VNqewShZXHglGrOG8P43CqlL1lYYWVDXD8t5h1-pja0zMatbE8BtGJwETlaIm-lQm9jSmO1XumxUSZ7UHsCz8l_9XNGrHcFSrZtBSRLmEvQ0FoepbUG7omWtmIJkRAzoJxMnG2eOfZmcGNn4Gvn--0siUoPT7VfF3zVic_t-u8coL2TpfVdRo7yQPt99Ft6O08zy7col1pcVCYE68PHMtqL8gLE-Z1jlB3J0VwczrifxL"/>
+<div class="absolute inset-0 bg-gradient-to-t from-brand-blue/90 to-transparent flex items-end p-8 md:p-12">
+<div>
+<span class="inline-block px-4 py-1 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-full text-xs font-bold mb-4 uppercase tracking-widest">7 Days in Japan</span>
+<h1 class="text-white text-4xl md:text-6xl font-extrabold font-headline leading-tight">Tokyo &amp; Kyoto: <br/>The Modern Tradition</h1>
+<div class="flex items-center gap-6 mt-6 text-white/90">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="text-sm font-medium">Oct 12 - Oct 19</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="group">group</span>
+<span class="text-sm font-medium">2 Travelers</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Itinerary Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Main Column Content -->
+<div class="lg:col-span-8 space-y-12">
+<!-- Day 1 Content -->
+<div class="space-y-12">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-brand-blue rounded-2xl flex items-center justify-center text-white font-bold text-xl">01</div>
+<div>
+<h2 class="text-3xl font-bold font-headline text-brand-blue">Day 1: Arrival &amp; Neon</h2>
+<p class="text-on-surface-variant font-medium">Monday, October 12th</p>
+</div>
+</div>
+<div class="space-y-8">
+<!-- Travel Detail -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-start">
+<div class="w-16 h-16 bg-white rounded-xl shadow-sm border border-outline-variant/50 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-brand-blue text-3xl" data-icon="flight_land">flight_land</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="text-xl font-bold text-on-surface">Arrive at Narita International (NRT)</h3>
+<span class="text-sm font-bold text-brand-blue">08:45 AM</span>
+</div>
+<p class="text-on-surface-variant mt-2 leading-relaxed">Flight JL001 from San Francisco. Terminal 2. Collect luggage and proceed to JR Pass counter.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-white border border-outline-variant/50 rounded-md text-xs font-semibold text-on-surface-variant">Conf: #XYZ987</span>
+<span class="px-3 py-1 bg-white border border-outline-variant/50 rounded-md text-xs font-semibold text-on-surface-variant">Gate B42</span>
+</div>
+</div>
+</div>
+<!-- Hotel Detail -->
+<div class="bg-white rounded-2xl p-8 shadow-[0_12px_40px_0_rgba(25,120,229,0.06)] border border-outline-variant/20 border-l-4 border-l-brand-blue">
+<div class="flex flex-col md:flex-row gap-8">
+<div class="w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
+<img alt="Park Hyatt Tokyo" class="w-full h-full object-cover" data-alt="Luxury hotel lobby with minimalist Japanese design elements, warm lighting, and floor-to-ceiling windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTebRFGr3LGzbVIo_5oSP02RpVIZ86PuUXt5HEQIZ3k151hDtEhfBr9Z0nJvLtEcc3Zc20MgCVggrdh4YG6gXes5JZKANCgFpyXq_78Cwu_-9HkSV8-UsXehAHNUOlEIKN6qycJ5lBgzKbdHDTEoHUUz5rymKT3z1TGxhgo_W9tHZR8h2I5nmRfkA5msB_CZGJDM0ke5Sn-l4M_zx79cyPNtp3Q247O_64KFB_pEY8TsvTQKWbBWIrm4ot_Y8jRF-uqgiK0lKU7NYH"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-bold text-on-surface">Hotel Check-in: Park Hyatt Tokyo</h3>
+<p class="text-sm text-brand-blue font-semibold">Shinjuku District</p>
+</div>
+<span class="text-sm font-bold text-on-surface">03:00 PM</span>
+</div>
+<p class="text-on-surface-variant mt-4 leading-relaxed">Relax after your flight. Room 4201 with skyline view is requested.</p>
+<button class="mt-4 flex items-center gap-2 text-brand-blue font-bold text-sm hover:underline">
+<span class="material-symbols-outlined text-sm" data-icon="map">map</span>
+                                    Get Directions
+                                </button>
+</div>
+</div>
+</div>
+<!-- Activity Detail -->
+<div class="relative pl-8 border-l-2 border-brand-blue/10 ml-8 py-4 space-y-4">
+<div class="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-brand-blue border-4 border-white"></div>
+<div class="flex justify-between items-center">
+<h3 class="text-lg font-bold text-on-surface">Explore Omoide Yokocho</h3>
+<span class="text-sm font-bold text-on-surface-variant">07:00 PM</span>
+</div>
+<p class="text-on-surface-variant">Experience the "Memory Lane" with classic Yakitori stalls and local atmosphere.</p>
+</div>
+</div>
+</div>
+<!-- Day 2 Content -->
+<div class="pt-12">
+<div class="flex items-center gap-4 mb-12">
+<div class="w-12 h-12 bg-brand-blue rounded-2xl flex items-center justify-center text-white font-bold text-xl">02</div>
+<div>
+<h2 class="text-3xl font-bold font-headline text-brand-blue">Day 2: Digital Dreams</h2>
+<p class="text-on-surface-variant font-medium">Tuesday, October 13th</p>
+</div>
+</div>
+<div class="space-y-8">
+<!-- Updated Activity -->
+<div class="bg-brand-blue/5 rounded-3xl p-1 overflow-hidden border border-brand-blue/10">
+<div class="bg-white rounded-[22px] p-8">
+<div class="flex flex-col md:flex-row gap-8">
+<div class="w-full md:w-64 h-48 rounded-2xl overflow-hidden shrink-0">
+<img alt="teamLab Borderless" class="w-full h-full object-cover" data-alt="Immersive digital art exhibition with vibrant laser lights and mirrored floor reflecting colorful floral patterns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaHxA2vxucWlQlag4GCA7ud4Mwy1pO02GRWQGJy0y8JsjZAsBpehZa6dxzv6dTo2-PKY04L_DO3J3_NA6eSwo86_U35Jl3sTZ41T1upcMNuo7nmkW7rRv2g1rkhjuie0fJGbznBI0wNIfXhQsSujNhDh-P2i9z0AinVUGjW_r0NFmKLUM6mjsPaseMz-mHvZDxXtgdgQQqqaQOEnLewZ0UhyslxTL28kHzgG7xhP9EeKIi1zaBcUD39FDrj9V_VtBVSCMPaPylf7J3"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] bg-brand-blue text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">Schedule Updated</span>
+</div>
+<h3 class="text-2xl font-bold text-on-surface">teamLab Borderless: Digital Art Museum</h3>
+</div>
+<div class="text-right">
+<span class="block text-lg font-black text-brand-blue">02:30 PM</span>
+<span class="text-xs text-on-surface-variant line-through">11:00 AM</span>
+</div>
+</div>
+<p class="text-on-surface-variant mt-4 leading-relaxed italic">"A world without boundaries, where art moves out of rooms and influences other works."</p>
+<div class="mt-6 flex items-center gap-4">
+<button class="bg-brand-blue text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-brand-blue/20 transition-all hover:bg-brand-blue/90">View Tickets</button>
+<button class="text-brand-blue font-bold text-sm hover:underline">Reschedule</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Activity -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6">
+<div class="flex justify-between items-center mb-2">
+<h3 class="text-lg font-bold text-on-surface">Dinner: Sukiyabashi Jiro</h3>
+<span class="text-sm font-bold text-on-surface-variant">08:00 PM</span>
+</div>
+<p class="text-on-surface-variant">Michelin-starred sushi experience. Formal attire required. Confirmed reservation for 2.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar / Quick Actions -->
+<aside class="lg:col-span-4 space-y-8">
+<div class="bg-white rounded-3xl p-8 border border-outline-variant/30 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+<h3 class="text-xl font-bold text-on-surface mb-6">Trip Essentials</h3>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-brand-blue/10 rounded-full flex items-center justify-center text-brand-blue">
+<span class="material-symbols-outlined" data-icon="cloud">cloud</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-bold uppercase">Weather in Tokyo</p>
+<p class="text-lg font-bold text-on-surface">22°C | Partly Cloudy</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-brand-blue/10 rounded-full flex items-center justify-center text-brand-blue">
+<span class="material-symbols-outlined" data-icon="currency_exchange">currency_exchange</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-bold uppercase">Exchange Rate</p>
+<p class="text-lg font-bold text-on-surface">1 USD = 149.2 JPY</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-brand-blue/10 rounded-full flex items-center justify-center text-brand-blue">
+<span class="material-symbols-outlined" data-icon="translate">translate</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-bold uppercase">Useful Phrase</p>
+<p class="text-lg font-bold text-on-surface">Arigatou Gozaimasu</p>
+</div>
+</div>
+</div>
+<hr class="my-8 border-outline-variant/30"/>
+<button class="w-full bg-brand-blue text-white py-4 rounded-2xl font-bold hover:bg-brand-blue/90 transition-all shadow-md shadow-brand-blue/10">
+                    Download Offline Maps
+                </button>
+</div>
+<div class="bg-brand-blue text-white rounded-3xl p-8 overflow-hidden relative shadow-lg">
+<div class="relative z-10">
+<h3 class="text-xl font-bold mb-2">Travel Concierge</h3>
+<p class="text-white/80 text-sm mb-6">Need to change anything? Our digital concierge is here 24/7.</p>
+<button class="bg-white text-brand-blue px-6 py-2 rounded-full font-bold text-sm hover:bg-white/90 transition-all">Chat Now</button>
+</div>
+<span class="material-symbols-outlined absolute bottom-[-20px] right-[-20px] text-[120px] opacity-10" data-icon="support_agent">support_agent</span>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl border-t border-outline-variant/30 rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.08)]">
+<div class="flex flex-col items-center justify-center text-on-surface/50 px-5 py-2 hover:text-brand-blue transition-all">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-headline text-[10px] font-semibold mt-1">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-brand-blue text-white rounded-2xl px-5 py-2 active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-headline text-[10px] font-semibold mt-1">Trips</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface/50 px-5 py-2 hover:text-brand-blue transition-all">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-headline text-[10px] font-semibold mt-1">Saved</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface/50 px-5 py-2 hover:text-brand-blue transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-headline text-[10px] font-semibold mt-1">Profile</span>
+</div>
+</nav>
+</body></html>

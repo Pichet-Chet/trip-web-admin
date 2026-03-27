@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NatGan — Technical Architecture Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1b2a4a;
+    --indigo-light: #2d4373;
+    --cyan: #06b6d4;
+    --cyan-dark: #0891b2;
+    --teal: #0d9488;
+    --slate: #334155;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --purple: #7c3aed;
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --bg-code: #0d1117;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0f172a 0%, #164e63 50%, #0f172a 100%);
+    padding: 60px 24px;
+    text-align: center;
+    border-bottom: 2px solid var(--cyan);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 40px,
+      rgba(6,182,212,0.03) 40px, rgba(6,182,212,0.03) 41px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent, transparent 40px,
+      rgba(6,182,212,0.03) 40px, rgba(6,182,212,0.03) 41px
+    );
+  }
+  .header * { position: relative; }
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--cyan), #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .subtitle { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
+  .header .meta {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .header .meta span {
+    background: rgba(6,182,212,0.15);
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #67e8f9;
+  }
+
+  /* Container */
+  .container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--cyan);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #67e8f9;
+  }
+  .section-title .num {
+    background: var(--cyan-dark);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #67e8f9;
+  }
+  .card h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 16px 0 8px;
+  }
+
+  /* Tables */
+  .tech-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .tech-table th {
+    background: rgba(6,182,212,0.15);
+    color: #67e8f9;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  .tech-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(51,65,85,0.5);
+    vertical-align: top;
+  }
+  .tech-table tr:hover td { background: rgba(6,182,212,0.04); }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--bg-code);
+    border-radius: 10px;
+    padding: 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #c9d1d9;
+    border: 1px solid var(--border);
+  }
+  .code-block .comment { color: #6b7280; }
+  .code-block .keyword { color: #ff7b72; }
+  .code-block .string { color: #a5d6ff; }
+  .code-block .type { color: #d2a8ff; }
+  .code-block .func { color: #79c0ff; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: var(--bg-code);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: #67e8f9;
+    overflow-x: auto;
+    border: 1px solid var(--cyan-dark);
+    white-space: pre;
+  }
+
+  /* Tech stack badges */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .stack-item {
+    background: rgba(6,182,212,0.08);
+    border: 1px solid rgba(6,182,212,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stack-item .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .stack-item .info h5 { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+  .stack-item .info p { font-size: 0.72rem; color: var(--text-muted); }
+
+  /* Rendering strategy */
+  .render-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .render-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .render-item .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .badge-ssr { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-csr { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+  .badge-ssg { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .render-item .path { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* API route tree */
+  .api-tree {
+    background: var(--bg-code);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    border: 1px solid var(--border);
+  }
+  .api-tree .method {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .method-get { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .method-post { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .method-put { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .method-delete { background: rgba(239,68,68,0.2); color: #f87171; }
+  .api-desc { color: var(--text-muted); font-size: 0.7rem; }
+
+  /* Security layers */
+  .security-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .security-layer {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 14px 18px;
+    border-left: 3px solid;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .security-layer .layer-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .security-layer h5 { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
+  .security-layer p { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* Project structure */
+  .file-tree {
+    background: var(--bg-code);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .file-tree .dir { color: #79c0ff; font-weight: 600; }
+  .file-tree .file { color: #c9d1d9; }
+  .file-tree .desc { color: #6b7280; }
+
+  /* Decision table */
+  .decision-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .decision-table th {
+    background: rgba(6,182,212,0.15);
+    color: #67e8f9;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .decision-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(51,65,85,0.5);
+    vertical-align: top;
+  }
+  .decision-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--cyan);
+    font-size: 0.78rem;
+  }
+
+  /* Limits check */
+  .limit-ok { color: #4ade80; font-weight: 600; }
+  .limit-warn { color: #fbbf24; font-weight: 600; }
+
+  /* Sprint timeline */
+  .sprint-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .sprint-header {
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sprint-header .week {
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .sprint-body {
+    padding: 12px 18px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+  .sprint-body ul { padding-left: 20px; }
+  .sprint-body li { margin-bottom: 4px; }
+
+  /* Flow diagram */
+  .flow-box {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    border: 1px solid var(--border);
+  }
+  .flow-box h4 {
+    color: #67e8f9;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Env vars */
+  .env-grid {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .env-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-code);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    border: 1px solid var(--border);
+  }
+  .env-key {
+    font-family: 'JetBrains Mono', monospace;
+    color: #79c0ff;
+    font-weight: 500;
+    min-width: 280px;
+  }
+  .env-desc { color: var(--text-muted); font-size: 0.72rem; }
+  .env-badge {
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .env-public { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .env-secret { background: rgba(239,68,68,0.2); color: #f87171; }
+
+  /* Deps */
+  .dep-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .dep-item {
+    background: var(--bg-code);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .dep-item .name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .dep-item .purpose { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .stack-grid { grid-template-columns: 1fr; }
+    .render-grid { grid-template-columns: 1fr 1fr; }
+    .env-item { flex-direction: column; align-items: flex-start; }
+    .env-key { min-width: auto; }
+  }
+
+  @media print {
+    body { background: white; color: #111; }
+    .card, .sprint-card, .flow-box { border: 1px solid #ddd; background: #fafafa; }
+    .header { background: #1e293b; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>⚙️ Technical Architecture</h1>
+  <div class="subtitle">NatGan (นัดกัน) — Trip Communication Platform</div>
+  <div class="meta">
+    <span>📄 Version 1.0</span>
+    <span>📅 17 March 2026</span>
+    <span>🏗️ MVP Phase</span>
+    <span>💰 Cost: ~150-250 บาท/เดือน</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Section 1: Tech Stack -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">1</span> Tech Stack</h2>
+
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(0,0,0,0.3);">⚛️</div>
+        <div class="info"><h5>Next.js 16 + React 19</h5><p>Frontend + API Routes</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(6,182,212,0.2);">🎨</div>
+        <div class="info"><h5>Tailwind CSS 4</h5><p>Utility-first styling</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(34,197,94,0.2);">🗄️</div>
+        <div class="info"><h5>PostgreSQL 16 (Docker)</h5><p>Database on VPS</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(124,58,237,0.2);">🔑</div>
+        <div class="info"><h5>Auth.js (NextAuth v5)</h5><p>Authentication</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(245,158,11,0.2);">🔶</div>
+        <div class="info"><h5>Drizzle ORM</h5><p>Type-safe SQL queries</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(245,158,11,0.2);">☁️</div>
+        <div class="info"><h5>Cloudflare R2</h5><p>Object Storage (S3-compat)</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(0,0,0,0.3);">▲</div>
+        <div class="info"><h5>Vercel</h5><p>Hosting (Singapore)</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(34,197,94,0.2);">💚</div>
+        <div class="info"><h5>LINE Messaging API</h5><p>Push via LINE</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="icon" style="background:rgba(124,58,237,0.2);">🔔</div>
+        <div class="info"><h5>Web Push (VAPID)</h5><p>Browser notifications</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📐 Rendering Strategy</h3>
+      <div class="render-grid">
+        <div class="render-item">
+          <span class="badge badge-ssr">SSR + ISR</span>
+          <div style="font-size:0.85rem; font-weight:600;">Guest View</div>
+          <div class="path">/t/{slug}</div>
+        </div>
+        <div class="render-item">
+          <span class="badge badge-ssr">SSR + Cache</span>
+          <div style="font-size:0.85rem; font-weight:600;">Immigration</div>
+          <div class="path">/t/{slug}/imm</div>
+        </div>
+        <div class="render-item">
+          <span class="badge badge-csr">CSR (SPA)</span>
+          <div style="font-size:0.85rem; font-weight:600;">Admin</div>
+          <div class="path">/dashboard/*</div>
+        </div>
+        <div class="render-item">
+          <span class="badge badge-ssg">SSG</span>
+          <div style="font-size:0.85rem; font-weight:600;">Landing</div>
+          <div class="path">/</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Architecture -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">2</span> System Architecture</h2>
+    <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                      Client (Browser)                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐ │
+│  │ Admin (CSR)   │  │ Guest (SSR)  │  │ Immigration (SSR) │ │
+│  │ /dashboard/*  │  │ /t/{slug}    │  │ /t/{slug}/imm     │ │
+│  └──────┬───────┘  └──────┬───────┘  └────────┬──────────┘ │
+│         │  Service Worker (Web Push + Offline Cache)         │
+└─────────┼──────────────────┼──────────────────┼─────────────┘
+          ▼                  ▼                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Vercel (Singapore Region)                    │
+│  Next.js App Router                                          │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  /api/auth      /api/trips     /api/follow           │   │
+│  │  /api/notify    /api/public    /api/acknowledge       │   │
+│  └──────────────────────┬───────────────────────────────┘   │
+└──────────────────────────┼──────────────────────────────────┘
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+┌──────────────────┐ ┌──────────┐ ┌──────────────────┐
+│  VPS (Docker)    │ │  LINE    │ │  Web Push        │
+│  ├─ PostgreSQL16 │ │ Messaging│ │  (VAPID)         │
+│  ├─ Auth.js      │ │  API     │ │  Google/Apple    │
+│  ├─ Drizzle ORM  │ └──────────┘ └──────────────────┘
+│  └─ Cloudflare R2│
+└──────────────────┘</div>
+  </div>
+
+  <!-- Section 3: Database -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">3</span> Database Schema</h2>
+
+    <div class="card">
+      <h3>📊 Entity Relationship</h3>
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Prefix: <code style="color:#4ade80;">mst_</code> Master · <code style="color:#60a5fa;">trip_</code> Trip · <code style="color:#fbbf24;">noti_</code> Notification</p>
+      <div class="arch-diagram" style="font-size:0.68rem;">
+<span style="color:#4ade80">mst_companies</span> ──┬──▶ <span style="color:#4ade80">mst_users</span>
+                  │
+                  └──▶ <span style="color:#60a5fa">trip_plans</span> ──┬──▶ <span style="color:#60a5fa">trip_days</span> ──▶ <span style="color:#60a5fa">trip_activities</span>
+                                     │
+                                     ├──▶ <span style="color:#fbbf24">noti_followers</span> ──┐
+                                     │                      │
+                                     └──▶ <span style="color:#fbbf24">noti_change_logs</span> ┤
+                                                             ▼
+                                                   <span style="color:#fbbf24">noti_acknowledgements</span></div>
+    </div>
+
+    <div class="card">
+      <h3>🗄️ Core Tables</h3>
+      <table class="tech-table">
+        <thead><tr><th>Table</th><th>Key Fields</th><th>Access Control</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code style="color:#4ade80">mst_companies</code></td>
+            <td>name, logo_url, phone, line_id, tier</td>
+            <td>Owner only</td>
+          </tr>
+          <tr>
+            <td><code style="color:#4ade80">mst_users</code></td>
+            <td>company_id, email, name, role</td>
+            <td>Self only</td>
+          </tr>
+          <tr>
+            <td><code style="color:#60a5fa">trip_plans</code></td>
+            <td>slug (unique), destination, status, airline_info (jsonb), accommodations (jsonb)</td>
+            <td>Admin: all, Public: published only</td>
+          </tr>
+          <tr>
+            <td><code style="color:#60a5fa">trip_days</code></td>
+            <td>trip_id, day_number, title, sort_order</td>
+            <td>Follow trip_plans</td>
+          </tr>
+          <tr>
+            <td><code style="color:#60a5fa">trip_activities</code></td>
+            <td>day_id, time, name, emoji, place_name, maps_link, sort_order</td>
+            <td>Follow trip_plans</td>
+          </tr>
+          <tr>
+            <td><code style="color:#fbbf24">noti_followers</code></td>
+            <td>trip_id, display_name, channel, line_user_id, web_push_subscription (jsonb)</td>
+            <td>Public: insert, Admin: read</td>
+          </tr>
+          <tr>
+            <td><code style="color:#fbbf24">noti_change_logs</code></td>
+            <td>trip_id, changes (jsonb), summary_text, noti_sent</td>
+            <td>Admin only</td>
+          </tr>
+          <tr>
+            <td><code style="color:#fbbf24">noti_acknowledgements</code></td>
+            <td>changelog_id, follower_id, acknowledged_at</td>
+            <td>Public: insert, Admin: read</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>💡 JSONB Design Decision</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">airline_info, accommodations, emergency_contacts เก็บเป็น JSONB แทนสร้าง table แยก เพราะ:</p>
+      <table class="tech-table">
+        <thead><tr><th>JSONB (เลือก)</th><th>Normalized Tables (ไม่เลือก)</th></tr></thead>
+        <tbody>
+          <tr><td>✅ Schema ยืดหยุ่น ไม่ต้อง migrate บ่อย</td><td>❌ ต้อง JOIN ทุกครั้ง</td></tr>
+          <tr><td>✅ อ่านง่าย 1 query ได้ครบ</td><td>❌ เพิ่ม field ต้อง migrate</td></tr>
+          <tr><td>✅ เหมาะกับข้อมูลที่มีไม่เกิน 20 items</td><td>✅ ดีกว่าถ้า query individual items บ่อย</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 4: API Design -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">4</span> API Design</h2>
+
+    <div class="card">
+      <h3>🔌 API Routes</h3>
+      <div class="api-tree">
+<strong style="color:#67e8f9;">/api/auth</strong> <span class="api-desc">— Authentication</span>
+  <span class="method method-post">POST</span> /register <span class="api-desc">สมัครสมาชิก</span>
+  <span class="method method-post">POST</span> /login <span class="api-desc">เข้าสู่ระบบ</span>
+  <span class="method method-post">POST</span> /logout <span class="api-desc">ออกจากระบบ</span>
+
+<strong style="color:#67e8f9;">/api/company</strong> <span class="api-desc">— Company Profile</span>
+  <span class="method method-get">GET</span>  /me <span class="api-desc">ข้อมูลบริษัทของตัวเอง</span>
+  <span class="method method-put">PUT</span>  /me <span class="api-desc">แก้ไขข้อมูลบริษัท</span>
+  <span class="method method-post">POST</span> /me/logo <span class="api-desc">อัปโหลด logo</span>
+
+<strong style="color:#67e8f9;">/api/trips</strong> <span class="api-desc">— Trip Management (Auth Required)</span>
+  <span class="method method-get">GET</span>    / <span class="api-desc">รายการทริป (dashboard)</span>
+  <span class="method method-post">POST</span>   / <span class="api-desc">สร้างทริปใหม่</span>
+  <span class="method method-get">GET</span>    /:id <span class="api-desc">ข้อมูลทริป</span>
+  <span class="method method-put">PUT</span>    /:id <span class="api-desc">แก้ไขทริป + change detection</span>
+  <span class="method method-delete">DEL</span> /:id <span class="api-desc">ลบทริป</span>
+  <span class="method method-post">POST</span>   /:id/publish <span class="api-desc">Publish ทริป</span>
+  <span class="method method-post">POST</span>   /:id/unpublish <span class="api-desc">Unpublish</span>
+  <span class="method method-get">GET</span>    /:id/followers <span class="api-desc">รายการ followers</span>
+  <span class="method method-get">GET</span>    /:id/changelog <span class="api-desc">ประวัติเปลี่ยนแปลง</span>
+
+<strong style="color:#67e8f9;">/api/trips/:tripId/days</strong> <span class="api-desc">— Day CRUD</span>
+  <span class="method method-post">POST</span>   / <span class="api-desc">เพิ่มวัน</span>
+  <span class="method method-put">PUT</span>    /:dayId <span class="api-desc">แก้ไขวัน</span>
+  <span class="method method-delete">DEL</span> /:dayId <span class="api-desc">ลบวัน</span>
+  <span class="method method-put">PUT</span>    /reorder <span class="api-desc">เรียงลำดับ</span>
+
+<strong style="color:#67e8f9;">/api/trips/:dayId/activities</strong> <span class="api-desc">— Activity CRUD</span>
+  <span class="method method-post">POST</span>   / <span class="api-desc">เพิ่มกิจกรรม</span>
+  <span class="method method-put">PUT</span>    /:actId <span class="api-desc">แก้ไข</span>
+  <span class="method method-delete">DEL</span> /:actId <span class="api-desc">ลบ</span>
+  <span class="method method-put">PUT</span>    /reorder <span class="api-desc">เรียงลำดับ</span>
+
+<strong style="color:#4ade80;">/api/public</strong> <span class="api-desc">— No Auth Required</span>
+  <span class="method method-get">GET</span>  /t/:slug <span class="api-desc">Guest View data</span>
+  <span class="method method-get">GET</span>  /t/:slug/imm <span class="api-desc">Immigration data</span>
+  <span class="method method-post">POST</span> /t/:slug/view <span class="api-desc">นับ view</span>
+
+<strong style="color:#4ade80;">/api/follow</strong> <span class="api-desc">— Follow Trip</span>
+  <span class="method method-post">POST</span> /line/callback <span class="api-desc">LINE OAuth callback</span>
+  <span class="method method-post">POST</span> /web-push/subscribe <span class="api-desc">Web Push subscription</span>
+
+<strong style="color:#4ade80;">/api/acknowledge</strong>
+  <span class="method method-post">POST</span> /:changelogId <span class="api-desc">กดรับทราบ</span>
+
+<strong style="color:#fbbf24;">/api/notify</strong> <span class="api-desc">— Internal (Admin triggered)</span>
+  <span class="method method-post">POST</span> /send/:changelogId <span class="api-desc">ส่ง noti ทุกคน</span>
+  <span class="method method-post">POST</span> /resend/:changelogId <span class="api-desc">ส่งซ้ำคนที่ยังไม่อ่าน</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Auth Flow -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">5</span> Authentication Flow</h2>
+
+    <div class="flow-box">
+      <h4>🔐 Admin Auth (Auth.js / NextAuth v5)</h4>
+      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
+Register:
+[Admin] → POST /register { email, password, company_name }
+  ├── Auth.js: Credentials provider → bcrypt hash + insert mst_users via Drizzle
+  ├── Create companies record { name, tier: 'free' }
+  ├── Create users record { id: generated UUID, company_id }
+  └── Return { user, session }
+
+Login:
+[Admin] → POST /login { email, password }
+  ├── Auth.js: signIn("credentials") → JWT session
+  ├── Set httpOnly cookies (next-auth.session-token)
+  └── Return { user, company }
+
+Session:
+  ├── JWT in httpOnly cookies (NOT localStorage)
+  ├── Auto-refresh via Auth.js middleware
+  └── Next.js middleware protects /dashboard/*</div>
+    </div>
+
+    <div class="flow-box">
+      <h4>💚 LINE OA Follow Flow</h4>
+      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
+[Guest] กด "เพิ่มเพื่อน LINE OA"
+  │
+  ├── User เพิ่มเพื่อน LINE OA
+  │   (ผ่าน QR Code หรือ LINE URL Scheme)
+  │
+  ├── LINE Platform ส่ง Webhook: follow event → userId
+  │
+  ├── Server: รับ follow event → บันทึก line_user_id to followers table
+  │
+  └── ส่ง Welcome message ผ่าน LINE Messaging API</div>
+    </div>
+
+    <div class="flow-box">
+      <h4>🔔 Web Push Follow Flow</h4>
+      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
+[Guest] กด "ติดตาม (Web Push)"
+  │
+  ├── Notification.requestPermission() → "granted"
+  │
+  ├── registration.pushManager.subscribe({
+  │     userVisibleOnly: true,
+  │     applicationServerKey: VAPID_PUBLIC_KEY
+  │   })
+  │
+  ├── POST /api/follow/web-push/subscribe
+  │   { trip_id, display_name, subscription }
+  │
+  └── Save to followers table → ✅</div>
+    </div>
+  </div>
+
+  <!-- Section 6: Notification -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">6</span> Notification Architecture</h2>
+
+    <div class="flow-box">
+      <h4>⚡ Change Detection + Send Flow</h4>
+      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
+Admin แก้ไข Trip → กด "บันทึก"
+  │
+  ├── 1. Load BEFORE snapshot
+  ├── 2. Apply changes → save to DB
+  ├── 3. Compare BEFORE vs AFTER → diff
+  ├── 4. Generate summary: "เปลี่ยนเวลา teamLab 08:30 → 09:00"
+  ├── 5. Save to change_logs
+  ├── 6. Increment edit_count
+  │
+  ▼ [Frontend: Change Summary Modal]
+  │
+  ├── "ส่งแจ้งเตือน" → POST /api/notify/send/:changelogId
+  │   │
+  │   ├── Load all followers
+  │   ├── Send concurrently (Promise.allSettled):
+  │   │   ├── LINE: POST notify-api.line.me/api/notify
+  │   │   └── Push: webpush.sendNotification(subscription, payload)
+  │   ├── Handle failures (expired token → mark inactive)
+  │   └── Update changelog: noti_sent = true
+  │
+  └── "บันทึกอย่างเดียว" → (ไม่ส่ง noti)</div>
+    </div>
+
+    <div class="card">
+      <h3>📨 Notification Message Format</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <h4 style="color:#4ade80;">💚 LINE Messaging API</h4>
+          <div style="background:var(--bg-code); border-radius:8px; padding:12px; font-size:0.78rem; border:1px solid var(--border);">
+            🔔 NatGan - Tokyo Winter 2026<br><br>
+            ⚠️ มีการเปลี่ยนแปลง:<br>
+            • Day 2: เปลี่ยนเวลา teamLab<br>
+            &nbsp;&nbsp;08:30 → 09:00<br><br>
+            👉 ดูรายละเอียด + กดรับทราบ:<br>
+            natgan.com/t/tokyo-winter-2026
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#a78bfa;">🔔 Web Push</h4>
+          <div style="background:var(--bg-code); border-radius:8px; padding:12px; font-size:0.78rem; border:1px solid var(--border);">
+            <strong>title:</strong> "Tokyo Winter 2026 มีการเปลี่ยน"<br>
+            <strong>body:</strong> "Day 2: เปลี่ยนเวลา teamLab →..."<br>
+            <strong>icon:</strong> company.logo_url<br>
+            <strong>data.url:</strong> "/t/tokyo-winter-2026"<br>
+            <strong>vibrate:</strong> [100, 50, 100]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 7: Security -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">7</span> Security Architecture</h2>
+
+    <div class="security-layers">
+      <div class="security-layer" style="border-color:#ef4444;">
+        <div class="layer-num" style="background:#ef4444;">1</div>
+        <div>
+          <h5>Network</h5>
+          <p>HTTPS everywhere (Vercel auto-SSL) · CORS: natgan.com only · Rate limiting (auth: 10/min, noti: 5/min, public: 100/min)</p>
+        </div>
+      </div>
+      <div class="security-layer" style="border-color:#f59e0b;">
+        <div class="layer-num" style="background:#f59e0b;">2</div>
+        <div>
+          <h5>Authentication</h5>
+          <p>JWT via Auth.js (NextAuth v5) · httpOnly cookies (not localStorage) · Token auto-refresh · CSRF via SameSite</p>
+        </div>
+      </div>
+      <div class="security-layer" style="border-color:#22c55e;">
+        <div class="layer-num" style="background:#22c55e;">3</div>
+        <div>
+          <h5>Authorization</h5>
+          <p>Drizzle middleware auth (query filters) · API middleware: verify auth + company ownership · Rate limit per tier</p>
+        </div>
+      </div>
+      <div class="security-layer" style="border-color:#06b6d4;">
+        <div class="layer-num" style="background:#06b6d4;">4</div>
+        <div>
+          <h5>Data Protection</h5>
+          <p>LINE tokens: AES-256-GCM encrypted · Passwords: bcrypt (Auth.js) · PII minimal: display_name only for followers</p>
+        </div>
+      </div>
+      <div class="security-layer" style="border-color:#7c3aed;">
+        <div class="layer-num" style="background:#7c3aed;">5</div>
+        <div>
+          <h5>Input Validation</h5>
+          <p>Zod schema validation on all API inputs · Slug: alphanumeric + hyphen only · HTML sanitization · File type + size check</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 8: Environment Variables -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">8</span> Environment Variables</h2>
+    <div class="env-grid">
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">DATABASE_URL</span>
+        <span class="env-desc">PostgreSQL connection string (Drizzle)</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">NEXTAUTH_SECRET</span>
+        <span class="env-desc">Auth.js session encryption key</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-public">PUBLIC</span>
+        <span class="env-key">NEXTAUTH_URL</span>
+        <span class="env-desc">https://natgan.com (Auth.js base URL)</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">R2_ACCESS_KEY_ID</span>
+        <span class="env-desc">Cloudflare R2 access key</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">R2_SECRET_ACCESS_KEY</span>
+        <span class="env-desc">Cloudflare R2 secret key</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-public">PUBLIC</span>
+        <span class="env-key">NEXT_PUBLIC_R2_PUBLIC_URL</span>
+        <span class="env-desc">Cloudflare R2 public bucket URL</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">LINE_CHANNEL_ID</span>
+        <span class="env-desc">LINE Messaging API channel ID</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">LINE_CHANNEL_SECRET</span>
+        <span class="env-desc">LINE Messaging API channel secret</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">LINE_CHANNEL_ACCESS_TOKEN</span>
+        <span class="env-desc">LINE Messaging API long-lived access token</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-public">PUBLIC</span>
+        <span class="env-key">NEXT_PUBLIC_VAPID_PUBLIC_KEY</span>
+        <span class="env-desc">Web Push VAPID public key</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">VAPID_PRIVATE_KEY</span>
+        <span class="env-desc">Web Push VAPID private key</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-secret">SECRET</span>
+        <span class="env-key">ENCRYPTION_KEY</span>
+        <span class="env-desc">AES-256 key for LINE token encryption</span>
+      </div>
+      <div class="env-item">
+        <span class="env-badge env-public">PUBLIC</span>
+        <span class="env-key">NEXT_PUBLIC_BASE_URL</span>
+        <span class="env-desc">https://natgan.com</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 9: Deployment -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">9</span> Deployment</h2>
+    <div class="card">
+      <h3>🚀 Infrastructure</h3>
+      <div class="arch-diagram" style="font-size:0.7rem;">
+┌───────────────────────────────────────────────┐
+│              Vercel (Singapore)                 │
+│  ┌───────────┐ ┌────────────┐ ┌─────────────┐│
+│  │ Edge CDN   │ │ Serverless │ │ Static      ││
+│  │ HTML cache │ │ Functions  │ │ Assets      ││
+│  │ ISR pages  │ │ (API)      │ │ JS/CSS/img  ││
+│  └───────────┘ └────────────┘ └─────────────┘│
+│  Git: main → auto deploy                      │
+│  PR → preview URL                              │
+└────────────────────┬──────────────────────────┘
+        ┌────────────┼────────────┐
+        ▼            ▼            ▼
+┌──────────────┐ ┌────────┐ ┌──────────┐
+│ VPS (Docker) │ │ LINE   │ │ Web Push │
+│ PostgreSQL16 │ │  Msg.  │ │ Services │
+│ ~150-250บ/ด. │ │ (Free) │ │ (Free)   │
+└──────┬───────┘ └────────┘ └──────────┘
+       ▼
+┌──────────────┐
+│ Cloudflare R2│
+│ Storage(Free)│
+└──────────────┘</div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Resource Capacity</h3>
+      <table class="tech-table">
+        <thead><tr><th>Service</th><th>Resource</th><th>Limit / Cost</th><th>MVP Estimate</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>VPS (Docker)</td><td>PostgreSQL 16</td><td>1 GB RAM / 25 GB SSD</td><td>~5 MB data</td><td><span class="limit-ok">✅ เหลือเฟือ</span></td></tr>
+          <tr><td>Cloudflare R2</td><td>Storage</td><td>10 GB free</td><td>~100 MB</td><td><span class="limit-ok">✅</span></td></tr>
+          <tr><td>Auth.js</td><td>Auth Sessions</td><td>Unlimited (self-hosted)</td><td>&lt;10</td><td><span class="limit-ok">✅</span></td></tr>
+          <tr><td>Vercel</td><td>Bandwidth</td><td>100 GB/month</td><td>~5 GB</td><td><span class="limit-ok">✅</span></td></tr>
+          <tr><td>Vercel</td><td>Serverless</td><td>100 GB-hrs</td><td>~2 GB-hrs</td><td><span class="limit-ok">✅</span></td></tr>
+          <tr><td>LINE</td><td>Messaging API</td><td>Unlimited</td><td>~100/month</td><td><span class="limit-ok">✅</span></td></tr>
+          <tr><td>Web Push</td><td>VAPID</td><td>Unlimited</td><td>~100/month</td><td><span class="limit-ok">✅</span></td></tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:12px; margin-top:12px; text-align:center; font-size:0.9rem;">
+        <strong style="color:#fbbf24;">💰 Monthly Cost: ~150-250 บาท/เดือน</strong> — VPS (Docker + PostgreSQL) · Vercel + R2 + LINE + Push = free
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 10: Project Structure -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">10</span> Project Structure</h2>
+    <div class="file-tree">
+<span class="dir">natgan/</span>
+├── <span class="dir">public/</span>
+│   ├── <span class="file">sw.js</span>                      <span class="desc"># Service Worker (Push + Offline)</span>
+│   └── <span class="dir">icons/</span>                     <span class="desc"># PWA icons</span>
+│
+├── <span class="dir">src/</span>
+│   ├── <span class="dir">app/</span>
+│   │   ├── <span class="file">layout.tsx</span>             <span class="desc"># Root layout (fonts, providers)</span>
+│   │   ├── <span class="file">page.tsx</span>               <span class="desc"># Landing page (SSG)</span>
+│   │   ├── <span class="file">globals.css</span>            <span class="desc"># Tailwind + custom theme</span>
+│   │   │
+│   │   ├── <span class="dir">(auth)/</span>
+│   │   │   ├── <span class="file">login/page.tsx</span>
+│   │   │   └── <span class="file">register/page.tsx</span>
+│   │   │
+│   │   ├── <span class="dir">dashboard/</span>             <span class="desc"># Admin area (CSR, auth required)</span>
+│   │   │   ├── <span class="file">layout.tsx</span>         <span class="desc"># Sidebar + auth check</span>
+│   │   │   ├── <span class="file">page.tsx</span>           <span class="desc"># Trip list</span>
+│   │   │   ├── <span class="dir">trips/</span>
+│   │   │   │   ├── <span class="file">new/page.tsx</span>   <span class="desc"># Trip builder step 1</span>
+│   │   │   │   └── <span class="dir">[id]/</span>
+│   │   │   │       ├── <span class="file">edit/page.tsx</span>    <span class="desc"># Day & Activity editor</span>
+│   │   │   │       ├── <span class="file">preview/page.tsx</span> <span class="desc"># Preview</span>
+│   │   │   │       ├── <span class="file">publish/page.tsx</span> <span class="desc"># Publish & share</span>
+│   │   │   │       └── <span class="file">receipts/page.tsx</span><span class="desc"># Read receipts</span>
+│   │   │   └── <span class="file">usage/page.tsx</span>     <span class="desc"># Usage & limits</span>
+│   │   │
+│   │   ├── <span class="dir">t/[slug]/</span>              <span class="desc"># Guest view (SSR + ISR)</span>
+│   │   │   ├── <span class="file">page.tsx</span>           <span class="desc"># Full trip view</span>
+│   │   │   └── <span class="dir">imm/</span>
+│   │   │       └── <span class="file">page.tsx</span>       <span class="desc"># Immigration view</span>
+│   │   │
+│   │   └── <span class="dir">api/</span>                   <span class="desc"># Route Handlers</span>
+│   │       ├── <span class="dir">auth/</span>  <span class="dir">company/</span>  <span class="dir">trips/</span>
+│   │       ├── <span class="dir">public/</span>  <span class="dir">follow/</span>  <span class="dir">notify/</span>
+│   │       └── <span class="dir">acknowledge/</span>  <span class="dir">upload/</span>
+│   │
+│   ├── <span class="dir">components/</span>
+│   │   ├── <span class="dir">admin/</span>                 <span class="desc"># TripForm, DayEditor, ActivityEditor...</span>
+│   │   ├── <span class="dir">guest/</span>                 <span class="desc"># HeroSection, DayCard, FollowButton...</span>
+│   │   ├── <span class="dir">immigration/</span>           <span class="desc"># ImmigrationView</span>
+│   │   └── <span class="dir">shared/</span>                <span class="desc"># QRCode, ImageUpload, LangSwitcher</span>
+│   │
+│   ├── <span class="dir">lib/</span>
+│   │   ├── <span class="dir">db/</span>                    <span class="desc"># schema.ts, drizzle.ts, migrate.ts (Drizzle ORM)</span>
+│   │   ├── <span class="dir">auth/</span>                  <span class="desc"># auth.ts, auth.config.ts (Auth.js / NextAuth v5)</span>
+│   │   ├── <span class="dir">storage/</span>               <span class="desc"># r2.ts (Cloudflare R2 S3 client)</span>
+│   │   ├── <span class="dir">notifications/</span>         <span class="desc"># line-messaging.ts, web-push.ts, change-detector.ts</span>
+│   │   ├── <span class="file">encryption.ts</span>          <span class="desc"># AES-256-GCM</span>
+│   │   └── <span class="file">slug.ts</span>                <span class="desc"># Slug gen + validation</span>
+│   │
+│   └── <span class="dir">types/</span>                     <span class="desc"># database.ts, api.ts, trip.ts</span>
+│
+├── <span class="dir">drizzle/</span>
+│   ├── <span class="dir">migrations/</span>                <span class="desc"># 0000_create_tables, 0001_indexes</span>
+│   └── <span class="file">seed.ts</span>
+│
+├── <span class="dir">docker/</span>
+│   └── <span class="file">docker-compose.yml</span>         <span class="desc"># PostgreSQL 16 + pgAdmin</span>
+│
+└── <span class="file">package.json</span></div>
+  </div>
+
+  <!-- Section 11: Dependencies -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">11</span> Dependencies</h2>
+    <div class="dep-grid">
+      <div class="dep-item"><div class="name">next</div><div class="purpose">Framework</div></div>
+      <div class="dep-item"><div class="name">react</div><div class="purpose">UI Library</div></div>
+      <div class="dep-item"><div class="name">drizzle-orm</div><div class="purpose">Type-safe ORM</div></div>
+      <div class="dep-item"><div class="name">next-auth</div><div class="purpose">Auth.js (v5)</div></div>
+      <div class="dep-item"><div class="name">@aws-sdk/client-s3</div><div class="purpose">R2 Storage</div></div>
+      <div class="dep-item"><div class="name">pg</div><div class="purpose">PostgreSQL driver</div></div>
+      <div class="dep-item"><div class="name">web-push</div><div class="purpose">Push Notifications</div></div>
+      <div class="dep-item"><div class="name">qrcode</div><div class="purpose">QR Generation</div></div>
+      <div class="dep-item"><div class="name">zod</div><div class="purpose">Input Validation</div></div>
+      <div class="dep-item"><div class="name">@dnd-kit/core</div><div class="purpose">Drag & Drop</div></div>
+      <div class="dep-item"><div class="name">tailwindcss</div><div class="purpose">Styling</div></div>
+      <div class="dep-item"><div class="name">typescript</div><div class="purpose">Type Safety</div></div>
+    </div>
+  </div>
+
+  <!-- Section 12: Technical Decisions -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">12</span> Technical Decisions</h2>
+    <div class="card" style="overflow-x:auto;">
+      <table class="decision-table">
+        <thead><tr><th>#</th><th>Decision</th><th>เหตุผล</th><th>Alternative ที่ตัด</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="decision-id">T1</span></td>
+            <td>PostgreSQL + Auth.js + Drizzle ORM (self-hosted)</td>
+            <td>No vendor lock-in, full control, type-safe queries</td>
+            <td>Supabase (vendor dependency), Firebase (lock-in)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T2</span></td>
+            <td>Next.js API Routes (monorepo)</td>
+            <td>Deploy เดียว, shared types</td>
+            <td>Separate NestJS (complexity + cost)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T3</span></td>
+            <td>SSR + ISR สำหรับ Guest View</td>
+            <td>SEO + fast FCP + fresh data</td>
+            <td>CSR (ช้า), SSG (ไม่ fresh)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T4</span></td>
+            <td>JSONB สำหรับ airline/accommodation</td>
+            <td>Flexible, ไม่ต้อง JOIN</td>
+            <td>Normalized tables (over-engineering)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T5</span></td>
+            <td>LINE token encrypted at app layer</td>
+            <td>Defense in depth, ป้องกัน DB leak</td>
+            <td>Plaintext (security risk)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T6</span></td>
+            <td>Service Worker for Immigration + Push</td>
+            <td>Offline + push ใน file เดียว</td>
+            <td>No offline (bad UX ตอนยื่น ตม.)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T7</span></td>
+            <td>Client-side image resize</td>
+            <td>ลด upload time + storage cost</td>
+            <td>Server resize (ช้า, ใช้ compute)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T8</span></td>
+            <td>Vercel Singapore region</td>
+            <td>ใกล้ไทย latency ~30ms</td>
+            <td>US region (~200ms)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T9</span></td>
+            <td>Slug-based URL (/t/{slug})</td>
+            <td>จำง่าย, SEO, share ง่าย</td>
+            <td>UUID URL (น่าเกลียด)</td>
+          </tr>
+          <tr>
+            <td><span class="decision-id">T10</span></td>
+            <td>Change detection at API layer</td>
+            <td>Control ได้, debug ง่าย</td>
+            <td>DB trigger (complex)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 13: Sprint Timeline -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">13</span> Development Sequence</h2>
+
+    <div class="sprint-card">
+      <div class="sprint-header" style="color:#60a5fa;">
+        <span class="week" style="background:rgba(59,130,246,0.2); color:#60a5fa;">W1-2</span>
+        Foundation
+      </div>
+      <div class="sprint-body">
+        <ul>
+          <li>VPS setup + Docker + PostgreSQL 16</li>
+          <li>Drizzle ORM schema + migrations</li>
+          <li>Auth.js (NextAuth v5) + Login/Register pages</li>
+          <li>Company Profile CRUD</li>
+          <li>Auth middleware + Dashboard layout</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header" style="color:#a78bfa;">
+        <span class="week" style="background:rgba(124,58,237,0.2); color:#a78bfa;">W3-4</span>
+        Trip Builder
+      </div>
+      <div class="sprint-body">
+        <ul>
+          <li>Trip CRUD + auto-generate days from dates</li>
+          <li>Day editor (add/remove/reorder with @dnd-kit)</li>
+          <li>Activity editor (add/remove/reorder/drag)</li>
+          <li>Image upload + Cloudflare R2 Storage + preset covers</li>
+          <li>Emergency contacts + Notes editor</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header" style="color:#4ade80;">
+        <span class="week" style="background:rgba(34,197,94,0.2); color:#4ade80;">W5-6</span>
+        Guest View + Publishing
+      </div>
+      <div class="sprint-body">
+        <ul>
+          <li>Publish flow (slug gen, QR code, share page)</li>
+          <li>Guest View SSR (/t/[slug]) — adapt Demo App components</li>
+          <li>Immigration View (/t/[slug]/imm) + Service Worker offline</li>
+          <li>Auto-highlight + Countdown badge</li>
+          <li>Company branding + Powered by badge</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sprint-card" style="border-color:var(--amber);">
+      <div class="sprint-header" style="color:#fbbf24;">
+        <span class="week" style="background:rgba(245,158,11,0.2); color:#fbbf24;">W7-8</span>
+        ⭐ Notification System
+      </div>
+      <div class="sprint-body">
+        <ul>
+          <li>LINE Messaging API setup + Webhook integration</li>
+          <li>Web Push VAPID + Service Worker push handler</li>
+          <li>Follow button + modal</li>
+          <li>Change detection engine (diff)</li>
+          <li>Send notification (LINE + Web Push parallel)</li>
+          <li>Acknowledge banner + Read Receipt dashboard</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header" style="color:#67e8f9;">
+        <span class="week" style="background:rgba(6,182,212,0.2); color:#67e8f9;">W9</span>
+        Dashboard + Limits
+      </div>
+      <div class="sprint-body">
+        <ul>
+          <li>Admin dashboard (trip list + stats)</li>
+          <li>Free tier limit enforcement</li>
+          <li>Platform i18n (TH/EN/JP)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sprint-card">
+      <div class="sprint-header" style="color:#f87171;">
+        <span class="week" style="background:rgba(239,68,68,0.2); color:#f87171;">W10</span>
+        Testing + Deploy + Pilot
+      </div>
+      <div class="sprint-body">
+        <ul>
+          <li>E2E testing (create → publish → follow → noti → ack)</li>
+          <li>Mobile testing (LINE browser, iOS Safari, Android Chrome)</li>
+          <li>Custom domain: natgan.com</li>
+          <li>Onboard pilot company</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div style="text-align:center; padding:40px 20px; color:var(--text-muted); font-size:0.75rem; border-top:1px solid var(--border);">
+  NatGan (นัดกัน) — Technical Architecture Document v1.0 · March 2026
+</div>
+
+</body>
+</html>

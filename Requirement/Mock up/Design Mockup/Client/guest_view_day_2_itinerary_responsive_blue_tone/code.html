@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1978e5",
+              "on-primary": "#ffffff",
+              "primary-container": "#d6e2ff",
+              "on-primary-container": "#001a41",
+              "secondary": "#565e71",
+              "on-secondary": "#ffffff",
+              "secondary-container": "#dae2f9",
+              "on-secondary-container": "#131c2b",
+              "surface": "#f8f9ff",
+              "on-surface": "#191c20",
+              "surface-variant": "#e0e2ec",
+              "on-surface-variant": "#44474e",
+              "outline": "#74777f",
+              "background": "#f8f9ff",
+              "error": "#ba1a1a",
+            },
+            fontFamily: {
+              "headline": ["Inter", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.5rem",
+              "lg": "0.75rem",
+              "xl": "1rem",
+              "2xl": "1.5rem",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      body {
+        min-height: 100dvh;
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased pb-24 md:pb-0">
+<!-- Desktop Sidebar (Hidden on Mobile) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white border-r border-surface-variant z-50 hidden lg:flex flex-col p-6">
+<div class="mb-10">
+<h1 class="text-primary font-headline font-extrabold text-2xl tracking-tight">Komorebi</h1>
+</div>
+<nav class="space-y-2 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-semibold text-sm">Explore</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+<span class="font-semibold text-sm">My Trip</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-semibold text-sm">Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" href="#">
+<span class="material-symbols-outlined">person_pin</span>
+<span class="font-semibold text-sm">Profile</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-surface-variant">
+<button class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-error hover:bg-error/5 transition-colors">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-semibold text-sm">Sign Out</span>
+</button>
+</div>
+</aside>
+<div class="lg:ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-0 lg:left-64 z-50 bg-white/80 backdrop-blur-xl border-b border-surface-variant">
+<div class="flex items-center justify-between px-6 h-16 max-w-7xl mx-auto w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 text-on-surface">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline font-bold text-lg md:text-xl tracking-tight text-on-surface">Day 2: Coastal Serenity</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary-container text-sm font-bold transition-all hover:brightness-95">
+<span class="material-symbols-outlined text-[20px]">share</span>
+                        Share Trip
+                    </button>
+<button class="active:scale-95 duration-200 text-on-surface p-2">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Scroll Area -->
+<div class="pt-16 max-w-5xl mx-auto">
+<!-- Hero Section -->
+<section class="relative w-full h-[300px] md:h-[450px] md:rounded-b-3xl overflow-hidden shadow-2xl">
+<img alt="Tokyo Skyline" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAG5nOdt-Dj975woP96ctAAPmchx6G8JY_kuVaIKMXkJwZ7KtjjhS9PP6PIeR6vMWy7GVbvFC66Ilw3FPPZGe63xPuUWRyNq0sG56GO-hfvlrreY3SPCIns5CTSBpKvhRRdboIpL2Vatgzus3qSj2MyaSJdMK9hbFByRzEsnBh6B2D9ZC0xlNxOO_l4C3-lyBctvpZM0tUp0nFtT0sJidhZBN7jgxl490USZhPB5eqgidiSJTloNY8EKIDI2G3SMAPfoWfBSvywFTE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-6 md:p-12 w-full">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/90 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest mb-4">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                        Day 2 of 8 • Active
+                    </div>
+<h2 class="font-headline font-extrabold text-3xl md:text-5xl text-white leading-tight tracking-tight drop-shadow-lg">
+                        Tokyo: Modernity <br class="hidden md:block"/>Meets Tradition
+                    </h2>
+</div>
+</section>
+<!-- Day Navigation -->
+<nav class="sticky top-16 z-40 bg-white border-b border-surface-variant/50 py-4 shadow-sm overflow-hidden">
+<div class="flex gap-3 px-6 overflow-x-auto no-scrollbar items-center max-w-screen-xl mx-auto">
+<button class="flex-shrink-0 px-4 py-2 rounded-lg font-headline font-semibold text-sm text-on-surface-variant hover:bg-primary-container/30 transition-colors">Day 1</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-lg font-headline font-bold text-sm bg-primary text-white shadow-md">Day 2</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-lg font-headline font-semibold text-sm text-on-surface-variant hover:bg-primary-container/30 transition-colors">Day 3</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-lg font-headline font-semibold text-sm text-on-surface-variant hover:bg-primary-container/30 transition-colors">Day 4</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-lg font-headline font-semibold text-sm text-on-surface-variant hover:bg-primary-container/30 transition-colors">Day 5</button>
+</div>
+</nav>
+<main class="mt-8 px-6 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Timeline Section -->
+<div class="lg:col-span-8 space-y-10">
+<!-- Activity 1 -->
+<div class="relative pl-12 border-l-2 border-primary/20">
+<div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-white border-4 border-primary shadow-sm"></div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="font-headline font-bold text-primary tracking-tight">08:30 AM</span>
+<span class="material-symbols-outlined text-primary/60" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-surface-variant/50 group hover:border-primary/30 transition-all">
+<div class="flex flex-col sm:flex-row gap-6">
+<div class="w-full sm:w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-surface-variant">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTvbb45DWFvYCe1QIBWA72dtua5ufNY3C57ZpHDBUOuLP3-WGw8G5lZ52iDj6a8B5zTPLQdUSlASeG8DjRcZyWaU9eztetBqGVYBGCn2U_sdb2ihEEhKJpOrZ4ZmF3LVPGWzsiKQ4mp9QAUAXLepiCrm3-1gzjnjnxCnkKjUXVY6r8tRPwqFKMI-FgY5RnYq8RmsGPtq0AKci-t5P-dvrFlRqKAPX_SfvtbNzjUxVPdGOrp8sfABIg7Jr2wxlZm65O47KwBX-Z-usU"/>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-headline font-bold text-on-surface text-lg leading-tight">teamLab Borderless Experience</h3>
+<p class="text-sm text-on-surface-variant mt-1">Immersive digital art museum at Azabudai Hills.</p>
+<a class="mt-4 flex items-center gap-2 text-xs font-bold text-primary hover:underline transition-colors uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">map</span>
+                                            Open in Google Maps
+                                        </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Activity 2 -->
+<div class="relative pl-12 border-l-2 border-primary/20">
+<div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-white border-4 border-primary/20 shadow-sm"></div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="font-headline font-bold text-primary tracking-tight">11:30 AM</span>
+<span class="material-symbols-outlined text-primary/60" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-surface-variant/50 group hover:border-primary/30 transition-all">
+<div class="flex flex-col sm:flex-row gap-6">
+<div class="w-full sm:w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-surface-variant">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTHs84eCDjV07nyDhIiTuvsQFCYqqCCH4heGwki45WOm9LpYkUL0bEQc-Jwh2iFtsDBVeATNTMlSP-4J6uxm1AymFqHlSGIhcFhvAfKu6il6CYqL4TVU25pVxI-h9dhJL_mMdLpQDrCM_CbbPSJqe3LLmzIqFKnTi6ESmTIC2xEDp3xEsrDEdtEPIieYWzPGmK3YK_KTYOc92Bz6vOlQZ4ffliA0ek-y1WWzWPdYyOwWJmFLjf5_eq5hK_UKxB_ZR7MM-vGIXm8CrV"/>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-headline font-bold text-on-surface text-lg leading-tight">Lunch at Tsukiji Market</h3>
+<p class="text-sm text-on-surface-variant mt-1">Fresh seafood and local street food delicacies.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Activity 3 -->
+<div class="relative pl-12 border-l-2 border-primary/20">
+<div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-white border-4 border-primary/20 shadow-sm"></div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="font-headline font-bold text-primary tracking-tight">02:00 PM</span>
+<span class="material-symbols-outlined text-primary/60" style="font-variation-settings: 'FILL' 1;">castle</span>
+</div>
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-variant/50 group hover:border-primary/30 transition-all">
+<div class="h-48 md:h-64 relative">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPs3HtRTj2G3y1lXP33eP9qnRR_72e829naTKI4-T9iG9jUV4Lb9BIbeVBWZcTo_yP_65JRVLqx5Z45aSlJ7DOIOJ1tQY2F84P-Axt61X-hsoTZQnhPSHttnQ6zHXroqN9FEQ5OhG13TA35PQGvHPsUdQ-zZh8xNwY4orkkoW8yxxpU0pl23gXFgomilhHsIOWOOArWK_o2aREr037yuckJWCOstkAXeW0kmIVqV5RZkOp7OalLNDH-Q5mdL9bPmscNLa0hUZ6S0eO"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<h3 class="font-headline font-bold text-xl">Tokyo Disneyland</h3>
+</div>
+</div>
+<div class="p-6">
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">Full afternoon at the park. Remember to have your digital e-ticket ready for entry!</p>
+<button class="w-full py-4 bg-primary-container text-on-primary-container font-headline font-bold rounded-xl text-sm active:scale-[0.98] transition-all hover:brightness-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">qr_code_2</span>
+                                        View Ticket QR Code
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar / Utility Cards -->
+<aside class="lg:col-span-4 space-y-6">
+<div class="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+<h4 class="font-headline font-bold text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">concierge</span>
+                            Concierge Services
+                        </h4>
+<div class="space-y-3">
+<button class="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-primary text-white font-headline font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">security</span>
+                                Immigration Mode
+                            </button>
+<button class="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-white text-primary border border-primary/20 font-headline font-bold shadow-sm active:scale-95 transition-transform hover:bg-primary/5">
+<span class="material-symbols-outlined">help_center</span>
+                                Help Center
+                            </button>
+</div>
+</div>
+<div class="bg-white rounded-2xl p-6 border border-surface-variant/50 shadow-sm">
+<h4 class="font-headline font-bold text-on-surface mb-4">Trip Details</h4>
+<dl class="space-y-4">
+<div class="flex justify-between text-sm">
+<dt class="text-on-surface-variant">Trip ID</dt>
+<dd class="font-mono font-bold text-primary">TYO-2024-X9</dd>
+</div>
+<div class="flex justify-between text-sm">
+<dt class="text-on-surface-variant">Weather</dt>
+<dd class="flex items-center gap-1 font-bold">18°C <span class="material-symbols-outlined text-amber-500 text-sm">sunny</span></dd>
+</div>
+<div class="flex justify-between text-sm">
+<dt class="text-on-surface-variant">Status</dt>
+<dd class="text-green-600 font-bold">On Schedule</dd>
+</div>
+</dl>
+</div>
+<p class="text-center lg:text-left text-[10px] text-on-surface-variant font-label opacity-60">
+                        Powered by Komorebi Moments Premium Digital Concierge
+                    </p>
+</aside>
+</main>
+</div>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 w-full z-50 bg-white/90 backdrop-blur-xl border-t border-surface-variant">
+<div class="flex justify-around items-center pt-3 pb-8 px-4 w-full">
+<div class="flex flex-col items-center justify-center text-on-surface-variant/50">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-headline text-[10px] font-bold tracking-wide uppercase mt-1">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+<span class="font-headline text-[10px] font-bold tracking-wide uppercase mt-1">My Trip</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/50">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-headline text-[10px] font-bold tracking-wide uppercase mt-1">Notify</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/50">
+<span class="material-symbols-outlined">person_pin</span>
+<span class="font-headline text-[10px] font-bold tracking-wide uppercase mt-1">Profile</span>
+</div>
+</div>
+</nav>
+</body></html>

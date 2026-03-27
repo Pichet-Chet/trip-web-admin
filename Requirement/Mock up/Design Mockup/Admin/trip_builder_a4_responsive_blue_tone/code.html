@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NatGan Trip Builder - Step 1</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e0f2fe",
+                        "on-tertiary-fixed": "#001d33",
+                        "secondary-fixed-dim": "#bae6fd",
+                        "secondary": "#1978e5",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#075985",
+                        "background": "#f8fafc",
+                        "primary-fixed-dim": "#93c5fd",
+                        "outline": "#64748b",
+                        "surface-container-highest": "#e2e8f0",
+                        "on-secondary-container": "#0c4a6e",
+                        "on-secondary-fixed": "#082f49",
+                        "tertiary-container": "#dcfce7",
+                        "tertiary": "#15803d",
+                        "surface-variant": "#f1f5f9",
+                        "secondary-container": "#1978e5",
+                        "on-tertiary-fixed-variant": "#166534",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f8fafc",
+                        "surface-bright": "#ffffff",
+                        "on-tertiary-container": "#14532d",
+                        "on-surface": "#0f172a",
+                        "on-primary-fixed": "#001e3e",
+                        "surface": "#ffffff",
+                        "primary-fixed": "#dbeafe",
+                        "surface-container-low": "#f1f5f9",
+                        "inverse-primary": "#93c5fd",
+                        "error": "#ef4444",
+                        "surface-tint": "#1978e5",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#eff6ff",
+                        "on-primary-fixed-variant": "#1e40af",
+                        "surface-container": "#f8fafc",
+                        "on-primary-container": "#1e40af",
+                        "on-surface-variant": "#475569",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#f1f5f9",
+                        "surface-container-high": "#f1f5f9",
+                        "primary": "#1978e5",
+                        "outline-variant": "#cbd5e1",
+                        "on-background": "#0f172a",
+                        "tertiary-fixed": "#dcfce7",
+                        "tertiary-fixed-dim": "#86efac",
+                        "inverse-surface": "#1e293b"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans", "Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Mobile Menu Toggle Logic */
+        #mobile-menu-checkbox:checked ~ aside {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased">
+<!-- Mobile Menu Overlay (Hidden checkbox for CSS-only toggle) -->
+<input class="hidden peer" id="mobile-menu-checkbox" type="checkbox"/>
+<!-- Sidebar Navigation Shell -->
+<!-- Mobile: Off-canvas (transformed) | Tablet: Narrow (w-20) | Desktop: Wide (w-64) -->
+<aside class="fixed left-0 top-0 h-screen bg-white dark:bg-slate-900 border-r border-outline-variant/30 shadow-xl flex flex-col py-6 z-50 transition-all duration-300 -translate-x-full md:translate-x-0 w-64 md:w-20 lg:w-64">
+<div class="px-6 mb-10 md:px-4 lg:px-6">
+<h1 class="text-2xl font-extrabold text-primary dark:text-white tracking-tight md:hidden lg:block">NatGan Admin</h1>
+<div class="hidden md:flex lg:hidden justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">terminal</span>
+</div>
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant opacity-60 md:hidden lg:block">Professional Precision</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-surface-container-low transition-all md:px-0 md:justify-center lg:px-6 lg:justify-start" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold md:hidden lg:block">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-primary dark:text-white font-bold border-r-4 border-primary dark:border-blue-400 bg-primary/5 transition-all md:px-0 md:justify-center lg:px-6 lg:justify-start" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_calendar</span>
+<span class="text-sm font-semibold md:hidden lg:block">Trip Builder</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-surface-container-low transition-all md:px-0 md:justify-center lg:px-6 lg:justify-start" href="#">
+<span class="material-symbols-outlined">visibility</span>
+<span class="text-sm font-semibold md:hidden lg:block">Preview</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-surface-container-low transition-all md:px-0 md:justify-center lg:px-6 lg:justify-start" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="text-sm font-semibold md:hidden lg:block">Publish</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-surface-container-low transition-all md:px-0 md:justify-center lg:px-6 lg:justify-start" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-semibold md:hidden lg:block">Read Receipts</span>
+</a>
+</nav>
+<div class="mt-auto px-6 md:px-2 lg:px-6">
+<div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 md:p-2 md:justify-center lg:p-3 lg:justify-start">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="md:hidden lg:block">
+<p class="text-xs font-bold text-on-surface truncate">Admin Profile</p>
+<p class="text-[10px] text-on-surface-variant truncate">System Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Backdrop for mobile menu -->
+<label class="fixed inset-0 bg-black/50 z-40 hidden peer-checked:block md:hidden" for="mobile-menu-checkbox"></label>
+<!-- Main Content Canvas -->
+<main class="md:ml-20 lg:ml-64 min-h-screen pb-24 transition-all duration-300">
+<!-- Sticky Header & Stepper -->
+<header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl px-4 md:px-8 lg:px-12 h-20 flex items-center justify-between border-b border-outline-variant/30">
+<div class="flex items-center gap-4">
+<label class="md:hidden cursor-pointer p-2 -ml-2 text-on-surface" for="mobile-menu-checkbox">
+<span class="material-symbols-outlined">menu</span>
+</label>
+<h2 class="text-lg md:text-xl font-bold font-headline text-on-surface tracking-tight whitespace-nowrap">Trip Builder</h2>
+<span class="hidden sm:block h-4 w-px bg-outline-variant opacity-30"></span>
+<span class="hidden sm:block text-primary font-semibold text-sm truncate">Step 1: General Information</span>
+</div>
+<!-- Stepper Component -->
+<div class="flex items-center gap-3 md:gap-8">
+<div class="flex items-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-primary/20">1</div>
+<span class="hidden md:block text-xs font-bold text-primary uppercase tracking-wider">General Info</span>
+</div>
+<div class="w-6 md:w-12 h-px bg-outline-variant opacity-30"></div>
+<div class="flex items-center gap-2 opacity-40">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center text-xs font-bold">2</div>
+<span class="hidden md:block text-xs font-bold text-on-surface uppercase tracking-wider">Activities</span>
+</div>
+<div class="hidden sm:flex items-center gap-8">
+<div class="w-6 md:w-12 h-px bg-outline-variant opacity-30"></div>
+<div class="flex items-center gap-2 opacity-40">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center text-xs font-bold">3</div>
+<span class="hidden md:block text-xs font-bold text-on-surface uppercase tracking-wider">Preview</span>
+</div>
+</div>
+</div>
+</header>
+<div class="max-w-5xl mx-auto px-4 sm:px-8 lg:px-12 py-8 md:py-12">
+<form class="space-y-12 md:space-y-20">
+<!-- Section 1: Cover Image Selection -->
+<section class="space-y-6">
+<div class="flex justify-between items-end">
+<div class="space-y-1">
+<h3 class="text-xl md:text-2xl font-bold font-headline text-on-surface">Trip Visual Identity</h3>
+<p class="text-on-surface-variant text-sm">Set the mood for your guest with a high-end cover image.</p>
+</div>
+</div>
+<!-- Grid: 1 col on mobile/tablet, desktop keeps 12-col structure but content stacks at lg below -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<div class="lg:col-span-8 group relative overflow-hidden rounded-2xl aspect-video lg:aspect-[21/9] bg-white flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 transition-all cursor-pointer">
+<div class="text-center space-y-3 z-10 p-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 mx-auto flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-3xl">add_photo_alternate</span>
+</div>
+<p class="text-sm font-semibold text-on-surface">Upload or drag cover image</p>
+<p class="text-xs text-on-surface-variant">Recommended: 1920x800px or larger</p>
+</div>
+<div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCIwA7xYAGDCbMk0R3vpQ-dc8RrSYpGrhChSXTUDyT8GW3Hidco0_eZp_bZNppSRv8N1zga-jwv3MQRkZINzVKXRE6bp3-E2hEKbBgGMrzykCVK1ejS1jxOHwlHXTCUti5M--LmYpCbat2F-VfOdu4x10vOU_pFeaJS19Fh97xBQ3r9TDZSWUODYImQO3GColyzf1_7f-bsLqOWDW2r_DquJMhWmQnzAZnjQQ6uC5ANYJ_7c8S_eL-GoeqB8TkxOZO8vCWrwEH5MTo5')"></div>
+</div>
+<div class="lg:col-span-4 flex flex-col gap-4">
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant opacity-60">Preset Collections</p>
+<!-- Mobile: 2x2 | Tablet/Desktop: 2x2 -->
+<div class="grid grid-cols-2 gap-3">
+<button class="group relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-primary ring-offset-2 transition-all" type="button">
+<img alt="Japan" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_IpqC8q0yuhMIU3NM29d8ZlF7UZSqP_mGZfLOXAWmBmgzBZFsQ5gUlB2XFaaQqa5eGOSsNu380tghGdkhrticSwpGya_XvOXXq1j1oVnMf-IYbs_wDYkPEf7dIbhAWXSSKgVEOLp9xlXJSf8-4DTZ70IPAsgW54eVcsSKt6a97BNn0N8RPZxsvDgSyt4RSnYJBYdzgc9kA46gyLsba4FYvoYWVnaOv5laLvF7bJGwWGk6pr1oGXvxSrgaJYWRrZOUDc9ciIKoTwEo"/>
+<div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+<span class="text-white text-xs font-bold">Japan</span>
+</div>
+</button>
+<button class="group relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-primary ring-offset-2 transition-all" type="button">
+<img alt="Sea" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUbO_4vrr7BzZBdoEA2YWs1gFiSVMl8MHFGHMav762HgFKYZ_gu8gGJ6YOHT7ZNi4BMWnsYhdYHG0uX0QzM8Ri0IQzOQfVSWlW43KZNouK0h3RIhu5ULrtRyE7PkZx6xJyA0JBwKqcQwUDGYl3PoW_JURmY1YI6X2-fJCUTTvsl5SiS0Jsxk1Lg26v1im7m9nDh9MlLwnfHbj78TNLDTkHhYm_kQTqZvRiA2RUXBCrwk_eppQFjs6OyLv53M84pr9gdwCR9i9fh8C8"/>
+<div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+<span class="text-white text-xs font-bold">Sea</span>
+</div>
+</button>
+<button class="group relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-primary ring-offset-2 transition-all" type="button">
+<img alt="Mountain" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUyGcw5LiFum0JIfTCs82iVBFncZ3lasezM0h_THtsNfFnk-9XhZuiHwMh_pTcNOaTvCAUHXwZl2F5gPFt50tg1p_WPD_fBDFX7JXef8qNeWRcGwAYXoEtiRyXQ0Ba1ABFqKXHW7IH_neMH89i1STR-Ra0_xIoHK181bM0yAWlABr8NIzQLQXNQ99AmIVUehWW77GJ1wdbdY1bmoh-DrpH0iFDx3SHoW6dzWbjhCNxppz_8Lvq8ySlxWpByzMzunHb9HhX6xwgGGbr"/>
+<div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+<span class="text-white text-xs font-bold">Mountain</span>
+</div>
+</button>
+<button class="group relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-primary ring-offset-2 transition-all" type="button">
+<img alt="City" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0tsNaYODmBG82jx_Vpu9IXQ5c9uGfNB2JUM-tEFcc2DyXB6H2XE4M3cJPhl9Og51Hf8dzrQSExyU9Cn2BPvmuHj00JumBXNZriLG932DkWLEupIMqckh6Y6MC5AdXCnL5rx_q42BBUwedf4e7cv4tq6qQhWo1YvjdIN28nAsL7ZMij99oJ2DHmHcXLRsPb5CQaotuls8QZmspAWX_DQll35yIUEpZjF4kMbQVvi_CPGUkl3wIrnzEQTWM6WBIFZAUd2zlheddLGSV"/>
+<div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+<span class="text-white text-xs font-bold">City</span>
+</div>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Basic Trip Info -->
+<section class="space-y-8">
+<div class="space-y-1">
+<h3 class="text-xl md:text-2xl font-bold font-headline text-on-surface">Core Trip Details</h3>
+<p class="text-on-surface-variant text-sm">Define the foundation of the guest experience.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-8 gap-y-6 md:gap-y-10 bg-white p-6 md:p-10 rounded-3xl border border-outline-variant/30 shadow-sm">
+<div class="md:col-span-2 lg:col-span-8 flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Trip Name</label>
+<input class="bg-surface-container-low border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="e.g., European Grand Tour 2024" type="text"/>
+</div>
+<div class="md:col-span-1 lg:col-span-4 flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Primary Language</label>
+<div class="flex bg-surface-container-low rounded-xl p-1 h-14">
+<button class="flex-1 bg-white shadow-sm rounded-lg text-xs font-bold text-primary flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-sm">translate</span> English
+                            </button>
+<button class="flex-1 text-xs font-bold text-on-surface-variant flex items-center justify-center gap-2 hover:text-on-surface transition-colors" type="button">
+                                Thai
+                            </button>
+</div>
+</div>
+<div class="md:col-span-1 lg:col-span-4 flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Destination</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">location_on</span>
+<input class="w-full bg-surface-container-low border border-transparent rounded-xl py-4 pl-12 pr-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="City or Country" type="text"/>
+</div>
+</div>
+<div class="md:col-span-1 lg:col-span-4 flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Date Range</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">calendar_today</span>
+<input class="w-full bg-surface-container-low border border-transparent rounded-xl py-4 pl-12 pr-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="Select Dates" type="text"/>
+</div>
+</div>
+<div class="md:col-span-1 lg:col-span-4 flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Travelers</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">group</span>
+<input class="w-full bg-surface-container-low border border-transparent rounded-xl py-4 pl-12 pr-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="Number of Guests" type="number"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Logistics - Flight & Accommodation -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+<!-- Flight Details -->
+<div class="space-y-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">flight_takeoff</span>
+</div>
+<h4 class="text-lg font-bold font-headline text-on-surface">Arrival Logistics</h4>
+</div>
+<div class="bg-white p-6 md:p-8 rounded-3xl border border-outline-variant/30 shadow-sm space-y-6">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Airline</label>
+<input class="bg-surface-container-low border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="e.g., British Airways" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Flight Number</label>
+<input class="bg-surface-container-low border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="e.g., BA123" type="text"/>
+</div>
+</div>
+</div>
+<!-- Accommodation -->
+<div class="space-y-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">hotel</span>
+</div>
+<h4 class="text-lg font-bold font-headline text-on-surface">Primary Accommodation</h4>
+</div>
+<div class="bg-white p-6 md:p-8 rounded-3xl border border-outline-variant/30 shadow-sm space-y-6 relative overflow-hidden">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Hotel Name</label>
+<input class="bg-surface-container-low border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="e.g., The Ritz-Carlton" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">Contact Phone</label>
+<input class="bg-surface-container-low border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium placeholder:text-outline/40" placeholder="+44 20 7493 8181" type="tel"/>
+</div>
+<button class="w-full py-4 border-2 border-dashed border-primary/30 rounded-xl text-xs font-bold text-primary uppercase tracking-widest hover:bg-primary/5 transition-all flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-sm">add_circle</span> Add another hotel
+                        </button>
+</div>
+</div>
+</section>
+<!-- Footer Actions -->
+<footer class="pt-10 flex flex-col md:flex-row items-center justify-between border-t border-outline-variant/30 gap-6">
+<button class="w-full md:w-auto px-8 py-4 rounded-full text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-all flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined">delete_sweep</span> Discard Draft
+                </button>
+<div class="w-full md:w-auto flex flex-col sm:flex-row items-center gap-4">
+<button class="w-full sm:w-auto px-8 py-4 rounded-full text-sm font-bold text-primary hover:bg-primary/5 transition-all" type="button">
+                        Save Draft
+                    </button>
+<button class="w-full sm:w-auto bg-[#1978e5] text-white px-10 py-5 rounded-full font-bold text-sm shadow-xl shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group" type="submit">
+                        Next: Add Activities
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</footer>
+</form>
+</div>
+</main>
+<!-- Floating Help Widget -->
+<button class="fixed bottom-6 right-6 md:bottom-8 md:right-8 w-14 h-14 bg-[#1978e5] text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+</button>
+</body></html>

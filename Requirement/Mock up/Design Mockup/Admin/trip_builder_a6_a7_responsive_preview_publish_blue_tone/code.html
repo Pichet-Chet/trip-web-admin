@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Trip Builder - Preview &amp; Publish</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "on-surface-variant": "#414753",
+              "on-primary-container": "#fefcff",
+              "tertiary-fixed": "#ffdbc9",
+              "secondary": "#465f89",
+              "surface-container-high": "#e6e8f1",
+              "surface-container": "#ecedf7",
+              "on-background": "#181c22",
+              "surface-container-low": "#f2f3fd",
+              "on-secondary-container": "#405882",
+              "on-secondary-fixed": "#001b3e",
+              "surface": "#f9f9ff",
+              "primary": "#005ab4",
+              "on-primary-fixed": "#001b3e",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "on-surface": "#181c22",
+              "inverse-primary": "#aac7ff",
+              "surface-container-highest": "#e0e2ec",
+              "surface-bright": "#f9f9ff",
+              "on-secondary-fixed-variant": "#2e4770",
+              "on-tertiary": "#ffffff",
+              "surface-dim": "#d8dae3",
+              "error-container": "#ffdad6",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#00458d",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-variant": "#e0e2ec",
+              "on-primary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb68c",
+              "tertiary-container": "#bd5700",
+              "on-tertiary-fixed-variant": "#763400",
+              "secondary-fixed": "#d6e3ff",
+              "tertiary": "#964400",
+              "outline": "#717785",
+              "secondary-container": "#b7cfff",
+              "primary-container": "#0873df",
+              "primary-fixed-dim": "#aac7ff",
+              "background": "#f9f9ff",
+              "inverse-surface": "#2d3038",
+              "inverse-on-surface": "#eff0fa",
+              "on-secondary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed": "#321200",
+              "surface-tint": "#005db8",
+              "primary-fixed": "#d6e3ff",
+              "outline-variant": "#c1c6d5"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Mobile menu toggle logic using peer */
+        #menu-toggle:checked ~ aside { transform: translateX(0); }
+        @media (max-width: 1024px) {
+            aside { transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
+        }
+        @media (min-width: 1025px) {
+            aside { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased flex h-screen overflow-hidden">
+<!-- Hidden toggle for mobile menu -->
+<input class="hidden peer" id="menu-toggle" type="checkbox"/>
+<!-- SideNavBar -->
+<aside class="bg-slate-50 dark:bg-slate-950 font-['Inter'] text-sm fixed left-0 top-0 h-full w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col p-4 gap-2 z-50 lg:translate-x-0">
+<div class="mb-8 px-2 flex items-center justify-between">
+<div>
+<h1 class="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Admin Panel</h1>
+<p class="text-xs text-slate-500">Trip Management</p>
+</div>
+<label class="lg:hidden cursor-pointer p-1" for="menu-toggle">
+<span class="material-symbols-outlined">close</span>
+</label>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg font-medium transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span>Trips</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 px-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">A</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold">Admin Workspace</span>
+<span class="text-[10px] text-slate-500">Premium Tier</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 lg:ml-64 flex flex-col overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-white dark:bg-slate-900 font-['Inter'] antialiased top-0 border-b border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center w-full px-4 lg:px-6 h-16 z-40">
+<div class="flex items-center gap-4 lg:gap-8">
+<!-- Hamburger Menu for Mobile/Tablet -->
+<label class="lg:hidden cursor-pointer p-2 hover:bg-slate-100 rounded-lg" for="menu-toggle">
+<span class="material-symbols-outlined">menu</span>
+</label>
+<span class="text-xl font-bold text-blue-600 dark:text-blue-400 tracking-tighter shrink-0">Trip Builder</span>
+<nav class="hidden md:flex gap-6 overflow-x-auto whitespace-nowrap">
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-colors" href="#">General</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-colors" href="#">Activities</a>
+<a class="text-blue-600 dark:text-blue-400 font-semibold border-b-2 border-blue-600 dark:border-blue-400 pb-2 text-sm" href="#">Preview &amp; Publish</a>
+</nav>
+</div>
+<div class="flex items-center gap-2 lg:gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 p-2 rounded-full cursor-pointer active:opacity-80 transition-colors">notifications</button>
+<button class="hidden sm:block material-symbols-outlined text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 p-2 rounded-full cursor-pointer active:opacity-80 transition-colors">help</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200 shrink-0">
+<img alt="Admin Profile" class="w-full h-full object-cover" data-alt="professional headshot of a male admin workspace manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFs3W_U5_1JmmS_JNUaS7rrI3Qx_MxAXnOlHF1Ol5-rSVed3hZhWrSBSpY-iHeyAEwGWnqfaxjV-aR66rDUJfb7Hq10Cv_DYYkpCF9gg5QHyjy0V3wBdLh13RTNE60RwBGC1CJb1cs3H9yBynk_2zz9BE-qwTOseL8eIDhXrSnO_zYshcXE2Ag1Aou6xr74IkC7s7R0O9Fsrq3w90Y8bijmL07B6gIArsC66ABJS46w9AZmM_rPlCT6PkqMbCGaP13RbfCYWqTgRXq"/>
+</div>
+</div>
+</header>
+<!-- Canvas Area -->
+<div class="flex-1 overflow-y-auto bg-surface-container-low p-4 lg:p-8">
+<div class="max-w-6xl mx-auto">
+<!-- Title Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<h2 class="text-2xl lg:text-3xl font-extrabold text-on-surface tracking-tight mb-1">Final Preview</h2>
+<p class="text-sm lg:text-base text-on-surface-variant">Review your trip and share it with your guests.</p>
+</div>
+<div class="flex flex-col sm:flex-row gap-3">
+<button class="px-5 py-2.5 rounded-lg border border-outline text-on-surface font-semibold hover:bg-surface-container transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                            Back to Activities
+                        </button>
+<button class="px-5 py-2.5 rounded-lg bg-primary text-on-primary font-semibold hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2">
+                            Finish &amp; Return
+                            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+</button>
+</div>
+</div>
+<!-- Main Grid -->
+<div class="grid grid-cols-12 gap-6 lg:gap-8 items-start">
+<!-- Left Column: Mobile Device Preview (First on Mobile/Tablet) -->
+<div class="col-span-12 lg:col-span-5 flex justify-center order-1">
+<div class="relative w-full max-w-[320px] aspect-[320/650] bg-slate-900 rounded-[2.5rem] sm:rounded-[3rem] p-2 sm:p-3 border-[6px] sm:border-[8px] border-slate-800 shadow-2xl overflow-hidden">
+<!-- Mobile Screen Content -->
+<div class="w-full h-full bg-white rounded-[1.8rem] sm:rounded-[2rem] overflow-hidden flex flex-col relative">
+<!-- Mobile Status Bar -->
+<div class="h-8 w-full flex justify-between items-center px-6 pt-2">
+<span class="text-[10px] font-bold">9:41</span>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-[10px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[10px]">wifi</span>
+<span class="material-symbols-outlined text-[10px]">battery_full</span>
+</div>
+</div>
+<!-- Mobile Content Scrollable -->
+<div class="flex-1 overflow-y-auto hide-scrollbar">
+<!-- Mobile Cover -->
+<div class="relative h-40 sm:h-48 w-full">
+<img class="w-full h-full object-cover" data-alt="stunning view of Mount Fuji during winter" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE7J78Ojg6QGZtE91pqz54d2wi55CBghqIKaWLwLQmfyS7PSyCFbHJ78jOWmbFz75PWFSt2j92wj2Rnv_OhZeRNQwXdPBHWi-3M4O5BjWY4BPdcisUr2J_2P6lY1Inz7fHGdhX3yJyUheYjN7KbJTPgLZ3e-Dtl4i4IETPBSClUrcMIyEzoBRYb_t74_NBlJhQ7UcXnVXWurX31Gey8ZYkVESHklwoI3fyUhRE3sRVX4PpTYDSdB2p7ejFdSBpcpoB3mJ4HisWG1wJ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-4 left-4 text-white">
+<h3 class="text-lg font-bold">Tokyo Winter 2026</h3>
+<p class="text-[10px] opacity-90">Jan 12 - Jan 20, 2026</p>
+</div>
+</div>
+<!-- Mobile Countdown -->
+<div class="p-4">
+<div class="bg-blue-50 rounded-xl p-4 flex justify-around text-center border border-blue-100">
+<div>
+<div class="text-lg font-black text-blue-600">42</div>
+<div class="text-[8px] uppercase tracking-widest text-blue-400">Days</div>
+</div>
+<div>
+<div class="text-lg font-black text-blue-600">12</div>
+<div class="text-[8px] uppercase tracking-widest text-blue-400">Hrs</div>
+</div>
+<div>
+<div class="text-lg font-black text-blue-600">08</div>
+<div class="text-[8px] uppercase tracking-widest text-blue-400">Min</div>
+</div>
+</div>
+</div>
+<!-- Mobile Itinerary Preview -->
+<div class="px-4 pb-8 space-y-4">
+<h4 class="text-xs font-bold text-slate-800">Itinerary Preview</h4>
+<!-- Day 1 -->
+<div class="bg-white border border-slate-100 rounded-xl p-3 shadow-sm">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="neon lights of Shibuya Crossing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR_nPMJxvRSzUjjQ9zKUwXHBO84f4jT3ymQoG2VQi_dy2uEAwvkfwwKRlOgeBmGiPU00rzQYLjkQBdSoRVRZbXkUcF3-HUtHcy_TMguUVeUID-nMqXPjoOV_3K6HtCdlY0ivZ6ZMpyZzfO_OWNgvKNEj9P8lqb8oX1bjC56Zpmtkf110ADWTiLt6VNK9hpAYLignKExVRzkZOG_1Rh3D4uzNwGDilRWB8uBQEGou5Q72yz3wvfiUqYDwCOfOfoJfeRV91-upJqYAwA"/>
+</div>
+<div>
+<p class="text-[10px] font-bold text-primary">Day 1 • 14:00</p>
+<h5 class="text-[11px] font-bold text-slate-900">Shibuya Discovery Walk</h5>
+<p class="text-[9px] text-slate-500 line-clamp-1">Explore the world's busiest crossing...</p>
+</div>
+</div>
+</div>
+<!-- Day 2 -->
+<div class="bg-white border border-slate-100 rounded-xl p-3 shadow-sm">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Senso-ji Temple" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXV_U6C4dl5dCmCjfpzcor6y2kkdfszn7HQcDUDO8hs53FChct6LzFs7D-xh-WPOowlxwEC9TDeisX1nT2Z_lPeuPhOlCVKQNz8RWhI1RlzOfKKu_HSA83ehTpuabUXRwTkhsccSnXlz9Wg70INOCZTgKK1PbcympUYvkDt-biMK_T7LNcRS_vNkXsgiHTrBNNaMTLrX4vfTLJn_LGYT9U5fCgf8DXGaco88a3wqURdPv0L5htI_-grKY-Haldu3buvicHuT5kc-vW"/>
+</div>
+<div>
+<p class="text-[10px] font-bold text-primary">Day 2 • 09:30</p>
+<h5 class="text-[11px] font-bold text-slate-900">Senso-ji Temple Visit</h5>
+<p class="text-[9px] text-slate-500 line-clamp-1">Traditional prayers and market...</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Mobile Navigation Bar -->
+<div class="h-14 border-t border-slate-100 bg-white flex justify-around items-center px-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="material-symbols-outlined text-slate-300">calendar_month</span>
+<span class="material-symbols-outlined text-slate-300">map</span>
+<span class="material-symbols-outlined text-slate-300">chat</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Sharing Controls -->
+<div class="col-span-12 lg:col-span-7 space-y-6 order-2">
+<!-- Status Card -->
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-slate-900">Published</h3>
+<p class="text-sm text-slate-500">Visible to everyone with the link</p>
+</div>
+</div>
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider">Live</span>
+</div>
+</div>
+<!-- Trip Link Section -->
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+<h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">link</span>
+                                Trip Link
+                            </h3>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-1 sm:pl-4 rounded-lg border border-slate-200">
+<span class="text-sm text-slate-600 font-medium py-2 px-3 sm:p-0 overflow-hidden text-ellipsis">natgan.com/t/tokyo-winter-2026</span>
+<div class="sm:ml-auto flex border-t sm:border-t-0 border-slate-200 sm:pt-0 pt-1">
+<button class="flex-1 sm:flex-none px-4 py-2 bg-white text-slate-700 text-sm font-semibold rounded-md border border-slate-200 hover:bg-slate-50 transition-colors">Copy</button>
+<button class="p-2 text-primary hover:bg-blue-50 rounded-md transition-colors" title="Edit Link">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- QR Code Area -->
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+<div class="flex flex-col sm:flex-row gap-6 items-center">
+<div class="w-32 h-32 lg:w-40 lg:h-40 bg-white border-8 border-slate-50 p-2 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+<svg class="w-full h-full text-slate-900" fill="currentColor" viewbox="0 0 24 24">
+<path d="M3 3H9V9H3V3M5 5V7H7V5H5M15 3H21V9H15V3M17 5V7H19V5H17M3 15H9V21H3V15M5 17V19H7V17H5M15 15H17V17H15V15M17 17H19V19H17V17M19 15H21V17H19V15M15 19H17V21H15V19M19 19H21V21H19V19M11 3H13V5H11V3M11 7H13V9H11V7M11 11H13V13H11V11M3 11H5V13H3V11M7 11H9V13H7V11M15 11H17V13H15V11M19 11H21V13H19V11M11 15H13V17H11V15M11 19H13V21H11V19Z"></path>
+</svg>
+</div>
+<div class="flex-1 space-y-4 text-center sm:text-left">
+<h3 class="font-bold text-slate-900">QR Code Access</h3>
+<p class="text-sm text-slate-500">Generate a unique QR code for physical printouts or welcome cards.</p>
+<div class="flex flex-wrap justify-center sm:justify-start gap-2">
+<button class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                                            PNG Logo
+                                        </button>
+<button class="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+                                            Std PNG
+                                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Guest Communications -->
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+<h3 class="font-bold text-slate-900 mb-4">Guest Communications</h3>
+<div class="space-y-4">
+<div class="p-4 bg-green-50/50 rounded-xl border border-green-100">
+<div class="flex flex-col sm:flex-row items-start gap-4">
+<div class="w-10 h-10 bg-[#06C755] rounded-lg flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined">chat</span>
+</div>
+<div class="flex-1 w-full">
+<h4 class="font-bold text-slate-900 text-sm">LINE Message Template</h4>
+<p class="text-xs text-slate-500 mt-1 mb-4 italic">"Hi everyone! Here is the finalized itinerary... natgan.com/t/tokyo-winter-2026"</p>
+<button class="w-full py-2.5 bg-[#06C755] text-white rounded-lg text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                                                Copy LINE Message
+                                            </button>
+</div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-2">
+<button class="flex-1 py-2 px-4 border border-slate-200 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-[20px] text-blue-500">mail</span>
+<span class="text-sm font-semibold">Email Guests</span>
+</button>
+<button class="flex-1 py-2 px-4 border border-slate-200 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-[20px] text-blue-400">share</span>
+<span class="text-sm font-semibold">Native Share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Spacer -->
+<div class="h-12"></div>
+</div>
+</div>
+</main>
+</body></html>

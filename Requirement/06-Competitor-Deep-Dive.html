@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NatGan — Competitor Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1b2a4a;
+    --indigo-light: #2d4373;
+    --orange: #f97316;
+    --orange-light: #fb923c;
+    --orange-dark: #ea580c;
+    --red: #ef4444;
+    --red-light: #fca5a5;
+    --green: #22c55e;
+    --green-light: #86efac;
+    --teal: #0d9488;
+    --amber: #f59e0b;
+    --purple: #7c3aed;
+    --cream: #fffbf5;
+    --warm-white: #fff7ed;
+    --bg-card: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #7c2d12 0%, #c2410c 30%, #ea580c 50%, #c2410c 70%, #7c2d12 100%);
+    color: white;
+    padding: 60px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg, transparent, transparent 30px,
+      rgba(255,255,255,0.02) 30px, rgba(255,255,255,0.02) 31px
+    );
+  }
+  .header * { position: relative; }
+  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
+  .header .meta {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .header .meta span {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+  }
+
+  /* Container */
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Alert Box */
+  .alert {
+    background: linear-gradient(135deg, #fef2f2, #fff1f2);
+    border: 2px solid var(--red);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .alert::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 6px; height: 100%;
+    background: var(--red);
+  }
+  .alert h2 {
+    color: var(--red);
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert p { color: #7f1d1d; font-size: 0.95rem; margin-bottom: 8px; }
+  .alert strong { color: #991b1b; }
+
+  .action-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 0.9rem;
+  }
+  .action-table th {
+    background: #fecaca;
+    color: #7f1d1d;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .action-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #fecaca;
+  }
+  .action-table tr:nth-child(even) { background: #fff5f5; }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--indigo);
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid var(--orange);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .num {
+    background: var(--orange);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* Landscape Map */
+  .landscape {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .landscape-grid {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    grid-template-rows: auto 80px auto 80px auto;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    margin: 24px 0;
+  }
+  .axis-label {
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .center-star {
+    grid-column: 2;
+    grid-row: 3;
+    font-size: 2rem;
+  }
+
+  /* Category Cards */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .category-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left: 5px solid var(--orange);
+  }
+  .category-card.cat-a { border-left-color: #7c3aed; }
+  .category-card.cat-b { border-left-color: #0891b2; }
+  .category-card.cat-c { border-left-color: #d97706; }
+  .category-card.cat-d { border-left-color: #dc2626; }
+  .category-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .category-card .cat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+  }
+  .category-card .cat-label.cat-a { color: #7c3aed; }
+  .category-card .cat-label.cat-b { color: #0891b2; }
+  .category-card .cat-label.cat-c { color: #d97706; }
+  .category-card .cat-label.cat-d { color: #dc2626; }
+
+  .comp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .comp-row:last-child { border-bottom: none; }
+  .comp-row .label { color: var(--text-muted); font-weight: 500; min-width: 80px; }
+  .comp-row .value { text-align: right; }
+
+  .verdict {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-left: 3px solid var(--orange);
+  }
+
+  /* Competitor Detail */
+  .competitor {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .competitor h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .competitor .market {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .competitor .tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .tag {
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .tag.pro { background: #dcfce7; color: #166534; }
+  .tag.con { background: #fee2e2; color: #991b1b; }
+  .tag.neutral { background: #f1f5f9; color: #475569; }
+  .vs-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Feature Matrix */
+  .matrix-wrap {
+    overflow-x: auto;
+    margin-bottom: 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    min-width: 700px;
+    background: var(--bg-card);
+  }
+  .matrix th {
+    background: var(--indigo);
+    color: white;
+    padding: 12px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    position: sticky;
+    top: 0;
+  }
+  .matrix th:first-child { text-align: left; padding-left: 16px; }
+  .matrix th.natgan {
+    background: var(--orange);
+    font-weight: 800;
+  }
+  .matrix td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .matrix td:first-child {
+    text-align: left;
+    font-weight: 600;
+    padding-left: 16px;
+    white-space: nowrap;
+  }
+  .matrix tr:nth-child(even) { background: #f8fafc; }
+  .matrix tr:last-child td { border-bottom: none; }
+  .matrix .natgan-col { background: #fff7ed !important; font-weight: 700; }
+  .check { color: var(--green); font-weight: 700; }
+  .cross { color: #cbd5e1; }
+  .star { color: var(--orange); font-weight: 700; }
+
+  /* Positioning Map */
+  .pos-map {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+  }
+  .pos-grid {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 500px;
+    margin: 20px auto;
+    border-left: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+  }
+  .pos-grid .axis-x {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .pos-grid .axis-y {
+    position: absolute;
+    left: -90px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pos-dot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .pos-dot .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+  }
+  .pos-dot.natgan .dot {
+    width: 20px;
+    height: 20px;
+    background: var(--orange);
+    box-shadow: 0 0 0 4px rgba(249,115,22,0.2);
+  }
+  .pos-dot.natgan {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--orange-dark);
+  }
+
+  /* Unique Advantages */
+  .unique-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .unique-card {
+    background: linear-gradient(135deg, #fff7ed, #fffbeb);
+    border: 2px solid var(--orange);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .unique-card .icon { font-size: 2rem; margin-bottom: 8px; }
+  .unique-card h4 { font-size: 1rem; font-weight: 700; color: var(--orange-dark); margin-bottom: 6px; }
+  .unique-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* Moat */
+  .moat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: var(--bg-card);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+  }
+  .moat-table th {
+    background: var(--indigo);
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .moat-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .moat-table tr:nth-child(even) { background: #f8fafc; }
+
+  /* Risk Cards */
+  .risk-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .risk-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .risk-level {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .risk-level.low { background: #dcfce7; color: #166534; }
+  .risk-level.med { background: #fef3c7; color: #92400e; }
+  .risk-level.high { background: #fee2e2; color: #991b1b; }
+  .risk-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+  .risk-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* Summary Box */
+  .summary-box {
+    background: linear-gradient(135deg, #fff7ed, #fffbeb);
+    border: 2px solid var(--orange);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    margin-top: 40px;
+  }
+  .summary-box h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--orange-dark);
+    margin-bottom: 16px;
+  }
+  .summary-box .strategy {
+    background: var(--indigo);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    margin-top: 20px;
+    line-height: 1.8;
+  }
+  .summary-box .strategy strong { color: var(--orange-light); }
+
+  /* LINE Pricing Table */
+  .line-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .line-table th {
+    background: #166534;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .line-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .line-table tr.recommended { background: #f0fdf4; }
+  .line-table tr:nth-child(even):not(.recommended) { background: #f8fafc; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .footer a { color: var(--orange); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.8rem; }
+    .category-grid { grid-template-columns: 1fr; }
+    .unique-grid { grid-template-columns: 1fr; }
+    .container { padding: 20px 16px; }
+    .pos-grid { height: 400px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>Competitor Deep Dive</h1>
+  <div class="subtitle">NatGan (นัดกัน) — วิเคราะห์คู่แข่งเชิงลึก</div>
+  <div class="meta">
+    <span>v1.0</span>
+    <span>17 March 2026</span>
+    <span>Draft</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Critical Alert: LINE Notify -->
+  <div class="alert">
+    <h2>⚠️ Critical: LINE Notify ปิดบริการแล้ว</h2>
+    <p><strong>LINE Notify ถูกยกเลิกเมื่อ 1 เมษายน 2025</strong> — API, เว็บไซต์, และการออก token ถูกปิดทั้งหมด</p>
+    <p>ในเอกสาร SRD และ TAD ระบุใช้ LINE Notify เป็นช่องทางหลัก — <strong>ต้องเปลี่ยนเป็น LINE Messaging API แทน</strong></p>
+
+    <h3 style="margin-top: 20px; font-size: 1rem; color: #166534; margin-bottom: 8px;">LINE Messaging API — แผนราคา</h3>
+    <table class="line-table">
+      <tr><th>แผน</th><th>ราคา/เดือน</th><th>ข้อความฟรี</th><th>เกินฟรี</th></tr>
+      <tr class="recommended"><td><strong>Communication (ฟรี) ✓</strong></td><td>0 บาท</td><td>500 ข้อความ</td><td>ส่งเพิ่มไม่ได้</td></tr>
+      <tr><td>Light</td><td>~500 บาท</td><td>10,000 ข้อความ</td><td>ซื้อเพิ่มได้</td></tr>
+      <tr><td>Standard</td><td>~1,500 บาท</td><td>25,000+ ข้อความ</td><td>ซื้อเพิ่มได้</td></tr>
+    </table>
+
+    <table class="action-table">
+      <tr><th>เรื่อง</th><th style="color: #991b1b;">เปลี่ยนจาก</th><th style="color: #166534;">เปลี่ยนเป็น</th></tr>
+      <tr><td>ช่องทาง LINE</td><td style="text-decoration: line-through;">LINE Notify (ปิดแล้ว)</td><td>LINE Messaging API (ผ่าน LINE OA)</td></tr>
+      <tr><td>Follow flow</td><td style="text-decoration: line-through;">Redirect → LINE Notify authorize</td><td>User เพิ่มเพื่อน LINE OA → link trip</td></tr>
+      <tr><td>ค่าใช้จ่าย</td><td>ฟรี</td><td>ฟรี 500 msg/เดือน (MVP เพียงพอ)</td></tr>
+      <tr><td>Architecture</td><td>1 token ต่อ follower</td><td>User ID จาก LINE OA → Push message</td></tr>
+      <tr><td>ข้อดีเพิ่ม</td><td>-</td><td><strong>Rich message, รูปภาพ, ปุ่มกดรับทราบในแชท</strong></td></tr>
+    </table>
+  </div>
+
+  <!-- Section 1: Landscape -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">1</span> Competitor Landscape</h2>
+
+    <div class="category-grid">
+      <div class="category-card cat-a">
+        <div class="cat-label cat-a">Category A</div>
+        <h3>B2B Tour Operator Suite</h3>
+        <div class="comp-row"><span class="label">ผู้เล่น</span><span class="value">MYT SaaS, Tourwriter, OTRAMS, TourSys</span></div>
+        <div class="comp-row"><span class="label">เน้น</span><span class="value">Booking, CRM, Back-office</span></div>
+        <div class="comp-row"><span class="label">ขาด</span><span class="value" style="color: var(--red);">ไม่เน้น communication กับลูกทริป</span></div>
+      </div>
+
+      <div class="category-card cat-b">
+        <div class="cat-label cat-b">Category B</div>
+        <h3>B2C Trip Planner</h3>
+        <div class="comp-row"><span class="label">ผู้เล่น</span><span class="value">Wanderlog, TripIt, TripNiceDay</span></div>
+        <div class="comp-row"><span class="label">เน้น</span><span class="value">วางแผนเที่ยว, จอง, แผนที่</span></div>
+        <div class="comp-row"><span class="label">ขาด</span><span class="value" style="color: var(--red);">ไม่มี B2B, ไม่มี notification</span></div>
+      </div>
+
+      <div class="category-card cat-c">
+        <div class="cat-label cat-c">Category C</div>
+        <h3>White-label Travel App</h3>
+        <div class="comp-row"><span class="label">ผู้เล่น</span><span class="value">mTrip, AXUS</span></div>
+        <div class="comp-row"><span class="label">เน้น</span><span class="value">App สำหรับ agency, push noti</span></div>
+        <div class="comp-row"><span class="label">ขาด</span><span class="value" style="color: var(--red);">แพง, ต้องมี app, ไม่เหมาะ SME ไทย</span></div>
+      </div>
+
+      <div class="category-card cat-d">
+        <div class="cat-label cat-d">Category D — คู่แข่งตัวจริง</div>
+        <h3>DIY (สิ่งที่ใช้กันอยู่)</h3>
+        <div class="comp-row"><span class="label">ผู้เล่น</span><span class="value">LINE Group, PDF/Canva, โทรศัพท์</span></div>
+        <div class="comp-row"><span class="label">เน้น</span><span class="value">ฟรี, ทุกคนใช้ได้</span></div>
+        <div class="comp-row"><span class="label">ขาด</span><span class="value" style="color: var(--red);">ข้อมูลจม, ไม่มี read receipt</span></div>
+      </div>
+    </div>
+
+    <div style="text-align: center; padding: 16px; background: #fff7ed; border-radius: 12px; font-weight: 700; color: var(--orange-dark);">
+      NatGan อยู่ตรง "Trip Communication + B2B" — <strong>ไม่มีคู่แข่งตรงในตลาดไทย</strong>
+    </div>
+  </div>
+
+  <!-- Section 2: Detailed Analysis -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">2</span> Competitor Analysis — Detail</h2>
+
+    <h3 style="color: #7c3aed; font-weight: 700; margin-bottom: 12px;">Category A: B2B Tour Operator Suite</h3>
+
+    <div class="competitor">
+      <h4>MYT SaaS (Manage Your Trip)</h4>
+      <div class="market">ตลาด: Tour Operators & DMCs ทั่วโลก — ราคา: $100+/เดือน (คาดการณ์)</div>
+      <div class="tags">
+        <span class="tag pro">Itinerary Creator</span>
+        <span class="tag pro">CRM</span>
+        <span class="tag pro">Guide App</span>
+        <span class="tag con">แพง</span>
+        <span class="tag con">ซับซ้อน</span>
+        <span class="tag con">ไม่มี LINE</span>
+      </div>
+      <div class="vs-box">⚔️ MYT = "ระบบหลังบ้านครบ" vs NatGan = "แจ้งเตือนลูกทริปง่ายๆ"</div>
+      <div class="verdict">Enterprise-grade ไม่ใช่คู่แข่งตรง — บริษัททัวร์เล็กในไทยไม่ต้องการ CRM ขนาดนั้น</div>
+    </div>
+
+    <div class="competitor">
+      <h4>TourSys (ไทย)</h4>
+      <div class="market">ตลาด: Travel agency ไทย</div>
+      <div class="tags">
+        <span class="tag pro">Revenue analysis</span>
+        <span class="tag pro">Sales tracking</span>
+        <span class="tag con">ไม่เน้น communication</span>
+        <span class="tag neutral">Thai market</span>
+      </div>
+      <div class="vs-box">⚔️ TourSys = "ระบบจัดการธุรกิจทัวร์" vs NatGan = "ระบบสื่อสารกับลูกทริป"</div>
+      <div class="verdict">Back-office tool — ไม่มีฟีเจอร์ส่ง itinerary ให้ลูกทริป + แจ้งเตือน</div>
+    </div>
+
+    <div class="competitor">
+      <h4>OTRAMS</h4>
+      <div class="market">ตลาด: Global tour operators — Enterprise pricing</div>
+      <div class="tags">
+        <span class="tag pro">Dynamic packaging</span>
+        <span class="tag pro">Multi-supplier</span>
+        <span class="tag con">Enterprise-grade แพง</span>
+        <span class="tag con">ไม่เน้น itinerary comm</span>
+      </div>
+      <div class="vs-box">⚔️ ตลาดคนละ segment — OTRAMS เน้น booking, NatGan เน้น communication</div>
+    </div>
+
+    <h3 style="color: #0891b2; font-weight: 700; margin: 24px 0 12px;">Category B: B2C Trip Planner</h3>
+
+    <div class="competitor">
+      <h4>Wanderlog</h4>
+      <div class="market">ตลาด: B2C นักเที่ยวทั่วโลก — ฟรี (Pro $5/เดือน)</div>
+      <div class="tags">
+        <span class="tag pro">AI trip planning</span>
+        <span class="tag pro">Collaboration</span>
+        <span class="tag pro">Budget tracking</span>
+        <span class="tag con">Text-heavy</span>
+        <span class="tag con">ไม่มี change noti</span>
+        <span class="tag con">ไม่มี read receipt</span>
+      </div>
+      <div class="vs-box">⚔️ Wanderlog = "วางแผนร่วมกัน" vs NatGan = "ส่ง plan ให้ดู + แจ้งเมื่อเปลี่ยน"</div>
+      <div class="verdict">Trip planner ไม่ใช่ trip communicator — ไม่ตอบโจทย์ "แก้แล้วลูกทริปไม่รู้"</div>
+    </div>
+
+    <div class="competitor">
+      <h4>TripIt</h4>
+      <div class="market">ตลาด: B2C นักเดินทางบ่อย — ฟรี (Pro $49/ปี)</div>
+      <div class="tags">
+        <span class="tag pro">Auto-create itinerary</span>
+        <span class="tag pro">Flight alerts</span>
+        <span class="tag con">Individual only</span>
+        <span class="tag con">ไม่มี B2B</span>
+        <span class="tag con">Noti = flight เท่านั้น</span>
+      </div>
+      <div class="vs-box">⚔️ TripIt = "จัดการทริปตัวเอง" vs NatGan = "บริษัทส่ง plan ให้ลูกทริป"</div>
+    </div>
+
+    <div class="competitor">
+      <h4>TripNiceDay (ไทย)</h4>
+      <div class="market">ตลาด: B2C คนไทยวางแผนเที่ยว — ฟรี</div>
+      <div class="tags">
+        <span class="tag pro">เป็นไทย</span>
+        <span class="tag pro">ใช้ง่าย</span>
+        <span class="tag pro">Community</span>
+        <span class="tag con">B2C only</span>
+        <span class="tag con">ไม่มี notification</span>
+      </div>
+      <div class="vs-box">⚔️ TripNiceDay = "วางแผนเที่ยวเอง" vs NatGan = "บริษัทส่ง plan ให้ลูกทริปดู"</div>
+    </div>
+
+    <h3 style="color: #d97706; font-weight: 700; margin: 24px 0 12px;">Category C: White-label Travel App</h3>
+
+    <div class="competitor">
+      <h4>mTrip</h4>
+      <div class="market">ตลาด: Travel agencies, TMCs — $500+/เดือน (คาดการณ์)</div>
+      <div class="tags">
+        <span class="tag pro">White-label app</span>
+        <span class="tag pro">Push noti</span>
+        <span class="tag pro">Traveler tracking</span>
+        <span class="tag con">แพงมาก</span>
+        <span class="tag con">ต้อง download app</span>
+        <span class="tag con">Setup ซับซ้อน</span>
+      </div>
+      <div class="vs-box">⚔️ mTrip = "เหมือน NatGan แต่เป็น app แยก ราคาแพง" — NatGan = web-based ไม่ต้องลง app</div>
+      <div class="verdict" style="border-left-color: var(--amber);">⚡ ใกล้เคียง NatGan ที่สุด แต่เป็น enterprise solution — SME ไทยจ่ายไม่ได้</div>
+    </div>
+
+    <div class="competitor">
+      <h4>AXUS Travel App</h4>
+      <div class="market">ตลาด: Luxury travel advisors — $35-150/เดือน</div>
+      <div class="tags">
+        <span class="tag pro">Change notification!</span>
+        <span class="tag pro">In-app messaging</span>
+        <span class="tag pro">Beautiful UI</span>
+        <span class="tag con">Luxury market</span>
+        <span class="tag con">English only</span>
+        <span class="tag con">ต้อง download app</span>
+      </div>
+      <div class="vs-box">⚔️ AXUS มี change noti เหมือน NatGan แต่ต้อง download app + แพง + ไม่มี LINE</div>
+    </div>
+
+    <h3 style="color: #dc2626; font-weight: 700; margin: 24px 0 12px;">Category D: DIY — คู่แข่งตัวจริง</h3>
+
+    <div class="competitor" style="border: 2px solid #fca5a5;">
+      <h4>LINE Group Chat <span style="color: var(--red); font-size: 0.85rem;">— ส่วนแบ่ง ~90%</span></h4>
+      <div class="market">บริษัททัวร์ไทย ~90% ใช้อยู่</div>
+      <div class="tags">
+        <span class="tag pro">ฟรี</span>
+        <span class="tag pro">ทุกคนมี LINE</span>
+        <span class="tag pro">ส่งได้ทันที</span>
+        <span class="tag con">ข้อมูลจมในแชท</span>
+        <span class="tag con">หาข้อมูลไม่เจอ</span>
+        <span class="tag con">ไม่มี read receipt สำหรับ itinerary</span>
+      </div>
+      <div class="vs-box" style="background: #fef2f2; border-color: #fca5a5;">⚔️ LINE = "ส่งข้อความ" vs NatGan = "ส่ง itinerary ที่ always up-to-date + รู้ว่าใครเห็นแล้ว"</div>
+    </div>
+
+    <div class="competitor">
+      <h4>PDF / Canva <span style="color: var(--text-muted); font-size: 0.85rem;">— ส่วนแบ่ง ~40%</span></h4>
+      <div class="market">ใช้ร่วมกับ LINE</div>
+      <div class="tags">
+        <span class="tag pro">สวย</span>
+        <span class="tag pro">ปริ้นได้</span>
+        <span class="tag pro">Professional</span>
+        <span class="tag con">Static — แก้ทีต้องทำใหม่</span>
+        <span class="tag con">ลูกทริปอาจดูไฟล์เก่า</span>
+      </div>
+      <div class="vs-box">⚔️ PDF = snapshot ณ วันที่ทำ vs NatGan = live link ที่อัพเดทตลอด</div>
+    </div>
+  </div>
+
+  <!-- Section 3: Feature Matrix -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">3</span> Feature Comparison Matrix</h2>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>LINE Group</th>
+            <th>PDF</th>
+            <th>Wanderlog</th>
+            <th>TripIt</th>
+            <th>mTrip</th>
+            <th>AXUS</th>
+            <th class="natgan">NatGan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>B2B (Tour Company)</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td>สร้าง Itinerary</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td>แชร์ link เดียว</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td>ไม่ต้อง download app</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td>ไม่ต้อง login ดู</td>
+            <td style="color: var(--text-muted);">-</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td>Change notification</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td style="color: var(--text-muted);">flight</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td><strong>Read receipt (ใครเห็น)</strong></td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col star">⭐ ✓</td>
+          </tr>
+          <tr>
+            <td><strong>ปุ่มรับทราบ</strong></td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col star">⭐ ✓</td>
+          </tr>
+          <tr>
+            <td>LINE integration</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td><strong>Immigration View</strong></td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col star">⭐ ✓</td>
+          </tr>
+          <tr>
+            <td>Company Branding</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+          <tr>
+            <td>ราคา SME ไทย</td>
+            <td>ฟรี</td>
+            <td>ฟรี</td>
+            <td>ฟรี</td>
+            <td>$49/ปี</td>
+            <td>$$$</td>
+            <td>$35+</td>
+            <td class="natgan-col" style="color: var(--green);">ฟรี-299บ</td>
+          </tr>
+          <tr>
+            <td>ภาษาไทย</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="natgan-col check">✓</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NatGan Unique Advantages -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">4</span> NatGan Unique Advantages</h2>
+    <p style="margin-bottom: 16px; color: var(--text-muted);">ฟีเจอร์ที่ไม่มีใครมี — ⭐ ในตาราง</p>
+
+    <div class="unique-grid">
+      <div class="unique-card">
+        <div class="icon">👁️</div>
+        <h4>Read Receipt + รับทราบ</h4>
+        <p>รู้ว่าใครเห็นแล้ว ใครยัง → ส่งซ้ำเฉพาะคนที่ยังไม่เห็น</p>
+      </div>
+      <div class="unique-card">
+        <div class="icon">🛂</div>
+        <h4>Immigration-Friendly View</h4>
+        <p>ยื่นหน้าจอ ตม. แทนปริ้นกระดาษ</p>
+      </div>
+      <div class="unique-card">
+        <div class="icon">💬</div>
+        <h4>LINE + Web Push</h4>
+        <p>Dual channel เข้าถึงคนไทยผ่าน LINE</p>
+      </div>
+      <div class="unique-card">
+        <div class="icon">🔓</div>
+        <h4>ไม่ต้อง Login / ไม่ต้อง App</h4>
+        <p>Friction ต่ำที่สุดในตลาด</p>
+      </div>
+      <div class="unique-card">
+        <div class="icon">💰</div>
+        <h4>ราคาเหมาะ SME ไทย</h4>
+        <p>ฟรี tier ใช้ได้จริง, Pro แค่ 299 บ/เดือน</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Positioning Map -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">5</span> Positioning Map</h2>
+
+    <div class="pos-map">
+      <div class="pos-grid">
+        <div class="axis-x">Trip Communication ← → Tour Management</div>
+        <div class="axis-y">ฟรี ← → ราคาสูง ($100+)</div>
+
+        <!-- High price, Tour Management -->
+        <div class="pos-dot" style="left: 80%; top: 12%;"><div class="dot" style="background: #7c3aed;"></div>MYT SaaS</div>
+        <div class="pos-dot" style="left: 85%; top: 22%;"><div class="dot" style="background: #7c3aed;"></div>OTRAMS</div>
+        <div class="pos-dot" style="left: 70%; top: 32%;"><div class="dot" style="background: #7c3aed;"></div>TourSys</div>
+
+        <!-- High price, Trip Communication -->
+        <div class="pos-dot" style="left: 15%; top: 15%;"><div class="dot" style="background: #d97706;"></div>mTrip</div>
+        <div class="pos-dot" style="left: 20%; top: 28%;"><div class="dot" style="background: #d97706;"></div>AXUS</div>
+
+        <!-- Low price, Trip Planner -->
+        <div class="pos-dot" style="left: 60%; top: 70%;"><div class="dot" style="background: #0891b2;"></div>Wanderlog</div>
+        <div class="pos-dot" style="left: 65%; top: 80%;"><div class="dot" style="background: #0891b2;"></div>TripIt</div>
+        <div class="pos-dot" style="left: 55%; top: 88%;"><div class="dot" style="background: #0891b2;"></div>TripNiceDay</div>
+
+        <!-- Low price, Communication (DIY) -->
+        <div class="pos-dot" style="left: 15%; top: 85%;"><div class="dot" style="background: #dc2626;"></div>LINE</div>
+        <div class="pos-dot" style="left: 25%; top: 90%;"><div class="dot" style="background: #dc2626;"></div>PDF</div>
+
+        <!-- NatGan! -->
+        <div class="pos-dot natgan" style="left: 22%; top: 62%;"><div class="dot"></div>NatGan ⭐<br><span style="font-size: 0.7rem; font-weight: 400;">ตรงนี้ว่าง!</span></div>
+      </div>
+
+      <div style="text-align: center; margin-top: 40px; font-weight: 700; color: var(--orange-dark);">
+        Sweet Spot: ราคาถูก + เน้น Communication — <strong>ตรงนี้ว่างไม่มีคู่แข่ง</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6: Competitive Moats -->
+  <div class="section">
+    <h2 class="section-title"><span class="num">6</span> Competitive Moats (คูน้ำป้องกัน)</h2>
+
+    <table class="moat-table">
+      <thead>
+        <tr><th style="width: 180px;">Moat</th><th>คำอธิบาย</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Network Effect</strong></td><td>ลูกทริปเห็น "Powered by NatGan" → viral loop → คู่แข่งต้องสร้าง user base จาก 0</td></tr>
+        <tr><td><strong>LINE Ecosystem</strong></td><td>คนไทย 90%+ ใช้ LINE → ต่างชาติ (Wanderlog, AXUS) ไม่เข้าใจ LINE ecosystem</td></tr>
+        <tr><td><strong>Language + Culture</strong></td><td>UI ภาษาไทย, เข้าใจ workflow ไกด์ไทย, ราคาบาท → ต่างชาติ localize ยาก</td></tr>
+        <tr><td><strong>Price Point</strong></td><td>ฟรี-299 บ → MYT/mTrip/AXUS ลดราคามาสู้ไม่ได้เพราะ cost structure ต่างกัน</td></tr>
+        <tr><td><strong>Simplicity</strong></td><td>4 fields ต่อ activity → ถ้าคู่แข่งเพิ่ม feature มา จะ complex เกินไปสำหรับลูกทริปไทย</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-weight: 700; margin-bottom: 12px;">ความเสี่ยงจากคู่แข่ง</h3>
+
+    <div class="risk-grid">
+      <div class="risk-card">
+        <div>
+          <span class="risk-level low">ต่ำ</span>
+        </div>
+        <div>
+          <h4>LINE เพิ่มฟีเจอร์ itinerary ใน LINE OA</h4>
+          <p>LINE ไม่เคยทำ vertical solution — ถ้าเกิดขึ้น เรามี read receipt + immigration view ที่ LINE ไม่มี</p>
+        </div>
+      </div>
+      <div class="risk-card">
+        <div>
+          <span class="risk-level med">กลาง</span>
+        </div>
+        <div>
+          <h4>Wanderlog เพิ่ม B2B mode</h4>
+          <p>เป็นไปได้ แต่ Wanderlog ไม่มี LINE integration + ไม่มีภาษาไทย</p>
+        </div>
+      </div>
+      <div class="risk-card">
+        <div>
+          <span class="risk-level med">กลาง-สูง</span>
+        </div>
+        <div>
+          <h4>คนไทยทำ clone NatGan</h4>
+          <p>ถ้าเราสำเร็จ → First-mover advantage + viral loop + community lock-in</p>
+        </div>
+      </div>
+      <div class="risk-card">
+        <div>
+          <span class="risk-level high">สูง</span>
+        </div>
+        <div>
+          <h4>บริษัททัวร์ใช้ LINE ต่อเพราะ "ก็ใช้ได้อยู่"</h4>
+          <p>Inertia แรงมาก — ต้องทำให้ NatGan ดีกว่า LINE อย่างเห็นได้ชัด (read receipt = killer feature)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-box">
+    <h2>NatGan ไม่มีคู่แข่งตรงในตลาดไทย</h2>
+    <p style="margin-bottom: 8px;">B2B Suite → แพงเกินไป &nbsp; | &nbsp; Trip Planner → ไม่ใช่ B2B &nbsp; | &nbsp; White-label → ต้อง download app</p>
+    <p style="font-weight: 700; color: var(--red); margin-bottom: 12px;">คู่แข่งที่แท้จริง = "ความเคยชิน" ของการใช้ LINE Group</p>
+    <div class="strategy">
+      ไม่ต้องทำให้ดีกว่า LINE ทุกด้าน — แค่ทำให้<br>
+      <strong>"รู้ว่าใครเห็นแล้ว"</strong> ดีกว่า LINE ก็พอ<br>
+      เพราะนั่นคือ pain point จริง
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  NatGan Competitor Deep Dive v1.0 — 17 March 2026<br>
+  Sources: <a href="#">MYT SaaS</a> · <a href="#">AXUS</a> · <a href="#">mTrip</a> · <a href="#">Wanderlog</a> · <a href="#">TripIt</a> · <a href="#">TripNiceDay</a> · <a href="#">TourSys</a> · <a href="#">OTRAMS</a> · <a href="#">LINE Messaging API</a>
+</div>
+
+</body>
+</html>

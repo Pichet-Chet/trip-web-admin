@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NatGan — MVP Scope Lock</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #EEF2FF;
+            --primary-dark: #3730A3;
+            --accent: #F59E0B;
+            --accent-light: #FEF3C7;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --info: #3B82F6;
+            --info-light: #DBEAFE;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-500: #6B7280;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            color: var(--gray-800);
+            line-height: 1.8;
+            background: var(--gray-50);
+        }
+
+        .container { max-width: 920px; margin: 0 auto; padding: 40px 24px; }
+
+        .doc-header {
+            background: linear-gradient(135deg, #065F46, #059669, var(--success));
+            color: white;
+            padding: 60px 48px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .doc-header::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            right: -15%;
+            width: 500px;
+            height: 500px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .doc-header .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 8px; }
+        .doc-header h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 4px; }
+        .doc-header .subtitle { font-size: 1.15rem; opacity: 0.85; margin-bottom: 24px; }
+        .doc-header .meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; opacity: 0.75; }
+        .doc-header .meta span { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 36px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid var(--gray-200);
+        }
+
+        h2 { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--primary-light); }
+        h3 { font-size: 1.15rem; font-weight: 600; color: var(--gray-800); margin: 28px 0 12px; }
+        h3:first-child { margin-top: 0; }
+        h4 { font-size: 1rem; font-weight: 600; color: var(--primary); margin: 20px 0 8px; }
+        p { margin-bottom: 12px; }
+        strong { color: var(--gray-900); }
+        ul, ol { margin: 8px 0 16px 24px; }
+        li { margin-bottom: 6px; }
+
+        .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 8px; border: 1px solid var(--gray-200); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        thead { background: var(--primary-light); }
+        th { padding: 12px 16px; text-align: left; font-weight: 600; color: var(--primary-dark); white-space: nowrap; }
+        td { padding: 10px 16px; border-top: 1px solid var(--gray-100); }
+        tbody tr:hover { background: var(--gray-50); }
+
+        pre {
+            background: var(--gray-900);
+            color: #E5E7EB;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            margin: 16px 0;
+        }
+        code { font-family: 'JetBrains Mono', monospace; background: var(--gray-100); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; color: var(--primary-dark); }
+        pre code { background: none; padding: 0; color: inherit; }
+
+        .callout { padding: 16px 20px; border-radius: 8px; margin: 16px 0; font-weight: 500; }
+        .callout-primary { background: var(--primary-light); border-left: 4px solid var(--primary); color: var(--primary-dark); }
+        .callout-warning { background: var(--accent-light); border-left: 4px solid var(--accent); color: #92400E; }
+        .callout-success { background: var(--success-light); border-left: 4px solid var(--success); color: #065F46; }
+        .callout-danger { background: var(--danger-light); border-left: 4px solid var(--danger); color: #991B1B; }
+        .callout-info { background: var(--info-light); border-left: 4px solid var(--info); color: #1E40AF; }
+
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge-success { background: var(--success-light); color: #065F46; }
+        .badge-danger { background: var(--danger-light); color: #991B1B; }
+        .badge-primary { background: var(--primary-light); color: var(--primary-dark); }
+        .badge-warning { background: var(--accent-light); color: #92400E; }
+
+        hr { border: none; border-top: 1px solid var(--gray-200); margin: 24px 0; }
+
+        .toc { background: var(--gray-100); border-radius: 10px; padding: 24px 28px; margin-bottom: 32px; }
+        .toc h3 { margin-top: 0; color: var(--gray-700); }
+        .toc ol { margin-bottom: 0; }
+        .toc a { color: var(--primary); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        .checklist { list-style: none; margin-left: 0; padding-left: 0; }
+        .checklist li { padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; }
+        .checklist li::before { content: '☐'; font-size: 1.1rem; flex-shrink: 0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 20px 0; }
+        .stat-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 20px; text-align: center; }
+        .stat-card .number { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .stat-card .label { font-size: 0.85rem; color: var(--gray-500); margin-top: 4px; }
+
+        .sprint-card {
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 12px 0;
+            position: relative;
+        }
+        .sprint-card .week {
+            position: absolute;
+            top: -12px;
+            left: 16px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .sprint-card.highlight { border-color: var(--accent); background: #FFFBEB; }
+        .sprint-card.highlight .week { background: var(--accent); }
+
+        .doc-footer { text-align: center; padding: 32px; color: var(--gray-500); font-size: 0.875rem; }
+
+        @media print {
+            body { background: white; }
+            .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+            .doc-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        @media (max-width: 640px) {
+            .container { padding: 16px; }
+            .doc-header { padding: 32px 24px; }
+            .doc-header h1 { font-size: 1.5rem; }
+            .section { padding: 20px; }
+            .stat-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="doc-header">
+        <div class="label">MVP Scope Lock</div>
+        <h1>NatGan (นัดกัน)</h1>
+        <div class="subtitle">สิ่งที่ทำ vs ไม่ทำ — ตีเส้นชัดก่อนลงมือ</div>
+        <div class="meta">
+            <span>Version 1.0</span>
+            <span>17 March 2026</span>
+            <span>Status: Locked</span>
+            <span>10 สัปดาห์</span>
+        </div>
+    </div>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ol>
+            <li><a href="#s1">MVP Goal</a></li>
+            <li><a href="#s2">สิ่งที่ทำ ✅</a></li>
+            <li><a href="#s3">สิ่งที่ไม่ทำ ❌</a></li>
+            <li><a href="#s4">Development Timeline</a></li>
+            <li><a href="#s5">Success Criteria</a></li>
+            <li><a href="#s6">Pilot Plan</a></li>
+            <li><a href="#s7">Tech Stack</a></li>
+            <li><a href="#s8">Risks</a></li>
+            <li><a href="#s9">Definition of Done</a></li>
+        </ol>
+    </div>
+
+    <!-- 1 -->
+    <div class="section" id="s1">
+        <h2>1. MVP Goal</h2>
+        <div class="callout callout-primary">
+            <strong>พิสูจน์ 3 สมมติฐานนี้ภายใน 10 สัปดาห์:</strong>
+        </div>
+        <ol>
+            <li>บริษัททัวร์ / ไกด์อิสระ <strong>ใช้จริง</strong> ในการส่ง itinerary ให้ลูกทริป</li>
+            <li>ลูกทริป <strong>เปิดดูจริง</strong> ผ่าน link/QR (ไม่ใช่แค่ "ดีนะ" แล้วกลับไปใช้ Line)</li>
+            <li>ฟีเจอร์ <strong>notification + รับทราบ</strong> มีคนใช้จริง และลดปัญหาหน้างาน</li>
+        </ol>
+        <div class="callout callout-success">ถ้าพิสูจน์ได้ → เดินหน้า Phase 2 (Monetization)</div>
+        <div class="callout callout-danger">ถ้าพิสูจน์ไม่ได้ → Pivot หรือ Stop</div>
+    </div>
+
+    <!-- 2 -->
+    <div class="section" id="s2">
+        <h2>2. สิ่งที่ทำ ✅</h2>
+
+        <h3>2.1 Authentication & Profile</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>รายละเอียด</th></tr></thead>
+                <tbody>
+                    <tr><td>✅ สมัครสมาชิก</td><td>Email + Password + ยืนยัน email</td></tr>
+                    <tr><td>✅ Login / Logout</td><td>Session management</td></tr>
+                    <tr><td>✅ Company Profile</td><td>ชื่อบริษัท, Logo, ช่องทางติดต่อ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>2.2 Trip Plan Builder (Admin)</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>รายละเอียด</th></tr></thead>
+                <tbody>
+                    <tr><td>✅ สร้าง Trip Plan</td><td>ชื่อ, วันที่, destination, cover image, จำนวนผู้เดินทาง</td></tr>
+                    <tr><td>✅ ข้อมูลสายการบิน</td><td>สายการบิน, เลขไฟลท์, วันเวลา</td></tr>
+                    <tr><td>✅ ข้อมูลที่พัก</td><td>ชื่อ, ที่อยู่, เบอร์โทร (ใช้ยื่น ตม. ได้)</td></tr>
+                    <tr><td>✅ จัดการรายวัน</td><td>เพิ่ม/ลบ/เรียงลำดับวัน + cover image</td></tr>
+                    <tr><td>✅ จัดการกิจกรรม</td><td>เวลา, ชื่อสถานที่, หมายเหตุ, Google Maps, ประเภท, รูปภาพ</td></tr>
+                    <tr><td>✅ เบอร์ฉุกเฉิน</td><td>เพิ่มเอง + pre-fill ตามประเทศ</td></tr>
+                    <tr><td>✅ หมายเหตุสำคัญ</td><td>Free text</td></tr>
+                    <tr><td>✅ Route Planning</td><td>Google Maps route link อัตโนมัติ</td></tr>
+                    <tr><td>✅ เลือกภาษาหลัก</td><td>ไทย / อังกฤษ / ญี่ปุ่น</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>2.3 Publishing & Sharing</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>รายละเอียด</th></tr></thead>
+                <tbody>
+                    <tr><td>✅ Publish</td><td>ปุ่ม Publish → เปิดให้ guest ดู</td></tr>
+                    <tr><td>✅ Unique URL</td><td><code>natgan.com/t/{slug}</code></td></tr>
+                    <tr><td>✅ QR Code</td><td>สร้างอัตโนมัติ + ดาวน์โหลด PNG</td></tr>
+                    <tr><td>✅ Guest View</td><td>เปิด URL → เห็น plan ทันที ไม่ต้อง login</td></tr>
+                    <tr><td>✅ Company Branding</td><td>Logo + ช่องทางติดต่อบน guest view</td></tr>
+                    <tr><td>✅ Powered by NatGan</td><td>Badge + link ถาวร</td></tr>
+                    <tr><td>✅ Auto-highlight</td><td>Highlight กิจกรรมปัจจุบันตามเวลา</td></tr>
+                    <tr><td>✅ Immigration View <span class="badge badge-warning">New</span></td><td>โหมดยื่น ตม. — ภาษา destination, offline cache</td></tr>
+                    <tr><td>✅ Unpublish</td><td>ปิดไม่ให้เข้าดู</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>2.4 Notification & Communication <span class="badge badge-danger">Killer Feature</span></h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>รายละเอียด</th></tr></thead>
+                <tbody>
+                    <tr><td>✅ Follow (LINE OA)</td><td>เพิ่มเพื่อน LINE OA → ได้ User ID</td></tr>
+                    <tr><td>✅ Follow (Web Push)</td><td>Allow notification → ได้ subscription</td></tr>
+                    <tr><td>✅ แจ้งเตือนเมื่อ Plan เปลี่ยน</td><td>ตรวจจับ change → summary → ส่ง LINE + Web Push</td></tr>
+                    <tr><td>✅ ปุ่มรับทราบ</td><td>Banner + "รับทราบแล้ว ✓"</td></tr>
+                    <tr><td>✅ Read Receipt Dashboard</td><td>ใครรับทราบ / ยังไม่เห็น</td></tr>
+                    <tr><td>✅ ส่ง noti ซ้ำ</td><td>เฉพาะคนที่ยังไม่เห็น</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>2.5 Dashboard + Limits</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>รายละเอียด</th></tr></thead>
+                <tbody>
+                    <tr><td>✅ Trip list</td><td>Active / Draft, ชื่อ, วันเดินทาง</td></tr>
+                    <tr><td>✅ Views + Followers</td><td>นับ views, followers ต่อทริป</td></tr>
+                    <tr><td>✅ Change Log</td><td>ประวัติการเปลี่ยนแปลง (admin)</td></tr>
+                    <tr><td>✅ Free tier limits</td><td>3 slots, 2 edits, 30 followers, 10 noti/เดือน</td></tr>
+                    <tr><td>✅ Multi-language UI</td><td>ไทย / อังกฤษ / ญี่ปุ่น</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="section" id="s3">
+        <h2>3. สิ่งที่ไม่ทำ ❌</h2>
+
+        <div class="callout callout-info">
+            <strong>หลักคิด:</strong> ถ้าไม่มีฟีเจอร์นี้ แล้ว pilot ยังทำได้ + พิสูจน์สมมติฐานได้ → ตัดออก
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Feature</th><th>เหตุผลที่ตัด</th><th>เพิ่มเมื่อไหร่</th></tr></thead>
+                <tbody>
+                    <tr><td>❌ Social Login</td><td>Email+Password พอสำหรับ pilot</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Template System</td><td>Pilot ทำทริปไม่เกิน 10 อัน</td><td><span class="badge badge-primary">Phase 3</span></td></tr>
+                    <tr><td>❌ Auto noti ก่อนวันถัดไป</td><td>Scheduler + timezone logic ซับซ้อน</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Batch send</td><td>ส่งทีละ change ก่อน</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Archive (portfolio)</td><td>Unpublish พอก่อน</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Payment / Subscription</td><td>Free tier อย่างเดียว upgrade manual</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Pay-per-slot</td><td>ยังไม่เก็บเงิน</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Full Analytics</td><td>Views + Followers count พอ</td><td><span class="badge badge-primary">Phase 2</span></td></tr>
+                    <tr><td>❌ Custom theme color</td><td>Default theme เดียว</td><td><span class="badge badge-primary">Phase 3</span></td></tr>
+                    <tr><td>❌ White-label</td><td>ต้องมี revenue ก่อน</td><td><span class="badge badge-primary">Phase 3</span></td></tr>
+                    <tr><td>❌ Multi-language trip</td><td>1 trip = 1 ภาษา ก่อน</td><td><span class="badge badge-primary">Phase 3</span></td></tr>
+                    <tr><td>❌ Collaborative editing</td><td>Admin คนเดียว/บริษัท</td><td><span class="badge badge-primary">Phase 4</span></td></tr>
+                    <tr><td>❌ Enterprise API</td><td>ยังไม่มี enterprise</td><td><span class="badge badge-primary">Phase 4</span></td></tr>
+                    <tr><td>❌ Mobile App</td><td>Web-only ตลอด</td><td><span class="badge badge-danger">ไม่ทำ</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="section" id="s4">
+        <h2>4. Development Timeline (10 สัปดาห์)</h2>
+
+        <div class="sprint-card">
+            <span class="week">สัปดาห์ 1-2</span>
+            <h4>Foundation</h4>
+            <ul>
+                <li>Database schema + PostgreSQL (Docker) + Drizzle setup</li>
+                <li>Auth (Email + Password, session)</li>
+                <li>Company Profile CRUD</li>
+                <li>Project skeleton (Next.js + Tailwind)</li>
+            </ul>
+        </div>
+
+        <div class="sprint-card">
+            <span class="week">สัปดาห์ 3-4</span>
+            <h4>Trip Builder</h4>
+            <ul>
+                <li>Trip Plan CRUD (create, edit, delete)</li>
+                <li>Day CRUD (add, remove, reorder)</li>
+                <li>Activity CRUD (add, remove, reorder, Google Maps link)</li>
+                <li>Emergency contacts + Important notes</li>
+            </ul>
+        </div>
+
+        <div class="sprint-card">
+            <span class="week">สัปดาห์ 5-6</span>
+            <h4>Guest View + Publishing</h4>
+            <ul>
+                <li>Publish flow → generate slug + URL</li>
+                <li>QR Code generation + download</li>
+                <li>Guest View page (responsive, mobile-first)</li>
+                <li>Immigration-Friendly View (โหมดยื่น ตม.)</li>
+                <li>Auto-highlight current activity</li>
+                <li>Company branding + Powered by badge</li>
+            </ul>
+        </div>
+
+        <div class="sprint-card highlight">
+            <span class="week">สัปดาห์ 7-8 ⭐</span>
+            <h4>Notification System (Killer Feature)</h4>
+            <ul>
+                <li>LINE Messaging API integration (LINE OA webhook)</li>
+                <li>Web Push setup (VAPID + Service Worker)</li>
+                <li>Follow button (เลือก LINE / Web Push)</li>
+                <li>Change detection (diff ก่อน-หลัง)</li>
+                <li>Change summary generation</li>
+                <li>Send notification (LINE + Web Push)</li>
+                <li>Acknowledge button + read receipt</li>
+                <li>Read Receipt Dashboard</li>
+            </ul>
+        </div>
+
+        <div class="sprint-card">
+            <span class="week">สัปดาห์ 9</span>
+            <h4>Dashboard + Limits</h4>
+            <ul>
+                <li>Admin Dashboard (trip list, views, followers)</li>
+                <li>Change Log (admin view)</li>
+                <li>Free tier limits enforcement</li>
+                <li>Usage display</li>
+                <li>Multi-language UI (TH/EN/JP)</li>
+            </ul>
+        </div>
+
+        <div class="sprint-card">
+            <span class="week">สัปดาห์ 10</span>
+            <h4>Testing + Deploy + Pilot</h4>
+            <ul>
+                <li>End-to-end testing (สร้าง → publish → follow → แก้ → noti → รับทราบ)</li>
+                <li>Mobile testing (LINE browser, iOS Safari, Android Chrome)</li>
+                <li>Immigration view testing (offline cache)</li>
+                <li>Deploy to natgan.com (Vercel + VPS PostgreSQL)</li>
+                <li>Onboard เพื่อน 1 บริษัท</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="section" id="s5">
+        <h2>5. Success Criteria (หลัง pilot 4 สัปดาห์)</h2>
+
+        <h3>Must-have — ถ้าไม่ผ่าน ต้อง rethink</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Metric</th><th>Target</th><th>วัดยังไง</th></tr></thead>
+                <tbody>
+                    <tr><td>สร้างทริปจริง</td><td><strong>3+ ทริป</strong></td><td>นับใน dashboard</td></tr>
+                    <tr><td>ลูกทริปเปิดดู</td><td><strong>&gt; 50%</strong> ของลูกทริปในกรุ๊ป</td><td>Views / จำนวนลูกทริป</td></tr>
+                    <tr><td>ลูกทริปกด Follow</td><td><strong>&gt; 30%</strong></td><td>Followers count</td></tr>
+                    <tr><td>Acknowledge rate</td><td><strong>&gt; 50%</strong> เมื่อมีการเปลี่ยนแปลง</td><td>Acknowledged / Followers</td></tr>
+                    <tr><td>เพื่อนบอกว่า "ดีกว่า Line"</td><td><strong>Yes</strong></td><td>ถามตรงๆ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Nice-to-have — ถ้าผ่าน สัญญาณดี</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Metric</th><th>Target</th><th>วัดยังไง</th></tr></thead>
+                <tbody>
+                    <tr><td>ลูกทริปแชร์ link ต่อ</td><td>มี views จากคนนอกกรุ๊ป</td><td>Views &gt; Followers</td></tr>
+                    <tr><td>เพื่อนแนะนำบริษัทอื่น</td><td>1+ บริษัทใหม่</td><td>Referral</td></tr>
+                    <tr><td>ใช้โหมดยื่น ตม. จริง</td><td>1+ คน</td><td>ถามหลังทริปจบ</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="section" id="s6">
+        <h2>6. Pilot Plan</h2>
+
+        <h3>เพื่อน 1 บริษัท — ทริปในประเทศ</h3>
+
+        <pre><code>สัปดาห์ 1-2 (หลัง launch):
+├── Onboard เพื่อน → สร้าง account → ใส่ logo + contacts
+├── สร้างทริปจริง 1 ทริป (ทริปที่ใกล้ที่สุด)
+├── ส่ง link/QR ให้ลูกทริปจริง
+└── สังเกต: ลูกทริปเปิดดูไหม? กด follow ไหม?
+
+สัปดาห์ 3-4:
+├── ทดสอบ: แก้ plan → ลูกทริปได้ noti? กดรับทราบ?
+├── เก็บ feedback จากเพื่อน (admin experience)
+├── เก็บ feedback จากลูกทริป (ถ้าทำได้)
+├── สร้างทริปเพิ่ม 2-3 ทริป
+└── วัด Success Criteria
+
+สัปดาห์ 5+:
+├── ปรับ product ตาม feedback
+├── ถ้าผ่าน → ขอ referral → 3-5 บริษัทเพิ่ม
+└── ถ้าไม่ผ่าน → วิเคราะห์ → pivot หรือ stop</code></pre>
+
+        <div class="callout callout-warning">
+            <strong>ถ้ามีทริปต่างประเทศ:</strong> ทดสอบ Immigration View + multi-language + ถามลูกทริปว่ายื่นหน้าจอ ตม. แล้วเป็นยังไง
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="section" id="s7">
+        <h2>7. Tech Stack (MVP)</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Layer</th><th>Technology</th><th>เหตุผล</th></tr></thead>
+                <tbody>
+                    <tr><td>Frontend</td><td>Next.js 16 + React 19</td><td>มี codebase อยู่แล้ว, SSR</td></tr>
+                    <tr><td>Styling</td><td>Tailwind CSS 4</td><td>มี codebase อยู่แล้ว</td></tr>
+                    <tr><td>Auth</td><td>Auth.js (NextAuth v5)</td><td>Open-source, email auth, self-hosted</td></tr>
+                    <tr><td>Database</td><td>PostgreSQL 16 (Docker, self-host VPS)</td><td>Full control, Drizzle ORM</td></tr>
+                    <tr><td>ORM</td><td>Drizzle ORM</td><td>Type-safe, lightweight, PostgreSQL-native</td></tr>
+                    <tr><td>Storage</td><td>Local disk + S3-compatible (MinIO)</td><td>เก็บ logo, images, self-hosted</td></tr>
+                    <tr><td>Hosting</td><td>Vercel</td><td>ฟรี tier, auto deploy</td></tr>
+                    <tr><td>LINE Messaging API</td><td>LINE Messaging API</td><td>ฟรี 500 msg/เดือน (Communication plan), คนไทยคุ้นเคย</td></tr>
+                    <tr><td>Web Push</td><td>web-push (npm) + SW</td><td>ฟรี, VAPID</td></tr>
+                    <tr><td>QR Code</td><td>qrcode (npm)</td><td>Client-side, ฟรี</td></tr>
+                    <tr><td>Maps</td><td>Google Maps URL</td><td>ฟรี (แค่สร้าง link)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="number">~150-250 บ</div>
+                <div class="label">Monthly cost (VPS) + Vercel ฟรี</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">10</div>
+                <div class="label">สัปดาห์</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">1</div>
+                <div class="label">Developer</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="section" id="s8">
+        <h2>8. Risks</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Risk</th><th>ผลกระทบ</th><th>Plan B</th></tr></thead>
+                <tbody>
+                    <tr><td>VPS ต้อง upgrade</td><td><span class="badge badge-primary">ต่ำ</span></td><td>ง่ายกว่า — แค่เพิ่ม RAM/CPU, ไม่ถูก vendor lock-in</td></tr>
+                    <tr><td>ลูกทริปไม่เพิ่มเพื่อน LINE OA</td><td><span class="badge badge-primary">กลาง</span></td><td>มี Web Push เป็นทางเลือก</td></tr>
+                    <tr><td>Web Push ไม่ work บน iOS</td><td><span class="badge badge-primary">กลาง</span></td><td>LINE Messaging API เป็น fallback สำหรับ iOS</td></tr>
+                    <tr><td>เพื่อนไม่มีเวลาทดสอบ</td><td><span class="badge badge-danger">สูง</span></td><td>นัดวันชัดเจน + ช่วย onboard ด้วยตัวเอง</td></tr>
+                    <tr><td>Guest view ช้าใน LINE browser</td><td><span class="badge badge-primary">กลาง</span></td><td>Optimize: ลด image, lazy load, minimal JS</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="section" id="s9">
+        <h2>9. Definition of Done</h2>
+        <p>MVP ถือว่า "เสร็จ" เมื่อทุกข้อต่อไปนี้ผ่าน:</p>
+        <ul class="checklist">
+            <li>Admin สร้าง account + ใส่ logo + contacts ได้</li>
+            <li>Admin สร้าง trip plan ครบ (days + activities + emergency + notes)</li>
+            <li>Admin กด publish → ได้ URL + QR Code</li>
+            <li>Guest เปิด URL → เห็น trip plan สวย responsive บน mobile</li>
+            <li>Guest กด "โหมดยื่น ตม." → เห็นข้อมูล official + offline cache</li>
+            <li>Guest กด "ติดตาม" → เลือก LINE (ผ่าน LINE OA) หรือ Web Push ได้</li>
+            <li>Admin แก้ plan → follower ได้รับ noti ทั้ง LINE + Web Push</li>
+            <li>Guest เห็น banner "มีการเปลี่ยนแปลง" + กด "รับทราบ" ได้</li>
+            <li>Admin เห็น read receipt dashboard (ใครรับทราบ/ไม่รับทราบ)</li>
+            <li>Free tier limits ทำงาน (3 slots, 2 edits, 30 followers, 10 noti)</li>
+            <li>Platform UI รองรับ 3 ภาษา (TH/EN/JP)</li>
+            <li>ทดสอบบน LINE in-app browser, iOS Safari, Android Chrome ผ่าน</li>
+            <li>Deploy บน natgan.com สำเร็จ</li>
+            <li>เพื่อน 1 บริษัทสร้างทริปจริงได้สำเร็จ</li>
+        </ul>
+    </div>
+
+    <div class="doc-footer">
+        <p><strong>NatGan — MVP Scope Lock v1.0</strong></p>
+        <p>Coex Team &middot; March 2026</p>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NatGan Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#1978e5",
+                "on-primary": "#ffffff",
+                "primary-container": "#d9e9ff",
+                "on-primary-container": "#001b3d",
+                "primary-fixed": "#d9e9ff",
+                "on-primary-fixed": "#001b3d",
+                "primary-fixed-dim": "#b1c5ff",
+                "on-primary-fixed-variant": "#00458f",
+                
+                "secondary": "#555f71",
+                "on-secondary": "#ffffff",
+                "secondary-container": "#d9e3f8",
+                "on-secondary-container": "#121c2b",
+                
+                "tertiary": "#6e5676",
+                "on-tertiary": "#ffffff",
+                "tertiary-container": "#f8d8ff",
+                "on-tertiary-container": "#271430",
+                
+                "error": "#ba1a1a",
+                "on-error": "#ffffff",
+                "error-container": "#ffdad6",
+                "on-error-container": "#410002",
+                
+                "background": "#fdfbff",
+                "on-background": "#1a1c1e",
+                "surface": "#fdfbff",
+                "on-surface": "#1a1c1e",
+                "surface-variant": "#dfe2eb",
+                "on-surface-variant": "#43474e",
+                "outline": "#73777f",
+                "outline-variant": "#c3c6cf",
+                "inverse-surface": "#2f3033",
+                "inverse-on-surface": "#f1f0f4",
+                "inverse-primary": "#b1c5ff",
+                "surface-dim": "#dad9de",
+                "surface-bright": "#fdfbff",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-low": "#f4f3f7",
+                "surface-container": "#eeedf2",
+                "surface-container-high": "#e8e7ec",
+                "surface-container-highest": "#e2e2e6"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {
+                "DEFAULT": "0.5rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "2xl": "1rem",
+                "3xl": "1.5rem",
+                "full": "9999px"
+              },
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfbff;
+        }
+        h1, h2, h3, .font-headline {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Mobile SideNav Toggle Logic */
+        #mobile-nav-toggle:checked ~ aside {
+            transform: translateX(0);
+        }
+        @media (max-width: 767px) {
+            aside { transform: translateX(-100%); transition: transform 0.3s ease; }
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Mobile Navigation Toggle (Hidden Checkbox) -->
+<input class="hidden" id="mobile-nav-toggle" type="checkbox"/>
+<!-- SideNavBar -->
+<aside class="h-screen w-64 md:w-20 lg:w-64 fixed left-0 top-0 border-r border-outline-variant/30 bg-white dark:bg-slate-900 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50">
+<div class="flex flex-col h-full py-6">
+<div class="px-6 mb-10 flex items-center justify-between lg:block">
+<div>
+<h1 class="text-2xl font-bold text-primary dark:text-white tracking-tight lg:block md:hidden">NatGan</h1>
+<h1 class="text-2xl font-bold text-primary dark:text-white tracking-tight hidden md:block lg:hidden">N</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1 font-bold lg:block md:hidden">Professional Precision</p>
+</div>
+<label class="md:hidden cursor-pointer text-on-surface-variant" for="mobile-nav-toggle">
+<span class="material-symbols-outlined">close</span>
+</label>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-3 px-6 py-3 text-primary dark:text-white font-bold border-r-4 border-primary dark:border-blue-400 bg-primary/5" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-sm font-medium md:hidden lg:block">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors hover:bg-surface-container-low dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="edit_calendar">edit_calendar</span>
+<span class="text-sm font-medium md:hidden lg:block">Trip Builder</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors hover:bg-surface-container-low dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="text-sm font-medium md:hidden lg:block">Preview</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors hover:bg-surface-container-low dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="text-sm font-medium md:hidden lg:block">Publish</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors hover:bg-surface-container-low dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-sm font-medium md:hidden lg:block">Read Receipts</span>
+</a>
+</nav>
+<div class="px-4 lg:px-6 mt-auto">
+<div class="flex items-center gap-3 p-3 rounded-xl bg-surface-container-lowest shadow-sm border border-outline-variant/20 overflow-hidden">
+<img alt="Admin Profile" class="w-10 h-10 min-w-[2.5rem] rounded-full bg-primary-container object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0NPibyc6h8ja9ITL5UX3fPZyrvkLO5wNL79C-bpOqP5zhaoZrX9gAbh0q0MFBL7PDYq5S44BOgZ9lw2MJRw_Z2NVS-JPqRzvZWICH35HPdFlx-kiZ1inLVwVs77Qo9RmLmVgi9rUQJnc2LShP6Ag82T7F_NQ0NiaQagGLMKwoujlAV_2DP6-FVsDCwSPCmF8yVGvlyd7WWvGW5oUAE8N2kDbWM1SHPqFWmtViIP3OyA_yRJSd2AHkDnejtVC-HL-AQisaWUKF4v9w"/>
+<div class="md:hidden lg:block">
+<p class="text-sm font-bold text-on-surface truncate">Admin User</p>
+<p class="text-[10px] text-on-surface-variant">System Master</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-0 md:ml-20 lg:ml-64 min-h-screen pb-20 transition-all duration-300">
+<!-- Top Navigation Area -->
+<header class="h-20 px-4 md:px-10 flex justify-between items-center sticky top-0 bg-white/70 backdrop-blur-xl z-30">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<label class="md:hidden cursor-pointer text-on-surface-variant" for="mobile-nav-toggle">
+<span class="material-symbols-outlined">menu</span>
+</label>
+<div class="relative group w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-3 pl-12 pr-6 focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2 md:gap-6 ml-4">
+<div class="hidden sm:flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<button class="bg-primary text-on-primary px-4 md:px-6 py-3 rounded-full font-headline font-bold text-xs md:text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20 whitespace-nowrap">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+<span class="hidden xs:inline">Publish Trip</span>
+</button>
+</div>
+</header>
+<div class="px-4 md:px-10 py-8 space-y-12">
+<!-- Hero Bento Section -->
+<section class="grid grid-cols-12 gap-6 lg:h-[420px]">
+<!-- Large CTA Card -->
+<div class="col-span-12 lg:col-span-7 relative overflow-hidden rounded-[2.5rem] bg-primary group cursor-pointer shadow-2xl shadow-primary/10 aspect-[16/10] lg:aspect-auto">
+<img class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXBDvCDlZgprsAeKmaddIxjvnBsrYlvlXbZfcxrYqKfX_C5lL1NaGu_9NUcVKeT1SS9OfdMW-ycJiYXp_SsHlfDgmzidZLRomu4Q2hTjttsdPnQyrzAE-JsC0AsaaNbWMEEQAcsNroUZs8xYTIt7uFjJo0kB97CyKt9pUDFliaC1_z_bH-_flizNSx-lhQrPpMywCTak9meCeqU1ancnze8dAyu1FQ6PaKpvz_-WNFD9rFDLTDPTXhZ9lUfEXHXS1I8_3qXHsOjCzS"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary via-primary/60 to-transparent"></div>
+<div class="relative h-full flex flex-col justify-end p-6 md:p-12 text-on-primary">
+<span class="inline-block w-fit px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest mb-4 border border-white/20">Start Journey</span>
+<h2 class="text-3xl md:text-5xl font-extrabold font-headline leading-tight mb-6">Create a New <br/>Curated Experience</h2>
+<button class="w-fit bg-white text-primary px-6 md:px-8 py-3 md:py-4 rounded-full font-headline font-extrabold text-sm md:text-lg flex items-center gap-3 hover:bg-primary-container transition-colors shadow-xl">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                            Create New Trip
+                        </button>
+</div>
+</div>
+<!-- Stats Stack -->
+<div class="col-span-12 lg:col-span-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+<div class="bg-white rounded-[2rem] p-6 md:p-8 flex flex-col justify-between shadow-sm border border-outline-variant/30">
+<div class="flex justify-between items-start mb-4 lg:mb-0">
+<div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="travel_explore">travel_explore</span>
+</div>
+<span class="text-primary font-bold text-sm">+12% this month</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label font-medium mb-1">Active Trips</p>
+<p class="text-4xl md:text-5xl font-headline font-black text-primary">24</p>
+</div>
+</div>
+<div class="bg-secondary rounded-[2rem] p-6 md:p-8 flex flex-col justify-between text-white shadow-xl shadow-secondary/10">
+<div class="flex justify-between items-start mb-4 lg:mb-0">
+<div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl" data-icon="mark_chat_read">mark_chat_read</span>
+</div>
+<span class="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Real-time</span>
+</div>
+<div>
+<p class="text-white/70 font-label font-medium mb-1">Read Receipts</p>
+<p class="text-4xl md:text-5xl font-headline font-black">92%</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Trip Management Section -->
+<section class="space-y-8">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+<div>
+<h3 class="text-2xl md:text-3xl font-headline font-black text-on-surface mb-2">Ongoing Expeditions</h3>
+<p class="text-on-surface-variant text-sm md:text-base">Monitor and manage all guest communication streams.</p>
+</div>
+<div class="flex gap-1 p-1 bg-surface-container-low rounded-full overflow-x-auto max-w-full">
+<button class="px-4 md:px-6 py-2 rounded-full bg-white text-primary font-bold text-xs md:text-sm shadow-sm whitespace-nowrap">All</button>
+<button class="px-4 md:px-6 py-2 rounded-full text-on-surface-variant hover:text-primary font-bold text-xs md:text-sm transition-colors whitespace-nowrap">Draft</button>
+<button class="px-4 md:px-6 py-2 rounded-full text-on-surface-variant hover:text-primary font-bold text-xs md:text-sm transition-colors whitespace-nowrap">Published</button>
+<button class="px-4 md:px-6 py-2 rounded-full text-on-surface-variant hover:text-primary font-bold text-xs md:text-sm transition-colors whitespace-nowrap">Active</button>
+</div>
+</div>
+<!-- Trip List -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Trip Item 1 -->
+<div class="group bg-surface-container-lowest hover:bg-white rounded-3xl p-4 md:p-6 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 border border-outline-variant/30 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5">
+<div class="w-full sm:w-48 h-40 sm:h-32 rounded-2xl overflow-hidden shrink-0">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjtEwcEYKOATsOD6ABSySv1hnBmf4UeskorViwBx36Sftqk7I2DtM6U9H7C4_crkvWSqIVqQ40O8jhpUn4Ltw3djyOSpl_0Zy1UYd5mNOFypxi3Wd_6TnnjdQ0jyivuJRDu7b-GHPZVEmDbSKRJkDLFogFzf99_Bo5O0TJqgnYh--9xHmYueR8tVCHP-BaRfp-kvSzzuAu__CfsXehjvXWaVGSUUt-Hv4Xbr30YM0izyPTtyxYZ-48ZK-vxNXynIR3nvea_DfxOEaL"/>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center w-full">
+<div class="md:col-span-2">
+<div class="flex items-center gap-3 mb-1">
+<span class="px-2 py-0.5 rounded bg-primary-container text-primary text-[10px] font-bold uppercase tracking-widest">Active</span>
+<span class="text-on-surface-variant text-[10px] font-medium">Updated 2h ago</span>
+</div>
+<h4 class="text-lg md:text-xl font-headline font-extrabold text-on-surface">Parisian Spring Romance 2024</h4>
+<p class="text-on-surface-variant text-sm line-clamp-1">Luxury itinerary covering the 1st and 7th Arrondissements.</p>
+</div>
+<div class="flex flex-row md:flex-col items-center justify-between md:justify-center">
+<p class="text-xs text-on-surface-variant uppercase tracking-tighter mb-1 font-bold md:block hidden">Guests</p>
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white bg-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4V_n-WPIMQB6JNI-nkqkJUTyoKtAYaC84d28y5SYemdpk6v6mXBMTd1KZg-wxfG_ispxq-CG3_TPjkcQdvSY8x7prgnloEfnfF-AXOhEtjfftTjrGFuNwsEmgV__AAJA5oq0o-8dfF5VVJ1x57KJlemDdS_gd28sVw6pVvWuj3wHcnSigu-0nDoB0k_7clYViOrmvSjhRD2RfnzulBd4YiQNr1O1Q4GPmuBJhS3zxMFHwFgJ0GyKPEmdKgLInpqdJ1xmpQMIoFXOE"/>
+<img class="w-8 h-8 rounded-full border-2 border-white bg-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlwDE18KjPKKdPB3_aU7AeGBITtRkzIkO1HOOI7kNj0mShU-ihyqJ1ONxib4x-R2QwkazLsc6t3qvaWpcTKA3gHNAhDya9EjIZ6cXdza0so6_P2B9e35cm4Q3oR6kD0KsrrXiZ9-kaoW1cFOvy5TVBNG9SSmZSo3Yd1P7SSu3OZ_t4umBTezBJE800wHV6eqsvmMmpYSv7nvZJ-Di3qlruRiYnF6JOEr87J_vFW9yM2J5J42wTKBWvVqp4pZtomVK3C75sOt6YWVyN"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary text-white text-[10px] flex items-center justify-center font-bold">+12</div>
+</div>
+</div>
+<div class="flex flex-row md:flex-col items-end justify-end gap-2">
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Trip Item 2 -->
+<div class="group bg-surface-container-lowest hover:bg-white rounded-3xl p-4 md:p-6 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 border border-outline-variant/30 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5">
+<div class="w-full sm:w-48 h-40 sm:h-32 rounded-2xl overflow-hidden shrink-0">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrjbQNpRYoz35XXH1E26bFGcedco94x3X_GEr266AyCnUwr5kswbUIAJIaizFhBBPTVmX2BRcYDPDkGhTo1WHpRXEwlapAk2bzPoBLNDybQknMF1SXNAv80pV48GfUR07KCJaTI7jz7xcvpwC4EBukDS63goR9vehRCwjJUIwRryL2EngUVfNI_Dnql4Bgk7n_3oK_abqPrb4NU2MMOZbEbMjshIdrm5chlCksKjx83kScHqH6vyLEu5JDCMAtqjUuH2Sw7_yWmDq5"/>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center w-full">
+<div class="md:col-span-2">
+<div class="flex items-center gap-3 mb-1">
+<span class="px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant text-[10px] font-bold uppercase tracking-widest">Published</span>
+<span class="text-on-surface-variant text-[10px] font-medium">Starts in 15 days</span>
+</div>
+<h4 class="text-lg md:text-xl font-headline font-extrabold text-on-surface">Tokyo Neon Nights: Culinary Tour</h4>
+<p class="text-on-surface-variant text-sm line-clamp-1">Exploration of Shinjuku's hidden alleys and street food.</p>
+</div>
+<div class="flex flex-row md:flex-col items-center justify-between md:justify-center">
+<p class="text-xs text-on-surface-variant uppercase tracking-tighter mb-1 font-bold md:block hidden">Guests</p>
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white bg-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2gahZpPM_Z8HP-dkKA_GTz8SPTV_kPT0wCzS_iUzV0jrpqS2NfgrdUQtRuU7fZB7gLU0I8o9uJuFUXHcbU7saOc-pRujffbk1Os06TS8VBIB2CzMb5_NV9Tvpk-f58Edaqo6Ma9KrwLRMNCx-HGVeEQPuOaWYN6cSOzGGcJCfECW07qN-Ex8BVSHvEZYqMT7SIU7ZVn-QSL5pdXVh_e_PiGZiGI2K8Iz2X7uzYZCIqo4PVq0nsGM4qJ60csgAuOigKCLfigGwgyre"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary text-white text-[10px] flex items-center justify-center font-bold">+8</div>
+</div>
+</div>
+<div class="flex flex-row md:flex-col items-end justify-end gap-2">
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Trip Item 3 (Draft) -->
+<div class="group bg-surface-container-low/30 hover:bg-white rounded-3xl p-4 md:p-6 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 border border-outline-variant/30 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5">
+<div class="w-full sm:w-48 h-40 sm:h-32 rounded-2xl overflow-hidden shrink-0 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 bg-surface-dim">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlnQOsbKdsOJHrnzvoTzKMrDOHU6HXlwkErfW58qK9ev54Xyxzl096fTurWTDaDY5ZEkHZJ4QzBltKoQkSDnLpHOWKfmWQlWCQUu27gwxaQB-wuPSZTc4ABAGYcHcZCTObuD5_5dyhgKvCmymeFFpZR7eX4Zjjo_kTQx_e6tWCOtp2SVCghwTQs-MRe9RvmLBvQxhsagA9QYqjoGiPo9NSxUv4lM-gO_-Ya-ljEhDSszKHABhFIzNXbzlo08KhPAmloufuu9tehObM"/>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center w-full">
+<div class="md:col-span-2">
+<div class="flex items-center gap-3 mb-1">
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-tertiary text-[10px] font-bold uppercase tracking-widest">Draft</span>
+<span class="text-on-surface-variant text-[10px] font-medium">Last saved 1h ago</span>
+</div>
+<h4 class="text-lg md:text-xl font-headline font-extrabold text-on-surface">Maldives: Underwater Sanctuary</h4>
+<p class="text-on-surface-variant text-sm line-clamp-1">In-depth planning for a 7-day marine conservation retreat.</p>
+</div>
+<div class="flex flex-row md:flex-col items-center justify-between md:justify-center">
+<p class="text-xs text-on-surface-variant uppercase tracking-tighter mb-1 font-bold md:block hidden">Guests</p>
+<p class="text-sm font-bold text-on-surface-variant">—</p>
+</div>
+<div class="flex flex-row md:flex-col items-end justify-end gap-2">
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Usage Insights -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="md:col-span-2 bg-surface-container-low/50 rounded-[2.5rem] p-6 md:p-10 border border-outline-variant/30">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+<h3 class="text-xl md:text-2xl font-headline font-black text-on-surface">Communication Engagement</h3>
+<div class="flex gap-4">
+<span class="flex items-center gap-2 text-xs font-bold text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary"></span> Read</span>
+<span class="flex items-center gap-2 text-xs font-bold text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-secondary"></span> Unread</span>
+</div>
+</div>
+<div class="h-48 flex items-end gap-2 md:gap-3 px-2 md:px-4">
+<div class="flex-1 bg-primary h-[40%] rounded-t-lg relative group transition-all hover:opacity-80">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded hidden group-hover:block">40%</div>
+</div>
+<div class="flex-1 bg-secondary h-[15%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-primary h-[60%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-secondary h-[10%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-primary h-[85%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-secondary h-[5%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-primary h-[70%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-secondary h-[12%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-primary h-[90%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-secondary h-[4%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-primary h-[75%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+<div class="flex-1 bg-secondary h-[10%] rounded-t-lg relative group transition-all hover:opacity-80"></div>
+</div>
+<div class="flex justify-between mt-4 px-2 md:px-4 text-[10px] text-on-surface-variant font-bold">
+<span>JAN</span><span>FEB</span><span>MAR</span><span>APR</span><span>MAY</span><span>JUN</span>
+</div>
+</div>
+<div class="col-span-1 bg-surface-container-lowest rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-outline-variant/30 flex flex-col justify-center text-center">
+<div class="mb-6 relative">
+<svg class="w-24 h-24 md:w-32 md:h-32 mx-auto" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#eeedf2" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1978e5" stroke-dasharray="85, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center flex-col">
+<span class="text-2xl md:text-3xl font-headline font-black text-primary">85%</span>
+<span class="text-[8px] font-bold text-on-surface-variant uppercase">Quota</span>
+</div>
+</div>
+<h4 class="text-lg font-headline font-bold text-on-surface mb-2">Plan Utilization</h4>
+<p class="text-sm text-on-surface-variant mb-6">You've used 85 of your 100 active trip slots.</p>
+<button class="bg-primary/10 text-primary px-6 py-3 rounded-full font-bold text-xs hover:bg-primary hover:text-white transition-all">Upgrade Plan</button>
+</div>
+</section>
+</div>
+</main>
+</body></html>

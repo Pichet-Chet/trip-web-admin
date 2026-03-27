@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Help Center - Concierge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1B2A4A",
+              "on-primary": "#ffffff",
+              "primary-container": "#F8FAFC",
+              "on-primary-container": "#1B2A4A",
+              "secondary": "#2563EB",
+              "on-secondary": "#ffffff",
+              "secondary-container": "#DBEAFE",
+              "on-secondary-container": "#1E40AF",
+              "tertiary": "#64748B",
+              "background": "#FDFDFD",
+              "on-background": "#0F172A",
+              "surface": "#FFFFFF",
+              "on-surface": "#0F172A",
+              "surface-container-low": "#F8FAFC",
+              "surface-container": "#F1F5F9",
+              "surface-container-high": "#E2E8F0",
+              "surface-container-highest": "#CBD5E1",
+              "outline": "#94A3B8",
+              "error": "#EF4444"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans", "sans-serif"],
+              "body": ["Be Vietnam Pro", "sans-serif"],
+            },
+            borderRadius: {
+                "DEFAULT": "0.5rem",
+                "2xl": "1rem",
+                "3xl": "1.5rem",
+                "4xl": "2rem",
+                "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface leading-relaxed min-h-screen">
+<!-- Top Navigation -->
+<nav class="hidden md:flex bg-white/80 backdrop-blur-xl fixed top-0 w-full z-50 justify-between items-center px-8 py-4 border-b border-surface-container">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-primary">menu</button>
+<span class="font-headline font-extrabold tracking-tight text-primary text-xl">Concierge</span>
+</div>
+<div class="flex items-center gap-6">
+<a class="text-sm font-semibold text-primary/60 hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-sm font-semibold text-primary/60 hover:text-primary transition-colors" href="#">Trips</a>
+<a class="text-sm font-bold text-secondary" href="#">Support</a>
+<button class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</button>
+</div>
+</nav>
+<!-- Mobile Header -->
+<header class="md:hidden flex justify-between items-center px-6 py-4 fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md">
+<button class="material-symbols-outlined text-primary" data-icon="menu">menu</button>
+<span class="font-headline font-bold text-primary">Concierge</span>
+<button class="material-symbols-outlined text-secondary" data-icon="contact_support">contact_support</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-32 px-6 max-w-5xl mx-auto md:pt-32 lg:grid lg:grid-cols-12 lg:gap-12">
+<!-- Left Column: Header & Primary Contact -->
+<div class="lg:col-span-7 space-y-10">
+<header class="flex justify-between items-end">
+<div>
+<span class="text-tertiary font-headline font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] block mb-2">Your Digital Assistant</span>
+<h1 class="text-4xl md:text-5xl font-headline font-extrabold text-primary tracking-tight">Help Center</h1>
+</div>
+<button class="hidden md:flex w-12 h-12 rounded-full bg-surface-container items-center justify-center text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</header>
+<!-- Guide Contact Card (Updated to airy dark primary card) -->
+<section class="bg-primary rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-xl shadow-primary/10">
+<div class="relative z-10">
+<div class="flex flex-col sm:flex-row sm:items-center gap-6 mb-8">
+<div class="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/10 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Professional tour guide portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWtwd_GgE5xT0P11hVCGoE16KtI4aXZw4vRRpYLPAMz8Evjpp69VU7tBn43fdcZZckOvFTejKWEN3w5uD_9PcidxoUU3PNRiB1p035FT_SJK_ixuxt7cyAOdbm0hGpJwucyiJRe2DAxcMzft5cL2NEz6YWLidv58IpDBmgsS9oWuYOFCQ7pD4eln-hJcQjsNjHsjgk5EK5C2of8ynzCBA1G5kMgsivl_IX9k1nYcmOygrAKpwptPBS1rm2K3oI86wTEl-Sw22rpohF"/>
+</div>
+<div>
+<p class="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Amazing Tour</p>
+<h2 class="text-2xl md:text-3xl font-headline font-bold">Kenji Nakamura</h2>
+<p class="text-white/80 text-sm md:text-base font-medium">Lead Guide • English &amp; Japanese</p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="flex-1 bg-white text-primary font-bold py-4 rounded-full flex items-center justify-center gap-2 hover:bg-surface-container-low active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="call" style="font-variation-settings: 'FILL' 1;">call</span>
+                            Call Now
+                        </button>
+<button class="flex-1 bg-white/10 backdrop-blur-md text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all border border-white/20">
+<span class="material-symbols-outlined text-[20px]" data-icon="chat" style="font-variation-settings: 'FILL' 1;">chat</span>
+                            Message
+                        </button>
+</div>
+</div>
+<!-- Decorative Glow -->
+<div class="absolute -top-20 -right-20 w-64 h-64 bg-secondary/20 rounded-full blur-[80px]"></div>
+</section>
+<!-- FAQs Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-center px-2">
+<h3 class="font-headline font-bold text-xl text-primary">Frequently Asked Questions</h3>
+<button class="text-secondary font-bold text-sm hover:underline">View All</button>
+</div>
+<div class="grid gap-4">
+<details class="group bg-white rounded-3xl shadow-sm border border-surface-container-high overflow-hidden transition-all hover:border-secondary/30">
+<summary class="p-6 flex justify-between items-center cursor-pointer">
+<span class="font-bold text-primary">What to do if I'm lost?</span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-outline" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 text-on-surface/70 text-sm leading-relaxed">
+                            Stay where you are and send your live location via the 'Chat' button above. Kenji will reach out immediately. Look for a landmark and mention it.
+                        </div>
+</details>
+<details class="group bg-white rounded-3xl shadow-sm border border-surface-container-high overflow-hidden transition-all hover:border-secondary/30">
+<summary class="p-6 flex justify-between items-center cursor-pointer">
+<span class="font-bold text-primary">Where is the meeting point?</span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-outline" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 text-on-surface/70 text-sm leading-relaxed">
+                            We meet at the Hachiko Statue, Shibuya Station Exit 8. Look for the 'Amazing Tour' gold-and-indigo flag.
+                        </div>
+</details>
+<details class="group bg-white rounded-3xl shadow-sm border border-surface-container-high overflow-hidden transition-all hover:border-secondary/30">
+<summary class="p-6 flex justify-between items-center cursor-pointer">
+<span class="font-bold text-primary">Can I change my itinerary?</span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-outline" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 text-on-surface/70 text-sm leading-relaxed">
+                            Yes, simple adjustments are possible. Please message Kenji at least 2 hours before the activity starts.
+                        </div>
+</details>
+</div>
+</section>
+</div>
+<!-- Right Column: Emergency & Phrases -->
+<div class="lg:col-span-5 mt-12 lg:mt-0 space-y-12">
+<!-- Emergency Contacts Section -->
+<section class="space-y-4">
+<h3 class="font-headline font-bold text-xl text-primary px-2">Emergency Contacts</h3>
+<div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
+<div class="bg-white p-6 rounded-[2rem] flex flex-col justify-between h-36 border border-surface-container shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-error bg-error/5 p-2 rounded-xl" data-icon="local_police" style="font-variation-settings: 'FILL' 1;">local_police</span>
+<span class="text-[10px] font-bold text-error uppercase tracking-wider">Urgent</span>
+</div>
+<div>
+<p class="font-bold text-tertiary text-xs">Local Police</p>
+<p class="text-3xl font-headline font-extrabold text-primary tracking-tighter">110</p>
+</div>
+</div>
+<div class="bg-white p-6 rounded-[2rem] flex flex-col justify-between h-36 border border-surface-container shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary bg-primary/5 p-2 rounded-xl" data-icon="account_balance" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<p class="font-bold text-tertiary text-xs">US Embassy</p>
+<p class="text-3xl font-headline font-extrabold text-primary tracking-tighter">03-3224</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Phrases & Tips Section -->
+<section class="space-y-4">
+<h3 class="font-headline font-bold text-xl text-primary px-2">Local Phrases &amp; Tips</h3>
+<div class="flex lg:flex-col gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
+<!-- Tip Card 1 -->
+<div class="flex-none w-72 lg:w-full bg-white rounded-[2rem] p-6 snap-center space-y-4 shadow-sm border border-surface-container hover:border-secondary/30 transition-colors">
+<div class="flex justify-between items-start">
+<div class="bg-primary/5 w-10 h-10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="translate">translate</span>
+</div>
+<span class="bg-secondary-container/50 text-secondary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Greeting</span>
+</div>
+<div>
+<p class="text-xs text-tertiary font-bold uppercase mb-1">Hello / Good Day</p>
+<h4 class="text-2xl font-headline font-extrabold text-primary">Konnichiwa</h4>
+<p class="text-[10px] italic text-on-surface/60 mt-2 font-medium">Pronounced: Kon-nee-chee-wah</p>
+</div>
+</div>
+<!-- Tip Card 2 -->
+<div class="flex-none w-72 lg:w-full bg-white rounded-[2rem] p-6 snap-center space-y-4 shadow-sm border border-surface-container hover:border-secondary/30 transition-colors">
+<div class="flex justify-between items-start">
+<div class="bg-primary/5 w-10 h-10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="tips_and_updates">tips_and_updates</span>
+</div>
+<span class="bg-secondary-container/50 text-secondary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Manners</span>
+</div>
+<div>
+<p class="text-xs text-tertiary font-bold uppercase mb-1">Thank You</p>
+<h4 class="text-2xl font-headline font-extrabold text-primary">Arigatō</h4>
+<p class="text-[10px] italic text-on-surface/60 mt-2 font-medium">Bow slightly when saying this.</p>
+</div>
+</div>
+<!-- Tip Card 3 -->
+<div class="flex-none w-72 lg:w-full bg-white rounded-[2rem] p-6 snap-center space-y-4 shadow-sm border border-surface-container hover:border-secondary/30 transition-colors">
+<div class="flex justify-between items-start">
+<div class="bg-primary/5 w-10 h-10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<span class="bg-secondary-container/50 text-secondary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Money</span>
+</div>
+<div>
+<p class="text-xs text-tertiary font-bold uppercase mb-1">Tipping Tip</p>
+<h4 class="text-xl font-headline font-extrabold text-primary leading-tight">No Tipping Required</h4>
+<p class="text-[10px] italic text-on-surface/60 mt-2 font-medium">Service is included in the price.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="md:hidden fixed bottom-6 left-6 right-6 z-50 flex justify-around items-center h-20 bg-white shadow-2xl rounded-4xl border border-surface-container-high px-4">
+<a class="flex flex-col items-center justify-center text-tertiary transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="home">home</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="map">map</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Trips</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="support_agent" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+<span class="text-[10px] font-extrabold uppercase tracking-tighter">Support</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary transition-all active:scale-95" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="person">person</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Profile</span>
+</a>
+</nav>
+<!-- Desktop Footer Decor -->
+<footer class="hidden md:block py-12 border-t border-surface-container mt-20 bg-white">
+<div class="max-w-5xl mx-auto px-6 flex justify-between items-center text-tertiary text-xs">
+<p>© 2024 Concierge Digital. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+</body></html>

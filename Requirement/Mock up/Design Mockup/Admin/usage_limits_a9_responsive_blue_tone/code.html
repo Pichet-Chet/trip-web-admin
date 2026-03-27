@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Usage &amp; Limits | NatGan Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-blue": "#1978e5",
+                        "primary-dark": "#0d1b3e",
+                        "surface-bright": "#f8fafc",
+                        "on-background": "#0f172a",
+                        "surface-container": "#ffffff",
+                        "surface-container-low": "#f1f5f9",
+                        "outline-variant": "#e2e8f0",
+                        "secondary-text": "#64748b"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Be Vietnam Pro"],
+                        "label": ["Be Vietnam Pro"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        @media (max-width: 1024px) {
+            .sidebar-collapsed { transform: translateX(-100%); }
+            .main-expanded { margin-left: 0 !important; }
+        }
+    </style>
+</head>
+<body class="bg-surface-bright text-on-background min-h-screen flex">
+<!-- Mobile Header (Visible only on small screens) -->
+<header class="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-outline-variant z-[60] px-4 py-3 flex justify-between items-center">
+<span class="text-xl font-bold text-primary-dark">NatGan Admin</span>
+<button class="p-2 text-primary-dark" onclick="document.getElementById('sidebar').classList.toggle('sidebar-collapsed')">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</header>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 w-64 border-r border-outline-variant bg-white z-50 transition-transform duration-300 lg:translate-x-0 sidebar-collapsed" id="sidebar">
+<div class="mb-10 px-4 hidden lg:block">
+<span class="text-xl font-bold text-primary-dark">NatGan Admin</span>
+<p class="text-xs text-secondary-text font-['Plus_Jakarta_Sans']">Professional Precision</p>
+</div>
+<div class="lg:hidden mb-8 px-4 flex justify-between items-center">
+<span class="text-lg font-bold text-primary-dark">Menu</span>
+<button onclick="document.getElementById('sidebar').classList.add('sidebar-collapsed')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg transition-all font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+            Dashboard
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg transition-all font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="event_note">event_note</span>
+            Itineraries
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg transition-all font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+            Guest List
+        </a>
+<!-- ACTIVE TAB: Usage & Limits -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-blue text-white rounded-lg transition-all font-['Plus_Jakarta_Sans'] text-sm font-medium shadow-lg shadow-primary-blue/20" href="#">
+<span class="material-symbols-outlined" data-icon="speed">speed</span>
+            Usage &amp; Limits
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg transition-all font-['Plus_Jakarta_Sans'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+            Settings
+        </a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant flex items-center gap-3 px-4">
+<img alt="Admin User Profile" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARaNwMOnmRB3h1izHqj4jJHMEPD0r_xZ6CjYPRZ7HLdl6mX814TPmO8afYtOAzU-ySAusP0BEZzE8A1g3nJ7lyWbZNiLW2Xh5Lw45SF0B-H8riPJrgaukhOBXPO5n1OYzn1EnLZ59vHzpH-MDd7uhrvB1SG4bSD5r6nxrGJwBP9GtVvuZndbVbUJ45EkQCbjeHFTl6mjvjrNbHerBYTpPrjD79PkaKZfzBVFZVcUN0wvIcZhvUuZlMajk2271OaEGP6gNa3EViHs4x"/>
+<div class="overflow-hidden">
+<p class="text-sm font-bold truncate">Admin User</p>
+<p class="text-xs text-secondary-text truncate">Free Tier</p>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 lg:ml-64 min-h-screen relative pt-14 lg:pt-0">
+<!-- TopNavBar Shell -->
+<header class="hidden lg:flex justify-between items-center w-full px-8 py-4 sticky top-0 bg-white/80 backdrop-blur-md z-40 border-b border-outline-variant">
+<div class="flex items-center gap-6">
+<span class="text-2xl font-black tracking-tight text-primary-dark">NatGan</span>
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-secondary-text">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+</span>
+<input class="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:ring-2 focus:ring-primary-blue transition-all" placeholder="Search usage logs..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 hover:text-primary-blue transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-600 hover:text-primary-blue transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-2">
+<div class="text-right">
+<p class="text-xs font-bold leading-none">Admin Avatar</p>
+<span class="text-[10px] text-primary-blue font-bold uppercase tracking-wider">Upgrade available</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="p-4 md:p-8 lg:p-10 max-w-6xl mx-auto space-y-8 lg:space-y-12">
+<!-- Bento Hero Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+<!-- Current Plan Card -->
+<div class="lg:col-span-2 bg-primary-dark p-6 md:p-8 rounded-2xl text-white relative overflow-hidden flex flex-col justify-between min-h-[240px] md:min-h-[280px]">
+<div class="relative z-10">
+<span class="px-3 py-1 bg-primary-blue rounded-md text-[10px] font-bold tracking-widest uppercase mb-4 inline-block">Current Plan</span>
+<h2 class="text-3xl md:text-4xl font-extrabold mb-2">Free Tier</h2>
+<p class="text-sm opacity-80 max-w-sm">You are currently using the essential features of NatGan. Professional power is just one click away.</p>
+</div>
+<div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-8">
+<button class="w-full sm:w-auto bg-primary-blue text-white px-8 py-4 rounded-full font-bold shadow-xl shadow-primary-blue/20 hover:scale-105 transition-transform">
+                        Upgrade to Professional
+                    </button>
+<p class="text-xs opacity-60 max-w-[120px]">Billed monthly. Cancel anytime.</p>
+</div>
+<!-- Abstract Background Element -->
+<div class="absolute -right-10 -bottom-10 w-64 h-64 bg-primary-blue/20 rounded-full blur-3xl"></div>
+<div class="absolute top-0 right-0 p-8 opacity-20 hidden md:block">
+<span class="material-symbols-outlined text-8xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+</div>
+<!-- Usage Quick Glance -->
+<div class="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant flex flex-col justify-center items-center text-center space-y-4">
+<div class="relative w-32 h-32 flex items-center justify-center">
+<!-- SVG Radial -->
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-slate-100" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-blue" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="182.2" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-3xl font-black text-primary-dark">50%</span>
+<span class="text-[10px] uppercase font-bold text-secondary-text">Global Use</span>
+</div>
+</div>
+<div>
+<h3 class="font-bold text-lg text-primary-dark">Overall Status</h3>
+<p class="text-sm text-secondary-text">Approaching tier limits</p>
+</div>
+</div>
+</section>
+<!-- Detailed Metrics Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Active Trips -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant hover:border-primary-blue/30 transition-colors">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary-blue/10 rounded-xl text-primary-blue">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span>
+</div>
+<span class="text-xs font-bold text-slate-400">3 / 5</span>
+</div>
+<h4 class="font-bold mb-1 text-primary-dark">Active Trips</h4>
+<p class="text-xs text-secondary-text mb-6">Active itineraries managed in your dashboard.</p>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary-blue h-full rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<!-- Guest Capacity -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant hover:border-primary-blue/30 transition-colors">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary-blue/10 rounded-xl text-primary-blue">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+</div>
+<span class="text-xs font-bold text-slate-400">48 / 100</span>
+</div>
+<h4 class="font-bold mb-1 text-primary-dark">Guest Capacity</h4>
+<p class="text-xs text-secondary-text mb-6">Total unique guests across all your current trips.</p>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary-blue h-full rounded-full" style="width: 48%"></div>
+</div>
+</div>
+<!-- Edit History -->
+<div class="bg-white p-6 rounded-2xl border border-outline-variant hover:border-primary-blue/30 transition-colors md:col-span-2 lg:col-span-1">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary-blue/10 rounded-xl text-primary-blue">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<span class="text-xs font-bold text-slate-400">2 / 10 remaining</span>
+</div>
+<h4 class="font-bold mb-1 text-primary-dark">Edit History</h4>
+<p class="text-xs text-secondary-text mb-6">Free tier revisions remaining for this month.</p>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-primary-blue h-full rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</section>
+<!-- Plan Comparison: Editorial Style -->
+<section class="mt-16 lg:mt-20">
+<div class="text-center mb-10 md:mb-12">
+<h2 class="text-2xl md:text-3xl font-extrabold text-primary-dark mb-4">Elevate Your Experience</h2>
+<p class="text-secondary-text max-w-xl mx-auto px-4">Compare your current Free Tier with the limitless possibilities of our Professional suite.</p>
+</div>
+<div class="bg-white rounded-2xl overflow-hidden border border-outline-variant shadow-sm">
+<div class="grid grid-cols-1 lg:grid-cols-2">
+<!-- Left: Image Led Visual -->
+<div class="relative min-h-[300px] md:min-h-[400px]">
+<img alt="Stunning mountain landscape" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCKYhUiOBldZ3L4saKYExY1WmP1b8eI3_jaZ4h1yFbQ2jKDHeYXSOP9YeR9CLdFzXbWi8ufN_5hnSgCvnWMXeb1VncmppQs74Nhs4WVV6MKVe5hZvt5zxFVEhngrWdEVOw71ZLYJWu1tagipO17wKVV-XdvuVd_eOUrT8C4KFG4p_hsJuJbHgH_7zuBOswRF7-dvnEc7HnvWpV8sWNNZ0sk2oMEoeYlTRF1MNZ4pfLQF_Q51ao72jf5PNKUQYKTf8zjMOPMm4V_vYm"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-dark/90 to-transparent flex flex-col justify-end p-6 md:p-10 text-white">
+<h3 class="text-2xl font-bold mb-2">Designed for Curators</h3>
+<p class="text-sm opacity-80">NatGan Professional removes the boundaries between your vision and your guests' reality.</p>
+</div>
+</div>
+<!-- Right: Feature List -->
+<div class="p-6 md:p-10 space-y-8 flex flex-col justify-center">
+<div class="grid grid-cols-1 gap-4 md:gap-6">
+<div class="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-xl transition-colors">
+<div class="text-primary-blue">
+<span class="material-symbols-outlined" data-icon="all_inclusive">all_inclusive</span>
+</div>
+<div>
+<h5 class="font-bold text-primary-dark">Unlimited edits</h5>
+<p class="text-sm text-secondary-text">Refine your itinerary until it's perfect without checking a counter.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-xl transition-colors">
+<div class="text-primary-blue">
+<span class="material-symbols-outlined" data-icon="branding_watermark">branding_watermark</span>
+</div>
+<div>
+<h5 class="font-bold text-primary-dark">Custom branding</h5>
+<p class="text-sm text-secondary-text">Your logo, your colors. We fade into the background while you shine.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-xl transition-colors">
+<div class="text-primary-blue">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+</div>
+<div>
+<h5 class="font-bold text-primary-dark">Priority support</h5>
+<p class="text-sm text-secondary-text">Concierge assistance for the admin. Skip the queue anytime.</p>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant flex flex-col sm:flex-row justify-between items-center gap-4">
+<div class="text-center sm:text-left">
+<p class="text-2xl font-black text-primary-dark">$49<span class="text-sm font-normal text-secondary-text">/mo</span></p>
+<p class="text-[10px] text-primary-blue font-bold uppercase tracking-widest">Early bird pricing</p>
+</div>
+<button class="w-full sm:w-auto bg-primary-dark text-white px-10 py-4 rounded-full font-bold shadow-xl shadow-primary-dark/20 hover:scale-105 active:scale-95 transition-all">
+                                Switch to Professional
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Meta -->
+<footer class="pt-12 pb-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-slate-400 font-bold tracking-widest uppercase text-center">
+<span>Last limit reset: October 1, 2023</span>
+<span>Billing Cycle: Ends in 12 days</span>
+<span>Version 2.4.0</span>
+</footer>
+</div>
+</main>
+<script>
+    // Simple responsive sidebar toggle script
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+            document.getElementById('sidebar').classList.remove('sidebar-collapsed');
+        } else {
+            document.getElementById('sidebar').classList.add('sidebar-collapsed');
+        }
+    });
+</script>
+</body></html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VoyageDirect | Guest Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#005ab4",
+              "error": "#ba1a1a",
+              "secondary": "#465f89",
+              "tertiary-container": "#bd5700",
+              "on-primary-fixed": "#001b3e",
+              "outline": "#717785",
+              "surface-dim": "#d8dae3",
+              "surface": "#f9f9ff",
+              "background": "#f9f9ff",
+              "primary-container": "#0873df",
+              "surface-container": "#ecedf7",
+              "on-tertiary-container": "#fffbff",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-container": "#fefcff",
+              "surface-variant": "#e0e2ec",
+              "tertiary-fixed-dim": "#ffb68c",
+              "tertiary": "#964400",
+              "on-error": "#ffffff",
+              "inverse-surface": "#2d3038",
+              "on-tertiary-fixed-variant": "#763400",
+              "secondary-fixed": "#d6e3ff",
+              "on-tertiary-fixed": "#321200",
+              "surface-container-highest": "#e0e2ec",
+              "secondary-container": "#b7cfff",
+              "primary-fixed-dim": "#aac7ff",
+              "on-secondary-container": "#405882",
+              "on-primary": "#ffffff",
+              "on-surface-variant": "#414753",
+              "outline-variant": "#c1c6d5",
+              "on-secondary-fixed-variant": "#2e4770",
+              "on-tertiary": "#ffffff",
+              "surface-tint": "#005db8",
+              "surface-container-high": "#e6e8f1",
+              "on-surface": "#181c22",
+              "primary-fixed": "#d6e3ff",
+              "tertiary-fixed": "#ffdbc9",
+              "surface-bright": "#f9f9ff",
+              "on-secondary": "#ffffff",
+              "on-secondary-fixed": "#001b3e",
+              "on-error-container": "#93000a",
+              "inverse-primary": "#aac7ff",
+              "surface-container-low": "#f2f3fd",
+              "error-container": "#ffdad6",
+              "on-background": "#181c22",
+              "on-primary-fixed-variant": "#00458d",
+              "inverse-on-surface": "#eff0fa"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-6 h-16 w-full bg-white dark:bg-slate-900 shadow-sm dark:shadow-none font-['Inter'] antialiased">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">VoyageDirect</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200" href="#">Trips</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200" href="#">Explore</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200" href="#">Bookings</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="close-up portrait of a smiling young man with neat hair against a clean blurred studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVL9C0jiiq9yi5KUEcqSTrhW9HB3-IkfW9_lyiorkil_cSfFeuMxUr2srcNaLA90Sp8U7uEqY4feZqbSyXZBtbBhbC7KvHG1gONNKZ3P9JqOybPljSHFhfv4biyAKMpIkqm3LZ_UPryTSgAXLgK4Nh58as5RHjEBFuwfbHCsoUAK8cmbiJdjST7_OzkESC41NGK2EAKuAgC2EfVYPpn1dCDDWwDTnQWDoPvV_oMW1Oc4US85d0zGz3sHNi3tNWMisKu6CVta2xrLil"/>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 bottom-0 hidden lg:flex flex-col p-4 w-64 bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium z-40">
+<div class="mb-8 px-4 py-2">
+<h3 class="text-slate-500 uppercase tracking-widest text-[10px] font-bold mb-4">Concierge Services</h3>
+<div class="flex items-center gap-3 mb-6">
+<img alt="User avatar" class="w-10 h-10 rounded-full" data-alt="professional headshot of a person with friendly expression in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPA18lWBgCXjAGbMXppU9FxydlVwOjqNNqvOpSbnZFgHOBZ50piR97u_fo7F7xrFEnCHo25w_DkSB1POonyqKlwTI4WFFOrjyPPI4GOGRP_8kTVhNDrgHFA_aWrFIKatTRjNkSmDGHnqz7OUIGkVXKa4XQ1ggjJd1nmQns8cvNVD8uCSuiH-lPMqBEj1Hd0e-tz3T1zju4YK9rrPMPZLALklFgDABAqOyViWpfOiWgMinPeT8RKmPxKRmLHvuRqp6TTl9v3w_9M6ff"/>
+<div>
+<p class="font-bold text-on-surface">Welcome back</p>
+<p class="text-xs text-slate-500">Ready for your next adventure?</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-bold transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">flight_takeoff</span>
+                    My Trips
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">favorite</span>
+                    Saved
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">chat</span>
+                    Messages
+                </a>
+<div class="my-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+<h3 class="text-slate-500 uppercase tracking-widest text-[10px] font-bold mb-2 px-4">Support Hub</h3>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">help_center</span>
+                        Help Center
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+                        Support
+                    </a>
+</div>
+</nav>
+<button class="mt-4 w-full bg-primary text-white py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-container active:scale-95 transition-all">
+                Book New Trip
+            </button>
+<div class="mt-auto border-t border-slate-200 dark:border-slate-800 pt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-transform duration-200 hover:translate-x-1 cursor-pointer" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Log Out
+                </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-grow lg:ml-64 p-4 md:p-8 lg:p-10 transition-all duration-300">
+<!-- Personalized Welcome Section -->
+<section class="mb-10 relative overflow-hidden rounded-2xl bg-primary-container text-white p-8 md:p-12">
+<div class="relative z-10">
+<h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">Hello, Somchai!</h1>
+<p class="text-lg md:text-xl text-blue-100 max-w-xl font-medium">Your personalized digital concierge has curated your upcoming journeys. Where will you wander next?</p>
+</div>
+<!-- Decorative Elements -->
+<div class="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+<div class="absolute right-10 bottom-0 w-64 h-64 bg-primary/20 rounded-full blur-2xl"></div>
+</section>
+<!-- Stats/Bento Grid Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+<div class="col-span-1 md:col-span-2 glass-card border border-white/50 p-6 rounded-2xl shadow-sm flex flex-col justify-between min-h-[160px]">
+<div class="flex justify-between items-start">
+<span class="text-slate-500 font-semibold text-xs uppercase tracking-wider">Upcoming Destination</span>
+<span class="material-symbols-outlined text-primary">explore</span>
+</div>
+<div>
+<h2 class="text-2xl font-bold text-on-surface">Chiang Mai, Thailand</h2>
+<p class="text-slate-500 text-sm">Departure in 4 days • Flight TG102</p>
+</div>
+</div>
+<div class="glass-card border border-white/50 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+<span class="text-slate-500 font-semibold text-xs uppercase tracking-wider">Saved Places</span>
+<div class="mt-4">
+<span class="text-3xl font-black text-primary">12</span>
+<p class="text-slate-500 text-sm">Hidden gems in your list</p>
+</div>
+</div>
+<div class="glass-card border border-white/50 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+<span class="text-slate-500 font-semibold text-xs uppercase tracking-wider">Travel Points</span>
+<div class="mt-4">
+<span class="text-3xl font-black text-tertiary">4.2k</span>
+<p class="text-slate-500 text-sm">Elite Member Status</p>
+</div>
+</div>
+</div>
+<!-- Followed Trips Grid -->
+<section class="mb-12">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-extrabold text-on-surface tracking-tight">Followed Trips</h2>
+<a class="text-primary font-bold text-sm hover:underline" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Trip Card: Upcoming -->
+<div class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 flex flex-col">
+<div class="h-48 relative overflow-hidden">
+<img alt="Hanoi Cityscape" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="vibrant sunset over Hanoi city with ancient architecture and modern skyscrapers reflecting in a serene lake" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpJ4x-FwJ3_IN56Nc1mTG98Wn8OIX90xaAQkUg46k-ZdE0kbDHlhsgExUB-TM4WydnzQOo5tw5enH_v7lo6QQorOlimjftQmU3PjncxQpnY03kshVZbJrFXNb6lSS3pKj7-OwSnJzHSE4iDKhOEmwUEuFMlyhlaqULnJeajC6Vy5_zJPwe_VCEYcORhBugCNlK8BG4YGxQtdKTTe0rAh19QgseiluUV62-Bk2Keoa7jq_K8VGFZguTBoCPSob_rWwPskWeXd4vNM6t"/>
+<div class="absolute top-4 left-4">
+<span class="bg-primary/90 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Upcoming</span>
+</div>
+</div>
+<div class="p-6 flex-grow">
+<h3 class="text-xl font-bold text-on-surface mb-2">Hanoi Cultural Escape</h3>
+<p class="text-slate-500 text-sm mb-4 line-clamp-2">Experience the rich history and street food culture of Vietnam's capital city.</p>
+<div class="flex items-center gap-4 text-slate-400 text-xs font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">calendar_today</span> Oct 12-18</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">group</span> 2 Guests</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-50 bg-slate-50/50">
+<button class="w-full py-2.5 bg-white border border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-colors">
+                                View Itinerary
+                            </button>
+</div>
+</div>
+<!-- Trip Card: Completed -->
+<div class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 flex flex-col">
+<div class="h-48 relative overflow-hidden">
+<img alt="Phuket Beach" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="crystal clear turquoise ocean water gently lapping onto a pristine white sand beach with palm trees in Phuket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPwR85p4TF6cOW__NCKcuGJBOZY9Sj1XY0nyT9afyYn3rJuG0Mrwy7XVewPWkuvxxYca1Cj7mhjA-hCi1SXhLeqaNcM3fMChLBQE4FB4ov35IBgoqSK37JiAW1kgJNuSElY6uhSV7RHO9_J2mCMD_kZrT_p-OM-6tEMv38q6kVh-S8j-izHRAOXAHUfDLL07VpD71eFONVyJAfygt66q1YF4Rh6cMFMb283YaU-45sQG_EcSoMVr3MFEch-yWto8U5eDosPln3fMgZ"/>
+<div class="absolute top-4 left-4">
+<span class="bg-slate-500/90 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Completed</span>
+</div>
+</div>
+<div class="p-6 flex-grow">
+<h3 class="text-xl font-bold text-on-surface mb-2">Phuket Coastal Retreat</h3>
+<p class="text-slate-500 text-sm mb-4 line-clamp-2">A luxurious 5-day getaway focused on wellness and island exploration.</p>
+<div class="flex items-center gap-4 text-slate-400 text-xs font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">calendar_today</span> Sep 05-10</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">star</span> 4.8 Rating</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-50 bg-slate-50/50">
+<button class="w-full py-2.5 bg-secondary-container text-on-secondary-container font-bold rounded-lg hover:bg-secondary hover:text-white transition-colors">
+                                View Recap
+                            </button>
+</div>
+</div>
+<!-- Trip Card: Completed -->
+<div class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 flex flex-col">
+<div class="h-48 relative overflow-hidden">
+<img alt="Kyoto Temple" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="serene zen garden in Kyoto with autumn maple leaves and a traditional wooden temple building in soft afternoon light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPBcygA8b_nwvFUEseqGQK7pZLUfATIqrWn9cd7s9JSWBQPL1jgeLeHdMU0uJTtYwthGPenFFWJdHwf3M6giF5Wq-G7efzbG4uIjr4KZeWgR6wf_oXYxTCpki1_HzjulBIetWyfOPbbkeg38VWvynTjBZnKvDAAgKYeaVpf2P710GU9daLFVsMaRXHwH0Xba4SsSWtXw9JXvZs8jprmi-gmjGAZU11fnNv-zlFLfCZ9wiO4S1M2IxI-kKO2k09dj76ZYMXXbtvPjMT"/>
+<div class="absolute top-4 left-4">
+<span class="bg-slate-500/90 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Completed</span>
+</div>
+</div>
+<div class="p-6 flex-grow">
+<h3 class="text-xl font-bold text-on-surface mb-2">Kyoto Zen Journey</h3>
+<p class="text-slate-500 text-sm mb-4 line-clamp-2">Immersive cultural tour through the ancient temples and gardens of Kyoto.</p>
+<div class="flex items-center gap-4 text-slate-400 text-xs font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">calendar_today</span> Aug 20-27</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">camera</span> 124 Photos</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-50 bg-slate-50/50">
+<button class="w-full py-2.5 bg-secondary-container text-on-secondary-container font-bold rounded-lg hover:bg-secondary hover:text-white transition-colors">
+                                View Recap
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Digital Concierge Promo -->
+<section class="mt-12 p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+<div class="md:w-2/3 relative z-10">
+<span class="text-tertiary font-bold tracking-widest uppercase text-xs">Premium Feature</span>
+<h2 class="text-3xl font-extrabold mt-2 mb-4">Elevate your journey with AI Concierge</h2>
+<p class="text-slate-400 mb-6">Get real-time recommendations, instant booking adjustments, and local secrets delivered directly to your messages.</p>
+<button class="px-8 py-3 bg-white text-slate-900 font-bold rounded-full hover:bg-slate-200 transition-colors">Learn More</button>
+</div>
+<div class="md:w-1/3 flex justify-center relative z-10">
+<div class="relative w-48 h-48">
+<div class="absolute inset-0 bg-primary rounded-full blur-2xl opacity-30"></div>
+<span class="material-symbols-outlined text-9xl text-primary-container" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Mobile Bottom NavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 flex items-center justify-around z-50 px-4">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">flight_takeoff</span>
+<span class="text-[10px] font-medium">Trips</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">favorite</span>
+<span class="text-[10px] font-medium">Saved</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">help_center</span>
+<span class="text-[10px] font-medium">Support</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+<!-- FAB for Mobile (Contextual to Dashboard) -->
+<button class="md:hidden fixed bottom-20 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>

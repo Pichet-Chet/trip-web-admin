@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ImmiFlow - Immigration-Friendly Itinerary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#2e4770",
+              "surface-bright": "#f9f9ff",
+              "surface-tint": "#005db8",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e6e8f1",
+              "on-background": "#181c22",
+              "secondary-fixed": "#d6e3ff",
+              "on-primary": "#ffffff",
+              "inverse-primary": "#aac7ff",
+              "inverse-on-surface": "#eff0fa",
+              "surface-variant": "#e0e2ec",
+              "secondary": "#465f89",
+              "on-surface-variant": "#414753",
+              "outline-variant": "#c1c6d5",
+              "outline": "#717785",
+              "tertiary-fixed": "#ffdbc9",
+              "secondary-container": "#b7cfff",
+              "on-tertiary-fixed": "#321200",
+              "error": "#ba1a1a",
+              "inverse-surface": "#2d3038",
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#00458d",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#bd5700",
+              "primary-fixed": "#d6e3ff",
+              "primary-container": "#0873df",
+              "tertiary": "#964400",
+              "surface-container-low": "#f2f3fd",
+              "on-primary-fixed": "#001b3e",
+              "on-error-container": "#93000a",
+              "on-secondary-fixed": "#001b3e",
+              "on-primary-container": "#fefcff",
+              "tertiary-fixed-dim": "#ffb68c",
+              "background": "#f9f9ff",
+              "primary": "#005ab4",
+              "surface-dim": "#d8dae3",
+              "on-tertiary-container": "#fffbff",
+              "surface": "#f9f9ff",
+              "on-tertiary-fixed-variant": "#763400",
+              "surface-container-highest": "#e0e2ec",
+              "on-secondary-container": "#405882",
+              "on-secondary": "#ffffff",
+              "on-error": "#ffffff",
+              "primary-fixed-dim": "#aac7ff",
+              "surface-container": "#ecedf7",
+              "secondary-fixed-dim": "#afc7f7",
+              "on-surface": "#181c22"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      @media print {
+        .no-print { display: none !important; }
+        body { background: white; }
+        .print-shadow { shadow: none !important; border: 1px solid #e2e8f0; }
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased pb-24 md:pb-0">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none no-print">
+<div class="text-xl font-bold tracking-tight text-blue-700 dark:text-blue-400">ImmiFlow</div>
+<nav class="hidden md:flex space-x-8 h-full items-center">
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 dark:border-blue-400 pb-1 font-semibold" href="#">Itinerary</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors" href="#">Documents</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors" href="#">Status</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors" href="#">Support</a>
+</nav>
+<div class="flex items-center space-x-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-12 px-4 max-w-5xl mx-auto">
+<!-- Document Header Section -->
+<section class="bg-surface-container-lowest p-6 md:p-10 rounded-xl shadow-sm border border-outline-variant mb-8">
+<div class="flex flex-col md:flex-row justify-between items-start gap-6">
+<div>
+<h1 class="text-3xl font-headline font-extrabold text-primary mb-2">Travel Itinerary</h1>
+<p class="text-on-surface-variant font-medium">For Immigration and Visa Application Purposes</p>
+</div>
+<div class="bg-primary-container/10 border border-primary-container p-4 rounded-lg flex flex-col items-end">
+<span class="text-xs uppercase tracking-widest text-primary font-bold mb-1">Status</span>
+<span class="text-lg font-bold text-primary">Confirmed</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 border-t border-outline-variant pt-8">
+<div>
+<p class="text-xs text-outline font-bold uppercase tracking-wider mb-1">Primary Traveler</p>
+<p class="text-lg font-semibold">Jonathan David Miller</p>
+<p class="text-sm text-on-surface-variant">Passport: Z12345678</p>
+</div>
+<div>
+<p class="text-xs text-outline font-bold uppercase tracking-wider mb-1">Dates</p>
+<p class="text-lg font-semibold">Oct 12 — Oct 26, 2024</p>
+<p class="text-sm text-on-surface-variant">14 Days Total</p>
+</div>
+<div>
+<p class="text-xs text-outline font-bold uppercase tracking-wider mb-1">Destination</p>
+<p class="text-lg font-semibold">Tokyo, Japan</p>
+<p class="text-sm text-on-surface-variant">Arrival: Narita Intl (NRT)</p>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Essential Travel Assets -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Flight Details Card -->
+<div class="md:col-span-2 bg-white rounded-xl border border-outline-variant overflow-hidden flex flex-col">
+<div class="bg-secondary-container/20 p-4 border-b border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">flight_takeoff</span>
+<h2 class="font-bold text-secondary uppercase text-sm tracking-wide">Flight Details</h2>
+</div>
+<div class="p-6 flex-grow">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-center md:text-left">
+<p class="text-3xl font-bold">LHR</p>
+<p class="text-sm text-on-surface-variant">London Heathrow</p>
+<p class="text-sm font-medium mt-1">10:45 AM, Oct 12</p>
+</div>
+<div class="flex-grow flex flex-col items-center px-4 relative">
+<span class="text-xs text-outline font-medium mb-1">Direct Flight • 13h 20m</span>
+<div class="w-full h-px bg-outline-variant relative">
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-primary rotate-90 md:rotate-0">flight</span>
+</div>
+<span class="text-xs text-outline mt-1">ANA Flight NH212</span>
+</div>
+<div class="text-center md:text-right">
+<p class="text-3xl font-bold">NRT</p>
+<p class="text-sm text-on-surface-variant">Tokyo Narita</p>
+<p class="text-sm font-medium mt-1">08:05 AM, Oct 13</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Accommodation Card -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden flex flex-col">
+<div class="bg-tertiary-fixed/30 p-4 border-b border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">hotel</span>
+<h2 class="font-bold text-tertiary uppercase text-sm tracking-wide">Accommodation</h2>
+</div>
+<div class="p-6 relative flex-grow">
+<div class="h-32 w-full rounded-lg mb-4 bg-slate-100 overflow-hidden">
+<img alt="Hotel Interior" class="w-full h-full object-cover" data-alt="Modern upscale hotel lobby with warm lighting and minimalist Japanese design aesthetics" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN-o2CyJZvvrFsUahF7ymO59M8ZMAjcCBIR8XW_aeZlFRCnJLPYs6mqzNobxo8Z-0H56kPryLVJx5Y7KDW5ld3vJYXzOfmM1ncmtFlWm5pTcYMOWPZPLJvGDcGRErcQBkSK9iXYv2GS0-w-ZADiPnur3j-HCLIcCXIdcxi0YyL5ZYR7RUxbYp0l734FmH9-Eofjpo8kF0W6QfJJEJ8LXCu0EPVXUFsGttkeAmQI4HVvMn_4yyczJNCxBxe35sNJthvyqBZaZoziOp9"/>
+</div>
+<h3 class="font-bold text-lg">Park Hyatt Tokyo</h3>
+<p class="text-sm text-on-surface-variant">Shinjuku City, Nishishinjuku</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-xs font-bold text-outline">Oct 13 - Oct 26</span>
+<span class="text-xs bg-tertiary-container text-white px-2 py-0.5 rounded">Prepaid</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Daily Itinerary Timeline -->
+<section class="bg-white rounded-xl border border-outline-variant overflow-hidden mb-8">
+<div class="p-6 border-b border-outline-variant bg-surface-container">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">calendar_today</span>
+                    Daily Activity Schedule
+                </h2>
+</div>
+<div class="p-6 space-y-8">
+<!-- Day 1 -->
+<div class="flex gap-6">
+<div class="flex flex-col items-center">
+<div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold">13</div>
+<div class="w-0.5 flex-grow bg-outline-variant mt-2"></div>
+</div>
+<div class="pb-4">
+<h3 class="text-lg font-bold text-primary">Sunday, October 13: Arrival &amp; Shinjuku</h3>
+<p class="text-on-surface-variant mt-1 mb-3">Morning arrival at Narita International Airport. Transfer via Airport Limousine Bus to Shinjuku. Afternoon check-in at Park Hyatt Tokyo. Evening orientation walk around the Shinjuku Gyoen National Garden.</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container rounded-full text-xs font-semibold text-outline">Arrival</span>
+<span class="px-3 py-1 bg-surface-container rounded-full text-xs font-semibold text-outline">Hotel Check-in</span>
+</div>
+</div>
+</div>
+<!-- Day 2 -->
+<div class="flex gap-6">
+<div class="flex flex-col items-center">
+<div class="w-12 h-12 rounded-full bg-surface-container text-primary flex items-center justify-center font-bold">14</div>
+<div class="w-0.5 flex-grow bg-outline-variant mt-2"></div>
+</div>
+<div class="pb-4">
+<h3 class="text-lg font-bold">Monday, October 14: Historical Tokyo</h3>
+<p class="text-on-surface-variant mt-1 mb-3">Full day exploration of the Asakusa district. Visit Senso-ji Temple and Nakamise-dori. Afternoon cruise on the Sumida River to Odaiba. Visit the Tokyo Skytree for panoramic city views.</p>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+<img class="rounded-lg h-24 w-full object-cover" data-alt="Red traditional Japanese temple gate under a clear blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOTxYITivaYZ8ElgyP2OJyaFuM47snWuSg9vxxy48bOapxhwfhq8GgYndpW-UiJ8s1NVXtZeFvvt-NRBZ81JTaY0Z3bOhRUbnMGDhDRdcseKH6N4Ii0Jq3wDbLXR7mfeJg_ON_c0qKzOU1iY5xuNM6jSflT6P93Lxu4kO-PClI6PYyPWl0J1uziU2i9v4SMzaIitLj2cVzVGouB3okymx3UaVpD4q9dZm6VmloZ8pGZgQHwDDyncHbLjqPK82AdV_TY69AWNkOXjwH"/>
+<img class="rounded-lg h-24 w-full object-cover" data-alt="Aerial nighttime view of Tokyo city lights and neon signs" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBF3zc_4WZrrHlYXEm8VIFD2BHHwyto9iV1SdWx8aQ5So4S-MbzwmOGsHhj7o66dDdvo8MOhioAe0EHDW3dNBnwXtjczG8iObh6j1J7LJVDJSQkfi0up_B-Ir1xntRbQjbnn5Jn0qkKUuSypctn9we94TrcVExfdd5qsOUW5ZWVT-hsFSyX-_m7EWTfd1oe2u5xHCD_RZ007c0AKWtauGKEHsyHnLgUTwRR2O5GF0gWe_8z0VNjYFYaOSguv_atZtRL2kqs63xSOLd0"/>
+</div>
+</div>
+</div>
+<!-- Day 3 -->
+<div class="flex gap-6">
+<div class="flex flex-col items-center">
+<div class="w-12 h-12 rounded-full bg-surface-container text-primary flex items-center justify-center font-bold">15</div>
+<div class="w-0.5 flex-grow bg-outline-variant mt-2"></div>
+</div>
+<div class="pb-4">
+<h3 class="text-lg font-bold">Tuesday, October 15: Culture &amp; Art</h3>
+<p class="text-on-surface-variant mt-1 mb-3">Visit the Meiji Jingu Shrine in the morning. Explore Harajuku's Takeshita Street for cultural trends. Afternoon at the Nezu Museum and Omotesando architectural walk.</p>
+</div>
+</div>
+<!-- Day 4-13 Condensed -->
+<div class="flex gap-6">
+<div class="flex flex-col items-center">
+<div class="w-12 h-12 rounded-full bg-surface-container-high text-outline flex items-center justify-center font-bold">...</div>
+<div class="w-0.5 flex-grow bg-outline-variant mt-2"></div>
+</div>
+<div class="pb-4">
+<h3 class="text-lg font-bold text-outline">Oct 16 - Oct 25: Continued Sightseeing</h3>
+<p class="text-on-surface-variant italic mt-1">Detailed itinerary for remaining 10 days includes day trips to Hakone/Mount Fuji, Nikko UNESCO sites, and local cultural workshops in Ginza.</p>
+</div>
+</div>
+<!-- Day 14 -->
+<div class="flex gap-6">
+<div class="flex flex-col items-center">
+<div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold">26</div>
+</div>
+<div>
+<h3 class="text-lg font-bold text-primary">Saturday, October 26: Departure</h3>
+<p class="text-on-surface-variant mt-1">Morning at leisure. Final souvenir shopping in Shinjuku. Afternoon transfer to Narita Airport for return flight NH211 departing at 11:30 PM.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Documentation Info -->
+<footer class="text-center text-outline text-sm space-y-2 mt-12 mb-20 no-print">
+<p>© 2024 ImmiFlow Travel Documents. All rights reserved.</p>
+<p>Verification Code: IMF-8829-XJ21 | Issued: Sep 12, 2024</p>
+</footer>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-16 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] no-print">
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 tap-highlight-transparent transition-transform duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Inter'] text-[11px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 rounded-xl px-3 py-1 tap-highlight-transparent transition-transform duration-200">
+<span class="material-symbols-outlined">event_note</span>
+<span class="font-['Inter'] text-[11px] font-medium">Timeline</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 tap-highlight-transparent transition-transform duration-200">
+<span class="material-symbols-outlined">description</span>
+<span class="font-['Inter'] text-[11px] font-medium">Files</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 tap-highlight-transparent transition-transform duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Inter'] text-[11px] font-medium">Profile</span>
+</button>
+</nav>
+<!-- Sticky Save as PDF Button -->
+<div class="fixed bottom-20 md:bottom-8 left-0 right-0 px-4 flex justify-center pointer-events-none no-print">
+<button class="pointer-events-auto bg-primary text-white flex items-center gap-3 px-8 py-4 rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 group" onclick="window.print()">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+<span class="font-bold tracking-tight">Save as PDF</span>
+<span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-black uppercase">Official</span>
+</button>
+</div>
+</body></html>
