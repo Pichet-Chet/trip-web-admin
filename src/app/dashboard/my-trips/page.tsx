@@ -37,11 +37,13 @@ function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) 
   const s = statusLabel[trip.status];
   const t = transportIcon[trip.transportType];
   const href = trip.status === "draft" ? ROUTES.tripEdit(trip.id) : `/dashboard/trips/${trip.id}/manage`;
+  const isEnded = trip.endDate ? new Date(trip.endDate) < new Date() : false;
+  const canDelete = trip.status === "draft" && !isEnded;
 
   return (
     <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 overflow-hidden flex flex-col">
       {/* ── Cover ── */}
-      <div className="relative aspect-16/10 overflow-hidden">
+      <div className={`relative aspect-16/10 overflow-hidden ${isEnded ? "grayscale opacity-80" : ""}`}>
         {trip.coverImageUrl ? (
           <img src={trip.coverImageUrl} alt={trip.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         ) : (
@@ -50,8 +52,10 @@ function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) 
           </div>
         )}
         {/* Status badge */}
-        <div className="absolute top-3 left-3">
-          <span className={`${s.bg} text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm`}>{s.text}</span>
+        <div className="absolute top-3 left-3 flex gap-1.5">
+          <span className={`${s.bg} text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm`}>
+            {isEnded ? "จบแล้ว" : s.text}
+          </span>
         </div>
       </div>
 
@@ -85,9 +89,13 @@ function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) 
             <Link href={href} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
               <span className="material-symbols-outlined text-[16px]">edit</span>
             </Link>
-            <button onClick={(e) => { e.preventDefault(); onDelete?.(trip.id); }} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
-              <span className="material-symbols-outlined text-[16px]">delete</span>
-            </button>
+            {canDelete ? (
+              <button onClick={(e) => { e.preventDefault(); onDelete?.(trip.id); }} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
+                <span className="material-symbols-outlined text-[16px]">delete</span>
+              </button>
+            ) : isEnded ? (
+              <span className="text-[10px] text-slate-300 font-medium">จบแล้ว</span>
+            ) : null}
           </div>
         </div>
       </div>
