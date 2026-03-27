@@ -104,6 +104,7 @@ export default function DashboardLayout({
               <a href="/dashboard/terms" className="hover:text-slate-600 transition-colors">เงื่อนไขการใช้งาน</a>
               <a href="/dashboard/privacy" className="hover:text-slate-600 transition-colors">นโยบายความเป็นส่วนตัว</a>
               <a href="/dashboard/help" className="hover:text-slate-600 transition-colors">ช่วยเหลือ</a>
+              <a href="/dashboard/feedback" className="hover:text-slate-600 transition-colors">แจ้งปัญหา / ข้อเสนอแนะ</a>
             </div>
           </footer>
         </main>

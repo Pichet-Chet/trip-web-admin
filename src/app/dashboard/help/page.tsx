@@ -74,6 +74,17 @@ export default function HelpPage(): React.ReactNode {
         </div>
       </div>
 
+      {/* ═══ Feedback CTA ═══ */}
+      <a href="/dashboard/feedback" className="block bg-blue-600 rounded-2xl p-6 text-white hover:bg-blue-700 transition-colors">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-lg">มีไอเดียหรือพบปัญหา?</h3>
+            <p className="text-blue-100 text-sm mt-1">แจ้งปัญหาหรือเสนอฟีเจอร์ที่อยากได้ ทีมงานจะนำไปพัฒนาต่อ</p>
+          </div>
+          <span className="material-symbols-outlined text-3xl text-blue-200">arrow_forward</span>
+        </div>
+      </a>
+
       {/* ═══ Quick Links ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <a href="/dashboard/terms" className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between hover:border-slate-300 transition-colors group">
