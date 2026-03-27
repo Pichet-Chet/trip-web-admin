@@ -19,7 +19,7 @@ export default function UpgradePage(): React.ReactNode {
   return (
     <>
 
-      <div className="p-4 md:p-8 max-w-6xl mx-auto">
+      <div className="px-4 sm:px-6 md:px-8 py-8 max-w-6xl mx-auto">
         <div className="mb-10">
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">เลือกแพลนที่เหมาะกับคุณ</h1>
           <p className="text-slate-500 mt-2">ปลดล็อกฟีเจอร์ระดับมืออาชีพเพื่อขยายธุรกิจทัวร์ของคุณ</p>

@@ -22,7 +22,7 @@ export default function HelpPage(): React.ReactNode {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-10">
+    <div className="px-4 sm:px-6 md:px-8 py-8 max-w-4xl mx-auto space-y-10">
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ศูนย์ช่วยเหลือ</h1>
         <p className="text-slate-400 mt-2 text-sm">คำถามที่พบบ่อยและช่องทางติดต่อทีมงาน</p>

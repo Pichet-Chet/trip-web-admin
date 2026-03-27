@@ -1,6 +1,6 @@
 export default function TermsPage(): React.ReactNode {
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+    <div className="px-4 sm:px-6 md:px-8 py-8 max-w-4xl mx-auto">
       <div className="mb-10">
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">เงื่อนไขการใช้งาน</h1>
         <p className="text-slate-400 mt-2 text-sm">อัปเดตล่าสุด: 1 มีนาคม 2569</p>
