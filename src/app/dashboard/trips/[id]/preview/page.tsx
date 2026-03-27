@@ -1,16 +1,22 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getMockTrip, getMockDays } from "@/lib/mock-data";
 import { ROUTES } from "@/constants/routes";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { IconWrapper, FooterActionBar, QRCodeDisplay } from "@/components/shared";
+import { IconWrapper, FooterActionBar, QRCodeDisplay, useToast } from "@/components/shared";
 
 export default function TripPreviewPage({ params }: { params: Promise<{ id: string }> }): React.ReactNode {
   const { id } = use(params);
   const trip = getMockTrip(id);
   const days = getMockDays(id);
+
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [visibility, setVisibility] = useState<"link_only" | "marketplace">("link_only");
+  const router = useRouter();
+  const { toast } = useToast();
 
   if (!trip) return <div className="p-8 text-center">Trip not found</div>;
 
@@ -277,10 +283,67 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       <FooterActionBar
         backHref={ROUTES.tripEdit(id)}
         backLabel="กลับหน้ากิจกรรม"
-        nextHref={ROUTES.dashboard}
         nextLabel="เผยแพร่ทริป"
         nextVariant="success"
+        onNext={() => setShowPublishModal(true)}
       />
+
+      {/* Publish Modal — choose visibility */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setShowPublishModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">เผยแพร่ทริป</h3>
+                <p className="text-sm text-slate-500 mt-1">เลือกว่าใครสามารถเห็นทริปนี้</p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => setVisibility("link_only")}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${visibility === "link_only" ? "border-blue-600 bg-blue-50/30" : "border-slate-200"}`}
+                >
+                  <p className={`text-sm font-bold ${visibility === "link_only" ? "text-blue-600" : "text-slate-900"}`}>เฉพาะคนที่มีลิงก์</p>
+                  <p className="text-xs text-slate-400 mt-0.5">แชร์ให้เฉพาะลูกทริปผ่านลิงก์หรือ QR Code</p>
+                </button>
+                <button
+                  onClick={() => setVisibility("marketplace")}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${visibility === "marketplace" ? "border-blue-600 bg-blue-50/30" : "border-slate-200"}`}
+                >
+                  <p className={`text-sm font-bold ${visibility === "marketplace" ? "text-blue-600" : "text-slate-900"}`}>เปิดบน Marketplace</p>
+                  <p className="text-xs text-slate-400 mt-0.5">แสดงบนเว็บไซต์ ค้นหาผ่าน Google ได้ เพิ่มโอกาสให้ลูกค้าเจอคุณ</p>
+                  {visibility === "marketplace" && (
+                    <p className="text-xs text-amber-600 mt-2">ทริปจะถูกตรวจสอบโดยทีมงานก่อนแสดงบน Marketplace</p>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPublishModal(false)}
+                  className="flex-1 py-3.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPublishModal(false);
+                    toast(visibility === "marketplace"
+                      ? "เผยแพร่แล้ว — รอทีมงานตรวจสอบก่อนขึ้น Marketplace"
+                      : "เผยแพร่แล้ว — แชร์ลิงก์ให้ลูกทริปได้เลย"
+                    );
+                    router.push(ROUTES.tripManage(id));
+                  }}
+                  className="flex-1 py-3.5 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors shadow-sm"
+                >
+                  เผยแพร่ทริป
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
