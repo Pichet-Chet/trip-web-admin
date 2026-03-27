@@ -2,6 +2,7 @@
 
 import { useState, createContext, useContext, useCallback } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { ToastProvider } from "@/components/shared";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
 export function useSidebar(): { openSidebar: () => void } { return useContext(SidebarContext); }
@@ -17,6 +18,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarContext.Provider value={{ openSidebar }}>
+      <ToastProvider>
       <div className="min-h-screen bg-(--surface) text-(--on-surface)">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="ml-0 md:ml-20 lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
@@ -106,6 +108,7 @@ export default function DashboardLayout({
           </footer>
         </main>
       </div>
+    </ToastProvider>
     </SidebarContext.Provider>
   );
 }

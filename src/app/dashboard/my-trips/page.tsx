@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { mockTrips } from "@/lib/mock-data";
 import { ROUTES } from "@/constants/routes";
-import { FilterTabs } from "@/components/shared";
+import { FilterTabs, ConfirmDialog, useToast, EmptyState } from "@/components/shared";
 import type { TripPlan, TripStatus, TransportType } from "@/types";
 
 type FilterTab = "all" | "draft" | "published" | "unpublished";
@@ -33,7 +33,7 @@ function formatDateRange(start: string | null, end: string | null): string {
   return `${fmt(s)} — ${fmt(e)}`;
 }
 
-function TripCard({ trip }: { trip: TripPlan }): React.ReactNode {
+function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) => void }): React.ReactNode {
   const s = statusLabel[trip.status];
   const t = transportIcon[trip.transportType];
   const href = trip.status === "draft" ? ROUTES.tripEdit(trip.id) : `/dashboard/trips/${trip.id}/manage`;
@@ -85,8 +85,8 @@ function TripCard({ trip }: { trip: TripPlan }): React.ReactNode {
             <Link href={href} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
               <span className="material-symbols-outlined text-[16px]">edit</span>
             </Link>
-            <button className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
-              <span className="material-symbols-outlined text-[16px]">more_vert</span>
+            <button onClick={(e) => { e.preventDefault(); onDelete?.(trip.id); }} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
+              <span className="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
         </div>
@@ -97,6 +97,8 @@ function TripCard({ trip }: { trip: TripPlan }): React.ReactNode {
 
 export default function MyTripsPage(): React.ReactNode {
   const [filter, setFilter] = useState<FilterTab>("all");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const { toast } = useToast();
   const filtered = filter === "all" ? mockTrips : mockTrips.filter((t) => t.status === filter);
 
   return (
@@ -117,9 +119,12 @@ export default function MyTripsPage(): React.ReactNode {
         />
 
         {/* Trip Grid — 4 columns */}
+        {filtered.length === 0 && filter !== "all" ? (
+          <EmptyState icon="filter_list_off" title="ไม่มีทริปในหมวดนี้" description="ลองเปลี่ยนตัวกรองหรือสร้างทริปใหม่" actionLabel="สร้างทริปใหม่" actionHref={ROUTES.tripNew} />
+        ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((trip) => (
-            <TripCard key={trip.id} trip={trip} />
+            <TripCard key={trip.id} trip={trip} onDelete={setDeleteTarget} />
           ))}
 
           {/* + Create Card */}
@@ -134,7 +139,18 @@ export default function MyTripsPage(): React.ReactNode {
             <p className="text-[11px] text-slate-400 mt-0.5">เริ่มต้นวางแผนทริปถัดไป</p>
           </Link>
         </div>
+        )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => toast("ลบทริปเรียบร้อยแล้ว")}
+        title="ลบทริปนี้?"
+        description="ทริปนี้จะถูกลบออกจากระบบ ไม่สามารถกู้คืนได้"
+        confirmLabel="ลบทริป"
+        variant="danger"
+      />
     </>
   );
 }

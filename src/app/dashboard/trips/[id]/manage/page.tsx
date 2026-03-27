@@ -4,7 +4,7 @@ import { useState, use } from "react";
 import Link from "next/link";
 import { getMockTrip, getMockDays, mockFollowers, mockChangeLogs, mockAcknowledgements } from "@/lib/mock-data";
 import { ROUTES } from "@/constants/routes";
-import { FilterTabs, ChannelBadge, IconButton } from "@/components/shared";
+import { FilterTabs, ChannelBadge, IconButton, ConfirmDialog, useToast } from "@/components/shared";
 
 type Tab = "pending" | "approved" | "followers" | "receipts";
 
@@ -24,6 +24,9 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
   const days = getMockDays(id);
   const [activeTab, setActiveTab] = useState<Tab>("pending");
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [showUnpublish, setShowUnpublish] = useState(false);
+  const [slugEdit, setSlugEdit] = useState(false);
+  const { toast } = useToast();
 
   if (!trip) return <div className="p-12 text-center text-slate-400">ไม่พบทริปนี้</div>;
 
@@ -403,22 +406,48 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            {/* Trip Link */}
+            {/* Trip Link + Slug */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-              <h4 className="font-bold text-slate-900">ลิงก์ทริป</h4>
-              <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-sm text-slate-500 truncate flex-1">app.example.com/t/{trip.slug}</span>
-                <button className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">คัดลอก</button>
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-slate-900">ลิงก์ทริป</h4>
+                <button onClick={() => setSlugEdit(!slugEdit)} className="text-xs text-blue-600 hover:underline">
+                  {slugEdit ? "เสร็จ" : "แก้ไข slug"}
+                </button>
               </div>
+              {slugEdit ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <span>app.example.com/t/</span>
+                  </div>
+                  <input
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                    defaultValue={trip.slug}
+                    placeholder="custom-slug"
+                  />
+                  <button onClick={() => { setSlugEdit(false); toast("บันทึก slug เรียบร้อย"); }} className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">
+                    บันทึก
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-sm text-slate-500 truncate flex-1">app.example.com/t/{trip.slug}</span>
+                  <button onClick={() => toast("คัดลอกลิงก์แล้ว")} className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">คัดลอก</button>
+                </div>
+              )}
               <div className="flex gap-2">
-                <Link href={ROUTES.tripReceipts(id)} className="flex-1 py-2.5 text-center rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                  สถานะรับทราบ
-                </Link>
                 <Link href={ROUTES.tripPreview(id)} className="flex-1 py-2.5 text-center rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
                   แชร์ทริป
                 </Link>
               </div>
             </div>
+
+            {/* Unpublish */}
+            <button
+              onClick={() => setShowUnpublish(true)}
+              className="w-full py-3 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors"
+            >
+              ยกเลิกเผยแพร่ทริปนี้
+            </button>
 
             {/* Changelog */}
             {changelogs.length > 0 && (
@@ -445,6 +474,16 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
           </section>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showUnpublish}
+        onClose={() => setShowUnpublish(false)}
+        onConfirm={() => toast("ยกเลิกเผยแพร่เรียบร้อยแล้ว")}
+        title="ยกเลิกเผยแพร่ทริปนี้?"
+        description="ลิงก์ทริปจะไม่สามารถเข้าถึงได้อีก ลูกทริปจะเห็นหน้า 'ทริปนี้ไม่เปิดให้ดูแล้ว'"
+        confirmLabel="ยกเลิกเผยแพร่"
+        variant="danger"
+      />
     </>
   );
 }
