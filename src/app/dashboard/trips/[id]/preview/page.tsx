@@ -255,7 +255,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
 
               {/* Read Receipt Link */}
               <Link
-                href={ROUTES.tripReceipts(id)}
+                href={ROUTES.tripManage(id)}
                 className="block bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:border-blue-200 transition-colors group"
               >
                 <div className="flex items-center justify-between">

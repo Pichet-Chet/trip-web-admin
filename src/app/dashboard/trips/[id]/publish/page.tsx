@@ -118,7 +118,7 @@ export default function TripPublishPage({ params }: { params: Promise<{ id: stri
               กลับ Dashboard
             </Link>
             <Link
-              href={ROUTES.tripReceipts(id)}
+              href={ROUTES.tripManage(id)}
               className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium text-(--primary) bg-(--primary-container) hover:opacity-90 transition-colors"
             >
               <span className="material-symbols-outlined text-lg">receipt_long</span>

@@ -16,5 +16,4 @@ export const ROUTES = {
   tripPreview: (id: string) => `/dashboard/trips/${id}/preview` as const,
   tripPublish: (id: string) => `/dashboard/trips/${id}/publish` as const,
   tripManage: (id: string) => `/dashboard/trips/${id}/manage` as const,
-  tripReceipts: (id: string) => `/dashboard/trips/${id}/receipts` as const,
 } as const;
