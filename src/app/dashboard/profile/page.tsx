@@ -35,7 +35,7 @@ export default function ProfilePage(): React.ReactNode {
               {/* Company Info */}
               <section className="space-y-6">
                 <SectionHeader title="ข้อมูลบริษัท" variant="bar" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                   <div className="col-span-1 md:col-span-2">
                     <FormInput label="ชื่อบริษัท" placeholder="เช่น Amazing Tour Co., Ltd." defaultValue={mockCompany.name} />
                   </div>
@@ -47,7 +47,7 @@ export default function ProfilePage(): React.ReactNode {
               {/* Contact Channels */}
               <section className="space-y-6">
                 <SectionHeader title="ช่องทางติดต่อ" variant="bar" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                   <FormInput label="เบอร์โทรศัพท์" placeholder="+66 81 234 5678" type="tel" icon="call" defaultValue={mockCompany.phone ?? ""} />
 
                   {/* LINE — custom icon */}

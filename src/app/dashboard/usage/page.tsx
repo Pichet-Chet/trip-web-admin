@@ -27,7 +27,7 @@ export default function UsagePage(): React.ReactNode {
     <>
       {/* Header */}
 
-      <div className="p-4 md:p-8 lg:p-10 max-w-6xl mx-auto space-y-8 lg:space-y-12">
+      <div className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-6xl mx-auto space-y-8 lg:space-y-12">
 
         {/* ═══ Hero ═══ */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">

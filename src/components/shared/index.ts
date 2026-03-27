@@ -13,3 +13,4 @@ export { ChangeSummaryModal } from "./change-summary-modal";
 export { EmptyState } from "./empty-state";
 export { QRCodeDisplay } from "./qr-code-display";
 export { ImageUpload } from "./image-upload";
+export { Pagination } from "./pagination";

@@ -193,7 +193,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                   ลิงก์ทริป
                 </h3>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-1 sm:pl-4 rounded-lg border border-slate-200">
-                  <span className="text-sm text-slate-600 font-medium py-2 px-3 sm:p-0 overflow-hidden text-ellipsis">{tripUrl}</span>
+                  <span className="text-sm text-slate-600 font-medium py-2 px-3 sm:p-0 truncate">{tripUrl}</span>
                   <div className="sm:ml-auto flex border-t sm:border-t-0 border-slate-200 sm:pt-0 pt-1">
                     <button className="flex-1 sm:flex-none px-4 py-2 bg-white text-slate-700 text-sm font-semibold rounded-md border border-slate-200 hover:bg-slate-50 transition-colors">คัดลอก</button>
                     <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Link">

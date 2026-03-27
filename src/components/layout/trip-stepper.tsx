@@ -59,7 +59,7 @@ export function TripStepperHeader({ currentStep, tripId, subtitle }: TripStepper
                   )}
                 </div>
                 <span
-                  className={`hidden lg:block text-[11px] font-bold tracking-wide ${
+                  className={`hidden md:block text-[11px] font-bold tracking-wide ${
                     isActive ? "text-(--primary)" : isCompleted ? "text-green-600" : "text-(--on-surface)"
                   }`}
                 >

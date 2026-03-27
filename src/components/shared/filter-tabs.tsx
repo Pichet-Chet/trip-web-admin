@@ -33,7 +33,7 @@ export function FilterTabs<T extends string>({
         <button
           key={tab.value}
           onClick={() => onChange(tab.value)}
-          className={`px-4 md:px-6 py-2 rounded-${variant === "pill" ? "full" : "lg"} font-bold text-xs md:text-sm transition-colors whitespace-nowrap flex items-center gap-2 ${active === tab.value ? activeCls : inactiveCls}`}
+          className={`px-4 md:px-6 py-2.5 ${variant === "pill" ? "rounded-full" : "rounded-lg"} font-bold text-xs md:text-sm transition-colors whitespace-nowrap flex items-center gap-2 ${active === tab.value ? activeCls : inactiveCls}`}
         >
           {tab.label}
           {tab.emoji && <span className="text-base">{tab.emoji}</span>}

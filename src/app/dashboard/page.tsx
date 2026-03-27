@@ -20,7 +20,7 @@ export default function DashboardPage(): React.ReactNode {
     <>
       {/* ═══ Header ═══ */}
 
-      <div className="px-4 md:px-10 py-8 space-y-12">
+      <div className="px-4 sm:px-6 md:px-8 py-8 space-y-12">
         {/* ═══ Hero Bento ═══ */}
         <section className="grid grid-cols-12 gap-6 lg:h-[420px]">
           {/* Large CTA Card */}

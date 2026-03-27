@@ -10,6 +10,7 @@ const navItems = [
   { label: "Trip Builder", href: ROUTES.tripNew, icon: "edit_calendar" },
   { label: "โปรไฟล์", href: ROUTES.profile, icon: "person" },
   { label: "การใช้งาน", href: ROUTES.usage, icon: "speed" },
+  { label: "การชำระเงิน", href: "/dashboard/billing", icon: "receipt_long" },
 ] as const;
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }): React.ReactNode {
