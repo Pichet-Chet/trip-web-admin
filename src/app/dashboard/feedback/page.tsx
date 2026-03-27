@@ -32,7 +32,7 @@ export default function FeedbackPage(): React.ReactNode {
 
   if (submitted) {
     return (
-      <div className="px-4 sm:px-6 md:px-8 py-8 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col items-center justify-center min-h-[60vh] text-center">
         <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
           <span className="material-symbols-outlined text-green-600 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
         </div>
@@ -51,7 +51,7 @@ export default function FeedbackPage(): React.ReactNode {
   }
 
   return (
-    <div className="px-4 sm:px-6 md:px-8 py-8 max-w-4xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">แจ้งปัญหา / ข้อเสนอแนะ</h1>
         <p className="text-slate-500 mt-2 text-sm">ความคิดเห็นของคุณช่วยให้เราพัฒนาระบบได้ตรงกับการใช้งานจริง</p>
