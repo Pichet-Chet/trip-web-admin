@@ -9,7 +9,7 @@ import { StatusBadge, FilterTabs, IconButton, EmptyState } from "@/components/sh
 type FilterTab = "all" | "draft" | "published" | "active";
 
 // Toggle this to see onboarding state
-const SHOW_ONBOARDING = false;
+const SHOW_ONBOARDING = true;
 
 export default function DashboardPage(): React.ReactNode {
   const [filter, setFilter] = useState<FilterTab>("all");
@@ -27,31 +27,46 @@ export default function DashboardPage(): React.ReactNode {
 
         {/* ═══ Onboarding (0 trips) ═══ */}
         {SHOW_ONBOARDING && (
-          <section className="bg-white rounded-2xl border border-slate-200 p-8 md:p-12 text-center space-y-6">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">ยินดีต้อนรับ!</h2>
-            <p className="text-slate-500 max-w-md mx-auto">เริ่มต้นใช้งานด้วย 3 ขั้นตอนง่ายๆ</p>
+          <section className="relative overflow-hidden rounded-2xl bg-slate-900 p-8 md:p-12">
+            {/* Background */}
+            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80" alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-linear-to-r from-slate-900 via-slate-900/90 to-slate-900/70" />
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-left">
-              <a href="/dashboard/profile" className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors group">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
-                  <span className="text-sm font-bold text-slate-900">ตั้งค่าโปรไฟล์</span>
-                </div>
-                <p className="text-xs text-slate-400">ใส่ชื่อ โลโก้ ช่องทางติดต่อ</p>
-              </a>
-              <a href="/dashboard/trips/new" className="p-5 rounded-xl border border-slate-200 hover:border-blue-200 transition-colors group">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-500 text-xs font-bold flex items-center justify-center">2</span>
-                  <span className="text-sm font-bold text-slate-900">สร้างทริปแรก</span>
-                </div>
-                <p className="text-xs text-slate-400">ใส่ข้อมูลทริป กิจกรรม ที่พัก</p>
-              </a>
-              <div className="p-5 rounded-xl border border-slate-200 opacity-50">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-500 text-xs font-bold flex items-center justify-center">3</span>
-                  <span className="text-sm font-bold text-slate-900">แชร์ให้ลูกทริป</span>
-                </div>
-                <p className="text-xs text-slate-400">ส่งลิงก์หรือ QR Code</p>
+            <div className="relative z-10 max-w-3xl">
+              <span className="inline-block px-3 py-1 bg-blue-600 rounded-md text-[10px] font-bold tracking-widest uppercase text-white mb-6">เริ่มต้นใช้งาน</span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">สวัสดี สมชาย!</h2>
+              <p className="text-white/60 mb-10 max-w-lg">สร้างแผนทริปแรกของคุณ แชร์ให้ลูกทริป แล้วระบบจะจัดการแจ้งเตือนให้อัตโนมัติ</p>
+
+              {/* Steps */}
+              <div className="space-y-4">
+                {[
+                  { step: 1, title: "ตั้งค่าโปรไฟล์", desc: "ใส่ชื่อ โลโก้ ช่องทางติดต่อ เพื่อแสดงบนหน้าทริป", href: "/dashboard/profile", done: false, current: true },
+                  { step: 2, title: "สร้างทริปแรก", desc: "เลือกในประเทศหรือต่างประเทศ ใส่ข้อมูลการเดินทาง ที่พัก กิจกรรม", href: "/dashboard/trips/new", done: false, current: false },
+                  { step: 3, title: "แชร์ให้ลูกทริป", desc: "เผยแพร่ทริป แล้วส่งลิงก์หรือ QR Code ให้ลูกทริปเปิดดู", href: "#", done: false, current: false },
+                ].map((s) => (
+                  <a
+                    key={s.step}
+                    href={s.current ? s.href : "#"}
+                    className={`flex items-start gap-4 p-4 rounded-xl transition-all ${
+                      s.current ? "bg-white/10 hover:bg-white/15" : s.done ? "opacity-50" : "opacity-30"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                      s.done ? "bg-green-500 text-white" : s.current ? "bg-blue-600 text-white" : "bg-white/10 text-white/40"
+                    }`}>
+                      {s.done ? (
+                        <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                      ) : s.step}
+                    </div>
+                    <div>
+                      <p className={`font-bold ${s.current ? "text-white" : "text-white/50"}`}>{s.title}</p>
+                      <p className={`text-sm mt-0.5 ${s.current ? "text-white/60" : "text-white/30"}`}>{s.desc}</p>
+                    </div>
+                    {s.current && (
+                      <span className="material-symbols-outlined text-white/40 ml-auto mt-1">arrow_forward</span>
+                    )}
+                  </a>
+                ))}
               </div>
             </div>
           </section>
