@@ -27,18 +27,18 @@ export default function DashboardPage(): React.ReactNode {
 
         {/* ═══ Onboarding (0 trips) ═══ */}
         {SHOW_ONBOARDING && (
-          <section className="relative overflow-hidden rounded-2xl bg-slate-900 p-8 md:p-12">
-            {/* Background */}
-            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80" alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-linear-to-r from-slate-900 via-slate-900/90 to-slate-900/70" />
+          <section className="relative overflow-hidden rounded-2xl">
+            {/* Background image — bright & visible */}
+            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80" alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm" />
 
-            <div className="relative z-10 max-w-3xl">
+            <div className="relative z-10 p-8 md:p-12 max-w-3xl">
               <span className="inline-block px-3 py-1 bg-blue-600 rounded-md text-[10px] font-bold tracking-widest uppercase text-white mb-6">เริ่มต้นใช้งาน</span>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">สวัสดี สมชาย!</h2>
-              <p className="text-white/60 mb-10 max-w-lg">สร้างแผนทริปแรกของคุณ แชร์ให้ลูกทริป แล้วระบบจะจัดการแจ้งเตือนให้อัตโนมัติ</p>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">สวัสดี สมชาย!</h2>
+              <p className="text-slate-500 mb-10 max-w-lg">สร้างแผนทริปแรกของคุณ แชร์ให้ลูกทริป แล้วระบบจะจัดการแจ้งเตือนให้อัตโนมัติ</p>
 
               {/* Steps */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[
                   { step: 1, title: "ตั้งค่าโปรไฟล์", desc: "ใส่ชื่อ โลโก้ ช่องทางติดต่อ เพื่อแสดงบนหน้าทริป", href: "/dashboard/profile", done: false, current: true },
                   { step: 2, title: "สร้างทริปแรก", desc: "เลือกในประเทศหรือต่างประเทศ ใส่ข้อมูลการเดินทาง ที่พัก กิจกรรม", href: "/dashboard/trips/new", done: false, current: false },
@@ -47,23 +47,23 @@ export default function DashboardPage(): React.ReactNode {
                   <a
                     key={s.step}
                     href={s.current ? s.href : "#"}
-                    className={`flex items-start gap-4 p-4 rounded-xl transition-all ${
-                      s.current ? "bg-white/10 hover:bg-white/15" : s.done ? "opacity-50" : "opacity-30"
+                    className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
+                      s.current ? "bg-white border-blue-200 shadow-sm hover:shadow-md" : s.done ? "bg-white/60 border-transparent" : "bg-white/40 border-transparent"
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
-                      s.done ? "bg-green-500 text-white" : s.current ? "bg-blue-600 text-white" : "bg-white/10 text-white/40"
+                      s.done ? "bg-green-500 text-white" : s.current ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"
                     }`}>
                       {s.done ? (
                         <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
                       ) : s.step}
                     </div>
                     <div>
-                      <p className={`font-bold ${s.current ? "text-white" : "text-white/50"}`}>{s.title}</p>
-                      <p className={`text-sm mt-0.5 ${s.current ? "text-white/60" : "text-white/30"}`}>{s.desc}</p>
+                      <p className={`font-bold ${s.current ? "text-slate-900" : s.done ? "text-slate-500" : "text-slate-400"}`}>{s.title}</p>
+                      <p className={`text-sm mt-0.5 ${s.current ? "text-slate-500" : "text-slate-300"}`}>{s.desc}</p>
                     </div>
                     {s.current && (
-                      <span className="material-symbols-outlined text-white/40 ml-auto mt-1">arrow_forward</span>
+                      <span className="material-symbols-outlined text-blue-600 ml-auto mt-1">arrow_forward</span>
                     )}
                   </a>
                 ))}
