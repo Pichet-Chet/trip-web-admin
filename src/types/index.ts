@@ -58,6 +58,7 @@ export type TripPlan = {
   editCount: number;
   viewCount: number;
   followerCount: number;
+  albumImages: string[];
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;

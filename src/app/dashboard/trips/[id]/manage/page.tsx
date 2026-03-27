@@ -6,7 +6,7 @@ import { getMockTrip, getMockDays, mockFollowers, mockChangeLogs, mockAcknowledg
 import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ChannelBadge, IconButton, ConfirmDialog, useToast } from "@/components/shared";
 
-type Tab = "pending" | "approved" | "followers" | "receipts";
+type Tab = "pending" | "approved" | "followers" | "receipts" | "album";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -30,6 +30,8 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
 
   if (!trip) return <div className="p-12 text-center text-slate-400">ไม่พบทริปนี้</div>;
 
+  const isEnded = trip.endDate ? new Date(trip.endDate) < new Date() : false;
+
   // Real data from mock
   const allFollowers = mockFollowers.filter((f) => f.tripId === id);
   const pendingList = allFollowers.filter((f) => f.status === "pending");
@@ -44,6 +46,7 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
     { value: "approved", label: `สมาชิก (${approvedList.length})` },
     { value: "receipts", label: `สถานะรับทราบ` },
     { value: "followers", label: `ทั้งหมด (${allFollowers.length})` },
+    ...(isEnded ? [{ value: "album" as Tab, label: `อัลบั้ม (${trip.albumImages.length})` }] : []),
   ];
 
   return (
@@ -330,6 +333,53 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
                 </>
               );
             })()}
+
+            {/* ─── Tab: Album ─── */}
+            {activeTab === "album" && isEnded && (
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">อัลบั้มทริป</h3>
+                    <p className="text-sm text-slate-400 mt-0.5">{trip.albumImages.length} รูป · แชร์ให้ลูกทริปดูผ่านลิงก์ทริป</p>
+                  </div>
+                </div>
+
+                {/* Upload area */}
+                <label className="block cursor-pointer">
+                  <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-8 text-center transition-colors hover:bg-blue-50/30">
+                    <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">add_photo_alternate</span>
+                    <p className="text-sm font-semibold text-slate-600">อัปโหลดรูปภาพ</p>
+                    <p className="text-xs text-slate-400 mt-1">JPG, PNG ไม่เกิน 5MB ต่อรูป</p>
+                  </div>
+                  <input type="file" accept="image/*" multiple className="hidden" />
+                </label>
+
+                {/* Image grid */}
+                {trip.albumImages.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {trip.albumImages.map((img, i) => (
+                      <div key={i} className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100">
+                        <img src={img} alt={`อัลบั้ม ${i + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <button
+                            onClick={() => toast("ลบรูปเรียบร้อย")}
+                            className="bg-white/90 text-red-500 p-2 rounded-lg shadow-sm hover:bg-white transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <span className="material-symbols-outlined text-4xl mb-2">photo_library</span>
+                    <p className="text-sm">ยังไม่มีรูปในอัลบั้ม</p>
+                    <p className="text-xs mt-1">อัปโหลดรูปเพื่อแชร์ความทรงจำให้ลูกทริป</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ─── Tab: All Followers ─── */}
             {activeTab === "followers" && (
