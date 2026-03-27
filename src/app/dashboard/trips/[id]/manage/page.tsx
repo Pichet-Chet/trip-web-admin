@@ -46,27 +46,6 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
   return (
     <>
       {/* Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between px-6 h-16 bg-white border-b border-slate-200 shadow-sm">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/my-trips" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </Link>
-          <div>
-            <h1 className="text-base font-bold text-slate-900 line-clamp-1">{trip.title}</h1>
-            <p className="text-[11px] text-slate-400">{trip.destination}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href={ROUTES.tripEdit(id)} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-lg">edit</span>
-            <span className="hidden sm:inline">แก้ไข</span>
-          </Link>
-          <Link href={ROUTES.tripPreview(id)} className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors flex items-center gap-1.5 shadow-sm">
-            <span className="material-symbols-outlined text-lg">visibility</span>
-            <span className="hidden sm:inline">ดูตัวอย่าง</span>
-          </Link>
-        </div>
-      </header>
 
       <div className="p-4 md:p-8 space-y-8">
         {/* Title + Tabs */}

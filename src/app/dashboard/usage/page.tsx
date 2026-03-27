@@ -26,12 +26,6 @@ export default function UsagePage(): React.ReactNode {
   return (
     <>
       {/* Header */}
-      <header className="sticky top-0 z-30 flex justify-between items-center w-full px-4 md:px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900">การใช้งาน & แพลน</h1>
-          <p className="text-[11px] text-slate-400">จัดการโควต้าและอัปเกรดแพลน</p>
-        </div>
-      </header>
 
       <div className="p-4 md:p-8 lg:p-10 max-w-6xl mx-auto space-y-8 lg:space-y-12">
 

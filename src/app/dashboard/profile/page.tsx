@@ -9,13 +9,6 @@ export default function ProfilePage(): React.ReactNode {
   return (
     <>
       {/* Header */}
-      <header className="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex justify-between items-center px-4 md:px-8">
-        <div className="flex items-center gap-3">
-          <h1 className="text-base md:text-lg font-black text-slate-900">ตั้งค่า</h1>
-          <div className="hidden sm:block h-6 w-px bg-slate-200" />
-          <span className="hidden sm:inline-block text-sm text-slate-500 font-medium">โปรไฟล์บริษัท</span>
-        </div>
-      </header>
 
       {/* Content */}
       <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8 lg:p-16 flex flex-col items-center">

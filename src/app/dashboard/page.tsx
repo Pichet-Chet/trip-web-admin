@@ -19,24 +19,6 @@ export default function DashboardPage(): React.ReactNode {
   return (
     <>
       {/* ═══ Header ═══ */}
-      <header className="h-20 px-4 md:px-10 flex justify-between items-center sticky top-0 bg-white/70 backdrop-blur-xl z-30">
-        <div className="flex items-center gap-4 flex-1 max-w-xl">
-          <div className="relative w-full">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-(--on-surface-variant)">search</span>
-            <input className="w-full bg-(--surface-container-low) border-none rounded-full py-3 pl-12 pr-6 focus:ring-2 focus:ring-(--primary)/20 transition-all text-sm font-medium outline-none" placeholder="ค้นหา..." type="text" />
-          </div>
-        </div>
-        <div className="flex items-center gap-2 md:gap-6 ml-4">
-          <div className="hidden sm:flex gap-2">
-            <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-(--surface-container-low) transition-colors text-(--on-surface-variant)"><span className="material-symbols-outlined">notifications</span></button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-(--surface-container-low) transition-colors text-(--on-surface-variant)"><span className="material-symbols-outlined">settings</span></button>
-          </div>
-          <Link href={ROUTES.tripNew} className="bg-(--primary) text-(--on-primary) px-4 md:px-6 py-3 rounded-full font-bold text-xs md:text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-(--primary)/20 whitespace-nowrap">
-            <span className="material-symbols-outlined text-sm">add</span>
-            <span className="hidden sm:inline">สร้างทริปใหม่</span>
-          </Link>
-        </div>
-      </header>
 
       <div className="px-4 md:px-10 py-8 space-y-12">
         {/* ═══ Hero Bento ═══ */}

@@ -102,25 +102,6 @@ export default function MyTripsPage(): React.ReactNode {
   return (
     <>
       {/* Header */}
-      <header className="h-20 px-4 md:px-10 flex justify-between items-center sticky top-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-100">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">My Trips</h1>
-          <p className="text-[11px] text-slate-400 font-medium">{mockTrips.length} ทริปทั้งหมด</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative hidden md:block">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-            <input className="bg-slate-50 border-none rounded-full py-2.5 pl-10 pr-5 text-sm w-56 focus:ring-2 focus:ring-(--primary)/20 outline-none" placeholder="ค้นหาทริป..." />
-          </div>
-          <Link
-            href={ROUTES.tripNew}
-            className="bg-(--primary) text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-(--primary)/20"
-          >
-            <span className="material-symbols-outlined text-lg">add</span>
-            <span className="hidden sm:inline">สร้างทริปใหม่</span>
-          </Link>
-        </div>
-      </header>
 
       <div className="px-4 md:px-10 py-8 space-y-6">
         {/* Filter */}

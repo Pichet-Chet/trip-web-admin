@@ -18,12 +18,6 @@ export default function UpgradePage(): React.ReactNode {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center px-4 md:px-8">
-        <Link href="/dashboard/usage" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 mr-4">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </Link>
-        <h1 className="text-lg font-bold text-slate-900">อัปเกรดแพลน</h1>
-      </header>
 
       <div className="p-4 md:p-8 max-w-6xl mx-auto">
         <div className="mb-10">
