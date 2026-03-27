@@ -14,6 +14,7 @@ export default function DashboardLayout({
 }): React.ReactNode {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
 
   return (
@@ -34,10 +35,36 @@ export default function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors relative">
-                <span className="material-symbols-outlined text-xl">notifications</span>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-              </button>
+              <div className="relative">
+                <button onClick={() => { setNotiOpen(!notiOpen); setProfileOpen(false); }} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors relative">
+                  <span className="material-symbols-outlined text-xl">notifications</span>
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                </button>
+                {notiOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setNotiOpen(false)} />
+                    <div className="absolute right-0 top-12 z-50 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <span className="font-bold text-slate-900 text-sm">การแจ้งเตือน</span>
+                        <span className="text-xs text-blue-600 font-semibold cursor-pointer">อ่านทั้งหมด</span>
+                      </div>
+                      <div className="divide-y divide-slate-50 max-h-72 overflow-y-auto">
+                        {[
+                          { text: "Anna ขอเข้าร่วมทริป Tokyo Winter Trip", time: "5 นาทีที่แล้ว", unread: true },
+                          { text: "เอก ขอเข้าร่วมทริป Tokyo Winter Trip", time: "1 ชั่วโมงที่แล้ว", unread: true },
+                          { text: "สมชาย รับทราบการเปลี่ยนแปลงทริปแล้ว", time: "2 ชั่วโมงที่แล้ว", unread: false },
+                          { text: "แพลน Free ใกล้ถึงลิมิต (2/3 ทริป)", time: "เมื่อวาน", unread: false },
+                        ].map((n, i) => (
+                          <div key={i} className={`px-4 py-3 ${n.unread ? "bg-blue-50/30" : ""}`}>
+                            <p className="text-sm text-slate-700">{n.text}</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">{n.time}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               <div className="h-6 w-px bg-slate-200" />
               <div className="relative">
                 <button
@@ -66,17 +93,13 @@ export default function DashboardLayout({
                           <span className="material-symbols-outlined text-lg">person</span>
                           โปรไฟล์บริษัท
                         </a>
-                        <a href="/dashboard/usage" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                          <span className="material-symbols-outlined text-lg">speed</span>
-                          การใช้งาน & แพลน
+                        <a href="/dashboard/help" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                          <span className="material-symbols-outlined text-lg">help</span>
+                          ช่วยเหลือ
                         </a>
-                        <a href="/dashboard/upgrade" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                          <span className="material-symbols-outlined text-lg">upgrade</span>
-                          อัปเกรดแพลน
-                        </a>
-                        <a href="/dashboard/billing" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                          <span className="material-symbols-outlined text-lg">receipt_long</span>
-                          ประวัติการชำระเงิน
+                        <a href="/dashboard/feedback" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                          <span className="material-symbols-outlined text-lg">feedback</span>
+                          แจ้งปัญหา / ข้อเสนอแนะ
                         </a>
                       </nav>
                       <div className="border-t border-slate-100 py-2">
@@ -93,9 +116,29 @@ export default function DashboardLayout({
           </header>
 
           {/* Page Content */}
-          <div className="flex-1">
+          <div className="flex-1 pb-16 md:pb-0">
             {children}
           </div>
+
+          {/* Mobile Bottom Nav */}
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 flex justify-around items-center py-2 safe-area-pb">
+            <a href="/dashboard" className="flex flex-col items-center gap-0.5 p-2 text-slate-400">
+              <span className="material-symbols-outlined text-xl">dashboard</span>
+              <span className="text-[10px] font-medium">หน้าหลัก</span>
+            </a>
+            <a href="/dashboard/my-trips" className="flex flex-col items-center gap-0.5 p-2 text-slate-400">
+              <span className="material-symbols-outlined text-xl">luggage</span>
+              <span className="text-[10px] font-medium">ทริป</span>
+            </a>
+            <a href="/dashboard/trips/new" className="flex flex-col items-center gap-0.5 p-2 text-blue-600">
+              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
+              <span className="text-[10px] font-bold">สร้างทริป</span>
+            </a>
+            <a href="/dashboard/profile" className="flex flex-col items-center gap-0.5 p-2 text-slate-400">
+              <span className="material-symbols-outlined text-xl">person</span>
+              <span className="text-[10px] font-medium">โปรไฟล์</span>
+            </a>
+          </nav>
 
           {/* Global Footer */}
           <footer className="border-t border-slate-100 px-4 md:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">

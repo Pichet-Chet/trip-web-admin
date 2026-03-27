@@ -113,7 +113,7 @@ export default function MyTripsPage(): React.ReactNode {
     <>
       {/* Header */}
 
-      <div className="px-4 sm:px-6 md:px-8 py-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-6">
         {/* Filter */}
         <FilterTabs
           tabs={[

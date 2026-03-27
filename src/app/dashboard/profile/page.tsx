@@ -11,7 +11,7 @@ export default function ProfilePage(): React.ReactNode {
       {/* Header */}
 
       {/* Content */}
-      <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8 lg:p-16 flex flex-col items-center">
+      <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8 flex flex-col items-center">
         <div className="max-w-3xl w-full">
           {/* Page Header */}
           <div className="mb-8 md:mb-12 text-center">

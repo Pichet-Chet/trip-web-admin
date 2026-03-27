@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 
 const navItems = [
-  { label: "Dashboard", href: ROUTES.dashboard, icon: "dashboard" },
-  { label: "My Trips", href: "/dashboard/my-trips", icon: "luggage" },
-  { label: "Trip Builder", href: ROUTES.tripNew, icon: "edit_calendar" },
+  { label: "หน้าหลัก", href: ROUTES.dashboard, icon: "dashboard" },
+  { label: "ทริปของฉัน", href: "/dashboard/my-trips", icon: "luggage" },
+  { label: "สร้างทริป", href: ROUTES.tripNew, icon: "edit_calendar" },
   { label: "โปรไฟล์", href: ROUTES.profile, icon: "person" },
   { label: "การใช้งาน", href: ROUTES.usage, icon: "speed" },
   { label: "การชำระเงิน", href: "/dashboard/billing", icon: "receipt_long" },
@@ -32,9 +32,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           {/* Logo */}
           <div className="px-6 mb-10 flex items-center justify-between lg:block">
             <div>
-              <h1 className="text-2xl font-bold text-(--primary) tracking-tight lg:block md:hidden block">Admin</h1>
-              <h1 className="text-2xl font-bold text-(--primary) tracking-tight hidden md:block lg:hidden">A</h1>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-(--on-surface-variant) mt-1 font-bold lg:block md:hidden block">Professional Precision</p>
+              <h1 className="text-2xl font-bold text-(--primary) tracking-tight lg:block md:hidden block">ระบบจัดการ</h1>
+              <h1 className="text-2xl font-bold text-(--primary) tracking-tight hidden md:block lg:hidden">T</h1>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-(--on-surface-variant) mt-1 font-bold lg:block md:hidden block">Trip Admin</p>
             </div>
             {/* Mobile close button */}
             <button className="md:hidden text-(--on-surface-variant)" onClick={onClose}>

@@ -53,7 +53,7 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
     <>
       {/* Header */}
 
-      <div className="px-4 sm:px-6 md:px-8 py-8 space-y-8">
+      <div className="p-4 md:p-8 space-y-8">
         {/* Title + Tabs */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
