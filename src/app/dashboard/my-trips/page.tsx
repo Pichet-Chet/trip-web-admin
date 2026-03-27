@@ -33,7 +33,7 @@ function formatDateRange(start: string | null, end: string | null): string {
   return `${fmt(s)} — ${fmt(e)}`;
 }
 
-function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) => void }): React.ReactNode {
+function TripCard({ trip, onDelete, onClone }: { trip: TripPlan; onDelete?: (id: string) => void; onClone?: (id: string) => void }): React.ReactNode {
   const s = statusLabel[trip.status];
   const t = transportIcon[trip.transportType];
   const href = trip.status === "draft" ? ROUTES.tripEdit(trip.id) : `/dashboard/trips/${trip.id}/manage`;
@@ -92,6 +92,9 @@ function TripCard({ trip, onDelete }: { trip: TripPlan; onDelete?: (id: string) 
             {formatDateRange(trip.startDate, trip.endDate)}
           </span>
           <div className="flex gap-1">
+            <button onClick={(e) => { e.preventDefault(); onClone?.(trip.id); }} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors" title="สร้างจากทริปนี้">
+              <span className="material-symbols-outlined text-[16px]">content_copy</span>
+            </button>
             <Link href={href} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
               <span className="material-symbols-outlined text-[16px]">edit</span>
             </Link>
@@ -138,7 +141,7 @@ export default function MyTripsPage(): React.ReactNode {
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((trip) => (
-            <TripCard key={trip.id} trip={trip} onDelete={setDeleteTarget} />
+            <TripCard key={trip.id} trip={trip} onDelete={setDeleteTarget} onClone={(id) => { toast(`สร้างทริปใหม่จาก "${mockTrips.find(t => t.id === id)?.title}" แล้ว`); }} />
           ))}
 
           {/* + Create Card */}

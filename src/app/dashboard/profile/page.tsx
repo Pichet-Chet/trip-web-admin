@@ -2,7 +2,7 @@
 
 import { mockCompany } from "@/lib/mock-data";
 import { useState } from "react";
-import { FormInput, SectionHeader, ImageUpload } from "@/components/shared";
+import { FormInput, SectionHeader, ImageUpload, useToast } from "@/components/shared";
 
 type AccountType = "company" | "freelance" | "personal";
 
@@ -15,6 +15,10 @@ const accountTypes: { value: AccountType; label: string; desc: string }[] = [
 export default function ProfilePage(): React.ReactNode {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [accountType, setAccountType] = useState<AccountType>("company");
+  const [showInvite, setShowInvite] = useState(false);
+  const [portfolioOn, setPortfolioOn] = useState(true);
+  const [portfolioSlug, setPortfolioSlug] = useState("amazing-tour");
+  const { toast } = useToast();
 
   const isCompany = accountType === "company";
   const isFreelance = accountType === "freelance";
@@ -137,8 +141,87 @@ export default function ProfilePage(): React.ReactNode {
             </div>
           </div>
 
+          {/* Multi-staff — only for company/freelance */}
+          {!isPersonal && (
+            <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900">ทีมงาน</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">เชิญทีมงานมาช่วยจัดการทริป</p>
+                </div>
+                <button onClick={() => setShowInvite(!showInvite)} className="text-sm font-semibold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                  + เชิญ
+                </button>
+              </div>
+
+              {showInvite && (
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <FormInput placeholder="อีเมลทีมงาน" type="email" icon="mail" />
+                    </div>
+                    <select className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none">
+                      <option>Editor</option>
+                      <option>Owner</option>
+                    </select>
+                    <button onClick={() => { setShowInvite(false); toast("ส่งคำเชิญแล้ว"); }} className="px-5 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors">
+                      ส่ง
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-2">Owner = ทำได้ทุกอย่าง · Editor = สร้าง/แก้ทริปได้ ลบ/billing ไม่ได้</p>
+                </div>
+              )}
+
+              <div className="divide-y divide-slate-50">
+                {[
+                  { name: "สมชาย ใจดี", email: "admin@amazingtour.com", role: "Owner" },
+                  { name: "นิดา วงศ์สุข", email: "nida@amazingtour.com", role: "Editor" },
+                ].map((staff) => (
+                  <div key={staff.email} className="px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500">{staff.name.charAt(0)}</div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{staff.name}</p>
+                        <p className="text-xs text-slate-400">{staff.email}</p>
+                      </div>
+                    </div>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${staff.role === "Owner" ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"}`}>{staff.role}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Portfolio สาธารณะ */}
+          <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900">Portfolio สาธารณะ</h3>
+                <p className="text-xs text-slate-400 mt-0.5">หน้าแสดงผลงานทริปทั้งหมดของคุณ</p>
+              </div>
+              <button
+                onClick={() => { setPortfolioOn(!portfolioOn); toast(portfolioOn ? "ปิด Portfolio แล้ว" : "เปิด Portfolio แล้ว"); }}
+                className={`relative w-12 h-7 rounded-full transition-colors ${portfolioOn ? "bg-blue-600" : "bg-slate-200"}`}
+              >
+                <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform ${portfolioOn ? "left-5.5" : "left-0.5"}`} />
+              </button>
+            </div>
+
+            {portfolioOn && (
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-sm text-slate-500 truncate flex-1">app.example.com/g/{portfolioSlug}</span>
+                  <button onClick={() => toast("คัดลอกลิงก์แล้ว")} className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">คัดลอก</button>
+                </div>
+                <FormInput label="Slug" defaultValue={portfolioSlug} onChange={(e) => setPortfolioSlug(e.target.value)} placeholder="your-name" />
+                <FormInput label="Bio" placeholder="เล่าสั้นๆ เกี่ยวกับตัวคุณหรือบริษัท" />
+                <p className="text-[11px] text-slate-400">Portfolio จะแสดงทริปที่เปิดบน Marketplace และผ่านการตรวจสอบแล้ว</p>
+              </div>
+            )}
+          </div>
+
           {/* Usage Link */}
-          <a href="/dashboard/usage" className="mt-8 block bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-blue-200 transition-colors group">
+          <a href="/dashboard/usage" className="mt-6 block bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-blue-200 transition-colors group">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-slate-900">การใช้งาน & แพลน</h3>

@@ -6,7 +6,7 @@ import { getMockTrip, getMockDays, mockFollowers, mockChangeLogs, mockAcknowledg
 import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ChannelBadge, IconButton, ConfirmDialog, useToast } from "@/components/shared";
 
-type Tab = "pending" | "approved" | "followers" | "receipts" | "album";
+type Tab = "pending" | "approved" | "followers" | "receipts" | "album" | "inquiry" | "reviews";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -46,7 +46,11 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
     { value: "approved", label: `สมาชิก (${approvedList.length})` },
     { value: "receipts", label: `สถานะรับทราบ` },
     { value: "followers", label: `ทั้งหมด (${allFollowers.length})` },
-    ...(isEnded ? [{ value: "album" as Tab, label: `อัลบั้ม (${trip.albumImages.length})` }] : []),
+    ...(trip.visibility === "marketplace" ? [{ value: "inquiry" as Tab, label: "ข้อความ (3)" }] : []),
+    ...(isEnded ? [
+      { value: "reviews" as Tab, label: "รีวิว (4)" },
+      { value: "album" as Tab, label: `อัลบั้ม (${trip.albumImages.length})` },
+    ] : []),
   ];
 
   return (
@@ -76,6 +80,26 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
             </Link>
           </div>
         </div>
+
+        {/* Marketplace Review Banner */}
+        {trip.visibility === "marketplace" && trip.reviewStatus === "pending" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <span className="material-symbols-outlined text-amber-600 mt-0.5">schedule</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">ทริปนี้กำลังรอการตรวจสอบ</p>
+              <p className="text-xs text-amber-600 mt-0.5">ทีมงานจะตรวจสอบภายใน 1-2 วันทำการก่อนแสดงบน Marketplace</p>
+            </div>
+          </div>
+        )}
+        {trip.visibility === "marketplace" && trip.reviewStatus === "approved" && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+            <span className="material-symbols-outlined text-green-600 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <div>
+              <p className="text-sm font-semibold text-green-800">ทริปนี้แสดงบน Marketplace แล้ว</p>
+              <p className="text-xs text-green-600 mt-0.5">ลูกค้าสามารถค้นหาและเห็นทริปนี้ผ่านเว็บไซต์และ Google</p>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <FilterTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
@@ -350,6 +374,84 @@ export default function TripManagePage({ params }: { params: Promise<{ id: strin
                 </>
               );
             })()}
+
+            {/* ─── Tab: Inquiry (marketplace only) ─── */}
+            {activeTab === "inquiry" && (
+              <div className="divide-y divide-slate-50">
+                <div className="px-6 py-5 border-b border-slate-100">
+                  <h3 className="font-bold text-slate-900">ข้อความจากผู้สนใจ</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">คนที่เห็นทริปบน Marketplace แล้วสนใจติดต่อ</p>
+                </div>
+                {[
+                  { name: "วิภา ศรีสุข", channel: "LINE: @vipa_s", msg: "สนใจทริปนี้ค่ะ รับเพิ่มอีก 2 คนได้ไหม?", date: "2 ชั่วโมงที่แล้ว", unread: true },
+                  { name: "Mark Johnson", channel: "mark.j@gmail.com", msg: "Hi, is this trip available for foreigners? Do you have English guide?", date: "เมื่อวาน", unread: true },
+                  { name: "สุดา แก้วใส", channel: "โทร 081-XXX-XXXX", msg: "อยากสอบถามราคาต่อคนค่ะ", date: "3 วันที่แล้ว", unread: false },
+                ].map((inq, i) => (
+                  <div key={i} className={`px-6 py-5 ${inq.unread ? "bg-blue-50/30" : ""}`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0">{inq.name.charAt(0)}</div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{inq.name}</p>
+                          <p className="text-xs text-slate-400">{inq.channel}</p>
+                          <p className="text-sm text-slate-600 mt-2">{inq.msg}</p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[11px] text-slate-400">{inq.date}</p>
+                        {inq.unread && <span className="inline-block w-2 h-2 bg-blue-600 rounded-full mt-1" />}
+                      </div>
+                    </div>
+                    <div className="mt-3 ml-13 flex gap-2">
+                      <button onClick={() => toast("เปิดแชทกับ " + inq.name)} className="px-3 py-1.5 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">ตอบกลับ</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ─── Tab: Reviews (ended only) ─── */}
+            {activeTab === "reviews" && isEnded && (
+              <div className="p-6 space-y-6">
+                {/* Average Rating */}
+                <div className="text-center py-4">
+                  <p className="text-5xl font-black text-slate-900">4.8</p>
+                  <div className="flex items-center justify-center gap-0.5 mt-2">
+                    {[1,2,3,4,5].map((s) => (
+                      <span key={s} className={`material-symbols-outlined text-xl ${s <= 4 ? "text-amber-400" : "text-amber-200"}`} style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-slate-400 mt-1">จาก 4 รีวิว</p>
+                </div>
+
+                {/* Review List */}
+                <div className="space-y-4">
+                  {[
+                    { name: "สมชาย", rating: 5, text: "ทริปดีมากครับ ไกด์ดูแลดี อาหารอร่อย แนะนำเลย", date: "25 ต.ค. 2568" },
+                    { name: "นิดา", rating: 5, text: "ประทับใจมากค่ะ จัดการดี ข้อมูลครบ ไม่ต้องถามซ้ำ", date: "25 ต.ค. 2568" },
+                    { name: "Tom", rating: 4, text: "Great trip! Well organized. Would love English translation next time.", date: "26 Oct 2025" },
+                    { name: "แพท", rating: 5, text: "ระบบแจ้งเตือนดีมาก รู้ทันทีเมื่อมีเปลี่ยนแปลง", date: "27 ต.ค. 2568" },
+                  ].map((r, i) => (
+                    <div key={i} className="bg-slate-50 rounded-xl p-5">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">{r.name.charAt(0)}</div>
+                          <span className="text-sm font-semibold text-slate-900">{r.name}</span>
+                        </div>
+                        <span className="text-xs text-slate-400">{r.date}</span>
+                      </div>
+                      <div className="flex gap-0.5 mb-2">
+                        {[1,2,3,4,5].map((s) => (
+                          <span key={s} className={`material-symbols-outlined text-sm ${s <= r.rating ? "text-amber-400" : "text-slate-200"}`} style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                        ))}
+                      </div>
+                      <p className="text-sm text-slate-600">{r.text}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-400 text-center">รีวิวจะแสดงบน Portfolio และ Marketplace ของคุณ</p>
+              </div>
+            )}
 
             {/* ─── Tab: Album ─── */}
             {activeTab === "album" && isEnded && (
