@@ -36,6 +36,15 @@ export default function DashboardPage(): React.ReactNode {
 
         {/* ═══ Onboarding (0 trips) ═══ */}
         {SHOW_ONBOARDING && (
+          <>
+          {/* Demo Note — ลบออกตอน production */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3 text-sm">
+            <span className="material-symbols-outlined text-amber-600 mt-0.5 text-lg">info</span>
+            <div>
+              <p className="font-semibold text-amber-800">ตัวอย่าง Onboarding (สำหรับ Demo เท่านั้น)</p>
+              <p className="text-amber-600 text-xs mt-0.5">ส่วนนี้จะแสดงเมื่อ user สมัครใหม่ ยังไม่เคยสร้างทริป (0 ทริป) — จะซ่อนอัตโนมัติเมื่อสร้างทริปแรกสำเร็จหรือกด "ข้าม"</p>
+            </div>
+          </div>
           <section className="relative overflow-hidden rounded-2xl">
             {/* Background image — bright & visible */}
             <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80" alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -79,6 +88,7 @@ export default function DashboardPage(): React.ReactNode {
               </div>
             </div>
           </section>
+          </>
         )}
 
         {/* ═══ Hero Bento ═══ */}
