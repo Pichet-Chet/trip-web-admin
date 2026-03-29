@@ -165,17 +165,23 @@ export type Acknowledgement = {
   acknowledgedAt: string | null;
 };
 
-// ─── Post ───
-export type PostCategory = "promotion" | "review" | "knowledge" | "announcement";
-export type PostStatus = "draft" | "published";
+// ─── Post (Tour Package Listing) ───
+export type PostStatus = "draft" | "published" | "closed";
 
 export type Post = {
   id: string;
   companyId: string;
+  slug: string;
   title: string;
-  content: string;
+  destination: string;
+  description: string;
+  highlights: string[];
   images: string[];
-  category: PostCategory;
+  priceStartFrom: number;
+  duration: string;
+  travelPeriod: string;
+  totalSlots: number;
+  slotsLeft: number;
   status: PostStatus;
   tags: string[];
   viewCount: number;
