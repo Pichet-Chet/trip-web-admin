@@ -1,6 +1,6 @@
 import type {
   Company, User, TripPlan, TripDay, TripActivity,
-  Follower, ChangeLog, Acknowledgement, UsageStats,
+  Follower, ChangeLog, Acknowledgement, UsageStats, Post,
 } from "@/types";
 
 // ─── Current User & Company ───
@@ -331,6 +331,73 @@ export const mockUsage: UsageStats = {
   ],
   notificationsPerMonth: { used: 3, limit: 10 },
 };
+
+// ─── Posts ───
+export const mockPosts: Post[] = [
+  {
+    id: "post-001",
+    companyId: "comp-001",
+    title: "เปิดรับสมัคร! ทริปญี่ปุ่นใบไม้เปลี่ยนสี ต.ค. 2569",
+    content: "ทริปญี่ปุ่น 8 วัน 7 คืน ชมใบไม้เปลี่ยนสีที่สวยที่สุดในรอบปี เส้นทาง โตเกียว — ฟูจิ — เกียวโต รับจำนวนจำกัด 25 ท่านเท่านั้น ราคาเริ่มต้น 45,900 บาท รวมตั๋วเครื่องบิน ที่พัก และอาหาร",
+    images: [
+      "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600",
+      "https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=600",
+    ],
+    category: "promotion",
+    status: "published",
+    tags: ["ญี่ปุ่น", "ใบไม้เปลี่ยนสี", "โตเกียว"],
+    viewCount: 1240,
+    inquiryCount: 8,
+    createdAt: "2026-03-20T10:00:00Z",
+    updatedAt: "2026-03-20T10:00:00Z",
+  },
+  {
+    id: "post-002",
+    companyId: "comp-001",
+    title: "รีวิว Seoul Autumn จากลูกทริปของเรา",
+    content: "ขอบคุณลูกทริปทุกท่านที่ไว้วางใจ Amazing Tour ทริป Seoul Autumn ที่ผ่านมาสนุกมากครับ ใบไม้เปลี่ยนสีสวยงามตลอดเส้นทาง อาหารอร่อย ที่พักดี บรรยากาศเป็นกันเอง",
+    images: [
+      "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=600",
+      "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=600",
+      "https://images.unsplash.com/photo-1583400225507-3add10a0818e?w=600",
+    ],
+    category: "review",
+    status: "published",
+    tags: ["เกาหลี", "โซล", "รีวิว"],
+    viewCount: 856,
+    inquiryCount: 3,
+    createdAt: "2026-03-15T14:00:00Z",
+    updatedAt: "2026-03-15T14:00:00Z",
+  },
+  {
+    id: "post-003",
+    companyId: "comp-001",
+    title: "5 สิ่งที่ต้องเตรียมก่อนไปญี่ปุ่น",
+    content: "1. พาสปอร์ตอายุเหลือ 6 เดือนขึ้นไป\n2. เงินสด ¥30,000 ต่อคน\n3. เสื้อกันหนาวที่เหมาะกับฤดูกาล\n4. ปลั๊กแปลง Type A\n5. Pocket WiFi หรือ eSIM",
+    images: ["https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600"],
+    category: "knowledge",
+    status: "published",
+    tags: ["ญี่ปุ่น", "เตรียมตัว", "tips"],
+    viewCount: 2100,
+    inquiryCount: 0,
+    createdAt: "2026-03-10T09:00:00Z",
+    updatedAt: "2026-03-10T09:00:00Z",
+  },
+  {
+    id: "post-004",
+    companyId: "comp-001",
+    title: "โปรฯ เชียงใหม่ 3 วัน ลด 20% เหลือ 5 ที่สุดท้าย",
+    content: "ทริปเชียงใหม่สุดคุ้ม เที่ยวดอยสุเทพ สวนดอกไม้ คาเฟ่ชิลๆ พักโรงแรม 4 ดาว ราคาปกติ 5,900 ลดเหลือ 4,720 บาท จองก่อนหมด!",
+    images: ["https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=600"],
+    category: "promotion",
+    status: "draft",
+    tags: ["เชียงใหม่", "โปรโมชั่น"],
+    viewCount: 0,
+    inquiryCount: 0,
+    createdAt: "2026-03-28T16:00:00Z",
+    updatedAt: "2026-03-28T16:00:00Z",
+  },
+];
 
 // ─── Helper: get days for a trip ───
 export function getMockDays(tripId: string): TripDay[] {

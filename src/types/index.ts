@@ -165,6 +165,25 @@ export type Acknowledgement = {
   acknowledgedAt: string | null;
 };
 
+// ─── Post ───
+export type PostCategory = "promotion" | "review" | "knowledge" | "announcement";
+export type PostStatus = "draft" | "published";
+
+export type Post = {
+  id: string;
+  companyId: string;
+  title: string;
+  content: string;
+  images: string[];
+  category: PostCategory;
+  status: PostStatus;
+  tags: string[];
+  viewCount: number;
+  inquiryCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 // ─── Usage ───
 export type UsageStats = {
   tripSlots: { used: number; limit: number };
