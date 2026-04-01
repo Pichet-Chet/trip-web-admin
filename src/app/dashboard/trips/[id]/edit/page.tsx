@@ -501,16 +501,16 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
         {/* Editor Grid */}
         {currentDay && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Left: Itinerary List */}
-            <div className="lg:col-span-7 space-y-4">
+            <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-extrabold text-(--on-surface) tracking-tight">
                   Day {activeDay + 1} — ตารางกิจกรรม
                 </h2>
                 <button
                   onClick={addActivity}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-blue-700 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all"
                 >
                   <span className="material-symbols-outlined text-lg">add_circle</span>
                   เพิ่มกิจกรรม
@@ -541,13 +541,13 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                   </div>
                 ) : (
                   currentDay.activities.map((act) => (
-                    <div key={act.id} className="group bg-white rounded-2xl border border-(--outline-variant)/30 hover:border-(--primary)/30 shadow-sm transition-all p-5 md:p-7">
-                      <div className="flex gap-3 md:gap-4 items-start">
+                    <div key={act.id} className="group bg-white rounded-2xl border border-(--outline-variant)/30 hover:border-(--primary)/30 shadow-sm transition-all p-5 md:p-6">
+                      <div className="flex gap-3 items-start">
                         {/* Emoji Selector */}
-                        <div className="mt-5 relative">
+                        <div className="mt-6 relative shrink-0">
                           <button
                             onClick={() => setEmojiPickerFor(emojiPickerFor === act.id ? null : act.id)}
-                            className="w-10 h-10 rounded-xl bg-(--surface-variant)/50 hover:bg-(--surface-variant) flex items-center justify-center text-xl transition-all border border-(--outline-variant)/30"
+                            className="w-10 h-10 rounded-xl bg-(--surface-variant)/50 hover:bg-(--surface-variant) flex items-center justify-center text-xl transition-all"
                             title="เลือก Emoji"
                           >
                             {act.emoji}
@@ -555,7 +555,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                           {emojiPickerFor === act.id && (
                             <>
                               <div className="fixed inset-0 z-30" onClick={() => setEmojiPickerFor(null)} />
-                              <div className="absolute left-0 top-12 z-40 bg-white rounded-xl shadow-xl border border-(--outline-variant) p-3 grid grid-cols-7 gap-1 w-64">
+                              <div className="absolute left-0 top-12 z-40 bg-white rounded-xl shadow-xl border border-(--outline-variant)/30 p-3 grid grid-cols-7 gap-1 w-64">
                                 {EMOJI_OPTIONS.map((em) => (
                                   <button
                                     key={em}
@@ -573,9 +573,9 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                           )}
                         </div>
 
-                        <div className="flex-1 space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="md:col-span-1 relative">
+                        <div className="flex-1 min-w-0 space-y-4">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="col-span-1 relative">
                               <TimePicker
                                 label="เวลา"
                                 value={act.time ?? ""}
@@ -591,7 +591,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                                 onBlur={() => updateActivityField(currentDay.id, act.id, "time", act.time ?? "")}
                               />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="col-span-2">
                               <FormInput
                                 label="ชื่อกิจกรรม"
                                 value={act.name}
@@ -610,9 +610,8 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                             </div>
                           </div>
 
-                          {/* Type Selector + Place */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="md:col-span-1 relative">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="col-span-1 relative">
                               <SelectPicker
                                 label="ประเภท"
                                 value={act.type}
@@ -621,7 +620,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                                 searchable={false}
                               />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="col-span-2">
                               <FormInput
                                 label="สถานที่ / Google Maps"
                                 placeholder="ชื่อสถานที่ หรือ link Google Maps"
@@ -658,7 +657,8 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                             placeholder="เช่น ใส่กางเกงขาสั้น, เตรียมเสื้อกันหนาว..."
                           />
                         </div>
-                        <div className="pt-5">
+
+                        <div className="mt-6 shrink-0">
                           <IconButton icon="delete" variant="danger" onClick={() => removeActivity(currentDay.id, act.id)} />
                         </div>
                       </div>
@@ -669,7 +669,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
             </div>
 
             {/* Right: Context Panel */}
-            <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-20">
+            <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-36">
               {/* Day Cover Image Upload */}
               <ImageUpload
                 value={currentDay.coverImageUrl ?? ""}

@@ -8,6 +8,7 @@ const navItems = [
   { label: "หน้าหลัก", href: ROUTES.dashboard, icon: "dashboard" },
   { label: "ทริปของฉัน", href: "/dashboard/my-trips", icon: "luggage" },
   { label: "แพ็กเกจทัวร์", href: "/dashboard/posts", icon: "flight_takeoff" },
+  { label: "คลังสื่อ", href: "/dashboard/media", icon: "photo_library" },
   { label: "โปรไฟล์", href: ROUTES.profile, icon: "person" },
   { label: "การใช้งาน", href: ROUTES.usage, icon: "speed" },
   { label: "การชำระเงิน", href: "/dashboard/billing", icon: "receipt_long" },

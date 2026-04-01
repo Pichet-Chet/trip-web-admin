@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { MediaLibraryModal } from "./media-library-modal";
 
 interface ImageUploadProps {
   value: string | null;
@@ -35,13 +36,13 @@ export function ImageUpload({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [showLibrary, setShowLibrary] = useState(false);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side validation
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
     if (!allowedTypes.includes(file.type)) {
@@ -60,7 +61,8 @@ export function ImageUpload({
       const { getValidToken } = await import("@/lib/auth");
       const token = await getValidToken();
 
-      const endpoint = uploadUrl || `${API_URL}/admin/upload/image?folder=${folder}`;
+      // Use media endpoint for tracking
+      const endpoint = uploadUrl || `${API_URL}/admin/media/upload?folder=${folder}`;
       const formData = new FormData();
       formData.append("file", file);
 
@@ -96,46 +98,70 @@ export function ImageUpload({
         className="hidden"
       />
 
-      <div className={isSquare ? "" : "grid grid-cols-1 lg:grid-cols-12 gap-6"}>
+      <div className={isSquare ? "" : presets ? "grid grid-cols-1 lg:grid-cols-12 gap-6" : ""}>
         <div
-          onClick={() => !uploading && fileRef.current?.click()}
-          className={`${isSquare ? "" : "lg:col-span-8"} group relative overflow-hidden rounded-2xl bg-white flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer ${aspectClass[aspect]}`}
+          className={`${isSquare ? "" : presets ? "lg:col-span-8" : ""} relative overflow-hidden rounded-2xl bg-white border-2 border-dashed border-(--outline-variant)/30 transition-all ${aspectClass[aspect]}`}
         >
           {uploading ? (
-            <div className="text-center space-y-2 z-10 p-4">
-              <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-sm font-semibold text-slate-500">กำลังอัปโหลด...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center space-y-2 z-10 p-4">
+              <div className="w-8 h-8 border-3 border-(--primary) border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-sm font-semibold text-(--on-surface-variant)">กำลังอัปโหลด...</p>
             </div>
           ) : value ? (
             <>
               <img src={value} alt={label ?? "Upload"} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="bg-white/90 text-slate-900 px-4 py-2 rounded-full text-sm font-bold">
-                  เปลี่ยนรูป
-                </span>
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-all flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors"
+                >
+                  อัปโหลดใหม่
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLibrary(true)}
+                  className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors"
+                >
+                  คลังสื่อ
+                </button>
               </div>
             </>
           ) : (
-            <div className="text-center space-y-2 z-10 p-4">
-              <span className="material-symbols-outlined text-3xl text-slate-300">add_photo_alternate</span>
-              {label && <p className="text-sm font-semibold text-slate-700">{label}</p>}
-              {hint && <p className="text-xs text-slate-400">{hint}</p>}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center space-y-3 z-10 p-4">
+              <span className="material-symbols-outlined text-3xl text-(--outline-variant)">add_photo_alternate</span>
+              {label && <p className="text-sm font-semibold text-(--on-surface-variant)">{label}</p>}
+              {hint && <p className="text-xs text-(--on-surface-variant)">{hint}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="px-4 py-2 rounded-xl bg-(--primary) text-(--on-primary) text-xs font-bold hover:opacity-90 transition-opacity"
+                >
+                  อัปโหลด
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLibrary(true)}
+                  className="px-4 py-2 rounded-xl bg-(--surface-variant) text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-variant)/80 transition-colors"
+                >
+                  คลังสื่อ
+                </button>
+              </div>
             </div>
           )}
-
-          {/* กดที่รูปเพื่อเปลี่ยน — ไม่ต้องมีปุ่ม edit ซ้อน */}
         </div>
 
         {presets && !isSquare && (
           <div className="lg:col-span-4 flex flex-col gap-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">ภาพสำเร็จรูป</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-(--on-surface-variant)">ภาพสำเร็จรูป</p>
             <div className="grid grid-cols-2 gap-3">
               {presets.map((p) => (
                 <button
                   key={p.label}
                   type="button"
                   onClick={() => onChange(p.url)}
-                  className="group/preset relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-blue-600 ring-offset-2 transition-all"
+                  className="group/preset relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-(--primary) ring-offset-2 transition-all"
                 >
                   <img src={p.url} alt={p.label} className="w-full h-full object-cover group-hover/preset:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
@@ -154,6 +180,14 @@ export function ImageUpload({
           {error}
         </p>
       )}
+
+      {/* Media Library Modal */}
+      <MediaLibraryModal
+        open={showLibrary}
+        onClose={() => setShowLibrary(false)}
+        onSelect={(url) => onChange(url)}
+        folder={folder}
+      />
     </div>
   );
 }

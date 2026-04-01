@@ -20,4 +20,5 @@ export { Skeleton, CardSkeleton, TableRowSkeleton, PageSkeleton } from "./skelet
 export { DatePicker } from "./date-picker";
 export { TimePicker } from "./time-picker";
 export { SelectPicker } from "./select-picker";
+export { MediaLibraryModal } from "./media-library-modal";
 export type { SelectOption } from "./select-picker";
