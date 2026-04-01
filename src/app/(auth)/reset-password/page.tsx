@@ -69,11 +69,11 @@ function ResetPasswordContent(): React.ReactNode {
   if (success) {
     return (
       <>
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-green-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+        <div className="mb-10">
+          <div className="w-12 h-12 rounded-xl bg-(--primary-container) flex items-center justify-center mb-6">
+            <span className="material-symbols-outlined text-(--on-primary-container) text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           </div>
-          <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-3">รีเซ็ตสำเร็จ!</h2>
+          <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-2">รีเซ็ตสำเร็จ</h2>
           <p className="text-(--on-surface-variant)">สามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้แล้ว</p>
         </div>
         <Link
@@ -95,7 +95,22 @@ function ResetPasswordContent(): React.ReactNode {
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
-        <FormInput label="รหัสผ่านใหม่" placeholder="••••••••" type="password" icon="lock" value={password} onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => { const n = {...p}; delete n.password; return n; }); }} error={errors.password} required />
+        <div>
+          <FormInput label="รหัสผ่านใหม่" placeholder="••••••••" type="password" icon="lock" value={password} onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => { const n = {...p}; delete n.password; return n; }); }} error={errors.password} required />
+          {password.length > 0 && !errors.password && (() => {
+            const strength = [password.length >= 8, /[A-Z]/.test(password), /[a-z]/.test(password), /[0-9]/.test(password), /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)].filter(Boolean).length;
+            const labels = ["", "อ่อน", "อ่อน", "ปานกลาง", "แข็งแรง", "แข็งแรงมาก"];
+            const colors = ["", "bg-red-500", "bg-red-500", "bg-amber-500", "bg-(--primary)", "bg-green-600"];
+            return (
+              <div className="mt-2 flex gap-1 px-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className={`h-1 flex-1 rounded-full ${i <= strength ? colors[strength] : "bg-(--outline-variant)/30"}`} />
+                ))}
+                <span className="text-[10px] text-(--primary) ml-1 font-semibold uppercase tracking-wider">{labels[strength]}</span>
+              </div>
+            );
+          })()}
+        </div>
         <FormInput label="ยืนยันรหัสผ่านใหม่" placeholder="••••••••" type="password" icon="lock" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); if (errors.confirmPassword) setErrors((p) => { const n = {...p}; delete n.confirmPassword; return n; }); }} error={errors.confirmPassword} required />
 
         {apiError && (

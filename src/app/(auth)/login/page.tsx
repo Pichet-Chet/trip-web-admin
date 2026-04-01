@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput } from "@/components/shared";
@@ -24,6 +24,16 @@ export default function LoginPage(): React.ReactNode {
   const [rememberMe, setRememberMe] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("remember_me") === "true" : false
   );
+  const [blocked, setBlocked] = useState(false);
+  const [blockCountdown, setBlockCountdown] = useState(0);
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+
+  // Block countdown timer
+  useEffect(() => {
+    if (blockCountdown <= 0) { setBlocked(false); return; }
+    const t = setTimeout(() => setBlockCountdown(blockCountdown - 1), 1000);
+    return () => clearTimeout(t);
+  }, [blockCountdown]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +52,20 @@ export default function LoginPage(): React.ReactNode {
       localStorage.setItem("remember_me", String(rememberMe));
       router.push(ROUTES.dashboard);
     } catch (err) {
-      setApiError(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่");
+      const msg = err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่";
+
+      if (msg === "captcha_required") {
+        setCaptchaRequired(true);
+        setApiError("กรุณายืนยันว่าคุณไม่ใช่บอท");
+      } else if (msg.includes("พยายามเข้าสู่ระบบมากเกินไป")) {
+        setBlocked(true);
+        // Parse seconds from error message
+        const match = msg.match(/(\d+)\s*วินาที/);
+        setBlockCountdown(match ? parseInt(match[1]) : 1800);
+        setApiError(msg);
+      } else {
+        setApiError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -130,12 +153,31 @@ export default function LoginPage(): React.ReactNode {
                 <p className="text-sm text-red-700">{apiError}</p>
               </div>
             )}
+            {/* Blocked state */}
+            {blocked && (
+              <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <span className="material-symbols-outlined text-amber-500 mt-0.5 shrink-0">timer</span>
+                <div>
+                  <p className="text-sm font-bold text-amber-800">พยายามเข้าสู่ระบบมากเกินไป</p>
+                  <p className="text-xs text-amber-700 mt-1">ลองใหม่ได้ใน {Math.floor(blockCountdown / 60)}:{String(blockCountdown % 60).padStart(2, "0")} นาที</p>
+                </div>
+              </div>
+            )}
+
+            {/* CAPTCHA notice */}
+            {captchaRequired && !blocked && (
+              <div className="flex items-start gap-3 p-4 bg-(--surface-container-low) border border-(--outline-variant)/30 rounded-xl">
+                <span className="material-symbols-outlined text-(--primary) mt-0.5 shrink-0">verified_user</span>
+                <p className="text-sm text-(--on-surface-variant)">ระบบตรวจพบการเข้าสู่ระบบหลายครั้ง กรุณายืนยันตัวตน</p>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || blocked}
               className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg hover:opacity-95 shadow-xl shadow-(--primary)/20 transition-all active:scale-[0.98] duration-200 text-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+              {loading ? "กำลังเข้าสู่ระบบ..." : blocked ? "กรุณารอ..." : "เข้าสู่ระบบ"}
             </button>
           </form>
 

@@ -43,6 +43,7 @@ export interface LoginPayload {
   email: string;
   password: string;
   rememberMe?: boolean;
+  captchaToken?: string;
 }
 
 export interface RegisterResponse {
