@@ -16,6 +16,7 @@ function VerifyEmailContent(): React.ReactNode {
   const [status, setStatus] = useState<"pending" | "verifying" | "success" | "error">(token ? "verifying" : "pending");
   const [errorMsg, setErrorMsg] = useState("");
   const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(token ? 0 : 60);
 
   useEffect(() => {
     if (!token) return;
@@ -27,95 +28,153 @@ function VerifyEmailContent(): React.ReactNode {
       });
   }, [token]);
 
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
   async function handleResend() {
-    if (!email) return;
+    if (!email || cooldown > 0) return;
     setResending(true);
     try {
-      await api.post("/admin/auth/resend-verification", { email });
-      toast("ส่งอีเมลยืนยันใหม่แล้ว", "success");
-    } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด", "error");
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+      const res = await fetch(`${API_URL}/admin/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast("ส่งอีเมลยืนยันใหม่แล้ว");
+        setCooldown(60);
+      } else {
+        toast(json.error || "เกิดข้อผิดพลาด", "error");
+      }
+    } catch {
+      toast("เกิดข้อผิดพลาด", "error");
     } finally {
       setResending(false);
     }
   }
 
-  // Pending — รอ verify (มาจาก register)
+  // ═══ Pending ═══
   if (status === "pending") {
     return (
       <>
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-blue-600 text-3xl">mail</span>
+        <div className="mb-10">
+          <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-2">ตรวจสอบอีเมล</h2>
+          <p className="text-(--on-surface-variant)">เราส่งลิงก์ยืนยันไปที่ <strong className="text-(--on-surface)">{email || "อีเมลของคุณ"}</strong></p>
+        </div>
+
+        <div className="space-y-5 mb-10">
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-lg bg-(--primary-container) flex items-center justify-center shrink-0 mt-0.5">
+              <span className="material-symbols-outlined text-(--on-primary-container) text-lg">inbox</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-(--on-surface)">เปิดอีเมลจาก Trip Platform</p>
+              <p className="text-xs text-(--on-surface-variant) mt-0.5">ตรวจสอบ Inbox หรือโฟลเดอร์ Spam</p>
+            </div>
           </div>
-          <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-3">ตรวจสอบอีเมล</h2>
-          <p className="text-(--on-surface-variant)">
-            เราได้ส่งลิงก์ยืนยันไปที่ <strong className="text-(--on-surface)">{email || "อีเมลของคุณ"}</strong>
-          </p>
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-lg bg-(--primary-container) flex items-center justify-center shrink-0 mt-0.5">
+              <span className="material-symbols-outlined text-(--on-primary-container) text-lg">touch_app</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-(--on-surface)">กดปุ่มยืนยันอีเมล</p>
+              <p className="text-xs text-(--on-surface-variant) mt-0.5">ลิงก์มีอายุ 24 ชั่วโมง</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-lg bg-(--primary-container) flex items-center justify-center shrink-0 mt-0.5">
+              <span className="material-symbols-outlined text-(--on-primary-container) text-lg">login</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-(--on-surface)">เข้าสู่ระบบ</p>
+              <p className="text-xs text-(--on-surface-variant) mt-0.5">บัญชีพร้อมใช้งานทันที</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-(--surface-container-low) rounded-xl p-5 space-y-3 mb-8">
-          <p className="text-sm font-semibold text-(--on-surface-variant)">ไม่ได้รับอีเมล?</p>
-          <ul className="text-xs text-(--outline) space-y-1.5">
-            <li>ตรวจสอบโฟลเดอร์ Spam / Junk Mail</li>
-            <li>รอสักครู่ อาจใช้เวลาไม่กี่นาที</li>
-          </ul>
-          {email && (
-            <button onClick={handleResend} disabled={resending} className="text-sm text-(--primary) font-semibold hover:underline disabled:opacity-50">
-              {resending ? "กำลังส่ง..." : "ส่งอีเมลยืนยันอีกครั้ง"}
-            </button>
-          )}
+
+        <div className="relative flex items-center mb-8">
+          <div className="grow border-t border-(--outline-variant) opacity-30" />
+          <span className="shrink mx-4 text-(--outline) text-xs uppercase tracking-widest">ไม่ได้รับอีเมล?</span>
+          <div className="grow border-t border-(--outline-variant) opacity-30" />
         </div>
-        <div className="text-center">
-          <Link href={ROUTES.login} className="text-sm text-(--primary) font-semibold hover:underline">กลับไปหน้าเข้าสู่ระบบ</Link>
+
+        {email && (
+          <button
+            onClick={handleResend}
+            disabled={resending || cooldown > 0}
+            className="block w-full bg-(--surface-container-low) border border-(--outline-variant)/30 text-(--on-surface) py-4 px-6 rounded-xl font-bold text-center hover:bg-(--surface-container-high) transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {resending ? "กำลังส่ง..." : cooldown > 0 ? `ส่งอีกครั้งได้ใน ${cooldown} วินาที` : "ส่งอีเมลยืนยันอีกครั้ง"}
+          </button>
+        )}
+
+        <div className="mt-12 text-center">
+          <Link href={ROUTES.login} className="text-(--on-surface-variant) hover:text-(--primary) text-sm transition-colors">
+            กลับไปหน้าเข้าสู่ระบบ
+          </Link>
         </div>
       </>
     );
   }
 
-  // Verifying
+  // ═══ Verifying ═══
   if (status === "verifying") {
     return (
-      <div className="text-center">
-        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-6 animate-pulse">
-          <span className="material-symbols-outlined text-blue-600 text-3xl">hourglass_top</span>
-        </div>
-        <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-3">กำลังยืนยัน...</h2>
+      <div className="text-center py-12">
+        <div className="w-12 h-12 border-4 border-(--primary)/20 border-t-(--primary) rounded-full animate-spin mx-auto mb-6" />
+        <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-2">กำลังยืนยัน</h2>
         <p className="text-(--on-surface-variant)">กรุณารอสักครู่</p>
       </div>
     );
   }
 
-  // Success
+  // ═══ Success ═══
   if (status === "success") {
     return (
       <>
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-green-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+        <div className="mb-10">
+          <div className="w-12 h-12 rounded-xl bg-(--primary-container) flex items-center justify-center mb-6">
+            <span className="material-symbols-outlined text-(--on-primary-container) text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           </div>
-          <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-3">ยืนยันสำเร็จ!</h2>
-          <p className="text-(--on-surface-variant)">บัญชีพร้อมใช้งานแล้ว</p>
+          <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-2">ยืนยันสำเร็จ</h2>
+          <p className="text-(--on-surface-variant)">บัญชีพร้อมใช้งานแล้ว เข้าสู่ระบบเพื่อเริ่มสร้างทริปแรก</p>
         </div>
-        <Link href={ROUTES.login} className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg hover:opacity-95 shadow-xl shadow-(--primary)/20 transition-all active:scale-[0.98] text-center">
+
+        <Link
+          href={ROUTES.login}
+          className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg text-center hover:opacity-95 shadow-xl shadow-(--primary)/20 transition-all active:scale-[0.98]"
+        >
           เข้าสู่ระบบ
         </Link>
       </>
     );
   }
 
-  // Error
+  // ═══ Error ═══
   return (
     <>
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
-          <span className="material-symbols-outlined text-red-600 text-3xl">error</span>
+      <div className="mb-10">
+        <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-6">
+          <span className="material-symbols-outlined text-red-500 text-2xl">error</span>
         </div>
-        <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-3">ไม่สามารถยืนยันได้</h2>
-        <p className="text-(--on-surface-variant)">{errorMsg}</p>
+        <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-2">ไม่สามารถยืนยันได้</h2>
+        <p className="text-(--on-surface-variant)">{errorMsg || "ลิงก์อาจหมดอายุหรือถูกใช้งานแล้ว"}</p>
       </div>
-      <div className="text-center space-y-3">
-        <Link href={ROUTES.login} className="text-sm text-(--primary) font-semibold hover:underline block">กลับไปหน้าเข้าสู่ระบบ</Link>
-        <Link href={ROUTES.register} className="text-sm text-(--outline) hover:underline block">สมัครสมาชิกใหม่</Link>
+
+      <div className="space-y-3">
+        <Link href={ROUTES.login} className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-center hover:opacity-95 shadow-xl shadow-(--primary)/20 transition-all active:scale-[0.98]">
+          กลับไปหน้าเข้าสู่ระบบ
+        </Link>
+        <div className="text-center">
+          <Link href={ROUTES.register} className="text-sm text-(--on-surface-variant) hover:text-(--primary) transition-colors">
+            สมัครสมาชิกใหม่
+          </Link>
+        </div>
       </div>
     </>
   );
