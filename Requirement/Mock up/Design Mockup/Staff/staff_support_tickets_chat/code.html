@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Staff Portal - Support &amp; Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#bd5700",
+              "surface-container-highest": "#e0e2ec",
+              "error": "#ba1a1a",
+              "on-secondary": "#ffffff",
+              "surface-bright": "#f9f9ff",
+              "secondary-container": "#b7cfff",
+              "outline-variant": "#c1c6d5",
+              "on-primary-container": "#fefcff",
+              "background": "#f9f9ff",
+              "primary-container": "#0873df",
+              "inverse-surface": "#2d3038",
+              "primary-fixed-dim": "#aac7ff",
+              "surface-variant": "#e0e2ec",
+              "on-primary-fixed-variant": "#00458d",
+              "on-primary": "#ffffff",
+              "on-background": "#181c22",
+              "inverse-on-surface": "#eff0fa",
+              "on-secondary-container": "#405882",
+              "on-secondary-fixed-variant": "#2e4770",
+              "secondary-fixed": "#d6e3ff",
+              "surface-container": "#ecedf7",
+              "on-secondary-fixed": "#001b3e",
+              "outline": "#717785",
+              "on-tertiary-fixed": "#321200",
+              "inverse-primary": "#aac7ff",
+              "on-tertiary": "#ffffff",
+              "tertiary": "#964400",
+              "secondary": "#465f89",
+              "on-error": "#ffffff",
+              "tertiary-fixed-dim": "#ffb68c",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed": "#001b3e",
+              "on-surface-variant": "#414753",
+              "surface-tint": "#005db8",
+              "surface-container-high": "#e6e8f1",
+              "primary": "#005ab4",
+              "surface-dim": "#d8dae3",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-container-low": "#f2f3fd",
+              "on-tertiary-fixed-variant": "#763400",
+              "on-tertiary-container": "#fffbff",
+              "tertiary-fixed": "#ffdbc9",
+              "surface": "#f9f9ff",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "primary-fixed": "#d6e3ff",
+              "on-surface": "#181c22"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-white">
+<!-- TopNavBar Shell -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-6 h-16 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm font-sans Inter antialiased">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-blue-700 dark:text-blue-400">Staff Portal</span>
+<div class="hidden md:flex items-center bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-outline" placeholder="Search tickets..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors rounded-full relative">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors rounded-full">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400" data-icon="help">help</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-primary-container ml-2">
+<img alt="Staff Profile" class="w-full h-full object-cover" data-alt="professional male staff profile picture with blue background office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6bOcSRK2NrkZpjzg9LixPXs7tABDqEWhIxHRNhUHd_APml-7d1nHgDHsqai2uvyyMHmEX0jBDBuiV95S9U7qgXfOhgYTx8z2adr8vVvFTNWHPfYEQD7qCLflX7ycUe-rveC02PjhrrBxQEOFTzWiRFB-PWCh7lbbxHbbgJCbIuV5NZ5yws2lvUlSDkueqsC9ZZZH-Xj2mp29a-wvV2sN_Qc0EshjNNh-b3TzRGQ_bHrOggbVECM-DP12hlowgHixFex-WfQnIraQH"/>
+</div>
+</div>
+</header>
+<div class="flex min-h-screen pt-0">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col w-64 z-50 bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 transition-all duration-200 ease-in-out font-sans Inter text-sm">
+<div class="p-6 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl" data-icon="admin_panel_settings">admin_panel_settings</span>
+</div>
+<div>
+<h2 class="text-lg font-black text-slate-900 dark:text-white leading-tight">Staff Management</h2>
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Admin Console</p>
+</div>
+</div>
+<nav class="flex-1 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Operators</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="route">route</span>
+<span>Trip Moderation</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="subscriptions">subscriptions</span>
+<span>Plans</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-r-4 border-blue-600 font-medium transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span>Tasks</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 flex flex-col h-[calc(100vh-64px)] bg-surface-container-low">
+<!-- Content Header -->
+<div class="px-8 py-4 bg-white border-b border-outline-variant flex justify-between items-center shrink-0">
+<div>
+<h1 class="text-2xl font-bold text-on-surface tracking-tight">Support Tickets</h1>
+<p class="text-sm text-on-surface-variant font-medium">Manage client issues and real-time support requests</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-container transition-all active:opacity-80">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        New Ticket
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline text-on-surface rounded-lg font-medium hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                        Filters
+                    </button>
+</div>
+</div>
+<!-- Bento/Split Layout -->
+<div class="flex-1 flex overflow-hidden p-6 gap-6">
+<!-- Left: Ticket List (Bento Grid Style Card) -->
+<section class="w-[45%] bg-white rounded-xl shadow-sm border border-outline-variant flex flex-col overflow-hidden">
+<div class="p-4 border-b border-outline-variant bg-surface-container-lowest flex justify-between items-center">
+<span class="text-sm font-bold text-secondary uppercase tracking-widest">Active Tickets</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full">12 OPEN</span>
+</div>
+<div class="overflow-y-auto custom-scrollbar flex-1">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-white/95 backdrop-blur z-10">
+<tr class="border-b border-outline-variant">
+<th class="px-4 py-3 text-xs font-semibold text-outline uppercase tracking-wider">Client &amp; Issue</th>
+<th class="px-4 py-3 text-xs font-semibold text-outline uppercase tracking-wider">Priority</th>
+<th class="px-4 py-3 text-xs font-semibold text-outline uppercase tracking-wider">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Active Row -->
+<tr class="hover:bg-primary-container/5 transition-colors cursor-pointer bg-primary-container/10 border-l-4 border-primary">
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">AM</div>
+<div>
+<div class="text-sm font-bold text-on-surface">Alex Mercer</div>
+<div class="text-xs text-on-surface-variant truncate w-40">Payment processing error #204</div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded-md uppercase">High</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary ring-4 ring-primary-container/20"></span>
+<span class="text-xs font-medium text-primary">Open</span>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-secondary text-xs">SK</div>
+<div>
+<div class="text-sm font-bold text-on-surface">Sarah K.</div>
+<div class="text-xs text-on-surface-variant truncate w-40">Update billing address</div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold rounded-md uppercase">Medium</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-xs font-medium text-secondary">In Progress</span>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-secondary text-xs">JB</div>
+<div>
+<div class="text-sm font-bold text-on-surface">James Brown</div>
+<div class="text-xs text-on-surface-variant truncate w-40">API Key renewal query</div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-surface-container-highest text-outline text-[10px] font-bold rounded-md uppercase">Low</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-xs font-medium text-outline">Resolved</span>
+</div>
+</td>
+</tr>
+<!-- Repeat Rows -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-secondary text-xs">EL</div>
+<div>
+<div class="text-sm font-bold text-on-surface">Elena L.</div>
+<div class="text-xs text-on-surface-variant truncate w-40">Plan upgrade assistance</div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold rounded-md uppercase">Medium</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-medium text-primary">Open</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center font-bold text-secondary text-xs">RC</div>
+<div>
+<div class="text-sm font-bold text-on-surface">Ray C.</div>
+<div class="text-xs text-on-surface-variant truncate w-40">Bug: Mobile view layout</div>
+</div>
+</div>
+</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded-md uppercase">High</span>
+</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-xs font-medium text-secondary">In Progress</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Right: Focused Chat Thread (Glassmorphism/Card Style) -->
+<section class="flex-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-outline-variant flex flex-col overflow-hidden">
+<!-- Chat Header -->
+<div class="p-5 border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Alex Mercer" class="w-12 h-12 rounded-full object-cover" data-alt="close-up portrait of a young man smiling in a casual studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOLw1Hdjc1cZpOGnqAC28fuQvwapE6uhInL93mRU_D3z_szosOorhnnywic6Cge8fsDeJw1dcOzZXpwaPpNCtFLe7SKlJ-GHJTtBG1Q92ETFhQQ3Pz98-zxKe2yX22rxawOjlxXjo2lKYpTbJmI4g7pXga4H_CBejhI0_LphpG3t__i01A99d2FbrWK-6s10yRdNi23Eyi_thiH2Yjy9uZRlkLksOnWH0HDvA-fDOwTLM-eH-BjeyM0JAsBMuoV6THFfHP5s3GUKHD"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+</div>
+<div>
+<h3 class="font-bold text-on-surface">Alex Mercer</h3>
+<p class="text-xs text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="mail">mail</span>
+                                    alex.m@example.com • ID: #204
+                                </p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-secondary transition-all">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-secondary transition-all">
+<span class="material-symbols-outlined" data-icon="videocam">videocam</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-secondary transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Chat History -->
+<div class="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 bg-surface-container-low/30">
+<div class="flex justify-center">
+<span class="px-3 py-1 bg-surface-container rounded-full text-[10px] font-bold text-outline uppercase tracking-widest">Yesterday</span>
+</div>
+<!-- Incoming Message -->
+<div class="flex items-start gap-3 max-w-[80%]">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="client avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB09ISJpp4l-7YtA7PC0XNI0tBk5Cg9gVrxASRirYf66kK-yuWfT-LMvVnwtnlIsvAskbMretASzDOAqfifnP1I7SsEtoNlU9fpJG-bhK3vARpclixLcrEKW1azuQ2j6hkydKUosAqayWVJZj3zKWdGF4rMkqZ5REZPLcTEjhv1TFFe92vW6lwxkGVkAlQuH__KHIDo0zHZ7-4doz54ojt6lo4frl0OwOAEsTvTJhuQoxzZM3LlFolb7tC5TEQ1sEvkZXt1mmPLNEOH"/>
+<div class="bg-white p-4 rounded-xl rounded-tl-none shadow-sm border border-outline-variant">
+<p class="text-sm text-on-surface">Hi, I'm having trouble processing my last payment. The system keeps saying 'Invalid Token' but my bank says the charge is pending.</p>
+<span class="text-[10px] text-outline mt-2 block text-right font-medium">10:45 AM</span>
+</div>
+</div>
+<!-- Outgoing Message (Staff) -->
+<div class="flex items-start gap-3 max-w-[80%] self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-[10px] font-bold">ME</div>
+<div class="bg-primary text-white p-4 rounded-xl rounded-tr-none shadow-md">
+<p class="text-sm">Hello Alex! I'm sorry for the inconvenience. Let me look into your transaction logs right away. Can you confirm the last 4 digits of the card used?</p>
+<span class="text-[10px] opacity-70 mt-2 block text-right font-medium">10:48 AM</span>
+</div>
+</div>
+<div class="flex justify-center">
+<span class="px-3 py-1 bg-surface-container rounded-full text-[10px] font-bold text-outline uppercase tracking-widest">Today</span>
+</div>
+<!-- Incoming Message -->
+<div class="flex items-start gap-3 max-w-[80%]">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="client avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0PkliKTPADtuJT3x4bQI4NEddEzoSJvAkYIVhdv-Hf5Dm7ej5NwsLoWZQrlJSWd1brb-ynvB2NnIJlJJavtQ1XByke_4VlyUkw--Xd2TvGKPMlHj7CdxGjFIp0ZKHsiifmyjeMKaeVYEf2fWWmYP8VqKWad8sVfK8nSpjYLqzxFXC3-aCJujpQG4wTuC3loPV9lKFIQ00gPh4xH1xPyHZOFTc1yN16vFCzK0fjG8p2P1q1W13pXncdaAmWoWcRDUMPZZu7cOQmiXw"/>
+<div class="bg-white p-4 rounded-xl rounded-tl-none shadow-sm border border-outline-variant">
+<p class="text-sm text-on-surface">Sure, it's the one ending in 4242. Any update? I really need that plan active today for my team.</p>
+<span class="text-[10px] text-outline mt-2 block text-right font-medium">09:12 AM</span>
+</div>
+</div>
+<!-- Outgoing Message (Staff) -->
+<div class="flex items-start gap-3 max-w-[80%] self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-[10px] font-bold">ME</div>
+<div class="bg-primary text-white p-4 rounded-xl rounded-tr-none shadow-md">
+<p class="text-sm">I've found the record. It seems like a gateway timeout. I'm manually validating the token now. It should be resolved in the next 5 minutes.</p>
+<div class="mt-2 flex items-center gap-2 p-2 bg-white/10 rounded-lg">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span>
+<span class="text-[11px] font-bold">Validation Request Sent</span>
+</div>
+<span class="text-[10px] opacity-70 mt-2 block text-right font-medium">09:15 AM</span>
+</div>
+</div>
+</div>
+<!-- Chat Input -->
+<div class="p-6 border-t border-outline-variant bg-white">
+<div class="flex items-center gap-3 p-2 bg-surface-container-low rounded-xl border border-outline-variant focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<button class="p-2 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-outline font-medium" placeholder="Type your response..." type="text"/>
+<button class="p-2 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="mood">mood</span>
+</button>
+<button class="flex items-center justify-center h-10 w-10 bg-primary text-white rounded-lg shadow-sm hover:bg-primary-container active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+<div class="mt-3 flex justify-between">
+<div class="flex gap-4">
+<button class="text-[11px] font-bold text-outline hover:text-secondary uppercase tracking-tighter flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+                                    Saved Replies
+                                </button>
+<button class="text-[11px] font-bold text-outline hover:text-secondary uppercase tracking-tighter flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="attach_file">attach_file</span>
+                                    Attach File
+                                </button>
+</div>
+<div class="text-[11px] text-outline font-medium italic">
+                                Staff Member is typing...
+                            </div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

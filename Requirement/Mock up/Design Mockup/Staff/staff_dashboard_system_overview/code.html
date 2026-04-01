@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NatGan Admin - System Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#ffdbc9",
+              "on-tertiary-container": "#fffbff",
+              "background": "#f9f9ff",
+              "on-tertiary": "#ffffff",
+              "tertiary-container": "#bd5700",
+              "on-secondary-container": "#405882",
+              "primary-container": "#0873df",
+              "surface-container": "#ecedf7",
+              "secondary": "#465f89",
+              "primary": "#005ab4",
+              "tertiary-fixed-dim": "#ffb68c",
+              "on-tertiary-fixed": "#321200",
+              "on-secondary-fixed-variant": "#2e4770",
+              "surface-container-low": "#f2f3fd",
+              "surface-bright": "#f9f9ff",
+              "surface-dim": "#d8dae3",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#d6e3ff",
+              "inverse-on-surface": "#eff0fa",
+              "surface-variant": "#e0e2ec",
+              "surface-container-high": "#e6e8f1",
+              "primary-fixed": "#d6e3ff",
+              "outline-variant": "#c1c6d5",
+              "inverse-primary": "#aac7ff",
+              "on-error-container": "#93000a",
+              "tertiary": "#964400",
+              "on-tertiary-fixed-variant": "#763400",
+              "on-primary-fixed-variant": "#00458d",
+              "on-primary-fixed": "#001b3e",
+              "on-primary-container": "#fefcff",
+              "on-secondary-fixed": "#001b3e",
+              "on-surface-variant": "#414753",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface": "#f9f9ff",
+              "primary-fixed-dim": "#aac7ff",
+              "on-background": "#181c22",
+              "outline": "#717785",
+              "on-surface": "#181c22",
+              "secondary-container": "#b7cfff",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-container-highest": "#e0e2ec",
+              "error": "#ba1a1a",
+              "inverse-surface": "#2d3038",
+              "on-secondary": "#ffffff",
+              "surface-tint": "#005db8"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background flex h-screen overflow-hidden">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 bg-slate-50 dark:bg-slate-950 h-screen w-64 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium z-50">
+<div class="mb-8 px-3">
+<h1 class="text-xl font-black tracking-tight text-blue-600">NatGan Admin</h1>
+<p class="text-xs text-slate-500 mt-1">Staff Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-150 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-600" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-150 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Operators</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-150 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span>Trip Moderation</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-150 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span>Usage Logs</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-150 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full bg-primary text-on-primary py-2.5 px-4 rounded-lg font-bold mb-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Report
+            </button>
+<a class="flex items-center space-x-3 p-3 rounded-lg transition-all duration-150 text-slate-600 dark:text-slate-400 hover:text-error dark:hover:text-error" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 overflow-y-auto relative">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="sticky top-0 z-40 w-full flex justify-between items-center px-6 h-16 bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm w-80 focus:ring-2 focus:ring-primary/20" placeholder="Global system search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-slate-500 hover:bg-slate-50 transition-colors p-2 rounded-full cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<button class="text-slate-500 hover:bg-slate-50 transition-colors p-2 rounded-full relative cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+<div class="text-right">
+<p class="text-xs font-bold text-on-background">Admin User</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-wider">Super Administrator</p>
+</div>
+<img alt="Administrator Profile" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10" data-alt="close-up portrait of a professional man with glasses smiling in a bright office setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtjJoEGGwbOTJJh2DqGHtcyAeE7UG7QN0s7bjXviPxwwg5_yXHsTptkhNDYfG6C3U3VeT8bYpa4M0zPyCzMcw54-FyTj4TKkphQc39viK1diTPKag24COmq4wCVqAITajzZwHy_tHE4OT18wQnI_tYtbDL376n_dOrMTKPCH1aGIOqUG7ZJoxcy-8kAAWPdhFBL0HU2XtPUXoHzwNuWXkuMnwezKJ95yRCEREWOMO-i_YMDXbZNFx6dM85OoQ2T283uG018wa-g2wR"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<!-- Header Section -->
+<div class="flex items-end justify-between">
+<div>
+<h2 class="text-3xl font-black text-on-background tracking-tight">System Overview</h2>
+<p class="text-slate-500 mt-1">Real-time health and operational metrics for the NatGan ecosystem.</p>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-100 text-sm font-semibold">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    All Systems Operational
+                </div>
+</div>
+<!-- Metrics Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Card: Active Operators -->
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</div>
+<span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">+12.5%</span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Active Operators</p>
+<h3 class="text-3xl font-black text-on-background mt-1">1,284</h3>
+</div>
+<!-- Card: Total Live Trips -->
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</div>
+<span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">Live Now</span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Total Live Trips</p>
+<h3 class="text-3xl font-black text-on-background mt-1">452</h3>
+</div>
+<!-- Card: Active Guests -->
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-tertiary-fixed rounded-lg flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="hiking">hiking</span>
+</div>
+<span class="text-xs font-bold text-primary px-2 py-1 bg-primary-fixed rounded">High Load</span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Active Guests</p>
+<h3 class="text-3xl font-black text-on-background mt-1">8,912</h3>
+</div>
+<!-- Card: System Uptime -->
+<div class="bg-primary p-6 rounded-xl shadow-lg relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-primary-fixed/80 text-sm font-medium">Core API Latency</p>
+<h3 class="text-3xl font-black text-white mt-1">42ms</h3>
+<div class="mt-4 flex items-center gap-2 text-white/90 text-xs font-bold">
+<span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            99.98% Uptime Last 24h
+                        </div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]" data-icon="dns">dns</span>
+</div>
+</div>
+</div>
+<!-- Detailed Section Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Registration Table (2/3 width) -->
+<div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+<div class="p-6 border-b border-slate-100 flex justify-between items-center">
+<h4 class="font-bold text-on-background text-lg">Recent Operator Registrations</h4>
+<button class="text-sm text-primary font-bold hover:underline">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+<tr>
+<th class="px-6 py-4">Company Name</th>
+<th class="px-6 py-4">TAT License Status</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">AM</div>
+<span class="font-semibold text-sm text-on-background">Andaman Marine Co.</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700">VERIFIED</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Oct 24, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">JH</div>
+<span class="font-semibold text-sm text-on-background">Jungle Hikes Ltd.</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">PENDING</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Oct 23, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">NT</div>
+<span class="font-semibold text-sm text-on-background">North Trek Tours</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700">VERIFIED</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Oct 22, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">ST</div>
+<span class="font-semibold text-sm text-on-background">Siam Travel Hub</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">PENDING</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Oct 22, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 text-xs">EV</div>
+<span class="font-semibold text-sm text-on-background">Eco Valley Resort</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700">VERIFIED</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600">Oct 21, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Secondary Info (1/3 width) -->
+<div class="space-y-6">
+<!-- Live Map Preview -->
+<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+<h4 class="font-bold text-on-background mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="map">map</span>
+                            Live Traffic Hotspots
+                        </h4>
+<div class="relative rounded-lg overflow-hidden h-48 bg-slate-100">
+<img alt="Map interface" class="w-full h-full object-cover" data-alt="simplified stylistic map visualization of southeast asia showing cluster points of active travel activities in neon blue and orange" data-location="Thailand" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0BHOK9n4pLigj5hZmoHit7HZ74Ppv9mRFnX3oQ3hG6z1tpA6-x5sTqVH2J9PtMTU1fkJ7ZI6PodlEWmpmXcChuwavCwl6YiD66uPoYX8OqlMAQpDgL-JbnyUpUGIqUVjlEYbxAZFYvGKRAGkmLT_2sPM9KLbjlksc3dpbC_rm5VN56WYTPS0Fe8O4UsQHzoNAPctSMJ_DkG6pSsiNgobXoKiA6Q7yXF-9Iku-1owe311Z_njdaH2CBc7TmAeI91z1ovBk7mVxkkVR"/>
+<div class="absolute inset-0 bg-primary/10"></div>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-slate-500">Phuket Region</span>
+<span class="font-bold">142 active</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+</div>
+</div>
+<!-- Alerts/Tasks -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/30">
+<h4 class="font-bold text-on-background mb-4">Pending Verifications</h4>
+<div class="space-y-4">
+<div class="flex gap-4 items-start">
+<div class="w-10 h-10 shrink-0 bg-white rounded-lg flex items-center justify-center border border-slate-100">
+<span class="material-symbols-outlined text-amber-500" data-icon="assignment_late">assignment_late</span>
+</div>
+<div>
+<p class="text-sm font-bold">14 Documents Awaiting Review</p>
+<p class="text-[11px] text-slate-500 mt-1">SLA: 12 hours remaining for Phuket cluster</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="w-10 h-10 shrink-0 bg-white rounded-lg flex items-center justify-center border border-slate-100">
+<span class="material-symbols-outlined text-blue-500" data-icon="support_agent">support_agent</span>
+</div>
+<div>
+<p class="text-sm font-bold">Operator Support Ticket #922</p>
+<p class="text-[11px] text-slate-500 mt-1">API integration error reported by 'Sea Tours'</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border-2 border-primary text-primary font-bold text-sm rounded-lg hover:bg-primary/5 transition-colors">
+                            Manage Queue
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

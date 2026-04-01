@@ -1,987 +1,453 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NatGan — System Requirements Document</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-        :root {
-            --primary: #4F46E5;
-            --primary-light: #EEF2FF;
-            --primary-dark: #3730A3;
-            --accent: #F59E0B;
-            --accent-light: #FEF3C7;
-            --success: #10B981;
-            --success-light: #D1FAE5;
-            --danger: #EF4444;
-            --danger-light: #FEE2E2;
-            --gray-50: #F9FAFB;
-            --gray-100: #F3F4F6;
-            --gray-200: #E5E7EB;
-            --gray-300: #D1D5DB;
-            --gray-500: #6B7280;
-            --gray-700: #374151;
-            --gray-800: #1F2937;
-            --gray-900: #111827;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
-            color: var(--gray-800);
-            line-height: 1.8;
-            background: var(--gray-50);
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 24px;
-        }
-
-        /* Header */
-        .doc-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 60px 40px;
-            border-radius: 16px;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-        .doc-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-        }
-        .doc-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .doc-header .subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            margin-bottom: 24px;
-        }
-        .doc-header .meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            font-size: 0.875rem;
-            opacity: 0.85;
-        }
-        .doc-header .meta span {
-            background: rgba(255,255,255,0.15);
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        /* Sections */
-        .section {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            border: 1px solid var(--gray-200);
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--primary-light);
-        }
-
-        h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin: 24px 0 12px;
-        }
-
-        h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin: 20px 0 8px;
-        }
-
-        p { margin-bottom: 12px; }
-
-        strong { color: var(--gray-900); }
-
-        /* Lists */
-        ul, ol {
-            margin: 8px 0 16px 24px;
-        }
-        li { margin-bottom: 6px; }
-        li ul { margin-top: 6px; }
-
-        /* Tables */
-        .table-wrap {
-            overflow-x: auto;
-            margin: 16px 0;
-            border-radius: 8px;
-            border: 1px solid var(--gray-200);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        thead {
-            background: var(--primary-light);
-        }
-        th {
-            padding: 12px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--primary-dark);
-            white-space: nowrap;
-        }
-        td {
-            padding: 10px 16px;
-            border-top: 1px solid var(--gray-100);
-        }
-        tbody tr:hover {
-            background: var(--gray-50);
-        }
-
-        /* Code / Pre */
-        pre {
-            background: var(--gray-900);
-            color: #E5E7EB;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            line-height: 1.7;
-            margin: 16px 0;
-        }
-        code {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--gray-100);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            color: var(--primary-dark);
-        }
-        pre code {
-            background: none;
-            padding: 0;
-            color: inherit;
-        }
-
-        /* Callout */
-        .callout {
-            padding: 16px 20px;
-            border-radius: 8px;
-            margin: 16px 0;
-            font-weight: 500;
-        }
-        .callout-primary {
-            background: var(--primary-light);
-            border-left: 4px solid var(--primary);
-            color: var(--primary-dark);
-        }
-        .callout-warning {
-            background: var(--accent-light);
-            border-left: 4px solid var(--accent);
-            color: #92400E;
-        }
-        .callout-success {
-            background: var(--success-light);
-            border-left: 4px solid var(--success);
-            color: #065F46;
-        }
-
-        /* Badge */
-        .badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .badge-primary { background: var(--primary-light); color: var(--primary-dark); }
-        .badge-success { background: var(--success-light); color: #065F46; }
-        .badge-danger { background: var(--danger-light); color: #991B1B; }
-
-        /* Divider */
-        hr {
-            border: none;
-            border-top: 1px solid var(--gray-200);
-            margin: 24px 0;
-        }
-
-        /* Phase cards */
-        .phase-card {
-            border: 2px solid var(--gray-200);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 12px 0;
-        }
-        .phase-card.active {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        /* TOC */
-        .toc {
-            background: var(--gray-100);
-            border-radius: 10px;
-            padding: 24px 28px;
-            margin-bottom: 32px;
-        }
-        .toc h3 {
-            margin-top: 0;
-            color: var(--gray-700);
-        }
-        .toc ol {
-            margin-bottom: 0;
-        }
-        .toc a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-        .toc a:hover {
-            text-decoration: underline;
-        }
-
-        /* Footer */
-        .doc-footer {
-            text-align: center;
-            padding: 32px;
-            color: var(--gray-500);
-            font-size: 0.875rem;
-        }
-
-        /* Print */
-        @media print {
-            body { background: white; }
-            .container { padding: 0; }
-            .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
-            .doc-header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-
-        @media (max-width: 640px) {
-            .container { padding: 16px; }
-            .doc-header { padding: 32px 24px; }
-            .doc-header h1 { font-size: 1.5rem; }
-            .section { padding: 20px; }
-            h2 { font-size: 1.25rem; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NatGan — System Requirements Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1b2a4a; --indigo-light: #2d4373; --purple: #7c3aed; --purple-light: #a78bfa; --teal: #0d9488; --amber: #f59e0b; --green: #22c55e; --red: #ef4444; --gold: #c5a572; --cream: #f5ebe0; --warm-white: #faf3ea; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans Thai', sans-serif; background: var(--cream); color: var(--indigo); line-height: 1.7; }
+  .header { background: linear-gradient(135deg, var(--purple) 0%, var(--indigo) 50%, var(--purple) 100%); color: white; padding: 60px 24px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: '\1F4CB'; position: absolute; right: 40px; top: 30px; font-size: 80px; opacity: 0.15; }
+  .header::after { content: '\2699\FE0F'; position: absolute; left: 40px; bottom: 20px; font-size: 60px; opacity: 0.15; }
+  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
+  .header .meta { display: flex; justify-content: center; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+  .header .meta span { background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; backdrop-filter: blur(8px); }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  .section { margin-bottom: 48px; }
+  .section-title { font-size: 1.6rem; font-weight: 700; color: var(--indigo); padding-bottom: 12px; border-bottom: 3px solid var(--purple); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-title .num { background: var(--purple); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+  h3 { font-size: 1.15rem; font-weight: 700; margin: 24px 0 12px; color: var(--indigo); }
+  h4 { font-size: 1rem; font-weight: 600; margin: 16px 0 8px; color: var(--indigo-light); }
+  .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .highlight-card { background: linear-gradient(135deg, var(--purple) 0%, var(--indigo) 100%); color: white; border-radius: 20px; padding: 32px; margin-bottom: 32px; }
+  .highlight-card h3 { color: white; } .highlight-card blockquote { font-size: 1.2rem; font-weight: 300; opacity: 0.9; border-left: 3px solid var(--gold); padding-left: 16px; margin: 16px 0; font-style: normal; background: transparent; border-radius: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 16px 0; }
+  th { background: var(--indigo); color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: rgba(124,58,237,0.04); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .tag-green { background: #dcfce7; color: #166534; } .tag-red { background: #fee2e2; color: #991b1b; } .tag-amber { background: #fef3c7; color: #92400e; } .tag-purple { background: #f3e8ff; color: #6b21a8; } .tag-teal { background: #ccfbf1; color: #115e59; }
+  pre { background: #1e293b; color: #e2e8f0; border-radius: 12px; padding: 20px; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; margin: 16px 0; font-family: 'SF Mono', 'Fira Code', monospace; }
+  blockquote { border-left: 4px solid var(--purple); padding: 12px 20px; margin: 16px 0; background: rgba(124,58,237,0.06); border-radius: 0 12px 12px 0; font-style: italic; }
+  ul, ol { padding-left: 20px; margin: 8px 0; } li { margin: 4px 0; font-size: 0.95rem; } p { margin: 8px 0; font-size: 0.95rem; }
+  a { color: var(--purple); text-decoration: none; } a:hover { text-decoration: underline; }
+  .footer { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 0.85rem; }
+  hr { border: none; border-top: 2px solid rgba(0,0,0,0.06); margin: 32px 0; }
+  @media (max-width: 640px) { .header h1 { font-size: 1.8rem; } .container { padding: 20px 16px; } table { font-size: 0.8rem; } th, td { padding: 8px 10px; } }
+</style>
 </head>
 <body>
+
+<div class="header">
+  <h1>System Requirements Document</h1>
+  <div class="subtitle">NatGan (นัดกัน) — Trip Communication Platform</div>
+  <div class="meta">
+    <span>Version 2.0</span>
+    <span>29 March 2026</span>
+    <span>Author: Coex Team</span>
+    <span>Status: Draft</span>
+  </div>
+</div>
+
 <div class="container">
 
-    <!-- Header -->
-    <div class="doc-header">
-        <h1>System Requirements Document</h1>
-        <div class="subtitle">NatGan — Trip Communication Platform</div>
-        <div class="meta">
-            <span>Version 1.0</span>
-            <span>17 March 2026</span>
-            <span>Author: Coex Team</span>
-            <span>Status: Draft</span>
-        </div>
+  <!-- Section 1 -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span> Executive Summary</div>
+    <div class="highlight-card">
+      <blockquote>แพลตฟอร์มนี้ไม่ใช่ Trip Planner แต่คือ Trip Communication Tool</blockquote>
     </div>
-
-    <!-- TOC -->
-    <div class="toc">
-        <h3>Table of Contents</h3>
-        <ol>
-            <li><a href="#s1">Executive Summary</a></li>
-            <li><a href="#s2">Problem Statement</a></li>
-            <li><a href="#s3">Solution Overview</a></li>
-            <li><a href="#s4">Functional Requirements</a></li>
-            <li><a href="#s5">Non-Functional Requirements</a></li>
-            <li><a href="#s6">System Architecture</a></li>
-            <li><a href="#s7">Data Model</a></li>
-            <li><a href="#s8">Development Phases</a></li>
-            <li><a href="#s9">Integration Specifications</a></li>
-            <li><a href="#s10">Risks &amp; Mitigations</a></li>
-            <li><a href="#s11">Success Metrics</a></li>
-        </ol>
+    <div class="card">
+      <p>NatGan คือแพลตฟอร์ม SaaS สำหรับบริษัททัวร์ ไกด์อิสระ และผู้ใช้ส่วนตัว ที่ช่วยสร้าง จัดการ และสื่อสาร itinerary กับลูกทริปแบบ real-time โดยเน้นแก้ปัญหาหลักคือ <strong>"แก้ plan แล้วลูกทริปไม่รู้"</strong></p>
+      <p>นอกจากนี้ยังรองรับระบบ <strong>Posts</strong> สำหรับโปรโมตแพ็คเกจทัวร์ และระบบ <strong>Member</strong> สำหรับลูกทริปที่ต้องการเก็บประวัติ</p>
     </div>
+  </div>
 
-    <!-- 1. Executive Summary -->
-    <div class="section" id="s1">
-        <h2>1. Executive Summary</h2>
-        <p>NatGan คือแพลตฟอร์ม SaaS สำหรับบริษัททัวร์และไกด์อิสระ ที่ช่วยสร้าง จัดการ และสื่อสาร itinerary กับลูกทริปแบบ real-time โดยเน้นแก้ปัญหาหลักคือ <strong>"แก้ plan แล้วลูกทริปไม่รู้"</strong> ผ่านระบบแจ้งเตือนอัตโนมัติ ปุ่มรับทราบ และ read receipt</p>
-        <div class="callout callout-primary">
-            แพลตฟอร์มนี้ไม่ใช่ Trip Planner แต่คือ <strong>Trip Communication Tool</strong>
-        </div>
+  <!-- Section 2 -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> Problem Statement</div>
+    <div class="card">
+      <h3>2.1 สถานการณ์ปัจจุบัน</h3>
+      <p>บริษัททัวร์และไกด์อิสระในประเทศไทยส่วนใหญ่ใช้ <strong>LINE Group Chat</strong>, <strong>PDF / Canva</strong>, และ <strong>โทรศัพท์</strong> ในการสื่อสาร itinerary</p>
     </div>
-
-    <!-- 2. Problem Statement -->
-    <div class="section" id="s2">
-        <h2>2. Problem Statement</h2>
-
-        <h3>2.1 สถานการณ์ปัจจุบัน</h3>
-        <p>บริษัททัวร์และไกด์อิสระในประเทศไทยส่วนใหญ่ใช้ช่องทางต่อไปนี้ในการสื่อสาร itinerary:</p>
-        <ul>
-            <li><strong>LINE Group Chat</strong> — พิมพ์หรือส่งรูป itinerary ในแชท</li>
-            <li><strong>PDF / Canva</strong> — ออกแบบ itinerary แล้วส่งไฟล์</li>
-            <li><strong>โทรศัพท์</strong> — แจ้งการเปลี่ยนแปลงทีละคน</li>
-        </ul>
-
-        <h3>2.2 Pain Points หลัก</h3>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>ปัญหา</th><th>ผลกระทบ</th><th>ความถี่</th></tr></thead>
-                <tbody>
-                    <tr><td>ลูกทริปไม่เห็นข้อความเปลี่ยนแปลง plan</td><td>ไปผิดที่ ไปผิดเวลา</td><td>ทุกทริปที่มีการเปลี่ยน</td></tr>
-                    <tr><td>ข้อมูลจมในแชท Line</td><td>ลูกทริปหาข้อมูลไม่เจอ ต้องถามซ้ำ</td><td>ทุกวันระหว่างเดินทาง</td></tr>
-                    <tr><td>ไม่รู้ว่าใครเห็นข้อมูลแล้ว ใครยังไม่เห็น</td><td>ไกด์ต้องโทรตามทุกคน</td><td>ทุกครั้งที่มีการเปลี่ยน</td></tr>
-                    <tr><td>ส่ง itinerary ทีละกลุ่ม ทีละคน</td><td>เสียเวลา ข้อมูลไม่ consistent</td><td>ทุกทริป</td></tr>
-                    <tr><td>Itinerary เก่าใช้ซ้ำไม่ได้ ไม่มี portfolio</td><td>เสียโอกาสขาย</td><td>ตลอด</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <h3>2.3 ข้อจำกัดของ Solution ที่มีในตลาด</h3>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Solution</th><th>ข้อจำกัด</th></tr></thead>
-                <tbody>
-                    <tr><td>AI Gen Trip (Wanderlog, TripAdvisor AI)</td><td>สวยแต่แก้ไขไม่ได้, ไม่มี notification, ไม่รองรับ B2B</td></tr>
-                    <tr><td>LINE Group</td><td>ข้อมูลจมในแชท, ไม่มี read receipt สำหรับ itinerary, ไม่มี structured data</td></tr>
-                    <tr><td>PDF / Canva</td><td>Static, แก้ทีต้องส่งใหม่, ไม่มี notification</td></tr>
-                    <tr><td>LINE OA</td><td>ค่าใช้จ่ายสูง (1,500+ บาท/เดือน), ไม่ได้ออกแบบมาเพื่อ itinerary</td></tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="card">
+      <h3>2.2 Pain Points หลัก</h3>
+      <table>
+        <tr><th>ปัญหา</th><th>ผลกระทบ</th><th>ความถี่</th></tr>
+        <tr><td>ลูกทริปไม่เห็นข้อความเปลี่ยนแปลง plan</td><td>ไปผิดที่ ไปผิดเวลา</td><td>ทุกทริปที่มีการเปลี่ยน</td></tr>
+        <tr><td>ข้อมูลจมในแชท Line</td><td>ลูกทริปหาข้อมูลไม่เจอ ต้องถามซ้ำ</td><td>ทุกวันระหว่างเดินทาง</td></tr>
+        <tr><td>ไม่รู้ว่าใครเห็นข้อมูลแล้ว</td><td>ไกด์ต้องโทรตามทุกคน</td><td>ทุกครั้งที่มีการเปลี่ยน</td></tr>
+        <tr><td>ส่ง itinerary ทีละกลุ่ม ทีละคน</td><td>เสียเวลา ข้อมูลไม่ consistent</td><td>ทุกทริป</td></tr>
+        <tr><td>ไม่มีช่องทางโปรโมตแพ็คเกจทัวร์</td><td>เข้าถึงลูกค้าใหม่ยาก</td><td>ตลอด</td></tr>
+      </table>
     </div>
+    <div class="card">
+      <h3>2.3 ข้อจำกัดของ Solution ที่มีในตลาด</h3>
+      <table>
+        <tr><th>Solution</th><th>ข้อจำกัด</th></tr>
+        <tr><td><strong>AI Gen Trip</strong></td><td>สวยแต่แก้ไขไม่ได้, ไม่มี notification, ไม่รองรับ B2B</td></tr>
+        <tr><td><strong>LINE Group</strong></td><td>ข้อมูลจมในแชท, ไม่มี read receipt สำหรับ itinerary</td></tr>
+        <tr><td><strong>PDF / Canva</strong></td><td>Static, แก้ทีต้องส่งใหม่, ไม่มี notification</td></tr>
+        <tr><td><strong>LINE OA</strong></td><td>ค่าใช้จ่ายสูง (1,500+ บาท/เดือน), ไม่ได้ออกแบบมาเพื่อ itinerary</td></tr>
+      </table>
+    </div>
+  </div>
 
-    <!-- 3. Solution Overview -->
-    <div class="section" id="s3">
-        <h2>3. Solution Overview</h2>
-
-        <h3>3.1 Core Concept</h3>
-        <pre><code>บริษัททัวร์/ไกด์ สร้าง Trip Plan บนแพลตฟอร์ม
+  <!-- Section 3 -->
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> Solution Overview</div>
+    <div class="card">
+      <h3>3.1 Core Concept</h3>
+      <pre>บริษัททัวร์/ไกด์ สร้าง Trip Plan บนแพลตฟอร์ม
   → ได้ URL + QR Code
     → ส่งให้ลูกทริปผ่าน Line (เป็น link)
       → ลูกทริปเปิดดูได้เลย ไม่ต้องสมัคร
-        → เมื่อ plan เปลี่ยน → LINE OA แจ้งอัตโนมัติ
+        → เมื่อ plan เปลี่ยน → LINE Messaging API แจ้งอัตโนมัติ
           → ลูกทริปกด "รับทราบ"
-            → บริษัทเห็นว่าใครรู้แล้ว ใครยังไม่รู้</code></pre>
+            → บริษัทเห็นว่าใครรู้แล้ว ใครยังไม่รู้</pre>
+    </div>
+    <div class="card">
+      <h3>3.3 User Roles</h3>
+      <table>
+        <tr><th>Role</th><th>คำอธิบาย</th><th>การเข้าถึง</th></tr>
+        <tr><td><strong>Admin Owner</strong></td><td>สิทธิ์เต็ม: สร้าง แก้ไข ลบ จัดการ trip plan, billing, สมาชิกทีม</td><td>Login ผ่าน email/social</td></tr>
+        <tr><td><strong>Admin Editor</strong></td><td>สร้าง แก้ไข trip plan ได้ แต่ไม่สามารถลบทริปหรือจัดการ billing</td><td>Login, ได้รับเชิญจาก Owner</td></tr>
+        <tr><td><strong>Guest</strong></td><td>ดู trip plan ผ่าน URL/QR</td><td>ไม่ต้อง login</td></tr>
+        <tr><td><strong>Member</strong></td><td>ดู trip plan + มี dashboard ส่วนตัว</td><td>สมัครผ่าน Google / LINE / Email</td></tr>
+        <tr><td><strong>Follower</strong></td><td>ดู + รับ notification + กดรับทราบ</td><td>เพิ่มเพื่อน LINE OA / Web Push</td></tr>
+        <tr><td><strong>Super Admin</strong></td><td>จัดการระบบ users billing</td><td>Admin panel (trip-web-staff)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>3.4 Account Types</h3>
+      <table>
+        <tr><th>ประเภทบัญชี</th><th>คำอธิบาย</th><th>ข้อกำหนด</th></tr>
+        <tr><td><strong>Company (บริษัททัวร์)</strong></td><td>บริษัททัวร์ที่จดทะเบียนอย่างเป็นทางการ</td><td>ต้องมีใบอนุญาต TAT</td></tr>
+        <tr><td><strong>Freelance Guide</strong></td><td>ไกด์นำเที่ยวอิสระ</td><td>ไม่ต้องมี TAT license</td></tr>
+        <tr><td><strong>Personal</strong></td><td>ผู้ใช้ทั่วไปที่วางแผนทริปกับเพื่อน</td><td>ไม่ต้องมีข้อกำหนดพิเศษ</td></tr>
+      </table>
+    </div>
+  </div>
 
-        <h3>3.2 User Roles</h3>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Role</th><th>คำอธิบาย</th><th>การเข้าถึง</th></tr></thead>
-                <tbody>
-                    <tr><td><strong>Admin</strong> (บริษัททัวร์/ไกด์)</td><td>สร้าง แก้ไข จัดการ trip plan</td><td>Login ผ่าน email/social</td></tr>
-                    <tr><td><strong>Guest</strong> (ลูกทริป)</td><td>ดู trip plan ผ่าน URL/QR</td><td>ไม่ต้อง login (guest view)</td></tr>
-                    <tr><td><strong>Follower</strong> (ลูกทริปที่ติดตาม)</td><td>ดู + รับ notification + กดรับทราบ</td><td>เพิ่มเพื่อน LINE OA</td></tr>
-                    <tr><td><strong>Super Admin</strong> (ทีมงานแพลตฟอร์ม)</td><td>จัดการระบบ users billing</td><td>Admin panel</td></tr>
-                </tbody>
-            </table>
-        </div>
+  <!-- Section 4 -->
+  <div class="section">
+    <div class="section-title"><span class="num">4</span> Functional Requirements</div>
+
+    <div class="card">
+      <h3>4.1 Module: Authentication &amp; Account Management</h3>
+      <h4>FR-AUTH-001: การสมัครสมาชิก</h4>
+      <ul>
+        <li>สมัครผ่าน Email + Password</li>
+        <li>สมัครผ่าน Social Login (Google, LINE)</li>
+        <li>ยืนยัน email ก่อนใช้งาน</li>
+        <li>เลือกประเภทบัญชี: Company / Freelance Guide / Personal</li>
+        <li>รองรับ Free tier อัตโนมัติเมื่อสมัคร</li>
+      </ul>
+      <h4>FR-AUTH-002: Company Profile</h4>
+      <ul>
+        <li>ตั้งชื่อบริษัท/ชื่อไกด์ + อัปโหลด Logo</li>
+        <li>ใส่ช่องทางติดต่อ: โทรศัพท์, LINE ID, Facebook, Instagram, Website</li>
+        <li>ใส่ข้อมูลใบอนุญาต TAT</li>
+      </ul>
+      <h4>FR-AUTH-003: Subscription Management</h4>
+      <ul>
+        <li>ดู plan ปัจจุบัน, ซื้อ Pack เพิ่ม, ดูประวัติการชำระเงิน</li>
+      </ul>
     </div>
 
-    <!-- 4. Functional Requirements -->
-    <div class="section" id="s4">
-        <h2>4. Functional Requirements</h2>
+    <div class="card">
+      <h3>4.2 Module: Trip Plan Builder (Admin)</h3>
+      <h4>FR-PLAN-001: สร้าง Trip Plan</h4>
+      <ul>
+        <li>ตั้งชื่อทริป, กำหนดวันเริ่ม-สิ้นสุด, destination, cover image</li>
+        <li>จำนวนผู้เดินทาง, ข้อมูลสายการบิน, ที่พัก</li>
+        <li>เลือกภาษาหลักของ plan (ไทย / อังกฤษ / ญี่ปุ่น)</li>
+      </ul>
+      <h4>FR-PLAN-002: จัดการรายวัน (Day)</h4>
+      <ul><li>เพิ่ม/ลบ/เรียงลำดับวัน, ชื่อวัน + subtitle, Cover image, Activities</li></ul>
+      <h4>FR-PLAN-003: จัดการกิจกรรม (Activity)</h4>
+      <ul><li>เวลา, ชื่อสถานที่, รายละเอียด, Google Maps link, ประเภท, รูปภาพ</li></ul>
+      <h4>FR-PLAN-004: ข้อมูลเสริม</h4>
+      <ul><li>เบอร์ฉุกเฉิน, วลีที่ใช้บ่อย, หมายเหตุสำคัญ, ของที่ต้องเตรียม</li></ul>
+      <h4>FR-PLAN-005: Route Planning</h4>
+      <ul><li>สร้าง route จาก activities → Google Maps route link อัตโนมัติ</li></ul>
+      <h4>FR-PLAN-006: Template System</h4>
+      <ul><li>บันทึก trip plan เป็น template, สร้างใหม่จาก template</li></ul>
+    </div>
 
-        <!-- 4.1 Auth -->
-        <h3>4.1 Module: Authentication &amp; Account Management</h3>
+    <div class="card">
+      <h3>4.3 Module: Publishing &amp; Sharing</h3>
+      <h4>FR-PUB-001: Publish Trip Plan</h4>
+      <ul><li>ปุ่ม Publish → unique URL: <code>natgan.com/t/{slug}</code> + QR Code</li></ul>
+      <h4>FR-PUB-002: Guest View</h4>
+      <ul>
+        <li>เปิด URL → เห็น trip plan ทันที ไม่ต้อง login</li>
+        <li>Logo + ช่องทางติดต่อ, "Powered by NatGan", ปุ่ม "ติดตามทริปนี้"</li>
+        <li>Responsive design, Auto-highlight กิจกรรมปัจจุบันตามเวลา</li>
+      </ul>
+      <h4>FR-PUB-003: Immigration-Friendly View (ยื่น ตม.)</h4>
+      <ul>
+        <li>แสดงข้อมูลแบบ official: ชื่อทริป, วันเดินทาง, ที่พัก, เที่ยวบิน, Itinerary รายวัน</li>
+        <li>แสดงเป็นภาษาท้องถิ่น destination อัตโนมัติ</li>
+        <li><strong>ไม่ต้องปริ้นกระดาษ — ยื่นหน้าจอให้ ตม. จบ</strong></li>
+        <li>ใช้ offline ได้ (cache ข้อมูล)</li>
+      </ul>
+      <h4>FR-PUB-004: Unpublish / Archive</h4>
+      <ul><li>Unpublish → URL แสดง "ทริปนี้ไม่เปิดให้ดูแล้ว", Archive → URL ยังเข้าได้ (portfolio)</li></ul>
+    </div>
 
-        <h4>FR-AUTH-001: การสมัครสมาชิก (Admin)</h4>
-        <ul>
-            <li>สมัครผ่าน Email + Password</li>
-            <li>สมัครผ่าน Social Login (Google, LINE)</li>
-            <li>ยืนยัน email ก่อนใช้งาน</li>
-            <li>รองรับ Free tier อัตโนมัติเมื่อสมัคร</li>
-        </ul>
-
-        <h4>FR-AUTH-002: Company Profile</h4>
-        <ul>
-            <li>ตั้งชื่อบริษัท/ชื่อไกด์</li>
-            <li>อัปโหลด Logo (แสดงบน trip plan ทุกอัน)</li>
-            <li>ใส่ช่องทางติดต่อ: โทรศัพท์, LINE ID, Facebook, Instagram, Website</li>
-            <li>ใส่ข้อมูลใบอนุญาต TAT (optional)</li>
-            <li>ช่องทางเหล่านี้จะแสดงบน trip plan ทุกอันของบริษัท</li>
-        </ul>
-
-        <h4>FR-AUTH-003: Subscription Management</h4>
-        <ul>
-            <li>ดู plan ปัจจุบัน (Free / Pro / Business)</li>
-            <li>อัปเกรด / ดาวน์เกรด plan</li>
-            <li>ดูประวัติการชำระเงิน</li>
-            <li>จัดการวิธีชำระเงิน</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.2 Trip Plan Builder -->
-        <h3>4.2 Module: Trip Plan Builder (Admin)</h3>
-
-        <h4>FR-PLAN-001: สร้าง Trip Plan</h4>
-        <ul>
-            <li>ตั้งชื่อทริป</li>
-            <li>กำหนดวันเริ่ม — วันสิ้นสุด</li>
-            <li>เลือก destination หลัก (ประเทศ/จังหวัด)</li>
-            <li>เลือก cover image (อัปโหลดเอง หรือเลือกจาก stock)</li>
-            <li>กำหนดจำนวนผู้เดินทาง</li>
-            <li>ใส่ข้อมูลสายการบิน / การเดินทาง (optional)</li>
-            <li>ใส่ข้อมูลที่พัก (optional)</li>
-            <li>เลือกภาษาหลักของ plan (ไทย / อังกฤษ / ญี่ปุ่น / เพิ่มภาษาได้ในอนาคต)</li>
-        </ul>
-
-        <h4>FR-PLAN-002: จัดการรายวัน (Day)</h4>
-        <ul>
-            <li>เพิ่ม/ลบ/เรียงลำดับวัน</li>
-            <li>แต่ละวันมี: ชื่อวัน + subtitle, Cover image, รายการกิจกรรม</li>
-        </ul>
-
-        <h4>FR-PLAN-003: จัดการกิจกรรม (Activity)</h4>
-        <ul>
-            <li>เพิ่ม/ลบ/เรียงลำดับกิจกรรมในแต่ละวัน</li>
-            <li>แต่ละกิจกรรมมี:
-                <ul>
-                    <li>เวลา (HH:MM)</li>
-                    <li>ชื่อสถานที่</li>
-                    <li>รายละเอียด/หมายเหตุ</li>
-                    <li>Google Maps link (ระบุ lat/lng หรือ place name → auto-generate link)</li>
-                    <li>ประเภท: สถานที่ท่องเที่ยว / ร้านอาหาร / ที่พัก / การเดินทาง / อื่นๆ</li>
-                    <li>รูปภาพ (optional)</li>
-                </ul>
-            </li>
-        </ul>
-
-        <h4>FR-PLAN-004: ข้อมูลเสริม</h4>
-        <ul>
-            <li>เบอร์ฉุกเฉิน (pre-fill ตามประเทศ destination + เพิ่มเองได้)</li>
-            <li>วลีที่ใช้บ่อย (pre-fill ตามภาษา destination + เพิ่มเองได้)</li>
-            <li>หมายเหตุสำคัญ (free text)</li>
-            <li>ของที่ต้องเตรียม (checklist)</li>
-        </ul>
-
-        <h4>FR-PLAN-005: Route Planning</h4>
-        <ul>
-            <li>แต่ละวันสามารถสร้าง route จาก activities → Google Maps route link อัตโนมัติ</li>
-            <li>เรียง waypoints ตามลำดับกิจกรรม</li>
-        </ul>
-
-        <h4>FR-PLAN-006: Template System</h4>
-        <ul>
-            <li>บันทึก trip plan เป็น template</li>
-            <li>สร้าง trip ใหม่จาก template (clone แล้วแก้วันที่/รายละเอียด)</li>
-            <li>Template library ตามประเทศ/จังหวัด (ในอนาคต)</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.3 Publishing -->
-        <h3>4.3 Module: Publishing &amp; Sharing</h3>
-
-        <h4>FR-PUB-001: Publish Trip Plan</h4>
-        <ul>
-            <li>ปุ่ม Publish เพื่อเปิดให้ guest เข้าดู</li>
-            <li>สร้าง unique URL: <code>natgan.com/t/{slug}</code></li>
-            <li>slug กำหนดเองได้ หรือ auto-generate</li>
-            <li>สร้าง QR Code อัตโนมัติจาก URL</li>
-            <li>QR Code ดาวน์โหลดเป็น PNG ได้ (สำหรับพิมพ์)</li>
-        </ul>
-
-        <h4>FR-PUB-002: Guest View (ลูกทริปเปิดดู)</h4>
-        <ul>
-            <li>เปิด URL → เห็น trip plan สวยๆ ทันที ไม่ต้อง login</li>
-            <li>แสดง: Logo + ช่องทางติดต่อบริษัท, ข้อมูลทริปครบ, "Powered by NatGan" badge, ปุ่ม "ติดตามทริปนี้"</li>
-            <li>Responsive design — ใช้งานได้ดีบน mobile (เปิดจาก Line)</li>
-            <li>Auto-highlight กิจกรรมปัจจุบันตามเวลา (ไม่ต้องมีใครอัพเดท)</li>
-        </ul>
-
-        <h4>FR-PUB-003: Immigration-Friendly View (ยื่น ตม.) <span class="badge badge-danger">New</span></h4>
-        <div class="callout callout-warning">
-            <strong>ไม่ต้องปริ้นกระดาษ — ยื่นหน้าจอให้ ตม. จบ</strong>
-        </div>
-        <ul>
-            <li>ปุ่ม "โหมดยื่น ตม." บน guest view → แสดงข้อมูลแบบ official</li>
-            <li>แสดงข้อมูลที่ ตม. ต้องการ:
-                <ul>
-                    <li>ชื่อทริป / วันเดินทาง เข้า-ออก</li>
-                    <li>รายละเอียดที่พัก (ชื่อ, ที่อยู่, เบอร์โทร)</li>
-                    <li>ข้อมูลเที่ยวบิน (สายการบิน, เลขไฟลท์, วันเวลา)</li>
-                    <li>Itinerary รายวันแบบย่อ (วันที่ + สถานที่หลัก)</li>
-                    <li>ข้อมูลบริษัททัวร์ + เลข TAT license (ถ้ามี)</li>
-                </ul>
-            </li>
-            <li>แสดงเป็น <strong>ภาษาท้องถิ่นของ destination อัตโนมัติ</strong> (เช่น ไปญี่ปุ่น → แสดงภาษาญี่ปุ่น)</li>
-            <li>Layout สะอาด เป็นทางการ อ่านง่ายบนหน้าจอมือถือ</li>
-            <li>ใช้ได้แม้ offline (cache ข้อมูลไว้ใน browser สำหรับตอนยังไม่ได้ต่อ WiFi ที่สนามบิน)</li>
-        </ul>
-
-        <h4>FR-PUB-004: Unpublish / Archive</h4>
-        <ul>
-            <li>Unpublish → URL ยังอยู่แต่แสดงหน้า "ทริปนี้ไม่เปิดให้ดูแล้ว"</li>
-            <li>Archive → ย้ายไป archive ไม่แสดงใน dashboard แต่ URL ยังเข้าได้ (portfolio)</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.4 Notification -->
-        <h3>4.4 Module: Notification &amp; Communication <span class="badge badge-danger">Killer Feature</span></h3>
-
-        <h4>FR-NOTI-001: Follow / Subscribe ทริป</h4>
-        <ul>
-            <li>ลูกทริปกดปุ่ม "ติดตามทริปนี้" บน guest view</li>
-            <li>เลือกช่องทางรับแจ้งเตือน:
-                <ul>
-                    <li><strong>LINE OA (Messaging API)</strong> — กดเพิ่มเพื่อน LINE OA แล้วรับ notification อัตโนมัติ (เหมาะคนไทย)</li>
-                    <li><strong>Web Push Notification</strong> — กด Allow บน browser ไม่ต้องมี account (เหมาะต่างชาติ + คนที่ไม่อยากเชื่อม LINE)</li>
-                </ul>
-            </li>
-            <li>ลูกทริปเลือกได้ทั้ง 2 ช่องทาง หรือช่องทางเดียว</li>
-            <li>เก็บ record ว่าใครติดตามทริปไหน ผ่านช่องทางอะไร</li>
-        </ul>
-
-        <h4>FR-NOTI-002: แจ้งเตือนเมื่อ Plan เปลี่ยน <span class="badge badge-danger">Core</span></h4>
-        <ul>
-            <li>เมื่อ admin แก้ไข trip plan ที่ publish แล้ว → ระบบตรวจจับ change</li>
-            <li>ระบบสร้าง change summary อัตโนมัติ</li>
-        </ul>
-        <pre><code>⚠️ ทริป "เชียงใหม่ 3 วัน" มีการเปลี่ยนแปลง
+    <div class="card">
+      <h3>4.4 Module: Notification &amp; Communication (Killer Feature)</h3>
+      <h4>FR-NOTI-001: Follow / Subscribe ทริป</h4>
+      <ul>
+        <li><strong>LINE OA</strong> — User เพิ่มเพื่อน LINE OA ของ NatGan → link trip</li>
+        <li><strong>Web Push</strong> — กด allow บน browser ไม่ต้องมี account</li>
+      </ul>
+      <h4>FR-NOTI-002: แจ้งเตือนเมื่อ Plan เปลี่ยน (Core)</h4>
+      <pre>⚠️ ทริป "เชียงใหม่ 3 วัน" มีการเปลี่ยนแปลง
 
 📅 วันที่ 2:
 - เปลี่ยน: ดอยสุเทพ 09:00 → 13:00
 - เพิ่ม: ร้านกาแฟ Ristr8to 10:00
 - ยกเลิก: ตลาดวโรรส (ปิดปรับปรุง)
 
-👉 ดูรายละเอียด: natgan.com/t/chiangmai3d</code></pre>
-        <ul>
-            <li>ส่งผ่านทุกช่องทางที่ follower เลือกไว้ (LINE Messaging API + Web Push)</li>
-            <li>Web Push แสดง notification บน browser/mobile แม้ไม่ได้เปิดเว็บอยู่</li>
-            <li>Admin เลือกได้ว่าจะส่ง noti ทันที หรือ save ไว้ส่งทีเดียว (batch)</li>
-        </ul>
-
-        <h4>FR-NOTI-003: แจ้งเตือนก่อนวันถัดไป (Auto)</h4>
-        <pre><code>📋 พรุ่งนี้ วันที่ 3: ภูเขาไฟฟูจิ
+👉 ดูรายละเอียด: natgan.com/t/chiangmai3d</pre>
+      <h4>FR-NOTI-003: แจ้งเตือนก่อนวันถัดไป (Auto)</h4>
+      <pre>📋 พรุ่งนี้ วันที่ 3: ภูเขาไฟฟูจิ
 
 ⏰ นัดพบ 07:00 ล็อบบี้โรงแรม
 🎒 เตรียม: เสื้อกันหนาว, รองเท้าผ้าใบ
 
-👉 ดูรายละเอียด: natgan.com/t/tokyo8d</code></pre>
-        <ul>
-            <li>Admin ตั้งค่าเปิด/ปิดได้ต่อทริป</li>
-            <li>Admin แก้ไขเวลาส่งได้ (default 20:00 เวลาท้องถิ่น destination)</li>
-        </ul>
-
-        <h4>FR-NOTI-004: ปุ่มรับทราบ (Acknowledge)</h4>
-        <div class="callout callout-warning">
-            ⚠️ ทริปนี้มีการเปลี่ยนแปลง — ดูรายละเอียด<br>
-            <strong>[รับทราบแล้ว ✓]</strong>
-        </div>
-        <ul>
-            <li>ลูกทริปกดปุ่ม "รับทราบแล้ว" → บันทึกว่าเห็นแล้ว</li>
-            <li>ไม่ต้อง login — ใช้ LINE User ID หรือ Web Push subscription identify</li>
-        </ul>
-
-        <h4>FR-NOTI-005: Read Receipt Dashboard (Admin)</h4>
-        <div class="callout callout-success">
-            การเปลี่ยนแปลงวันที่ 15 มี.ค. 2026<br>
-            ✅ รับทราบ: 28/30 คน<br>
-            ❌ ยังไม่เห็น: สมชาย, สมหญิง
-        </div>
-        <ul>
-            <li>ปุ่ม "ส่ง noti ซ้ำ" เฉพาะคนที่ยังไม่เห็น</li>
-            <li>ปุ่ม "คัดลอกรายชื่อ" เพื่อไปโทรตามเอง</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.5 Change Log -->
-        <h3>4.5 Module: Change Log</h3>
-        <h4>FR-LOG-001: ประวัติการเปลี่ยนแปลง</h4>
-        <ul>
-            <li>ทุกครั้งที่ plan ถูกแก้ไข → บันทึก change log</li>
-            <li>แสดงบน admin dashboard: วันเวลาที่แก้, สิ่งที่เปลี่ยน, ใครแก้</li>
-            <li>ลูกทริปเห็น change log ฉบับย่อบน guest view (optional, admin เปิด/ปิดได้)</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.6 Dashboard -->
-        <h3>4.6 Module: Dashboard &amp; Analytics</h3>
-        <h4>FR-DASH-001: Admin Dashboard</h4>
-        <ul>
-            <li>รายการ trip plans ทั้งหมด (Active / Draft / Archived)</li>
-            <li>แต่ละทริปแสดง: ชื่อ / วันเดินทาง / สถานะ / จำนวน views / จำนวน followers / การเปลี่ยนแปลงล่าสุด</li>
-        </ul>
-        <h4>FR-DASH-002: Trip Analytics (Pro/Business tier)</h4>
-        <ul>
-            <li>จำนวน views ต่อวัน</li>
-            <li>จำนวน followers</li>
-            <li>อัตราการรับทราบ (acknowledge rate)</li>
-            <li>จำนวน QR scans</li>
-            <li>วันไหนถูกดูมากที่สุด</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.7 Branding -->
-        <h3>4.7 Module: Branding &amp; Customization</h3>
-        <h4>FR-BRAND-001: Company Branding</h4>
-        <ul>
-            <li>Logo แสดงบน trip plan</li>
-            <li>ช่องทางติดต่อบริษัท (แสดงเป็น section บน trip plan)</li>
-            <li>สี theme หลัก (เลือกจาก palette หรือกำหนดเอง) — Pro tier ขึ้นไป</li>
-        </ul>
-        <h4>FR-BRAND-002: Powered By Badge</h4>
-        <ul>
-            <li><strong>Free tier:</strong> แสดง "Powered by NatGan" + link ถาวร</li>
-            <li><strong>Pro tier:</strong> ย่อเป็น badge เล็ก</li>
-            <li><strong>Business tier:</strong> ซ่อนได้ (white-label)</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.8 Billing -->
-        <h3>4.8 Module: Billing &amp; Subscription</h3>
-        <h4>FR-BILL-001: Pricing Tiers</h4>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Feature</th><th>Free</th><th>Pro (299 บ/เดือน)</th><th>Business (599 บ/เดือน)</th></tr></thead>
-                <tbody>
-                    <tr><td>Trip plan slots</td><td>3</td><td>30</td><td>Unlimited</td></tr>
-                    <tr><td>แก้ไขหลัง publish</td><td>2 ครั้ง/ทริป</td><td>Unlimited</td><td>Unlimited</td></tr>
-                    <tr><td>Followers ต่อทริป</td><td>30 คน</td><td>100 คน</td><td>Unlimited</td></tr>
-                    <tr><td>Notifications (LINE + Web Push)</td><td>10 ครั้ง/เดือน</td><td>200 ครั้ง/เดือน</td><td>Unlimited</td></tr>
-                    <tr><td>Company logo</td><td>ได้</td><td>ได้</td><td>ได้</td></tr>
-                    <tr><td>Custom theme color</td><td>—</td><td>ได้</td><td>ได้</td></tr>
-                    <tr><td>Analytics</td><td>Basic</td><td>Full</td><td>Full + export</td></tr>
-                    <tr><td>Powered by badge</td><td>แสดงถาวร</td><td>badge เล็ก</td><td>ซ่อนได้</td></tr>
-                    <tr><td>Template system</td><td>ใช้ได้</td><td>ใช้ได้ + สร้างเอง</td><td>ใช้ได้ + สร้างเอง</td></tr>
-                    <tr><td>Priority support</td><td>—</td><td>Email</td><td>Email + LINE</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <h4>FR-BILL-002: Pay-as-you-go (เสริม)</h4>
-        <ul>
-            <li>Free tier user สามารถซื้อ slot เพิ่ม: <strong>39 บาท/slot</strong></li>
-            <li>ซื้อ noti เพิ่ม: <strong>19 บาท / 50 noti</strong></li>
-        </ul>
-
-        <h4>FR-BILL-003: Payment Methods</h4>
-        <ul>
-            <li>PromptPay QR (หลัก — คนไทยคุ้นเคย)</li>
-            <li>Credit/Debit card ผ่าน Omise</li>
-            <li>ออกใบเสร็จอัตโนมัติ</li>
-        </ul>
-
-        <hr>
-
-        <!-- 4.9 i18n -->
-        <h3>4.9 Module: Multi-language Support</h3>
-        <h4>FR-I18N-001: Platform UI Language</h4>
-        <ul>
-            <li>รองรับภาษา: ไทย, อังกฤษ, ญี่ปุ่น (เพิ่มได้ในอนาคต)</li>
-            <li>ผู้ใช้เลือกภาษา UI ได้</li>
-        </ul>
-        <h4>FR-I18N-002: Trip Plan Language</h4>
-        <ul>
-            <li>Admin เลือกภาษาหลักของ trip plan</li>
-            <li>รองรับการสร้าง trip plan 1 อัน แสดงได้หลายภาษา (อนาคต)</li>
-            <li>ลูกทริปเลือกภาษาดูได้ (ถ้า admin สร้างไว้หลายภาษา)</li>
-        </ul>
+👉 ดูรายละเอียด: natgan.com/t/tokyo8d</pre>
+      <h4>FR-NOTI-004: ปุ่มรับทราบ (Acknowledge)</h4>
+      <ul><li>Banner บน guest view + ปุ่ม "รับทราบแล้ว" → บันทึกว่าเห็นแล้ว</li></ul>
+      <h4>FR-NOTI-005: Read Receipt Dashboard (Admin)</h4>
+      <pre>การเปลี่ยนแปลงวันที่ 15 มี.ค. 2026
+✅ รับทราบ: 28/30 คน
+❌ ยังไม่เห็น: สมชาย, สมหญิง</pre>
+      <ul><li>ปุ่ม "ส่ง noti ซ้ำ" เฉพาะคนที่ยังไม่เห็น</li></ul>
     </div>
 
-    <!-- 5. Non-Functional -->
-    <div class="section" id="s5">
-        <h2>5. Non-Functional Requirements</h2>
-
-        <h3>5.1 Performance</h3>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Requirement</th><th>Target</th></tr></thead>
-                <tbody>
-                    <tr><td>Page load time (guest view)</td><td>&lt; 2 วินาที</td></tr>
-                    <tr><td>QR code generation</td><td>&lt; 1 วินาที</td></tr>
-                    <tr><td>LINE Messaging API delivery</td><td>&lt; 5 วินาที หลัง trigger</td></tr>
-                    <tr><td>Concurrent users per trip</td><td>รองรับ 100+ คนพร้อมกัน</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <h3>5.2 Availability</h3>
-        <ul>
-            <li>Uptime target: 99.5%</li>
-            <li>Planned maintenance: แจ้งล่วงหน้า 24 ชม.</li>
-        </ul>
-
-        <h3>5.3 Security</h3>
-        <ul>
-            <li>HTTPS ทุก connection</li>
-            <li>Authentication ผ่าน industry standard (OAuth 2.0 / JWT)</li>
-            <li>ข้อมูลบริษัทและลูกทริปเข้ารหัส at rest</li>
-            <li>PDPA compliant — เก็บข้อมูลเท่าที่จำเป็น, ลบได้เมื่อร้องขอ</li>
-            <li>LINE User ID เก็บแบบ encrypted</li>
-        </ul>
-
-        <h3>5.4 Scalability</h3>
-        <ul>
-            <li>รองรับ 1,000 บริษัท / 10,000 trip plans ใน Phase 1</li>
-            <li>Database design รองรับ horizontal scaling</li>
-        </ul>
-
-        <h3>5.5 Mobile First</h3>
-        <ul>
-            <li>ออกแบบ mobile first (80%+ traffic จะมาจาก mobile ผ่าน LINE)</li>
-            <li>รองรับ iOS Safari, Android Chrome, LINE in-app browser</li>
-            <li>ไม่ต้องมี mobile app — Progressive Web App (PWA) ในอนาคต</li>
-        </ul>
+    <div class="card">
+      <h3>4.5-4.6 Module: Change Log &amp; Dashboard</h3>
+      <h4>FR-LOG-001: ประวัติการเปลี่ยนแปลง</h4>
+      <ul><li>บันทึก change log ทุกครั้งที่ plan ถูกแก้ไข — แสดงบน admin dashboard</li></ul>
+      <h4>FR-DASH-001: Admin Dashboard</h4>
+      <ul><li>รายการ trip plans (Active/Draft/Archived), views, followers, การเปลี่ยนแปลงล่าสุด</li></ul>
+      <h4>FR-DASH-002: Trip Analytics (Pro/Business)</h4>
+      <ul><li>Views ต่อวัน, followers, acknowledge rate, QR scans</li></ul>
     </div>
 
-    <!-- 6. Architecture -->
-    <div class="section" id="s6">
-        <h2>6. System Architecture Overview</h2>
-        <pre><code>┌─────────────────────────────────────────────────────┐
-│                    Frontend (Next.js)                │
-│                                                     │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐ │
-│  │ Admin    │  │ Guest View   │  │ Landing Page  │ │
-│  │ Dashboard│  │ (Trip Plan)  │  │ + Pricing     │ │
-│  └──────────┘  └──────────────┘  └───────────────┘ │
-└─────────────────────┬───────────────────────────────┘
-                      │ API
-┌─────────────────────▼───────────────────────────────┐
-│                 Backend (Next.js API / PostgreSQL)     │
-│                                                     │
-│  ┌────────┐ ┌─────────┐ ┌──────┐ ┌──────────────┐  │
-│  │ Auth   │ │ Trip    │ │ Noti │ │ Billing      │  │
-│  │ Module │ │ CRUD    │ │ Queue│ │ (Omise)      │  │
-│  └────────┘ └─────────┘ └──────┘ └──────────────┘  │
-└─────────────────────┬───────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────┐
-│              External Services                       │
-│                                                     │
-│  ┌──────────────┐ ┌──────────┐ ┌─────────┐ ┌──────┐│
-│  │ LINE         │ │ Web Push │ │ Omise   │ │Google││
-│  │ Messaging API│ │ (VAPID)  │ │ Payment │ │ Maps ││
-│  └──────────────┘ └──────────┘ └─────────┘ └──────┘│
-└─────────────────────────────────────────────────────┘</code></pre>
+    <div class="card">
+      <h3>4.7-4.8 Module: Branding &amp; Billing</h3>
+      <h4>FR-BRAND: Company Branding + Powered By</h4>
+      <ul>
+        <li>Free tier: "Powered by NatGan" ถาวร</li>
+        <li>Pro: badge เล็ก / Business: ซ่อนได้ (white-label)</li>
+      </ul>
+      <h4>FR-BILL-001: Pricing Tiers</h4>
+      <table>
+        <tr><th>Tier</th><th>ราคา</th><th>รายละเอียด</th></tr>
+        <tr><td><strong>Free</strong></td><td>ฟรี</td><td>3 ทริป</td></tr>
+        <tr><td><strong>Pay-per-Trip</strong></td><td>฿49/ทริป</td><td>ซื้อทีละทริป</td></tr>
+        <tr><td><strong>Pack 5</strong></td><td>฿199</td><td>5 ทริป (ประหยัด ฿46)</td></tr>
+        <tr><td><strong>Pack 10</strong></td><td>฿349</td><td>10 ทริป (ประหยัด ฿141)</td></tr>
+      </table>
+      <h4>FR-BILL-002: Payment Methods</h4>
+      <ul><li>PromptPay QR (หลัก), Credit/Debit card ผ่าน Omise, ออกใบเสร็จอัตโนมัติ</li></ul>
     </div>
 
-    <!-- 7. Data Model -->
-    <div class="section" id="s7">
-        <h2>7. Data Model Overview</h2>
-        <pre><code>Company (บริษัท/ไกด์)
+    <div class="card">
+      <h3>4.9 Module: Posts (Tour Package Listings)</h3>
+      <blockquote>ระบบ Posts และ Trips เป็นระบบอิสระต่อกัน ไม่ได้เชื่อมโยงกัน</blockquote>
+      <h4>FR-POST-001: สร้าง Post</h4>
+      <ul><li>title, destination, description, highlights, images, priceStartFrom, duration, travelPeriod, totalSlots, slotsLeft, tags</li></ul>
+      <h4>FR-POST-002: สถานะ Post</h4>
+      <ul><li><strong>Draft</strong> → <strong>Published</strong> (แสดงบน Info Website) → <strong>Closed</strong></li></ul>
+      <h4>FR-POST-003: การแสดงผล</h4>
+      <ul><li>ไม่มีระบบจอง (booking) — showcase เท่านั้น บริษัท/ไกด์ปิดการขายเอง</li></ul>
+    </div>
+
+    <div class="card">
+      <h3>4.10 Module: Client Member System</h3>
+      <ul>
+        <li>สมัครผ่าน Google, LINE, Email (optional)</li>
+        <li>Member Dashboard: ทริปที่ติดตาม, สถานที่ที่บันทึก, ประวัติทริป</li>
+        <li>Travel Points / Elite Member — planned (TBD)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>4.11-4.13 Module: Portfolio, Support Ticket, Multi-language</h3>
+      <h4>FR-PORT: Portfolio สาธารณะ</h4>
+      <ul><li>URL: <code>natgan.com/p/{custom-slug}</code> — แสดงทริปที่ published + ข้อมูลบริษัท</li></ul>
+      <h4>FR-TICKET: Support Ticket</h4>
+      <ul><li>แจ้งบัก / ร้องขอฟีเจอร์ — สถานะ: Open → Pending → Resolved</li></ul>
+      <h4>FR-I18N: Multi-language</h4>
+      <ul><li>Platform UI: ไทย, อังกฤษ, ญี่ปุ่น</li><li>Trip Plan: เลือกภาษาหลัก (อนาคต: หลายภาษาใน 1 plan)</li></ul>
+    </div>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="section">
+    <div class="section-title"><span class="num">5</span> Non-Functional Requirements</div>
+    <div class="card">
+      <table>
+        <tr><th>Category</th><th>Requirement</th><th>Target</th></tr>
+        <tr><td><strong>Performance</strong></td><td>Page load time (guest view)</td><td>&lt; 2 วินาที</td></tr>
+        <tr><td></td><td>Notification delivery</td><td>&lt; 5 วินาที</td></tr>
+        <tr><td></td><td>Concurrent users per trip</td><td>100+ คน</td></tr>
+        <tr><td><strong>Availability</strong></td><td>Uptime</td><td>99.5%</td></tr>
+        <tr><td><strong>Security</strong></td><td>HTTPS, OAuth 2.0/JWT, PDPA compliant</td><td>เก็บข้อมูลเท่าที่จำเป็น</td></tr>
+        <tr><td><strong>Scalability</strong></td><td>Phase 1 capacity</td><td>1,000 บริษัท / 10,000 trips</td></tr>
+        <tr><td><strong>Mobile First</strong></td><td>iOS Safari, Android Chrome, LINE in-app</td><td>80%+ traffic จาก mobile</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="section">
+    <div class="section-title"><span class="num">6</span> System Architecture</div>
+    <div class="card">
+      <pre>┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend Apps                           │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────┐ │
+│  │ trip-web-    │ │ trip-web-    │ │ Info Website             │ │
+│  │ admin        │ │ client       │ │ (พัฒนาโดย Nes)           │ │
+│  │ - Dashboard  │ │ - Guest View │ │ - แสดง Posts             │ │
+│  │ - Trip       │ │ - Member     │ │ - Portfolio Pages        │ │
+│  │   Builder    │ │   Dashboard  │ │                          │ │
+│  │ - Posts      │ │ - Follow     │ │                          │ │
+│  │ - Billing    │ │ - Saved      │ │                          │ │
+│  └──────────────┘ └──────────────┘ └──────────────────────────┘ │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ API
+┌───────────────────────────▼─────────────────────────────────────┐
+│              trip-web-staff (Backend / Admin Panel)              │
+│  ┌────────┐ ┌─────────┐ ┌──────┐ ┌──────────┐ ┌─────────────┐  │
+│  │ Auth   │ │ Trip    │ │ Noti │ │ Billing  │ │ Support     │  │
+│  │ Module │ │ CRUD    │ │ Queue│ │ (Omise)  │ │ Tickets     │  │
+│  └────────┘ └─────────┘ └──────┘ └──────────┘ └─────────────┘  │
+│                    PostgreSQL Database                           │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                     External Services                           │
+│  ┌──────────────┐ ┌──────────┐ ┌─────────┐ ┌──────┐            │
+│  │ LINE         │ │ Web Push │ │ Omise   │ │Google│            │
+│  │ Messaging API│ │ (VAPID)  │ │ Payment │ │ Maps │            │
+│  └──────────────┘ └──────────┘ └─────────┘ └──────┘            │
+└─────────────────────────────────────────────────────────────────┘</pre>
+    </div>
+  </div>
+
+  <!-- Section 7 -->
+  <div class="section">
+    <div class="section-title"><span class="num">7</span> Data Model Overview</div>
+    <div class="card">
+      <pre>Company (บริษัท/ไกด์/ส่วนตัว)
 ├── id, name, logo_url, contacts, tat_license
-├── subscription_tier, subscription_expires_at
-├── created_at
+├── account_type: company | freelance_guide | personal
+├── portfolio_enabled, portfolio_slug
+│
+├── User (ผู้ใช้ admin)
+│   ├── id, company_id, email, name, role: owner | editor
 │
 ├── TripPlan (แผนทริป)
-│   ├── id, company_id, title, slug
-│   ├── destination, start_date, end_date
-│   ├── cover_image, travelers_count
-│   ├── airline_info, accommodation_info
-│   ├── status: draft | published | archived
-│   ├── language, published_at
-│   ├── edit_count (สำหรับ free tier)
-│   │
-│   ├── Day (วัน)
-│   │   ├── id, trip_id, day_number, title, subtitle
-│   │   ├── cover_image, date
-│   │   │
-│   │   └── Activity (กิจกรรม)
-│   │       ├── id, day_id, time, name, description
-│   │       ├── type: attraction | restaurant | hotel | transport | other
-│   │       ├── lat, lng, maps_link
-│   │       ├── image_url, sort_order
-│   │       └── created_at, updated_at
-│   │
-│   ├── EmergencyContact
-│   │   └── id, trip_id, name, phone, description, sort_order
-│   │
-│   ├── TripNote
-│   │   └── id, trip_id, content, sort_order, created_at
-│   │
-│   ├── Follower (ผู้ติดตาม)
-│   │   └── id, trip_id, display_name, followed_at,
-│   │       line_user_id (nullable),
-│   │       web_push_subscription (nullable, JSON),
-│   │       notification_channels: ["line","web_push"],
-│   │       last_acknowledged_at
-│   │
-│   └── ChangeLog (ประวัติเปลี่ยนแปลง)
-│       ├── id, trip_id, changed_by, changes_summary (JSON)
-│       ├── notification_sent_at, created_at
-│       │
-│       └── Acknowledgement (การรับทราบ)
-│           └── id, changelog_id, follower_id, acknowledged_at
+│   ├── id, title, slug, destination, dates, status
+│   ├── Day → Activity (เวลา, ชื่อ, type, lat/lng)
+│   ├── EmergencyContact, TripNote
+│   ├── Follower (line_user_id, web_push_subscription)
+│   ├── TripRating (member_id, rating)
+│   └── ChangeLog → Acknowledgement
 │
-└── User (ผู้ใช้ admin)
-    └── id, company_id, email, name, role, created_at</code></pre>
+├── Post (แพ็คเกจทัวร์ — อิสระจาก TripPlan)
+│   ├── id, title, destination, images, price, status
+│   └── view_count, inquiry_count
+│
+└── SupportTicket (bug | feature_request | other)
+
+Member (สมาชิกลูกทริป — แยกจาก Company)
+├── id, email, name, auth_provider
+├── SavedPlace, FollowedTrip
+└── travel_points (planned)</pre>
     </div>
+  </div>
 
-    <!-- 8. Development Phases -->
-    <div class="section" id="s8">
-        <h2>8. Development Phases</h2>
-
-        <div class="phase-card active">
-            <h3>Phase 1: MVP (8-10 สัปดาห์)</h3>
-            <p><strong>เป้าหมาย:</strong> ใช้ pilot กับ 1-5 บริษัททัวร์ได้</p>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>สัปดาห์</th><th>งาน</th></tr></thead>
-                    <tbody>
-                        <tr><td>1-2</td><td>Auth + Company Profile + Database setup</td></tr>
-                        <tr><td>3-5</td><td>Trip Plan Builder (CRUD Day + Activity)</td></tr>
-                        <tr><td>6-7</td><td>Guest View (public URL + QR Code)</td></tr>
-                        <tr><td>8-9</td><td>LINE Messaging API integration (follow + change notification)</td></tr>
-                        <tr><td>10</td><td>Testing + Deploy + Pilot launch</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <p><strong>MVP Features:</strong> สร้าง/แก้ไข trip plan, Publish → URL + QR, Guest view, LINE Messaging API, ปุ่มรับทราบ + read receipt, Company logo, Free tier</p>
-        </div>
-
-        <div class="phase-card">
-            <h3>Phase 2: Monetization (สัปดาห์ 11-16)</h3>
-            <ul>
-                <li>Payment integration (Omise + PromptPay)</li>
-                <li>Subscription tiers (Free / Pro / Business)</li>
-                <li>Pay-as-you-go slot purchase</li>
-                <li>Auto noti ก่อนวันถัดไป</li>
-                <li>Basic analytics dashboard</li>
-            </ul>
-        </div>
-
-        <div class="phase-card">
-            <h3>Phase 3: Growth (สัปดาห์ 17-24)</h3>
-            <ul>
-                <li>Template system</li>
-                <li>Full analytics + export</li>
-                <li>Multi-language trip plan</li>
-                <li>Custom theme colors</li>
-                <li>White-label option (Business tier)</li>
-                <li>Landing page + SEO</li>
-            </ul>
-        </div>
-
-        <div class="phase-card">
-            <h3>Phase 4: Scale (สัปดาห์ 25+)</h3>
-            <ul>
-                <li>API สำหรับ enterprise integration</li>
-                <li>Collaborative editing (หลาย admin)</li>
-                <li>PWA support</li>
-                <li>Inbound tour support (ต่างชาติมาไทย)</li>
-                <li>Advanced analytics</li>
-            </ul>
-        </div>
+  <!-- Section 8 -->
+  <div class="section">
+    <div class="section-title"><span class="num">8</span> Development Phases</div>
+    <div class="card">
+      <h3>Phase 1: MVP (8-10 สัปดาห์)</h3>
+      <table>
+        <tr><th>สัปดาห์</th><th>งาน</th></tr>
+        <tr><td>1-2</td><td>Auth + Company Profile + Database setup</td></tr>
+        <tr><td>3-5</td><td>Trip Plan Builder (CRUD Day + Activity)</td></tr>
+        <tr><td>6-7</td><td>Guest View (public URL + QR Code)</td></tr>
+        <tr><td>8-9</td><td>LINE Messaging API integration + change notification</td></tr>
+        <tr><td>10</td><td>Testing + Deploy + Pilot launch</td></tr>
+      </table>
+      <h3>Phase 2: Monetization (สัปดาห์ 11-16)</h3>
+      <ul><li>Payment (Omise + PromptPay), Pricing tiers, Auto noti, Analytics, Posts module</li></ul>
+      <h3>Phase 3: Growth (สัปดาห์ 17-24)</h3>
+      <ul><li>Client Member, Portfolio, Support Ticket, Template, Multi-language, White-label</li></ul>
+      <h3>Phase 4: Scale (สัปดาห์ 25+)</h3>
+      <ul><li>Travel Points, API, Collaborative editing, PWA, Inbound tour support</li></ul>
     </div>
+  </div>
 
-    <!-- 9. Integrations -->
-    <div class="section" id="s9">
-        <h2>9. Integration Specifications</h2>
-
-        <h3>9.1 LINE Messaging API (via LINE OA)</h3>
-        <ul>
-            <li><strong>Purpose:</strong> ส่ง notification ไปยังลูกทริปผ่าน LINE</li>
-            <li><strong>Flow:</strong> ลูกทริปกด "ติดตาม" → เพิ่มเพื่อน LINE OA → Webhook ส่ง LINE User ID กลับมา → ใช้ Messaging API ส่ง noti</li>
-            <li><strong>Limit:</strong> Free plan 500 ข้อความ/เดือน, Light plan 5,000 ข้อความ/เดือน</li>
-            <li><strong>Cost:</strong> Free plan ฟรี (500 msg/เดือน), Light plan 750 บาท/เดือน</li>
-        </ul>
-
-        <h3>9.2 Web Push Notification API</h3>
-        <ul>
-            <li><strong>Purpose:</strong> ส่ง push notification ผ่าน browser/mobile โดยไม่ต้องเปิดเว็บ</li>
-            <li><strong>Flow:</strong> ลูกทริปกด "ติดตาม" → browser แสดง "Allow notifications?" → กด Allow → ได้ push subscription → ใช้ส่ง noti</li>
-            <li><strong>Support:</strong> Chrome, Firefox, Edge, Safari 16.4+, Android Chrome, iOS Safari 16.4+</li>
-            <li><strong>Limit:</strong> ไม่มี limit ต่อ subscription</li>
-            <li><strong>Cost:</strong> ฟรี (self-hosted, ใช้ VAPID)</li>
-            <li><strong>ข้อดี:</strong> ไม่ต้องมี LINE account — เหมาะนักท่องเที่ยวต่างชาติ, ทำงาน offline ผ่าน Service Worker</li>
-            <li><strong>ข้อจำกัด:</strong> iOS Safari ต้อง add to home screen ก่อนถึงรับ push ได้</li>
-        </ul>
-
-        <h3>9.3 Google Maps</h3>
-        <ul>
-            <li><strong>Purpose:</strong> สร้าง link ไปยังสถานที่ + route planning</li>
-            <li><strong>Cost:</strong> ฟรี (ใช้ URL scheme ไม่ใช่ API)</li>
-        </ul>
-
-        <h3>9.3 Omise Payment Gateway</h3>
-        <ul>
-            <li><strong>Purpose:</strong> รับชำระเงิน subscription + pay-per-slot</li>
-            <li><strong>Methods:</strong> PromptPay QR, Credit/Debit card</li>
-            <li><strong>Fee:</strong> 3.65% ต่อ transaction</li>
-        </ul>
-
-        <h3>9.4 QR Code Generation</h3>
-        <ul>
-            <li><strong>Purpose:</strong> สร้าง QR Code จาก trip URL</li>
-            <li><strong>Implementation:</strong> Client-side library — ไม่มีค่าใช้จ่าย</li>
-        </ul>
+  <!-- Section 9 -->
+  <div class="section">
+    <div class="section-title"><span class="num">9</span> Integration Specifications</div>
+    <div class="card">
+      <table>
+        <tr><th>Service</th><th>Purpose</th><th>Cost</th></tr>
+        <tr><td><strong>LINE Messaging API</strong></td><td>ส่ง notification ผ่าน LINE OA</td><td>Free: 500 msg/เดือน</td></tr>
+        <tr><td><strong>Web Push (VAPID)</strong></td><td>Push notification ผ่าน browser/mobile</td><td>ฟรี (self-hosted)</td></tr>
+        <tr><td><strong>Google Maps URL</strong></td><td>สร้าง link ไปยังสถานที่</td><td>ฟรี (URL scheme)</td></tr>
+        <tr><td><strong>Omise</strong></td><td>รับชำระเงิน (PromptPay, Credit/Debit)</td><td>3.65%/transaction</td></tr>
+        <tr><td><strong>QR Code</strong></td><td>สร้าง QR จาก trip URL</td><td>ฟรี (client-side)</td></tr>
+      </table>
     </div>
+  </div>
 
-    <!-- 10. Risks -->
-    <div class="section" id="s10">
-        <h2>10. Risks &amp; Mitigations</h2>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Risk</th><th>Impact</th><th>Probability</th><th>Mitigation</th></tr></thead>
-                <tbody>
-                    <tr><td>LINE Messaging API cost สูงเมื่อ scale</td><td><span class="badge badge-primary">กลาง</span></td><td><span class="badge badge-primary">กลาง</span></td><td>LINE Notify ถูกยกเลิกแล้ว — ย้ายมาใช้ Messaging API ผ่าน LINE OA เรียบร้อย, มี Web Push เป็นช่องทางเสริม + email fallback ในอนาคต, บริหาร quota ตาม plan</td></tr>
-                    <tr><td>ผู้ใช้ไม่ยอมจ่ายเงิน</td><td><span class="badge badge-danger">สูง</span></td><td><span class="badge badge-primary">กลาง</span></td><td>Validate pricing กับ pilot ก่อน</td></tr>
-                    <tr><td>บริษัททัวร์ไม่เปลี่ยนพฤติกรรม</td><td><span class="badge badge-danger">สูง</span></td><td><span class="badge badge-primary">กลาง</span></td><td>เน้น onboard ง่าย, ให้ value ตั้งแต่ free tier</td></tr>
-                    <tr><td>Performance issue เมื่อ scale</td><td><span class="badge badge-primary">กลาง</span></td><td><span class="badge badge-success">ต่ำ</span></td><td>ใช้ CDN + caching ตั้งแต่แรก</td></tr>
-                    <tr><td>PDPA compliance</td><td><span class="badge badge-danger">สูง</span></td><td><span class="badge badge-success">ต่ำ</span></td><td>เก็บข้อมูลน้อยที่สุด, มี consent flow</td></tr>
-                </tbody>
-            </table>
-        </div>
+  <!-- Section 10 -->
+  <div class="section">
+    <div class="section-title"><span class="num">10</span> Risks &amp; Mitigations</div>
+    <div class="card">
+      <table>
+        <tr><th>Risk</th><th>Impact</th><th>Probability</th><th>Mitigation</th></tr>
+        <tr><td>LINE Messaging API มีค่าใช้จ่ายเมื่อเกิน free tier</td><td>กลาง</td><td>กลาง</td><td>มี Web Push เสริม + email fallback ในอนาคต</td></tr>
+        <tr><td>ผู้ใช้ไม่ยอมจ่ายเงิน</td><td>สูง</td><td>กลาง</td><td>Validate pricing กับ pilot, ปรับ tier ตาม feedback</td></tr>
+        <tr><td>บริษัททัวร์ไม่เปลี่ยนพฤติกรรม</td><td>สูง</td><td>กลาง</td><td>เน้น onboard ง่าย, ให้ value ตั้งแต่ free tier</td></tr>
+        <tr><td>Posts ไม่มีคนดู</td><td>กลาง</td><td>กลาง</td><td>ทำ SEO สำหรับ Info Website</td></tr>
+        <tr><td>PDPA compliance</td><td>สูง</td><td>ต่ำ</td><td>เก็บข้อมูลน้อยที่สุด, มี consent flow</td></tr>
+      </table>
     </div>
+  </div>
 
-    <!-- 11. Success Metrics -->
-    <div class="section" id="s11">
-        <h2>11. Success Metrics</h2>
-
-        <h3>Phase 1 (MVP)</h3>
-        <ul>
-            <li>5 บริษัททัวร์ใช้งาน pilot</li>
-            <li>20+ trip plans สร้างบนแพลตฟอร์ม</li>
-            <li>200+ followers (ลูกทริป)</li>
-            <li>Acknowledge rate &gt; 70%</li>
-        </ul>
-
-        <h3>Phase 2 (Monetization)</h3>
-        <ul>
-            <li>3+ บริษัทจ่ายเงิน (paying customers)</li>
-            <li>Monthly revenue &gt; 2,000 บาท (cover infra cost)</li>
-            <li>Churn rate &lt; 10% ต่อเดือน</li>
-        </ul>
-
-        <h3>Phase 3 (Growth)</h3>
-        <ul>
-            <li>50+ บริษัท active</li>
-            <li>Monthly revenue &gt; 20,000 บาท</li>
-            <li>Organic signups &gt; 50% (จาก powered by badge)</li>
-        </ul>
+  <!-- Section 11 -->
+  <div class="section">
+    <div class="section-title"><span class="num">11</span> Success Metrics</div>
+    <div class="card">
+      <h3>Phase 1 (MVP)</h3>
+      <ul><li>5 บริษัททัวร์ใช้งาน pilot</li><li>20+ trip plans</li><li>200+ followers</li><li>Acknowledge rate > 70%</li></ul>
+      <h3>Phase 2 (Monetization)</h3>
+      <ul><li>3+ paying customers</li><li>Monthly revenue > 2,000 บาท</li><li>Churn rate &lt; 10%</li><li>50+ Posts</li></ul>
+      <h3>Phase 3 (Growth)</h3>
+      <ul><li>50+ active companies</li><li>Monthly revenue > 20,000 บาท</li><li>Organic signups > 50%</li><li>500+ Members</li></ul>
     </div>
+  </div>
 
-    <!-- Footer -->
-    <div class="doc-footer">
-        <p><strong>NatGan — System Requirements Document v1.0</strong></p>
-        <p>Coex Team &middot; March 2026</p>
-    </div>
+</div>
 
+<div class="footer">
+  <p>NatGan (นัดกัน) — Trip Communication Platform</p>
+  <p>Confidential — Version 2.0 — 29 March 2026</p>
 </div>
 </body>
 </html>

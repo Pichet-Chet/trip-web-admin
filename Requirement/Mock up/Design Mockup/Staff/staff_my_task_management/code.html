@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Tasks - Staff Portal</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#bd5700",
+              "surface-container-highest": "#e0e2ec",
+              "error": "#ba1a1a",
+              "on-secondary": "#ffffff",
+              "surface-bright": "#f9f9ff",
+              "secondary-container": "#b7cfff",
+              "outline-variant": "#c1c6d5",
+              "on-primary-container": "#fefcff",
+              "background": "#f9f9ff",
+              "primary-container": "#0873df",
+              "inverse-surface": "#2d3038",
+              "primary-fixed-dim": "#aac7ff",
+              "surface-variant": "#e0e2ec",
+              "on-primary-fixed-variant": "#00458d",
+              "on-primary": "#ffffff",
+              "on-background": "#181c22",
+              "inverse-on-surface": "#eff0fa",
+              "on-secondary-container": "#405882",
+              "on-secondary-fixed-variant": "#2e4770",
+              "secondary-fixed": "#d6e3ff",
+              "surface-container": "#ecedf7",
+              "on-secondary-fixed": "#001b3e",
+              "outline": "#717785",
+              "on-tertiary-fixed": "#321200",
+              "inverse-primary": "#aac7ff",
+              "on-tertiary": "#ffffff",
+              "tertiary": "#964400",
+              "secondary": "#465f89",
+              "on-error": "#ffffff",
+              "tertiary-fixed-dim": "#ffb68c",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed": "#001b3e",
+              "on-surface-variant": "#414753",
+              "surface-tint": "#005db8",
+              "surface-container-high": "#e6e8f1",
+              "primary": "#005ab4",
+              "surface-dim": "#d8dae3",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-container-low": "#f2f3fd",
+              "on-tertiary-fixed-variant": "#763400",
+              "on-tertiary-container": "#fffbff",
+              "tertiary-fixed": "#ffdbc9",
+              "surface": "#f9f9ff",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "primary-fixed": "#d6e3ff",
+              "on-surface": "#181c22"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col w-64 z-50 bg-slate-50 border-r border-slate-200">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white shadow-md">
+<span class="material-symbols-outlined" data-icon="corporate_fare">corporate_fare</span>
+</div>
+<div>
+<h1 class="text-lg font-black text-slate-900 leading-none">Staff Management</h1>
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-1">Admin Console</p>
+</div>
+</div>
+<nav class="space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-sans Inter text-sm">Dashboard</span>
+</a>
+<!-- Operators -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span class="font-sans Inter text-sm">Operators</span>
+</a>
+<!-- Trip Moderation -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="route">route</span>
+<span class="font-sans Inter text-sm">Trip Moderation</span>
+</a>
+<!-- Payments -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans Inter text-sm">Payments</span>
+</a>
+<!-- Plans -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="subscriptions">subscriptions</span>
+<span class="font-sans Inter text-sm">Plans</span>
+</a>
+<!-- Support -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-sans Inter text-sm">Support</span>
+</a>
+<!-- Tasks (ACTIVE) -->
+<a class="flex items-center gap-3 px-4 py-3 text-blue-700 bg-blue-50 border-r-4 border-blue-600 font-medium transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span class="font-sans Inter text-sm">Tasks</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 border-t border-slate-200">
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-sans Inter text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-sans Inter text-sm">Logout</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-8 h-16 w-full bg-white border-b border-slate-200 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-xl" data-icon="search">search</span>
+</span>
+<input class="bg-slate-50 border-none rounded-lg py-2 pl-10 pr-4 w-64 text-sm focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Search tasks..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 hover:bg-slate-50 rounded-full transition-colors active:opacity-80 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<button class="p-2 text-slate-600 hover:bg-slate-50 rounded-full transition-colors active:opacity-80">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-px bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-bold text-slate-900 leading-none">Alex Rivera</p>
+<p class="text-[10px] text-slate-500">Sr. Coordinator</p>
+</div>
+<img alt="Staff Profile" class="w-10 h-10 rounded-full object-cover border-2 border-primary-container" data-alt="portrait of a professional man with short dark hair in a clean studio setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3uLbrIBfHuxIrejD6OXnYOvddD5QzHWrh1T1A8EOj0Xle9mV3Vt-OvQHU15CmA-Gc6jDXbsYyQx-g5RhAcFdyjBfk_PEM3qh0ewz4gYrNhGiK2HGXh-aJaViyamvRuLXvjHS_wdDc47FFau9jVLiGOFUHRdo32Fjxzk9HYlv8TCRL9ghLW1bgzQLcQ14fr5LHt9uTnvaFyhdZqmSmbPHn9yzQsc4uoekdmpJMoEVpr60crwKZPwAXB8QFhWVm7wKip4mkTL0_pH_f"/>
+</div>
+</div>
+</header>
+<!-- Kanban Board Content -->
+<div class="p-8 flex-1 overflow-x-auto bg-surface-container-low">
+<div class="mb-8 flex justify-between items-end">
+<div>
+<h2 class="text-2xl font-black text-slate-900 tracking-tight font-headline">My Task Management</h2>
+<p class="text-on-surface-variant font-body">Manage your active priorities and track progress across client trips.</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-white border border-outline-variant text-on-surface text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span>
+                        Filter
+                    </button>
+<button class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:opacity-90 shadow-md transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+                        New Task
+                    </button>
+</div>
+</div>
+<!-- Kanban Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 min-w-[900px]">
+<!-- Column: To Do -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-slate-700 uppercase tracking-widest text-xs">To Do</h3>
+<span class="bg-slate-200 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-full">3</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="space-y-4">
+<!-- Task Card 1 -->
+<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-1 rounded uppercase tracking-tighter">High Priority</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<h4 class="font-bold text-slate-900 mb-1">Verify Insurance Documents</h4>
+<p class="text-xs text-slate-500 mb-4 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="business">business</span>
+                                Alpine Expeditions Ltd.
+                            </p>
+<div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm" data-icon="event">event</span>
+<span class="text-[10px] font-medium">Oct 24, 2023</span>
+</div>
+<div class="flex -space-x-2">
+<img alt="User" class="w-6 h-6 rounded-full border-2 border-white object-cover" data-alt="close-up portrait of a female professional with bright lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUcBVpCUlD-Et0BjInEWoUKFWdw_HPfhnTw9B_Etlgow6uHKN1Nt_-67UM_r9wk902EoRSqsIFtHUQKTyQUM6z-McsOygbgcsy0lc0dk2jVwYqs95xTS59X_iNZAlzo5ftZLbHJvbyAbsflrekbc9zlC6fzKPUIW7sskOP7tRzLB9Gry4BVt22Ty7QCCXnt2JmM4YUG1voKOvSlcJgCAtCR3nodFVOrGHp4lsq9iLu_YWe-8MNd4sns3NenhzCU7zK2f4rZk_UFZ7H"/>
+</div>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded uppercase tracking-tighter">Medium Priority</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<h4 class="font-bold text-slate-900 mb-1">Update Winter Itineraries</h4>
+<p class="text-xs text-slate-500 mb-4 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="person">person</span>
+                                Sarah Jenkins (VIP)
+                            </p>
+<div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm" data-icon="event">event</span>
+<span class="text-[10px] font-medium">Oct 28, 2023</span>
+</div>
+</div>
+</div>
+<!-- Ghost Placeholder -->
+<div class="border-2 border-dashed border-slate-200 rounded-xl h-24 flex items-center justify-center text-slate-300">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</div>
+</div>
+</div>
+<!-- Column: In Progress -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-blue-700 uppercase tracking-widest text-xs">In Progress</h3>
+<span class="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full">2</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="space-y-4">
+<!-- Task Card 3 -->
+<div class="bg-white p-4 rounded-xl border-l-4 border-l-primary border-y border-r border-slate-200 shadow-md group">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-1 rounded uppercase tracking-tighter">High Priority</span>
+<span class="material-symbols-outlined text-primary" data-icon="autorenew">autorenew</span>
+</div>
+<h4 class="font-bold text-slate-900 mb-1">Resolve Payment Discrepancy</h4>
+<p class="text-xs text-slate-500 mb-3 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="confirmation_number">confirmation_number</span>
+                                Booking #4492-B
+                            </p>
+<div class="w-full bg-slate-100 h-1.5 rounded-full mb-4">
+<div class="bg-primary h-1.5 rounded-full w-2/3"></div>
+</div>
+<div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-1 text-error font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="alarm">alarm</span>
+<span class="text-[10px]">Overdue</span>
+</div>
+<div class="flex -space-x-2">
+<img alt="User" class="w-6 h-6 rounded-full border-2 border-white object-cover" data-alt="professional male portrait with minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvXplBqfB296gi-NushQnP0dGzs12-qwufaOQJ6gAImJV-NezzMjRHL-BWWRKRnmCSyMNzCZSViLMX14o72i6Wg2KqE6MiEnj7g2usQ7BI5hnHfDBDQ1aJ8Kr3Z2MYIEhmP2CHMTb4bM465tiElPPd5YFA2fUjIiCBDgZUCDb0Xhc2unfrM5hSiAs_9KtTtF8GTmtJdOUzz3wF16MFuSusIU1BYVGLUnyPANRWr-u21afLamKuoECm6-uDCCKvst6jzGgiT2rMZmWa"/>
+</div>
+</div>
+</div>
+<!-- Task Card 4 -->
+<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-surface-container-highest text-slate-600 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-tighter">Low Priority</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<h4 class="font-bold text-slate-900 mb-1">Update Staff Bio Photos</h4>
+<p class="text-xs text-slate-500 mb-4 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="groups">groups</span>
+                                Internal Team
+                            </p>
+<div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm" data-icon="event">event</span>
+<span class="text-[10px] font-medium">Nov 02, 2023</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Done -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-emerald-700 uppercase tracking-widest text-xs">Done</h3>
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">12</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="space-y-4">
+<!-- Task Card 5 -->
+<div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm opacity-75 grayscale-[0.5]">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-tighter">Completed</span>
+<span class="material-symbols-outlined text-emerald-500" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h4 class="font-bold text-slate-500 line-through mb-1">Finalize Q3 Trip Reports</h4>
+<p class="text-xs text-slate-400 mb-4 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="assessment">assessment</span>
+                                Management Board
+                            </p>
+<div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="text-[10px] font-medium">Finished Oct 20</span>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs font-bold hover:bg-slate-50 transition-colors">
+                            View 11 More Completed
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Stats / Dashboard Glimpse (Bento Style) -->
+<div class="p-8 grid grid-cols-1 md:grid-cols-4 gap-4 bg-white border-t border-slate-200">
+<div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+<p class="text-xs font-bold text-blue-700 uppercase tracking-tighter mb-1">Efficiency Score</p>
+<p class="text-2xl font-black text-blue-900">94%</p>
+<div class="mt-2 h-1 bg-blue-200 rounded-full overflow-hidden">
+<div class="bg-blue-600 h-full w-[94%]"></div>
+</div>
+</div>
+<div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+<p class="text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Tasks Completed</p>
+<p class="text-2xl font-black text-slate-900">128</p>
+<p class="text-[10px] text-emerald-600 font-bold mt-1">↑ 12% from last week</p>
+</div>
+<div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+<p class="text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Avg. Resolution</p>
+<p class="text-2xl font-black text-slate-900">4.2h</p>
+<p class="text-[10px] text-slate-400 font-bold mt-1">Steady trend</p>
+</div>
+<div class="bg-tertiary-container/10 p-4 rounded-xl border border-tertiary-container/20">
+<p class="text-xs font-bold text-tertiary-container uppercase tracking-tighter mb-1">Pending Critical</p>
+<p class="text-2xl font-black text-tertiary">2</p>
+<p class="text-[10px] text-tertiary-container font-bold mt-1">Action required soon</p>
+</div>
+</div>
+</main>
+<!-- FAB Action (Contextual Suppression Rule Applied - Visible only on Task/Dashboard as requested) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="add_task">add_task</span>
+</button>
+</body></html>

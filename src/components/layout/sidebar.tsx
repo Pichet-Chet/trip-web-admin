@@ -7,7 +7,6 @@ import { ROUTES } from "@/constants/routes";
 const navItems = [
   { label: "หน้าหลัก", href: ROUTES.dashboard, icon: "dashboard" },
   { label: "ทริปของฉัน", href: "/dashboard/my-trips", icon: "luggage" },
-  { label: "สร้างทริป", href: ROUTES.tripNew, icon: "edit_calendar" },
   { label: "แพ็กเกจทัวร์", href: "/dashboard/posts", icon: "flight_takeoff" },
   { label: "โปรไฟล์", href: ROUTES.profile, icon: "person" },
   { label: "การใช้งาน", href: ROUTES.usage, icon: "speed" },

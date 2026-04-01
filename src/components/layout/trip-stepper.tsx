@@ -17,7 +17,7 @@ interface TripStepperHeaderProps {
 
 export function TripStepperHeader({ currentStep, tripId, subtitle }: TripStepperHeaderProps): React.ReactNode {
   return (
-    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl px-4 md:px-8 lg:px-12 h-20 flex items-center justify-between border-b border-(--outline-variant)/30">
+    <header className="sticky top-16 z-20 bg-white/80 backdrop-blur-xl px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between border-b border-(--outline-variant)/30">
       {/* Left: Title */}
       <div className="flex items-center gap-4">
         <h2 className="text-lg md:text-xl font-bold text-(--on-surface) tracking-tight whitespace-nowrap">สร้างทริป</h2>

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, createContext, useContext, useCallback } from "react";
+import { useState, createContext, useContext, useCallback, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/shared";
+import { AuthGuard } from "@/components/shared/auth-guard";
+import { getUser, logout, switchCompany, getCompanies, type UserInfo, type CompanyInfo } from "@/lib/auth";
+import { useToast } from "@/components/shared/toast";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
 export function useSidebar(): { openSidebar: () => void } { return useContext(SidebarContext); }
@@ -15,11 +18,29 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [companies, setCompanies] = useState<CompanyInfo[]>([]);
+  const [switching, setSwitching] = useState(false);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
+
+  // getUser() works after AuthGuard refreshes the token
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const u = getUser();
+      if (u && !user) {
+        setUser(u);
+        setCompanies(u.companies || []);
+      }
+    }, 100);
+    // cleanup after user loaded
+    if (user) clearInterval(interval);
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <SidebarContext.Provider value={{ openSidebar }}>
       <ToastProvider>
+      <AuthGuard>
       <div className="min-h-screen bg-(--surface) text-(--on-surface)">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="ml-0 md:ml-20 lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
@@ -72,11 +93,11 @@ export default function DashboardLayout({
                   className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                 >
                   <div className="text-right hidden sm:block">
-                    <p className="text-sm font-bold text-slate-900 leading-none">สมชาย ใจดี</p>
-                    <p className="text-[10px] text-slate-400">Amazing Tour Co.</p>
+                    <p className="text-sm font-bold text-slate-900 leading-none">{user ? `${user.firstName} ${user.lastName}` : "..."}</p>
+                    <p className="text-[10px] text-slate-400">{user?.companyName || ""}</p>
                   </div>
                   <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
-                    ส
+                    {user?.firstName?.charAt(0) || "?"}
                   </div>
                 </button>
                 {/* Profile Dropdown */}
@@ -85,9 +106,48 @@ export default function DashboardLayout({
                     <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
                     <div className="absolute right-0 top-14 z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
                       <div className="p-4 border-b border-slate-100">
-                        <p className="font-bold text-slate-900">สมชาย ใจดี</p>
-                        <p className="text-xs text-slate-400">admin@amazingtour.com</p>
+                        <p className="font-bold text-slate-900">{user ? `${user.firstName} ${user.lastName}` : ""}</p>
+                        <p className="text-xs text-slate-400">{user?.email}</p>
                       </div>
+                      {/* Company Switcher */}
+                      {companies.length > 1 && (
+                        <div className="px-3 py-2 border-b border-slate-100">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 mb-1">บริษัท</p>
+                          {companies.map((c) => (
+                            <button
+                              key={c.id}
+                              disabled={switching}
+                              onClick={async () => {
+                                if (c.id === user?.companyId) return;
+                                setSwitching(true);
+                                try {
+                                  const data = await switchCompany(c.id);
+                                  setUser(data.user);
+                                  setProfileOpen(false);
+                                  window.location.reload();
+                                } catch { /* ignore */ }
+                                setSwitching(false);
+                              }}
+                              className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-colors ${
+                                c.id === user?.companyId ? "bg-blue-50" : "hover:bg-slate-50"
+                              }`}
+                            >
+                              {c.logoUrl ? (
+                                <img src={c.logoUrl} className="w-7 h-7 rounded-lg object-cover" alt="" />
+                              ) : (
+                                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-400">{c.name.charAt(0)}</div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-900 truncate">{c.name}</p>
+                                <p className="text-[10px] text-slate-400">{c.role}</p>
+                              </div>
+                              {c.id === user?.companyId && (
+                                <span className="material-symbols-outlined text-blue-600 text-sm">check</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <nav className="py-2">
                         <a href="/dashboard/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
                           <span className="material-symbols-outlined text-lg">person</span>
@@ -107,10 +167,10 @@ export default function DashboardLayout({
                         </a>
                       </nav>
                       <div className="border-t border-slate-100 py-2">
-                        <a href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                        <button onClick={logout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors w-full text-left">
                           <span className="material-symbols-outlined text-lg">logout</span>
                           ออกจากระบบ
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </>
@@ -134,10 +194,6 @@ export default function DashboardLayout({
               <span className="material-symbols-outlined text-xl">luggage</span>
               <span className="text-[10px] font-medium">ทริป</span>
             </a>
-            <a href="/dashboard/trips/new" className="flex flex-col items-center gap-0.5 p-2 text-blue-600">
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
-              <span className="text-[10px] font-bold">สร้างทริป</span>
-            </a>
             <a href="/dashboard/profile" className="flex flex-col items-center gap-0.5 p-2 text-slate-400">
               <span className="material-symbols-outlined text-xl">person</span>
               <span className="text-[10px] font-medium">โปรไฟล์</span>
@@ -156,6 +212,7 @@ export default function DashboardLayout({
           </footer>
         </main>
       </div>
+    </AuthGuard>
     </ToastProvider>
     </SidebarContext.Provider>
   );

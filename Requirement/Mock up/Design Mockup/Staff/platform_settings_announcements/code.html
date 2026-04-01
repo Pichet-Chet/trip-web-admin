@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NatGan Admin - Platform Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#ffdbc9",
+              "on-tertiary-container": "#fffbff",
+              "background": "#f9f9ff",
+              "on-tertiary": "#ffffff",
+              "tertiary-container": "#bd5700",
+              "on-secondary-container": "#405882",
+              "primary-container": "#0873df",
+              "surface-container": "#ecedf7",
+              "secondary": "#465f89",
+              "primary": "#005ab4",
+              "tertiary-fixed-dim": "#ffb68c",
+              "on-tertiary-fixed": "#321200",
+              "on-secondary-fixed-variant": "#2e4770",
+              "surface-container-low": "#f2f3fd",
+              "surface-bright": "#f9f9ff",
+              "surface-dim": "#d8dae3",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#d6e3ff",
+              "inverse-on-surface": "#eff0fa",
+              "surface-variant": "#e0e2ec",
+              "surface-container-high": "#e6e8f1",
+              "primary-fixed": "#d6e3ff",
+              "outline-variant": "#c1c6d5",
+              "inverse-primary": "#aac7ff",
+              "on-error-container": "#93000a",
+              "tertiary": "#964400",
+              "on-tertiary-fixed-variant": "#763400",
+              "on-primary-fixed-variant": "#00458d",
+              "on-primary-fixed": "#001b3e",
+              "on-primary-container": "#fefcff",
+              "on-secondary-fixed": "#001b3e",
+              "on-surface-variant": "#414753",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface": "#f9f9ff",
+              "primary-fixed-dim": "#aac7ff",
+              "on-background": "#181c22",
+              "outline": "#717785",
+              "on-surface": "#181c22",
+              "secondary-container": "#b7cfff",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-container-highest": "#e0e2ec",
+              "error": "#ba1a1a",
+              "inverse-surface": "#2d3038",
+              "on-secondary": "#ffffff",
+              "surface-tint": "#005db8"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 bg-slate-50 dark:bg-slate-950 h-screen w-64 border-r border-slate-200 dark:border-slate-800 font-['Inter'] text-sm font-medium z-50">
+<div class="flex items-center space-x-3 mb-8 px-2">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</div>
+<div>
+<h1 class="text-xl font-black tracking-tight text-blue-600">NatGan Admin</h1>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Staff Portal</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center space-x-3 p-3 rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all duration-150 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all duration-150 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Operators</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all duration-150 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span>Trip Moderation</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all duration-150 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span>Usage Logs</span>
+</a>
+<a class="flex items-center space-x-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-600 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all duration-150 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full mb-4 bg-primary text-on-primary py-2.5 rounded-lg font-semibold flex items-center justify-center space-x-2 shadow-md hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+<span>New Report</span>
+</button>
+<a class="flex items-center space-x-3 p-3 rounded-lg text-slate-600 dark:text-slate-400 hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 w-full flex justify-between items-center px-6 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm font-['Inter'] antialiased">
+<div class="flex items-center space-x-4">
+<h2 class="text-xl font-bold text-on-surface">Platform Settings</h2>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary-container text-on-secondary-container uppercase tracking-tight">System v2.4</span>
+</div>
+<div class="flex items-center space-x-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</div>
+<span class="material-symbols-outlined text-slate-500 cursor-pointer hover:text-primary transition-colors" data-icon="help_outline">help_outline</span>
+<div class="h-8 w-[1px] bg-slate-200"></div>
+<div class="flex items-center space-x-3 group cursor-pointer">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface leading-tight">Admin Staff</p>
+<p class="text-[10px] text-slate-500 leading-tight">Support</p>
+</div>
+<img alt="Administrator Profile" class="w-8 h-8 rounded-full border border-slate-200 object-cover" data-alt="Professional portrait of a corporate administrator in a sharp suit with a clean office background in soft focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQFW3YjPY919uRvO16k0hg9CPENm-dvr1YkIotrLXGyIOnVFg0gWo54bVwFKFheus6vYr1bN2DPwd3KFpgCvb4h4MDa3CUkUzV25W3p7Wra0XOYk04C32aQJWWC42ZFnFt8YX723p3k-UIF_KNeMhqSDang45Cy6F5m-wphscgnXU4t6VfBbmSScjdm3YrZK54JpMiYjg3wGHeUDZNc7Y0iUkRwOVYOSUO__Hx6JHRLjTFneMIKXXbqkBOPvALii9r6t5uPSPk0pwh"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8 max-w-5xl mx-auto">
+<div class="mb-8">
+<h3 class="text-2xl font-extrabold text-on-surface tracking-tight">Global Configurations</h3>
+<p class="text-outline mt-1">Manage system-wide announcements, pricing tiers, and maintenance schedules.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Left Column: System & Announcements -->
+<div class="md:col-span-7 space-y-6">
+<!-- Announcement Section -->
+<section class="bg-white rounded-xl border border-outline-variant p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Global System Announcement</h4>
+<p class="text-xs text-outline">Visible to all active users on their dashboard.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="space-y-4">
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Announcement Text</label>
+<textarea class="w-full p-4 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm min-h-[120px] resize-none" placeholder="Enter the announcement message here...">System maintenance scheduled for Sunday at 02:00 UTC. Some services might be intermittent.</textarea>
+</div>
+<div class="flex items-center space-x-2 text-xs text-primary font-medium">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+<span>Preview will update automatically in the user interface.</span>
+</div>
+</div>
+</section>
+<!-- Maintenance Mode -->
+<section class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<div class="p-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-lg bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="construction">construction</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Maintenance Mode</h4>
+<p class="text-xs text-outline">Locks the platform for all non-staff users.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-error"></div>
+</label>
+</div>
+</div>
+<div class="px-6 py-3 bg-error/5 border-t border-error/10">
+<p class="text-[11px] text-error font-medium flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="warning">warning</span>
+                                Enabling this will force-logout all active user sessions immediately.
+                            </p>
+</div>
+</section>
+</div>
+<!-- Right Column: Pricing & Meta -->
+<div class="md:col-span-5 space-y-6">
+<!-- Pricing Tier Settings -->
+<section class="bg-white rounded-xl border border-outline-variant p-6 shadow-sm">
+<div class="flex items-center space-x-3 mb-6">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-icon="sell" style="font-variation-settings: 'FILL' 1;">sell</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Early-Bird Pricing</h4>
+<p class="text-xs text-outline">Tiered campaign settings</p>
+</div>
+</div>
+<div class="space-y-5">
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Base Price (USD)</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-outline font-bold">$</span>
+<input class="w-full pl-8 pr-4 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono" type="number" value="49.99"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Campaign Expiry Date</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-outline material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" type="date" value="2024-12-31"/>
+</div>
+</div>
+<div class="pt-4 mt-4 border-t border-slate-100">
+<div class="flex justify-between items-center text-xs mb-2">
+<span class="text-outline">Current Status</span>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 text-tertiary font-bold uppercase">Active</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-3/4"></div>
+</div>
+<p class="text-[10px] text-outline mt-2 italic text-center">74% of allocated slots for this tier are claimed.</p>
+</div>
+</div>
+</section>
+<!-- Summary Card / Decorative -->
+<section class="relative bg-primary overflow-hidden rounded-xl p-6 shadow-lg shadow-primary/20 text-on-primary h-[180px] flex flex-col justify-end">
+<img alt="Data visualization background" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30" data-alt="Abstract vibrant digital data visualization with flowing blue glowing lines and nodes representing network connectivity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB84JfnzN0TgWeo5PwNfbByo-c2_ylBMq2fIH7XdSX0TkIU33fFpJiGYWWLzaf0kHhBp4GmDvvFLR6n7gh-FZlKFQynL3pN00F6OTJs44GT5QXIU3_na00d46LEc4xwEtHKbpftBAf-uLmo6N8J6OXml8joQtmKyzYfVSnietGCvRgTPXYgtUd94XPZpMeSAWYrzYSumHshbuEJyoOlaR0pXLRgnCkYossaY3jfy0JdiZSPIQgD6QG7o3IARW2JtWk7E887rYkPT0-T"/>
+<div class="relative z-10">
+<p class="text-xs font-medium opacity-80 mb-1">Last Saved Change</p>
+<h5 class="text-xl font-bold">2 hours ago</h5>
+<div class="flex items-center mt-3 text-[11px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md w-fit px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="person">person</span>
+                                ID: STAFF_092
+                            </div>
+</div>
+</section>
+</div>
+</div>
+<!-- Global Action Bar -->
+<div class="mt-12 flex items-center justify-end space-x-4 sticky bottom-8 py-4 bg-background/80 backdrop-blur-sm">
+<button class="px-6 py-3 rounded-lg font-bold text-on-surface-variant hover:bg-slate-200 transition-colors">Discard Changes</button>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-10 py-3 rounded-lg font-bold shadow-xl shadow-primary/30 flex items-center space-x-2 transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="save" style="font-variation-settings: 'FILL' 1;">save</span>
+<span>Save Changes</span>
+</button>
+</div>
+</div>
+</main>
+</body></html>
