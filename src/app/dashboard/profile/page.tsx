@@ -167,20 +167,18 @@ export default function ProfilePage(): React.ReactNode {
             </section>
 
             {/* Contact Channels */}
-            {!isPersonal && (
-              <section className="space-y-6">
-                <SectionHeader title="ช่องทางติดต่อ" subtitle="แสดงบนหน้าทริปให้ลูกทริปติดต่อกลับ" variant="bar" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-                  <FormInput label="เบอร์โทรศัพท์" placeholder="+66 81 234 5678" type="tel" icon="call" value={form.phone} onChange={set("phone")} />
-                  <FormInput label="LINE ID" placeholder="@yourlineid" icon="chat" value={form.lineId} onChange={set("lineId")} />
-                  <FormInput label="Facebook Page" placeholder="https://fb.com/yourpage" icon="thumb_up" value={form.facebookUrl} onChange={set("facebookUrl")} />
-                  <FormInput label="Instagram" placeholder="https://instagram.com/yourbrand" icon="camera" value={form.instagramUrl} onChange={set("instagramUrl")} />
-                  <div className="col-span-1 md:col-span-2">
-                    <FormInput label="เว็บไซต์" placeholder="https://yourwebsite.com" icon="language" value={form.websiteUrl} onChange={set("websiteUrl")} />
-                  </div>
+            <section className="space-y-6">
+              <SectionHeader title="ช่องทางติดต่อ" subtitle="แสดงบนหน้าทริปให้ลูกทริปติดต่อกลับ" variant="bar" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+                <FormInput label="เบอร์โทรศัพท์" placeholder="+66 81 234 5678" type="tel" icon="call" value={form.phone} onChange={set("phone")} />
+                <FormInput label="LINE ID" placeholder="@yourlineid" icon="chat" value={form.lineId} onChange={set("lineId")} />
+                <FormInput label="Facebook Page" placeholder="https://fb.com/yourpage" icon="thumb_up" value={form.facebookUrl} onChange={set("facebookUrl")} />
+                <FormInput label="Instagram" placeholder="https://instagram.com/yourbrand" icon="camera" value={form.instagramUrl} onChange={set("instagramUrl")} />
+                <div className="col-span-1 md:col-span-2">
+                  <FormInput label="เว็บไซต์" placeholder="https://yourwebsite.com" icon="language" value={form.websiteUrl} onChange={set("websiteUrl")} />
                 </div>
-              </section>
-            )}
+              </div>
+            </section>
 
             {/* Save */}
             <div className="pt-8 border-t border-slate-100 space-y-4">

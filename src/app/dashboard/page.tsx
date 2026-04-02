@@ -283,15 +283,17 @@ export default function DashboardPage(): React.ReactNode {
                       ) : <p className="text-sm font-bold text-(--on-surface-variant)">—</p>}
                     </div>
                     <div className="flex flex-row md:flex-col items-end justify-end gap-2">
-                      <Link href={isDraft ? `/dashboard/trips/new?id=${trip.id}` : ROUTES.tripManage(trip.id)}>
+                      <Link href={`/dashboard/trips/new?scope=edit&id=${trip.id}`}>
                         <IconButton icon="edit" variant="primary" />
                       </Link>
-                      <button
-                        onClick={() => setDeleteTarget(trip)}
-                        className="p-2 rounded-xl hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-lg">delete</span>
-                      </button>
+                      {isDraft && (
+                        <button
+                          onClick={() => setDeleteTarget(trip)}
+                          className="p-2 rounded-xl hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

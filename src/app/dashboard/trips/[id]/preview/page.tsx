@@ -273,11 +273,11 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       <FooterActionBar
         backLabel="ย้อนกลับ"
         onBack={() => router.push(ROUTES.tripEdit(id))}
-        nextLabel={isPublished ? "จัดการทริป" : "เผยแพร่ทริป"}
-        nextVariant={isPublished ? "primary" : "success"}
-        nextIcon={isPublished ? "settings" : "rocket_launch"}
-        onNext={isPublished ? () => router.push(ROUTES.tripManage(id)) : () => setShowPublishModal(true)}
-        disabled={!isPublished && issues.length > 0}
+        nextLabel={isPublished ? "อัปเดตการเผยแพร่" : "เผยแพร่ทริป"}
+        nextVariant="success"
+        nextIcon="rocket_launch"
+        onNext={() => setShowPublishModal(true)}
+        disabled={issues.length > 0}
       />
 
       {/* ═══ Content ═══ */}

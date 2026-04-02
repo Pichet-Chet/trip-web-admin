@@ -197,6 +197,11 @@ export default function NewTripPage(): React.ReactNode {
   // ─── Trip scope ───
   const [tripScope, setTripScope] = useState<TripScopeLocal>(null);
 
+  // ─── Trip status (for date lock) ───
+  const [tripStatus, setTripStatus] = useState("");
+  const [dateChangeCount, setDateChangeCount] = useState(0);
+  const [maxDateChanges, setMaxDateChanges] = useState(99);
+
   // ─── Basic info ───
   const [title, setTitle] = useState("");
   const [destination, setDestination] = useState("");
@@ -231,6 +236,15 @@ export default function NewTripPage(): React.ReactNode {
       try {
         const trip = await api.get<any>(`/admin/trips/${draftId}`);
         setTripScope((trip.scope || "domestic") as TripScopeLocal);
+        setTripStatus(trip.status || "");
+        setDateChangeCount(trip.dateChangeCount || 0);
+
+        // Load max date changes from system config
+        try {
+          const usage = await api.get<{ maxDateChanges?: number }>("/admin/usage");
+          if (typeof usage.maxDateChanges === "number") setMaxDateChanges(usage.maxDateChanges);
+        } catch { /* use default */ }
+
         setTitle(trip.title || "");
         setDestination(trip.destination || "");
         setStartDate(trip.startDate || "");
@@ -560,11 +574,9 @@ export default function NewTripPage(): React.ReactNode {
         toast("บันทึกร่างแล้ว", "success");
       }
     } catch (err) {
-      if (err instanceof ApiError) {
-        setApiError(err.message);
-      } else {
-        setApiError("เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง");
-      }
+      const msg = err instanceof ApiError ? err.message : "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง";
+      setApiError(msg);
+      toast(msg, "error");
     } finally {
       setLoading(false);
       setSavingDraft(false);
@@ -718,12 +730,23 @@ export default function NewTripPage(): React.ReactNode {
               <div className="md:col-span-1 lg:col-span-6">
                 <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => { setDestination(e.target.value); setFieldErrors((prev) => ({ ...prev, destination: "" })); }} error={fieldErrors.destination} />
               </div>
-              <div className="md:col-span-1 lg:col-span-3 relative">
-                <DatePicker label="วันเดินทาง" placeholder="เลือกวันที่" required value={startDate} onChange={(v) => { setStartDate(v); setFieldErrors((prev) => ({ ...prev, startDate: "" })); }} error={fieldErrors.startDate} />
-              </div>
-              <div className="md:col-span-1 lg:col-span-3 relative">
-                <DatePicker label="วันกลับ" placeholder="เลือกวันที่" required min={startDate} value={endDate} onChange={(v) => { setEndDate(v); setFieldErrors((prev) => ({ ...prev, endDate: "" })); }} error={fieldErrors.endDate} />
-              </div>
+              {(() => {
+                const isPublished = tripStatus === "Published" || tripStatus === "Unpublished";
+                const isDateLocked = isPublished && dateChangeCount >= maxDateChanges;
+                const remaining = maxDateChanges - dateChangeCount;
+                const dateHint = isPublished && !isDateLocked ? `เปลี่ยนวันได้อีก ${remaining} ครั้ง` : isDateLocked ? "ล็อค — ใช้สิทธิ์เปลี่ยนวันหมดแล้ว" : "";
+                return (
+                  <>
+                    <div className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}>
+                      <DatePicker label={`วันเดินทาง${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required value={startDate} onChange={(v) => { setStartDate(v); setFieldErrors((prev) => ({ ...prev, startDate: "" })); }} error={fieldErrors.startDate} />
+                    </div>
+                    <div className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}>
+                      <DatePicker label={`วันกลับ${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required min={startDate} value={endDate} onChange={(v) => { setEndDate(v); setFieldErrors((prev) => ({ ...prev, endDate: "" })); }} error={fieldErrors.endDate} />
+                      {dateHint && <p className="text-[10px] text-(--on-surface-variant) mt-1 px-1">{dateHint}</p>}
+                    </div>
+                  </>
+                );
+              })()}
               <div className="md:col-span-2 lg:col-span-4">
                 <FormInput label="จำนวนผู้เดินทาง" placeholder="จำนวนคน" type="number" icon="group" required value={travelersCount} onChange={(e) => { setTravelersCount(e.target.value); setFieldErrors((prev) => ({ ...prev, travelersCount: "" })); }} error={fieldErrors.travelersCount} />
               </div>
