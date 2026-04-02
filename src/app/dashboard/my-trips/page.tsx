@@ -141,7 +141,7 @@ export default function MyTripsPage(): React.ReactNode {
                       <span className={`text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${
                         isArchived ? "bg-slate-400" : isDraft ? "bg-amber-500" : isEnded ? "bg-slate-500" : "bg-emerald-500"
                       }`}>
-                        {isArchived ? "ARCHIVED" : isDraft ? "DRAFT" : isEnded ? "จบแล้ว" : "LIVE"}
+                        {isArchived ? "จบแล้ว" : isDraft ? "ฉบับร่าง" : isEnded ? "สิ้นสุด" : "เผยแพร่"}
                       </span>
                       <span className={`text-[9px] font-bold px-2 py-1 rounded-md shadow-sm ${
                         trip.scope === "international" ? "bg-purple-500 text-white" : "bg-white/90 text-slate-700"

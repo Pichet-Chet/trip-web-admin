@@ -1,9 +1,9 @@
 import type { TripStatus, FollowChannel } from "@/types";
 
 const tripStatusConfig: Record<TripStatus, { label: string; cls: string }> = {
-  published: { label: "Published", cls: "bg-(--surface-variant) text-(--on-surface-variant)" },
-  draft: { label: "Draft", cls: "bg-purple-100 text-purple-700" },
-  unpublished: { label: "Unpublished", cls: "bg-amber-100 text-amber-800" },
+  published: { label: "เผยแพร่", cls: "bg-(--primary-container) text-(--on-primary-container)" },
+  draft: { label: "ฉบับร่าง", cls: "bg-amber-100 text-amber-800" },
+  unpublished: { label: "ปิดแล้ว", cls: "bg-(--surface-variant) text-(--on-surface-variant)" },
 };
 
 const channelConfig: Record<FollowChannel, { label: string; icon: string; cls: string }> = {
