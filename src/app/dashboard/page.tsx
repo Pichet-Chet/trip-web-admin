@@ -41,6 +41,8 @@ export default function DashboardPage(): React.ReactNode {
   const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>("all");
+  const [apiError, setApiError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -83,8 +85,6 @@ export default function DashboardPage(): React.ReactNode {
   const quotaFull = usage
     ? usage.remainingTrips <= 0 && (usage.creditsRemaining ?? 0) <= 0 && !usage.hasActiveSubscription
     : false;
-  const [apiError, setApiError] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
 
   // Sort trips by createdAt desc
   const sortedTrips = [...filteredTrips].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

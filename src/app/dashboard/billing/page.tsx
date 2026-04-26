@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { EmptyState, Pagination, SectionHeader } from "@/components/shared";
+import { EmptyState, Pagination, SectionHeader, useToast } from "@/components/shared";
 
 interface PaymentItem {
   id: string;
@@ -70,6 +70,7 @@ interface PaymentHistoryPage {
 
 function BillingContent(): React.ReactNode {
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const [paymentPage, setPaymentPage] = useState<PaymentHistoryPage | null>(null);
   const [page, setPage] = useState(1);
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -109,7 +110,7 @@ function BillingContent(): React.ReactNode {
       window.location.href = result.url;
     } catch (e: unknown) {
       setPortalLoading(false);
-      alert(e instanceof ApiError ? e.message : "เกิดข้อผิดพลาด");
+      toast(e instanceof ApiError ? e.message : "เกิดข้อผิดพลาด", "error");
     }
   };
 
@@ -421,7 +422,7 @@ function BillingContent(): React.ReactNode {
                                 const r = await api.get<{ url: string }>(`/admin/billing/payments/${tx.id}/receipt`);
                                 window.open(r.url, "_blank", "noopener,noreferrer");
                               } catch (e: unknown) {
-                                alert(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้");
+                                toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
                               }
                             }}
                             className="text-primary text-xs font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
