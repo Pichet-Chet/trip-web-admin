@@ -36,14 +36,43 @@ function formatDate(iso: string | null): string {
   });
 }
 
+interface PlanCatalogItem {
+  code: string;
+  name: string;
+  description: string | null;
+  price: number;
+  currency: string;
+  tripLimit: number | null;
+  isSubscription: boolean;
+  sortOrder: number;
+}
+
+const TIER_FALLBACK: Record<string, number> = {
+  per_trip: 49,
+  pack_5: 249,
+  subscription: 299,
+};
+
+function priceFor(catalog: PlanCatalogItem[] | null, code: string): number {
+  if (!catalog) return TIER_FALLBACK[code] ?? 0;
+  return catalog.find((p) => p.code === code)?.price ?? TIER_FALLBACK[code] ?? 0;
+}
+
 export default function UsagePage(): React.ReactNode {
   const [data, setData] = useState<UsageData | null>(null);
+  const [catalog, setCatalog] = useState<PlanCatalogItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<UsageData>("/admin/usage")
-      .then(setData)
+    Promise.all([
+      api.get<UsageData>("/admin/usage"),
+      api.get<PlanCatalogItem[]>("/admin/billing/plans").catch(() => null),
+    ])
+      .then(([usage, plans]) => {
+        setData(usage);
+        setCatalog(plans);
+      })
       .catch((e: ApiError) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -129,7 +158,7 @@ export default function UsagePage(): React.ReactNode {
                 {isFree ? "อัปเกรดแพลน" : "ซื้อเครดิตเพิ่ม"}
               </Link>
             )}
-            {!isSub && <p className="text-xs text-outline">เริ่มต้น ฿49/ทริป</p>}
+            {!isSub && <p className="text-xs text-outline">เริ่มต้น ฿{priceFor(catalog, "per_trip").toLocaleString("th-TH")}/ทริป</p>}
           </div>
         </div>
 
@@ -274,7 +303,7 @@ export default function UsagePage(): React.ReactNode {
                   )}
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-black text-on-surface">฿49</span>
+                  <span className="text-3xl font-black text-on-surface">฿{priceFor(catalog, "per_trip").toLocaleString("th-TH")}</span>
                   <span className="text-sm text-on-surface-variant ml-1">/ ทริป</span>
                 </div>
                 <p className="text-xs text-on-surface-variant mt-1">จ่ายเฉพาะทริปที่สร้างเพิ่ม</p>
@@ -313,14 +342,16 @@ export default function UsagePage(): React.ReactNode {
                   )}
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-black text-on-surface">฿249</span>
+                  <span className="text-3xl font-black text-on-surface">฿{priceFor(catalog, "pack_5").toLocaleString("th-TH")}</span>
                   <span className="text-sm text-on-surface-variant ml-1">/ 5 ทริป</span>
                 </div>
-                <p className="text-xs text-on-surface-variant mt-1">ประหยัด ~฿49 เหมาะกับคนจัดบ่อย</p>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  ประหยัด ~฿{Math.max(0, priceFor(catalog, "per_trip") * 5 - priceFor(catalog, "pack_5")).toLocaleString("th-TH")} เหมาะกับคนจัดบ่อย
+                </p>
               </div>
             </div>
             <ul className="space-y-2.5 flex-1">
-              {["5 ทริป (เฉลี่ย ฿49.8/ทริป)", "ทุกฟีเจอร์เหมือนจ่ายต่อทริป", "ไม่มีวันหมดอายุ"].map(f => (
+              {[`5 ทริป (เฉลี่ย ฿${(priceFor(catalog, "pack_5") / 5).toFixed(2)}/ทริป)`, "ทุกฟีเจอร์เหมือนจ่ายต่อทริป", "ไม่มีวันหมดอายุ"].map(f => (
                 <li key={f} className="flex items-start gap-2 text-sm text-on-surface-variant">
                   <span className="material-symbols-outlined text-green-500 text-base mt-0.5 flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>{f}</span>
@@ -349,7 +380,7 @@ export default function UsagePage(): React.ReactNode {
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-on-surface">Subscription รายเดือน</h4>
-                <p className="text-xs text-on-surface-variant mt-0.5">ทริปไม่จำกัด • ฿299/เดือน • ยกเลิกได้ทุกเมื่อ</p>
+                <p className="text-xs text-on-surface-variant mt-0.5">ทริปไม่จำกัด • ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน • ยกเลิกได้ทุกเมื่อ</p>
               </div>
               <span className="material-symbols-outlined text-(--primary) group-hover:translate-x-1 transition-transform flex-shrink-0">arrow_forward</span>
             </div>

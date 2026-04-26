@@ -35,6 +35,7 @@ interface TripDetail {
   airlineInfo: AirlineDetail[];
   accommodations: AccommodationDetail[];
   emergencyContacts: EmergencyDetail[];
+  publishedQuotaSource: string | null;
 }
 
 interface DayDetail {
@@ -94,6 +95,17 @@ interface SubmitReviewResponse {
 /* ─── Helpers ─── */
 const CLIENT_BASE = process.env.NEXT_PUBLIC_CLIENT_URL || "https://trip.example.com";
 
+
+function tierLabel(source: string): string {
+  switch (source) {
+    case "subscription": return "Subscription";
+    case "per_trip": return "เครดิต Per-Trip";
+    case "pack_5": return "เครดิต Pack 5";
+    case "free": return "ทริปฟรี";
+    case "grandfather": return "Grandfather (ก่อนเริ่มเก็บค่าใช้จ่าย)";
+    default: return source;
+  }
+}
 
 function formatDateTH(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("th-TH", { day: "numeric", month: "short" });
@@ -751,15 +763,27 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                 </p>
               </div>
 
-              {/* I7 (Q3=B): Credit policy notice — only show on FIRST submit (not re-publish) */}
-              {!isPublished && !isPendingReview && (
+              {/* I7 (Q3=B): Credit policy notice — different copy for first vs re-submit */}
+              {!isPublished && !isPendingReview && trip?.publishedQuotaSource ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-emerald-600 text-lg flex-shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <div className="flex-1 space-y-1.5">
+                      <p className="text-sm font-bold text-emerald-900">ส่งใหม่ได้เลย — ไม่หักเครดิตเพิ่ม</p>
+                      <p className="text-xs text-emerald-800 leading-relaxed">
+                        ทริปนี้เคยถูก reject — เครดิตที่ใช้ตอนส่งครั้งแรก ({tierLabel(trip.publishedQuotaSource)}) ผูกกับทริปนี้ตลอดอายุ
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : !isPublished && !isPendingReview && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
                   <div className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-amber-600 text-lg flex-shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
                     <div className="flex-1 space-y-1.5">
                       <p className="text-sm font-bold text-amber-900">การใช้เครดิต</p>
                       <p className="text-xs text-amber-800 leading-relaxed">
-                        การส่งตรวจสอบครั้งแรก <strong>หัก 1 เครดิต</strong> จากแพลนของคุณ (per_trip / pack_5 / Subscription)
+                        การส่งตรวจสอบครั้งแรก <strong>หัก 1 เครดิต</strong> จากแพลนของคุณ (per_trip / pack_5 / Subscription) — ระบบจะใช้เครดิตที่ซื้อเก่าก่อน (FIFO)
                       </p>
                       <ul className="text-xs text-amber-800 space-y-1 ml-3 list-disc list-inside marker:text-amber-500">
                         <li>ถ้า staff reject → แก้ไขแล้ว <strong>ส่งใหม่ฟรี</strong> (ไม่หักเครดิตเพิ่ม)</li>
