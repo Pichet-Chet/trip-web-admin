@@ -6,16 +6,16 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, SectionHeader, DashedAddButton, FooterActionBar, IconButton, ImageUpload, DatePicker, TimePicker } from "@/components/shared";
-import { DevAutoFill } from "@/components/shared/dev-auto-fill";
+import dynamic from "next/dynamic";
+
+// DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
+// out of the production bundle (process.env.NODE_ENV is statically
+// replaced at build time, so this branch becomes dead code in prod).
+const DevAutoFill = process.env.NODE_ENV === "development"
+  ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
+  : null;
 import { useToast } from "@/components/shared/toast";
 import type { Accommodation, TripPlan } from "@/types";
-
-const presetCovers = [
-  { label: "Japan", url: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800" },
-  { label: "Sea", url: "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800" },
-  { label: "Mountain", url: "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800" },
-  { label: "City", url: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800" },
-];
 
 type TransportType = "flight" | "van" | "bus" | "train" | "boat" | "car";
 
@@ -338,13 +338,10 @@ export default function NewTripPage(): React.ReactNode {
     setStartDate(fmt(start));
     setEndDate(fmt(end));
 
-    // Cover image
-    const covers = [
-      "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800",
-      "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=800",
-      "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800",
-    ];
-    setCoverUrl(rand(covers));
+    // Cover image — left empty in dev auto-fill (operator uploads real image
+    // via media library; placeholder URLs would fail with 404 on Unsplash CDN
+    // changes anyway).
+    setCoverUrl(null);
 
     // Transport — ทุก field
     if (!isDomestic) {
@@ -633,8 +630,17 @@ export default function NewTripPage(): React.ReactNode {
                 onClick={() => selectScope("domestic")}
                 className="group relative overflow-hidden rounded-4xl aspect-4/3 md:aspect-3/4 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
               >
-                <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute inset-0 bg-linear-to-t from-emerald-900/90 via-emerald-900/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-br from-emerald-500 via-emerald-700 to-teal-800" />
+                <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 70% 30%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
+                <svg className="absolute inset-0 w-full h-full opacity-15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <pattern id="domestic-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+                      <circle cx="2" cy="2" r="1" fill="white" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#domestic-dots)" />
+                </svg>
+                <div className="absolute inset-0 bg-linear-to-t from-emerald-900/70 via-transparent to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-left">
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🚐 รถตู้</span>
@@ -657,8 +663,17 @@ export default function NewTripPage(): React.ReactNode {
                 onClick={() => selectScope("international")}
                 className="group relative overflow-hidden rounded-4xl aspect-4/3 md:aspect-3/4 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
               >
-                <img src="https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=800&q=80" alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute inset-0 bg-linear-to-t from-blue-900/90 via-blue-900/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-blue-700 to-indigo-900" />
+                <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
+                <svg className="absolute inset-0 w-full h-full opacity-15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <pattern id="intl-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+                      <circle cx="2" cy="2" r="1" fill="white" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#intl-dots)" />
+                </svg>
+                <div className="absolute inset-0 bg-linear-to-t from-blue-900/70 via-transparent to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-left">
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">✈️ เครื่องบิน</span>
@@ -703,7 +718,6 @@ export default function NewTripPage(): React.ReactNode {
               aspect="wide"
               label="อัปโหลดหรือลากรูปภาพปกมาวาง"
               hint="แนะนำ: 1920x800px ขึ้นไป"
-              presets={presetCovers.map((p) => ({ label: p.label, url: p.url }))}
             />
           </section>
 
@@ -915,7 +929,7 @@ export default function NewTripPage(): React.ReactNode {
         )}
       </div>
 
-      {tripScope && <DevAutoFill onFill={autoFill} />}
+      {tripScope && DevAutoFill && <DevAutoFill onFill={autoFill} />}
     </div>
   );
 }

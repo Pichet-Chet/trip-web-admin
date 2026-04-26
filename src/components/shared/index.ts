@@ -22,3 +22,4 @@ export { TimePicker } from "./time-picker";
 export { SelectPicker } from "./select-picker";
 export { MediaLibraryModal } from "./media-library-modal";
 export type { SelectOption } from "./select-picker";
+export { AuthHero } from "./auth-hero";

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { FormInput } from "@/components/shared";
+import { FormInput, AuthHero } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 import { AgreementModal } from "@/components/shared/agreement-modal";
 import { register } from "@/lib/auth";
@@ -118,12 +118,7 @@ export default function RegisterPage(): React.ReactNode {
     <main className="min-h-screen flex flex-col md:flex-row">
       {/* Left: Hero Image */}
       <section className="relative hidden md:flex md:w-1/2 min-h-screen overflow-hidden">
-        <img
-          alt="Serene Thai Landscape"
-          className="absolute inset-0 w-full h-full object-cover"
-          src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-(--primary)/80 via-(--primary)/20 to-transparent" />
+        <AuthHero />
         <div className="relative z-10 flex flex-col justify-end p-12 lg:p-20 w-full h-full">
           <div className="max-w-md">
             <span className="inline-block px-4 py-1.5 rounded-full bg-(--secondary-container)/30 backdrop-blur-md text-white text-xs tracking-wider mb-6 border border-white/10 uppercase font-medium">

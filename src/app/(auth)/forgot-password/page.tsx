@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ROUTES } from "@/constants/routes";
-import { FormInput } from "@/components/shared";
+import { FormInput, AuthHero } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
 
 export default function ForgotPasswordPage(): React.ReactNode {
@@ -33,10 +33,7 @@ export default function ForgotPasswordPage(): React.ReactNode {
     <main className="min-h-screen flex flex-col md:flex-row">
       {/* Left: Hero Image */}
       <section className="relative hidden md:flex md:w-1/2 lg:w-3/5 min-h-screen">
-        <div className="absolute inset-0 w-full h-full">
-          <img alt="Serene Thai Landscape" className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80" />
-          <div className="absolute inset-0 bg-linear-to-tr from-(--primary)/70 via-(--primary)/20 to-transparent" />
-        </div>
+        <AuthHero />
         <div className="relative z-10 flex flex-col justify-end p-12 lg:p-20 w-full h-full">
           <div className="max-w-xl">
             <span className="inline-block px-4 py-1.5 rounded-full bg-(--primary-container) text-(--on-primary-container) text-xs tracking-wider mb-6 uppercase font-medium">ระบบจัดการ</span>

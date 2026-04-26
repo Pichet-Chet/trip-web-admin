@@ -118,8 +118,9 @@ export default function DashboardPage(): React.ReactNode {
       {/* ═══ Onboarding (0 trips) ═══ */}
       {showOnboarding && (
         <section className="relative overflow-hidden rounded-2xl">
-          <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80" alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-indigo-50" />
+          <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl" />
+          <div className="absolute -left-10 -bottom-20 w-72 h-72 rounded-full bg-indigo-200/30 blur-3xl" />
           <div className="relative z-10 p-8 md:p-12 max-w-3xl">
             <span className="inline-block px-3 py-1 bg-blue-600 rounded-md text-[10px] font-bold tracking-widest uppercase text-white mb-6">เริ่มต้นใช้งาน</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
@@ -159,8 +160,10 @@ export default function DashboardPage(): React.ReactNode {
       <section className="grid grid-cols-12 gap-6 lg:h-105">
         {/* Large CTA Card */}
         <div className="col-span-12 lg:col-span-7 relative overflow-hidden rounded-[2.5rem] bg-(--primary) group cursor-pointer shadow-2xl shadow-(--primary)/10 aspect-video lg:aspect-auto">
-          <img className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700" src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80" alt="" />
-          <div className="absolute inset-0 bg-linear-to-tr from-(--primary) via-(--primary)/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-blue-700 to-indigo-900" />
+          <div className="absolute inset-0 bg-linear-to-tr from-(--primary) via-(--primary)/40 to-transparent" />
+          <div className="absolute -right-32 -top-32 w-96 h-96 rounded-full bg-white/10 blur-3xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-blue-300/10 blur-3xl" />
           <div className="relative h-full flex flex-col justify-end p-6 md:p-12 text-(--on-primary)">
             <span className="inline-block w-fit px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest mb-4 border border-white/20">เริ่มต้น</span>
             <h2 className="text-3xl md:text-5xl font-extrabold leading-tight mb-6">สร้าง <br />ประสบการณ์ใหม่</h2>

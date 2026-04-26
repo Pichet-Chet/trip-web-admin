@@ -4,7 +4,13 @@ import { useState, useEffect, useCallback, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
-import { DevAutoFill } from "@/components/shared/dev-auto-fill";
+import dynamic from "next/dynamic";
+
+// DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
+// out of the production bundle.
+const DevAutoFill = process.env.NODE_ENV === "development"
+  ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
+  : null;
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, FormTextarea, IconButton, IconWrapper, StatsSummary, FooterActionBar, EmptyState, Skeleton, ConfirmDialog, ImageUpload, TimePicker, SelectPicker } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
@@ -788,7 +794,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       </div>
 
       {/* ═══ Dev Auto Fill ═══ */}
-      <DevAutoFill onFill={handleAutoFill} label="Auto Fill 3 Days" />
+      {DevAutoFill && <DevAutoFill onFill={handleAutoFill} label="Auto Fill 3 Days" />}
 
       {/* ═══ Confirm Dialog ═══ */}
       <ConfirmDialog
