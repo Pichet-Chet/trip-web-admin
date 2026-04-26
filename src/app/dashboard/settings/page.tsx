@@ -1,28 +1,124 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FormInput, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
+import { api, ApiError } from "@/lib/api";
+import { getUser, logout, type UserInfo } from "@/lib/auth";
 
 export default function SettingsPage(): React.ReactNode {
-  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const router = useRouter();
   const { toast } = useToast();
+
+  const [user, setUser] = useState<UserInfo | null>(null);
+  useEffect(() => {
+    setUser(getUser());
+  }, []);
+
+  // Change password
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+
+  // Export
+  const [exporting, setExporting] = useState(false);
+
+  // Delete
+  const [showDelete, setShowDelete] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleChangePassword() {
+    setPwError("");
+    if (!oldPassword || !newPassword) {
+      setPwError("กรุณากรอกรหัสผ่านให้ครบ");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwError("รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError("รหัสผ่านยืนยันไม่ตรงกัน");
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await api.post("/admin/me/change-password", {
+        oldPassword,
+        newPassword,
+      });
+      toast("เปลี่ยนรหัสผ่านเรียบร้อย", "success");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPwError(err instanceof ApiError ? err.message : "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    } finally {
+      setPwSaving(false);
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const data = await api.get<unknown>("/admin/me/export");
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `tripapp-export-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast("ส่งออกข้อมูลเรียบร้อย", "success");
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "ส่งออกข้อมูลไม่สำเร็จ", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleteError("");
+    if (!deletePassword) {
+      setDeleteError("กรุณากรอกรหัสผ่านเพื่อยืนยัน");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.delete("/admin/me", {
+        password: deletePassword,
+        reason: deleteReason.trim() || undefined,
+      });
+      await logout().catch(() => {});
+      toast("ลบบัญชีเรียบร้อย", "success");
+      router.push("/login");
+    } catch (err) {
+      setDeleteError(err instanceof ApiError ? err.message : "ลบบัญชีไม่สำเร็จ");
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ตั้งค่าบัญชี</h1>
-        <p className="text-slate-500 mt-2 text-sm">จัดการบัญชี รหัสผ่าน และข้อมูลส่วนตัว</p>
+        <p className="text-slate-500 mt-2 text-sm">จัดการบัญชี รหัสผ่าน และสิทธิ์ข้อมูลส่วนบุคคล (PDPA)</p>
       </div>
 
-      {/* Email */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+      {/* Email (read-only for now — change-email flow not implemented) */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
         <SectionHeader title="อีเมล" variant="bar" />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <p className="text-sm font-semibold text-slate-900">admin@amazingtour.com</p>
+            <p className="text-sm font-semibold text-slate-900">{user?.email ?? "—"}</p>
             <p className="text-xs text-slate-400 mt-0.5">อีเมลที่ใช้เข้าสู่ระบบ</p>
           </div>
-          <button onClick={() => toast("ส่งลิงก์ยืนยันไปที่อีเมลใหม่แล้ว")} className="text-sm font-semibold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">เปลี่ยนอีเมล</button>
+          <span className="text-xs text-slate-400">การเปลี่ยนอีเมลจะเปิดให้ใช้เร็วๆ นี้</span>
         </div>
       </div>
 
@@ -30,59 +126,159 @@ export default function SettingsPage(): React.ReactNode {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
         <SectionHeader title="รหัสผ่าน" variant="bar" />
         <div className="space-y-4">
-          <FormInput label="รหัสผ่านปัจจุบัน" type="password" placeholder="••••••••" />
-          <FormInput label="รหัสผ่านใหม่" type="password" placeholder="••••••••" />
-          <FormInput label="ยืนยันรหัสผ่านใหม่" type="password" placeholder="••••••••" />
-          <button onClick={() => toast("เปลี่ยนรหัสผ่านเรียบร้อย")} className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors">
-            เปลี่ยนรหัสผ่าน
+          <FormInput
+            label="รหัสผ่านปัจจุบัน"
+            type="password"
+            placeholder="••••••••"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+          />
+          <FormInput
+            label="รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)"
+            type="password"
+            placeholder="••••••••"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <FormInput
+            label="ยืนยันรหัสผ่านใหม่"
+            type="password"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+          {pwError && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+              <p className="text-sm text-red-700">{pwError}</p>
+            </div>
+          )}
+          <button
+            onClick={handleChangePassword}
+            disabled={pwSaving}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {pwSaving ? "กำลังบันทึก..." : "เปลี่ยนรหัสผ่าน"}
           </button>
         </div>
       </div>
 
-      {/* Connected Accounts */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
-        <SectionHeader title="บัญชีที่เชื่อมต่อ" variant="bar" />
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Google</p>
-                <p className="text-xs text-slate-400">admin@amazingtour.com</p>
-              </div>
-            </div>
-            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">เชื่อมต่อแล้ว</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Export Data */}
+      {/* Export Data — PDPA */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
-        <SectionHeader title="ส่งออกข้อมูล" variant="bar" />
-        <p className="text-sm text-slate-500">ดาวน์โหลดข้อมูลทริปทั้งหมดของคุณเป็นไฟล์ JSON ตามสิทธิ์ PDPA</p>
-        <button onClick={() => toast("เตรียมไฟล์เสร็จแล้ว กำลังดาวน์โหลด...")} className="px-6 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">
-          ส่งออกข้อมูลทั้งหมด
+        <SectionHeader title="ส่งออกข้อมูล (PDPA)" variant="bar" />
+        <p className="text-sm text-slate-500">
+          ดาวน์โหลดข้อมูลทั้งหมดของคุณเป็นไฟล์ JSON — บัญชี, บริษัท, ทริป, แพ็กเกจ, ประวัติชำระเงิน
+          ตามสิทธิ์ที่บัญญัติใน PDPA / GDPR
+        </p>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="px-6 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-base">download</span>
+          {exporting ? "กำลังเตรียมไฟล์..." : "ส่งออกข้อมูลทั้งหมด"}
         </button>
       </div>
 
       {/* Danger Zone */}
       <div className="bg-white rounded-2xl border border-red-200 p-6 space-y-4">
         <h3 className="text-lg font-bold text-red-600">ลบบัญชี</h3>
-        <p className="text-sm text-slate-500">เมื่อลบบัญชีแล้ว ข้อมูลทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้ รวมถึงทริป ผู้ติดตาม และประวัติทั้งหมด</p>
-        <button onClick={() => setShowDeleteAccount(true)} className="px-6 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors">
+        <p className="text-sm text-slate-500 leading-relaxed">
+          เมื่อลบบัญชีแล้ว ข้อมูลส่วนตัวของคุณจะถูก anonymize ทันที (ชื่อ, อีเมล, เบอร์โทร)
+          ระบบจะคงเฉพาะประวัติทางการเงินและ audit logs เท่านั้นตามกฎหมายบัญชีไทย (5 ปี).
+          <strong className="text-red-600"> หากคุณเป็นเจ้าของบริษัทเพียงคนเดียว ต้องโอนความเป็นเจ้าของก่อน</strong>
+        </p>
+        <button
+          onClick={() => setShowDelete(true)}
+          className="px-6 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors"
+        >
           ลบบัญชีของฉัน
         </button>
       </div>
 
-      <ConfirmDialog
-        open={showDeleteAccount}
-        onClose={() => setShowDeleteAccount(false)}
-        onConfirm={() => toast("บัญชีถูกลบเรียบร้อยแล้ว")}
-        title="ลบบัญชีถาวร?"
-        description="ข้อมูลทั้งหมดจะถูกลบทันที: ทริป, ผู้ติดตาม, ประวัติชำระเงิน, รูปภาพ ไม่สามารถกู้คืนได้"
-        confirmLabel="ลบบัญชีถาวร"
-        variant="danger"
-      />
+      {showDelete && (
+        <DeleteAccountModal
+          onClose={() => { if (!deleting) { setShowDelete(false); setDeletePassword(""); setDeleteReason(""); setDeleteError(""); } }}
+          onConfirm={handleDelete}
+          password={deletePassword}
+          setPassword={setDeletePassword}
+          reason={deleteReason}
+          setReason={setDeleteReason}
+          error={deleteError}
+          deleting={deleting}
+        />
+      )}
+    </div>
+  );
+}
+
+interface DeleteModalProps {
+  onClose: () => void;
+  onConfirm: () => void;
+  password: string;
+  setPassword: (s: string) => void;
+  reason: string;
+  setReason: (s: string) => void;
+  error: string;
+  deleting: boolean;
+}
+
+function DeleteAccountModal({ onClose, onConfirm, password, setPassword, reason, setReason, error, deleting }: DeleteModalProps): React.ReactNode {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 p-0 md:p-4" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-t-3xl md:rounded-2xl shadow-xl p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
+        <div>
+          <h3 className="text-lg font-bold text-red-600">ลบบัญชีถาวร?</h3>
+          <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+            ข้อมูลส่วนตัวจะถูก anonymize ทันที — กรุณายืนยันด้วยรหัสผ่าน
+          </p>
+        </div>
+
+        <FormInput
+          label="รหัสผ่าน"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">เหตุผล (ไม่บังคับ)</label>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="ช่วยให้เราพัฒนาบริการดีขึ้น"
+            rows={3}
+            maxLength={500}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none"
+          />
+        </div>
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={onClose}
+            disabled={deleting}
+            className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 disabled:opacity-50"
+          >
+            {deleting ? "กำลังลบ..." : "ลบบัญชีถาวร"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
