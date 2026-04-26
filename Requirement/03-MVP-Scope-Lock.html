@@ -3,235 +3,827 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NatGan — MVP Scope Lock</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>TripApp Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --indigo: #1b2a4a; --indigo-light: #2d4373; --purple: #7c3aed; --purple-light: #a78bfa; --teal: #0d9488; --amber: #f59e0b; --green: #22c55e; --red: #ef4444; --gold: #c5a572; --cream: #f5ebe0; --warm-white: #faf3ea; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Noto Sans Thai', sans-serif; background: var(--cream); color: var(--indigo); line-height: 1.7; }
-  .header { background: linear-gradient(135deg, var(--purple) 0%, var(--indigo) 50%, var(--purple) 100%); color: white; padding: 60px 24px; text-align: center; position: relative; overflow: hidden; }
-  .header::before { content: '\1F512'; position: absolute; right: 40px; top: 30px; font-size: 80px; opacity: 0.15; }
-  .header::after { content: '\1F3AF'; position: absolute; left: 40px; bottom: 20px; font-size: 60px; opacity: 0.15; }
-  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
-  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
-  .header .meta { display: flex; justify-content: center; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
-  .header .meta span { background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; backdrop-filter: blur(8px); }
-  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
-  .section { margin-bottom: 48px; }
-  .section-title { font-size: 1.6rem; font-weight: 700; color: var(--indigo); padding-bottom: 12px; border-bottom: 3px solid var(--purple); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-  .section-title .num { background: var(--purple); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
-  h3 { font-size: 1.15rem; font-weight: 700; margin: 24px 0 12px; color: var(--indigo); }
-  h4 { font-size: 1rem; font-weight: 600; margin: 16px 0 8px; color: var(--indigo-light); }
-  .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-  .highlight-card { background: linear-gradient(135deg, var(--purple) 0%, var(--indigo) 100%); color: white; border-radius: 20px; padding: 32px; margin-bottom: 32px; }
-  .highlight-card h3 { color: white; } .highlight-card blockquote { font-size: 1.2rem; font-weight: 300; opacity: 0.9; border-left: 3px solid var(--gold); padding-left: 16px; margin: 16px 0; font-style: normal; background: transparent; border-radius: 0; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 16px 0; }
-  th { background: var(--indigo); color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
-  td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: top; }
-  tr:hover td { background: rgba(124,58,237,0.04); }
-  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-  .tag-green { background: #dcfce7; color: #166534; } .tag-red { background: #fee2e2; color: #991b1b; } .tag-amber { background: #fef3c7; color: #92400e; } .tag-purple { background: #f3e8ff; color: #6b21a8; } .tag-teal { background: #ccfbf1; color: #115e59; }
-  pre { background: #1e293b; color: #e2e8f0; border-radius: 12px; padding: 20px; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; margin: 16px 0; font-family: 'SF Mono', 'Fira Code', monospace; }
-  blockquote { border-left: 4px solid var(--purple); padding: 12px 20px; margin: 16px 0; background: rgba(124,58,237,0.06); border-radius: 0 12px 12px 0; font-style: italic; }
-  ul, ol { padding-left: 20px; margin: 8px 0; } li { margin: 4px 0; font-size: 0.95rem; } p { margin: 8px 0; font-size: 0.95rem; }
-  a { color: var(--purple); text-decoration: none; } a:hover { text-decoration: underline; }
-  .footer { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 0.85rem; }
-  hr { border: none; border-top: 2px solid rgba(0,0,0,0.06); margin: 32px 0; }
-  .checklist { list-style: none; padding-left: 0; }
-  .checklist li { padding: 4px 0; }
-  .checklist li::before { content: ''; display: inline-block; width: 18px; height: 18px; border: 2px solid var(--purple); border-radius: 4px; margin-right: 8px; vertical-align: middle; }
-  @media (max-width: 640px) { .header h1 { font-size: 1.8rem; } .container { padding: 20px 16px; } table { font-size: 0.8rem; } th, td { padding: 8px 10px; } }
+:root {
+  --primary: #1978e5;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --on-surface: #191c20;
+  --on-surface-variant: #44474e;
+  --outline: #74777f;
+  --outline-variant: #c4c6d0;
+  --surface-container: #f2f3fd;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--on-surface);
+  background: var(--surface-container);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-light);
+}
+h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+li { margin-bottom: 4px; }
+strong { color: var(--on-surface); font-weight: 600; }
+blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 16px 20px;
+  border-radius: 0 12px 12px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+blockquote p { color: var(--on-surface-variant); margin: 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  background: var(--surface-container);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--on-surface-variant);
+  vertical-align: top;
+}
+tr:hover td { background: #fafbff; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-container);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 20px 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 12px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 32px 0;
+  opacity: 0.3;
+}
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--outline);
+}
+input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--primary);
+}
+@media (max-width: 768px) {
+  .card { padding: 24px; border-radius: 16px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <h1>MVP Scope Lock</h1>
-  <div class="subtitle">NatGan (นัดกัน) — v2.0</div>
-  <div class="meta">
-    <span>Version 2.0</span>
-    <span>29 March 2026</span>
-    <span>Status: Locked</span>
-  </div>
-</div>
-
 <div class="container">
-
-  <!-- Section 1 -->
-  <div class="section">
-    <div class="section-title"><span class="num">1</span> MVP Goal</div>
-    <div class="highlight-card">
-      <blockquote>ถ้าพิสูจน์ได้ → เดินหน้า Phase 2 (Client Member + Advanced Features)<br>ถ้าพิสูจน์ไม่ได้ → Pivot หรือ Stop</blockquote>
-    </div>
-    <div class="card">
-      <p><strong>พิสูจน์สมมติฐานเหล่านี้:</strong></p>
-      <ol>
-        <li>บริษัททัวร์ / ไกด์อิสระ <strong>ใช้จริง</strong> ในการส่ง itinerary ให้ลูกทริป</li>
-        <li>ลูกทริป <strong>เปิดดูจริง</strong> ผ่าน link/QR (ไม่ใช่แค่ "ดีนะ" แล้วกลับไปใช้ Line)</li>
-        <li>ฟีเจอร์ <strong>notification + รับทราบ</strong> มีคนใช้จริง และลดปัญหาหน้างาน</li>
-        <li><strong>Posts (ประกาศทัวร์)</strong> ช่วยให้บริษัท/ไกด์โปรโมทแพ็กเกจทัวร์ได้จริง</li>
-        <li><strong>Personal users</strong> ใช้วางแผนทริปส่วนตัวแชร์กับเพื่อนจริง</li>
-      </ol>
-    </div>
-  </div>
-
-  <!-- Section 2 -->
-  <div class="section">
-    <div class="section-title"><span class="num">2</span> MVP Scope — สิ่งที่ทำ</div>
-
-    <div class="card">
-      <h3>2.1 Authentication &amp; Profile</h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th><th>SRD Ref</th></tr>
-        <tr><td>สมัครสมาชิก (Email + Password)</td><td>สมัคร + ยืนยัน email</td><td>FR-AUTH-001</td></tr>
-        <tr><td>Login / Logout</td><td>Session management</td><td>FR-AUTH-001</td></tr>
-        <tr><td>Account Types</td><td>Company, Freelance Guide, Personal</td><td>FR-AUTH-002</td></tr>
-        <tr><td>Onboarding Flow</td><td>แยก flow ตามประเภทบัญชี</td><td>FR-AUTH-002</td></tr>
-        <tr><td>Company Profile</td><td>ชื่อบริษัท, Logo, ช่องทางติดต่อ</td><td>FR-AUTH-002</td></tr>
-        <tr><td>Freelance Guide Profile</td><td>ชื่อไกด์, รูปโปรไฟล์, ช่องทางติดต่อ</td><td>FR-AUTH-002</td></tr>
-        <tr><td>Personal Profile</td><td>ชื่อ, รูปโปรไฟล์</td><td>FR-AUTH-002</td></tr>
-      </table>
-      <p><strong>MVP ไม่มี:</strong> Social Login (Google, LINE) — เพิ่มใน Phase 2</p>
-    </div>
-
-    <div class="card">
-      <h3>2.2 Trip Plan Builder (Admin)</h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th><th>SRD Ref</th></tr>
-        <tr><td>สร้าง Trip Plan</td><td>ชื่อทริป, วันเริ่ม-สิ้นสุด, destination, cover image, จำนวนผู้เดินทาง</td><td>FR-PLAN-001</td></tr>
-        <tr><td>ข้อมูลสายการบิน</td><td>สายการบิน, เลขไฟลท์, วันเวลา</td><td>FR-PLAN-001</td></tr>
-        <tr><td>ข้อมูลที่พัก</td><td>ชื่อ, ที่อยู่, เบอร์โทร (สำหรับ ตม. ด้วย)</td><td>FR-PLAN-001</td></tr>
-        <tr><td>จัดการรายวัน (Day)</td><td>เพิ่ม/ลบ/เรียงลำดับวัน, ชื่อ, cover image</td><td>FR-PLAN-002</td></tr>
-        <tr><td>จัดการกิจกรรม (Activity)</td><td>เวลา, ชื่อสถานที่, หมายเหตุ, Google Maps, ประเภท, รูปภาพ</td><td>FR-PLAN-003</td></tr>
-        <tr><td>เบอร์ฉุกเฉิน</td><td>เพิ่มเอง + pre-fill ตามประเทศ</td><td>FR-PLAN-004</td></tr>
-        <tr><td>หมายเหตุสำคัญ</td><td>Free text</td><td>FR-PLAN-004</td></tr>
-        <tr><td>Route Planning</td><td>สร้าง Google Maps route link อัตโนมัติ</td><td>FR-PLAN-005</td></tr>
-        <tr><td>เลือกภาษาหลัก</td><td>ไทย / อังกฤษ / ญี่ปุ่น</td><td>FR-PLAN-001</td></tr>
-      </table>
-      <p><strong>MVP ไม่มี:</strong> วลีที่ใช้บ่อย, ของที่ต้องเตรียม, Template System — เพิ่มใน Phase 3</p>
-    </div>
-
-    <div class="card">
-      <h3>2.3 Posts (ประกาศแพ็กเกจทัวร์) <span class="tag tag-teal">NEW</span></h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th><th>SRD Ref</th></tr>
-        <tr><td>สร้าง Post</td><td>สำหรับ Company / Freelance Guide โปรโมทแพ็กเกจทัวร์</td><td>FR-POST-001</td></tr>
-        <tr><td>Post Fields</td><td>title, destination, description, highlights, images, price, duration, travelPeriod, slots, tags</td><td>FR-POST-001</td></tr>
-        <tr><td>Post Status</td><td>draft / published / closed</td><td>FR-POST-002</td></tr>
-        <tr><td>แสดงบน Info Website</td><td>Posts แสดงบนเว็บไซต์หลัก (พัฒนาโดย Nes)</td><td>FR-POST-003</td></tr>
-        <tr><td>จัดการ Posts (Admin)</td><td>CRUD — สร้าง, แก้ไข, ลบ, เปลี่ยนสถานะ</td><td>FR-POST-001</td></tr>
-      </table>
-      <p><strong>หมายเหตุ:</strong> ไม่มีระบบ booking — แค่ showcase ทัวร์เท่านั้น</p>
-    </div>
-
-    <div class="card">
-      <h3>2.4 Publishing &amp; Sharing</h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th><th>SRD Ref</th></tr>
-        <tr><td>Publish Trip Plan</td><td>ปุ่ม Publish → เปิดให้ guest เข้าดู</td><td>FR-PUB-001</td></tr>
-        <tr><td>Unique URL</td><td><code>natgan.com/t/{slug}</code> กำหนดเอง หรือ auto-generate</td><td>FR-PUB-001</td></tr>
-        <tr><td>QR Code</td><td>สร้างอัตโนมัติ + ดาวน์โหลด PNG</td><td>FR-PUB-001</td></tr>
-        <tr><td>Guest View</td><td>เปิด URL → เห็น trip plan ทันที ไม่ต้อง login</td><td>FR-PUB-002</td></tr>
-        <tr><td>Company Branding</td><td>Logo + ช่องทางติดต่อ แสดงบน guest view</td><td>FR-PUB-002</td></tr>
-        <tr><td>Powered by NatGan</td><td>แสดง badge + link ถาวร (free tier)</td><td>FR-BRAND-002</td></tr>
-        <tr><td>Auto-highlight ตามเวลา</td><td>highlight กิจกรรมปัจจุบันอัตโนมัติ</td><td>FR-PUB-002</td></tr>
-        <tr><td>Immigration-Friendly View</td><td>โหมดยื่น ตม. — ข้อมูล official, ภาษา destination, offline cache</td><td>FR-PUB-003</td></tr>
-        <tr><td>Unpublish</td><td>ปิดไม่ให้เข้าดู</td><td>FR-PUB-004</td></tr>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3>2.5 Portfolio (หน้าสาธารณะ) <span class="tag tag-teal">NEW</span></h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th><th>SRD Ref</th></tr>
-        <tr><td>Public Portfolio Page</td><td>หน้าสาธารณะสำหรับ Company / Freelance Guide</td><td>FR-PORT-001</td></tr>
-        <tr><td>Toggle เปิด/ปิด</td><td>เลือกได้ว่าจะเปิด portfolio หรือไม่</td><td>FR-PORT-001</td></tr>
-        <tr><td>แสดงข้อมูลบริษัท/ไกด์</td><td>Logo, ชื่อ, ช่องทางติดต่อ, Posts ที่ published</td><td>FR-PORT-001</td></tr>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3>2.6 Notification &amp; Communication (Killer Feature)</h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th><th>SRD Ref</th></tr>
-        <tr><td>Follow ทริป (LINE OA)</td><td>ลูกทริปกด → เพิ่มเพื่อน LINE OA → ได้ User ID</td><td>FR-NOTI-001</td></tr>
-        <tr><td>Follow ทริป (Web Push)</td><td>ลูกทริปกด → Allow notification → ได้ subscription</td><td>FR-NOTI-001</td></tr>
-        <tr><td>แจ้งเตือนเมื่อ Plan เปลี่ยน</td><td>ตรวจจับ change → สร้าง summary → ส่ง LINE + Web Push</td><td>FR-NOTI-002</td></tr>
-        <tr><td>ปุ่มรับทราบ</td><td>Banner บน guest view + ปุ่ม "รับทราบแล้ว"</td><td>FR-NOTI-004</td></tr>
-        <tr><td>Read Receipt Dashboard</td><td>Admin เห็นว่าใครรับทราบแล้ว / ยังไม่เห็น</td><td>FR-NOTI-005</td></tr>
-        <tr><td>ส่ง noti ซ้ำ</td><td>เฉพาะคนที่ยังไม่เห็น</td><td>FR-NOTI-005</td></tr>
-      </table>
-      <p><strong>หมายเหตุ:</strong> Notification เป็นฟีเจอร์สำหรับ Company / Freelance Guide เท่านั้น</p>
-    </div>
-
-    <div class="card">
-      <h3>2.7 B2C — Personal Trip Planning <span class="tag tag-teal">NEW</span></h3>
-      <table>
-        <tr><th>Feature</th><th>รายละเอียด</th></tr>
-        <tr><td>สร้างทริปส่วนตัว</td><td>Personal users สร้างทริปเพื่อแชร์กับเพื่อน</td></tr>
-        <tr><td>แชร์ link</td><td>ส่ง link ให้เพื่อนดู trip plan</td></tr>
-        <tr><td>Powered by NatGan</td><td>แสดง badge บน guest view → สร้าง brand exposure</td></tr>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3>2.8-2.12 อื่นๆ</h3>
-      <h4>Change Log</h4>
-      <ul><li>บันทึกประวัติการเปลี่ยนแปลง + แสดงบน Admin Dashboard</li></ul>
-      <h4>Dashboard (Admin)</h4>
-      <ul><li>รายการ Trip Plans (Active/Draft), Posts (Draft/Published/Closed), Followers count, Views count</li></ul>
-      <h4>Billing &amp; Pricing</h4>
-      <table>
-        <tr><th>Tier</th><th>ราคา</th></tr>
-        <tr><td>Free tier</td><td>ฟรี 3 ทริป</td></tr>
-        <tr><td>Pay-per-Trip</td><td>฿49 ต่อทริป</td></tr>
-        <tr><td>Pack 5</td><td>฿199 (5 ทริป)</td></tr>
-        <tr><td>Pack 10</td><td>฿349 (10 ทริป)</td></tr>
-      </table>
-      <h4>Support (Basic)</h4>
-      <ul><li>Feedback Form — ฟอร์มส่ง feedback / แจ้งปัญหาเบื้องต้น</li></ul>
-      <h4>Multi-language</h4>
-      <ul><li>Platform UI 3 ภาษา (ไทย, อังกฤษ, ญี่ปุ่น)</li><li>Trip Plan ภาษาเดียว (เลือกตอนสร้าง)</li></ul>
-    </div>
-  </div>
-
-  <!-- Section 3 -->
-  <div class="section">
-    <div class="section-title"><span class="num">3</span> MVP Scope — สิ่งที่ไม่ทำ</div>
-    <div class="card">
-      <h3>3.1 ตัดออกจาก MVP (พร้อมเหตุผล)</h3>
-      <table>
-        <tr><th>Feature</th><th>เหตุผลที่ตัด</th><th>เพิ่มเมื่อไหร่</th></tr>
-        <tr><td>Social Login (Google, LINE)</td><td>Email+Password พอสำหรับ pilot</td><td><span class="tag tag-purple">Phase 2</span></td></tr>
-        <tr><td>แจ้งเตือนก่อนวันถัดไป (Auto noti)</td><td>ต้องทำ scheduler + timezone logic</td><td><span class="tag tag-purple">Phase 2</span></td></tr>
-        <tr><td>Batch send notification</td><td>Admin ส่งทีละ change ก่อน</td><td><span class="tag tag-purple">Phase 2</span></td></tr>
-        <tr><td>Client Member System</td><td>MVP: Guest view only ไม่ต้อง login</td><td><span class="tag tag-purple">Phase 2</span></td></tr>
-        <tr><td>Full Support Ticket System</td><td>MVP มี feedback form พื้นฐาน</td><td><span class="tag tag-purple">Phase 2</span></td></tr>
-        <tr><td>Template System</td><td>ยังไม่จำเป็น ช่วง pilot</td><td><span class="tag tag-amber">Phase 3</span></td></tr>
-        <tr><td>White-label (ซ่อน Powered by)</td><td>ต้องมี revenue ก่อน</td><td><span class="tag tag-amber">Phase 3</span></td></tr>
-        <tr><td>Multi-language trip plan</td><td>1 trip = 1 ภาษา ก่อน</td><td><span class="tag tag-amber">Phase 3</span></td></tr>
-        <tr><td>Booking System</td><td>MVP แค่ showcase ทัวร์</td><td><span class="tag tag-amber">Phase 3+</span></td></tr>
-        <tr><td>Collaborative editing</td><td>Admin คนเดียวต่อบริษัทก่อน</td><td><span class="tag tag-red">Phase 4</span></td></tr>
-        <tr><td>Mobile App</td><td>Web-only ตลอด ไม่ทำ app</td><td><span class="tag tag-red">ไม่ทำ</span></td></tr>
-      </table>
-    </div>
-    <div class="card">
-      <h3>3.2 หลักคิดในการตัด</h3>
-      <pre>ถ้าฟีเจอร์นี้ไม่มี → pilot ยังทำได้ไหม?
+<div class="card">
+<h1 id="mvp-scope-lock">MVP Scope Lock</h1>
+<h1 id="platform-name-v2.0">[Platform Name] — v2.0</h1>
+<p><strong>Version:</strong> 2.0 <strong>Date:</strong> 29 March 2026
+<strong>Status:</strong> Locked <strong>Reference:</strong>
+01-System-Requirements-Document.md</p>
+<hr />
+<h2 id="mvp-goal">1. MVP Goal</h2>
+<p><strong>พิสูจน์สมมติฐานเหล่านี้:</strong></p>
+<ol type="1">
+<li>บริษัททัวร์ / ไกด์อิสระ <strong>ใช้จริง</strong> ในการส่ง itinerary
+ให้ลูกทริป</li>
+<li>ลูกทริป <strong>เปิดดูจริง</strong> ผ่าน link/QR (ไม่ใช่แค่ “ดีนะ” แล้วกลับไปใช้
+Line)</li>
+<li>ฟีเจอร์ <strong>notification + รับทราบ</strong> มีคนใช้จริง
+และลดปัญหาหน้างาน</li>
+<li><strong>Posts (ประกาศทัวร์)</strong>
+ช่วยให้บริษัท/ไกด์โปรโมทแพ็กเกจทัวร์ได้จริง</li>
+<li><strong>Personal users</strong> ใช้วางแผนทริปส่วนตัวแชร์กับเพื่อนจริง</li>
+</ol>
+<p><strong>ถ้าพิสูจน์ได้ → เดินหน้า Phase 2 (Client Member + Advanced
+Features)</strong> <strong>ถ้าพิสูจน์ไม่ได้ → Pivot หรือ Stop</strong></p>
+<hr />
+<h2 id="mvp-scope-สงททำ">2. MVP Scope — สิ่งที่ทำ ✅</h2>
+<h3 id="authentication-profile">2.1 Authentication &amp; Profile</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ สมัครสมาชิก (Email + Password)</td>
+<td>สมัคร + ยืนยัน email</td>
+<td>FR-AUTH-001</td>
+</tr>
+<tr>
+<td>✅ Login / Logout</td>
+<td>Session management</td>
+<td>FR-AUTH-001</td>
+</tr>
+<tr>
+<td>✅ Account Types</td>
+<td>Company, Freelance Guide, Personal</td>
+<td>FR-AUTH-002</td>
+</tr>
+<tr>
+<td>✅ Onboarding Flow</td>
+<td>แยก flow ตามประเภทบัญชี (Company / Freelance Guide / Personal)</td>
+<td>FR-AUTH-002</td>
+</tr>
+<tr>
+<td>✅ Company Profile</td>
+<td>ชื่อบริษัท, Logo, ช่องทางติดต่อ (โทร, LINE, FB, IG)</td>
+<td>FR-AUTH-002</td>
+</tr>
+<tr>
+<td>✅ Freelance Guide Profile</td>
+<td>ชื่อไกด์, รูปโปรไฟล์, ช่องทางติดต่อ</td>
+<td>FR-AUTH-002</td>
+</tr>
+<tr>
+<td>✅ Personal Profile</td>
+<td>ชื่อ, รูปโปรไฟล์</td>
+<td>FR-AUTH-002</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> Social Login (Google, LINE) — เพิ่มใน Phase
+2</p>
+<hr />
+<h3 id="trip-plan-builder-admin">2.2 Trip Plan Builder (Admin)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ สร้าง Trip Plan</td>
+<td>ชื่อทริป, วันเริ่ม-สิ้นสุด, destination, cover image, จำนวนผู้เดินทาง</td>
+<td>FR-PLAN-001</td>
+</tr>
+<tr>
+<td>✅ ข้อมูลสายการบิน</td>
+<td>สายการบิน, เลขไฟลท์, วันเวลา</td>
+<td>FR-PLAN-001</td>
+</tr>
+<tr>
+<td>✅ ข้อมูลที่พัก</td>
+<td>ชื่อ, ที่อยู่, เบอร์โทร (สำหรับ ตม. ด้วย)</td>
+<td>FR-PLAN-001</td>
+</tr>
+<tr>
+<td>✅ จัดการรายวัน (Day)</td>
+<td>เพิ่ม/ลบ/เรียงลำดับวัน, ชื่อ, cover image</td>
+<td>FR-PLAN-002</td>
+</tr>
+<tr>
+<td>✅ จัดการกิจกรรม (Activity)</td>
+<td>เวลา, ชื่อสถานที่, หมายเหตุ, Google Maps link, ประเภท, รูปภาพ</td>
+<td>FR-PLAN-003</td>
+</tr>
+<tr>
+<td>✅ เบอร์ฉุกเฉิน</td>
+<td>เพิ่มเอง + pre-fill ตามประเทศ</td>
+<td>FR-PLAN-004</td>
+</tr>
+<tr>
+<td>✅ หมายเหตุสำคัญ</td>
+<td>Free text</td>
+<td>FR-PLAN-004</td>
+</tr>
+<tr>
+<td>✅ Route Planning</td>
+<td>สร้าง Google Maps route link อัตโนมัติจาก activities</td>
+<td>FR-PLAN-005</td>
+</tr>
+<tr>
+<td>✅ เลือกภาษาหลัก</td>
+<td>ไทย / อังกฤษ / ญี่ปุ่น</td>
+<td>FR-PLAN-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> วลีที่ใช้บ่อย (pre-fill), ของที่ต้องเตรียม
+(checklist), Template System — เพิ่มใน Phase 3</p>
+<hr />
+<h3 id="posts-ประกาศแพกเกจทวร">2.3 Posts (ประกาศแพ็กเกจทัวร์) 🆕</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ สร้าง Post</td>
+<td>สำหรับ Company / Freelance Guide โปรโมทแพ็กเกจทัวร์</td>
+<td>FR-POST-001</td>
+</tr>
+<tr>
+<td>✅ Post Fields</td>
+<td>title, destination, description, highlights, images, price,
+duration, travelPeriod, slots, tags</td>
+<td>FR-POST-001</td>
+</tr>
+<tr>
+<td>✅ Post Status</td>
+<td>draft / published / closed</td>
+<td>FR-POST-002</td>
+</tr>
+<tr>
+<td>✅ แสดงบน Info Website</td>
+<td>Posts แสดงบนเว็บไซต์หลัก (พัฒนาโดย Nes)</td>
+<td>FR-POST-003</td>
+</tr>
+<tr>
+<td>✅ จัดการ Posts (Admin)</td>
+<td>CRUD — สร้าง, แก้ไข, ลบ, เปลี่ยนสถานะ</td>
+<td>FR-POST-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>หมายเหตุ:</strong> ไม่มีระบบ booking — แค่ showcase ทัวร์เท่านั้น</p>
+<p><strong>MVP ไม่มี:</strong> ระบบจอง (Booking), ระบบรีวิว — เพิ่มใน Phase
+3+</p>
+<hr />
+<h3 id="publishing-sharing">2.4 Publishing &amp; Sharing</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Publish Trip Plan</td>
+<td>ปุ่ม Publish → เปิดให้ guest เข้าดู</td>
+<td>FR-PUB-001</td>
+</tr>
+<tr>
+<td>✅ Unique URL</td>
+<td><code>[your-domain.com]/t/{slug}</code> กำหนดเอง หรือ
+auto-generate</td>
+<td>FR-PUB-001</td>
+</tr>
+<tr>
+<td>✅ QR Code</td>
+<td>สร้างอัตโนมัติ + ดาวน์โหลด PNG</td>
+<td>FR-PUB-001</td>
+</tr>
+<tr>
+<td>✅ Guest View</td>
+<td>เปิด URL → เห็น trip plan ทันที ไม่ต้อง login</td>
+<td>FR-PUB-002</td>
+</tr>
+<tr>
+<td>✅ Company Branding</td>
+<td>Logo + ช่องทางติดต่อ แสดงบน guest view</td>
+<td>FR-PUB-002</td>
+</tr>
+<tr>
+<td>✅ Powered by [Platform]</td>
+<td>แสดง badge + link ถาวร (free tier)</td>
+<td>FR-BRAND-002</td>
+</tr>
+<tr>
+<td>✅ Auto-highlight ตามเวลา</td>
+<td>highlight กิจกรรมปัจจุบันอัตโนมัติ</td>
+<td>FR-PUB-002</td>
+</tr>
+<tr>
+<td>✅ Immigration-Friendly View</td>
+<td>โหมดยื่น ตม. — ข้อมูล official, ภาษา destination, offline cache</td>
+<td>FR-PUB-003</td>
+</tr>
+<tr>
+<td>✅ Unpublish</td>
+<td>ปิดไม่ให้เข้าดู</td>
+<td>FR-PUB-004</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> Archive — เพิ่มใน Phase 2</p>
+<hr />
+<h3 id="portfolio-หนาสาธารณะ">2.5 Portfolio (หน้าสาธารณะ) 🆕</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Public Portfolio Page</td>
+<td>หน้าสาธารณะสำหรับ Company / Freelance Guide</td>
+<td>FR-PORT-001</td>
+</tr>
+<tr>
+<td>✅ Toggle เปิด/ปิด</td>
+<td>เลือกได้ว่าจะเปิด portfolio หรือไม่</td>
+<td>FR-PORT-001</td>
+</tr>
+<tr>
+<td>✅ แสดงข้อมูลบริษัท/ไกด์</td>
+<td>Logo, ชื่อ, ช่องทางติดต่อ, Posts ที่ published</td>
+<td>FR-PORT-001</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="notification-communication-killer-feature">2.6 Notification
+&amp; Communication ⭐ Killer Feature</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Follow ทริป (LINE OA)</td>
+<td>ลูกทริปกด → เพิ่มเพื่อน LINE OA → ได้ User ID</td>
+<td>FR-NOTI-001</td>
+</tr>
+<tr>
+<td>✅ Follow ทริป (Web Push)</td>
+<td>ลูกทริปกด → Allow notification → ได้ subscription</td>
+<td>FR-NOTI-001</td>
+</tr>
+<tr>
+<td>✅ แจ้งเตือนเมื่อ Plan เปลี่ยน</td>
+<td>ตรวจจับ change → สร้าง summary → ส่ง LINE + Web Push</td>
+<td>FR-NOTI-002</td>
+</tr>
+<tr>
+<td>✅ ปุ่มรับทราบ</td>
+<td>Banner บน guest view + ปุ่ม “รับทราบแล้ว ✓”</td>
+<td>FR-NOTI-004</td>
+</tr>
+<tr>
+<td>✅ Read Receipt Dashboard</td>
+<td>Admin เห็นว่าใครรับทราบแล้ว / ยังไม่เห็น</td>
+<td>FR-NOTI-005</td>
+</tr>
+<tr>
+<td>✅ ส่ง noti ซ้ำ</td>
+<td>เฉพาะคนที่ยังไม่เห็น</td>
+<td>FR-NOTI-005</td>
+</tr>
+</tbody>
+</table>
+<p><strong>หมายเหตุ:</strong> Notification เป็นฟีเจอร์สำหรับ Company /
+Freelance Guide เท่านั้น — Personal users ไม่เน้น notification (ใช้แค่ trip
+planning tool แชร์กับเพื่อน)</p>
+<p><strong>MVP ไม่มี:</strong> แจ้งเตือนก่อนวันถัดไป (Auto noti), Batch send —
+เพิ่มใน Phase 2</p>
+<hr />
+<h3 id="b2c-personal-trip-planning">2.7 B2C — Personal Trip Planning
+🆕</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ สร้างทริปส่วนตัว</td>
+<td>Personal users สร้างทริปเพื่อแชร์กับเพื่อน</td>
+<td>FR-B2C-001</td>
+</tr>
+<tr>
+<td>✅ แชร์ link</td>
+<td>ส่ง link ให้เพื่อนดู trip plan</td>
+<td>FR-B2C-001</td>
+</tr>
+<tr>
+<td>✅ Powered by [Platform]</td>
+<td>แสดง badge บน guest view → สร้าง brand exposure</td>
+<td>FR-BRAND-002</td>
+</tr>
+</tbody>
+</table>
+<p><strong>วัตถุประสงค์:</strong> สร้าง engagement + Powered by [Platform]
+exposure</p>
+<p><strong>MVP ไม่มี:</strong> Notification สำหรับ Personal users —
+ไม่เน้นในตอนนี้</p>
+<hr />
+<h3 id="change-log">2.8 Change Log</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ บันทึกประวัติการเปลี่ยนแปลง</td>
+<td>วันเวลา, สิ่งที่เปลี่ยน (JSON)</td>
+<td>FR-LOG-001</td>
+</tr>
+<tr>
+<td>✅ แสดงบน Admin Dashboard</td>
+<td>ดูได้ว่าแก้อะไรไปบ้าง เมื่อไหร่</td>
+<td>FR-LOG-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> Change log ฝั่ง guest view — เพิ่มใน Phase
+2</p>
+<hr />
+<h3 id="dashboard-admin">2.9 Dashboard (Admin)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ รายการ Trip Plans</td>
+<td>Active / Draft, ชื่อ, วันเดินทาง, สถานะ</td>
+<td>FR-DASH-001</td>
+</tr>
+<tr>
+<td>✅ รายการ Posts</td>
+<td>Draft / Published / Closed</td>
+<td>FR-DASH-001</td>
+</tr>
+<tr>
+<td>✅ จำนวน Followers ต่อทริป</td>
+<td>แสดงจำนวนคนที่กด follow</td>
+<td>FR-DASH-001</td>
+</tr>
+<tr>
+<td>✅ จำนวน Views ต่อทริป</td>
+<td>นับจำนวนครั้งที่ guest เปิดดู</td>
+<td>FR-DASH-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> Full analytics (views/วัน, QR scans,
+acknowledge rate chart) — เพิ่มใน Phase 2</p>
+<hr />
+<h3 id="billing-pricing">2.10 Billing &amp; Pricing</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Free tier</td>
+<td>ฟรี 3 ทริป</td>
+<td>FR-BILL-001</td>
+</tr>
+<tr>
+<td>✅ Pay-per-Trip</td>
+<td>฿49 ต่อทริป (เมื่อเกิน 3 ทริปฟรี)</td>
+<td>FR-BILL-002</td>
+</tr>
+<tr>
+<td>✅ Pack 5</td>
+<td>฿199 (5 ทริป)</td>
+<td>FR-BILL-002</td>
+</tr>
+<tr>
+<td>✅ Pack 10</td>
+<td>฿349 (10 ทริป)</td>
+<td>FR-BILL-002</td>
+</tr>
+<tr>
+<td>✅ แสดง usage</td>
+<td>“ใช้ไป 2/3 ทริปฟรี”, แสดง quota คงเหลือ</td>
+<td>FR-BILL-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>หมายเหตุ:</strong> ราคาสุดท้ายอาจเปลี่ยนแปลง — รอตกลงกับทีม
+marketing</p>
+<hr />
+<h3 id="support-basic">2.11 Support (Basic) 🆕</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Feedback Form</td>
+<td>ฟอร์มส่ง feedback / แจ้งปัญหาเบื้องต้น</td>
+<td>FR-SUP-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> Full ticket system (tracking, status,
+assignment) — เพิ่มใน Phase 2</p>
+<hr />
+<h3 id="multi-language">2.12 Multi-language</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>รายละเอียด</th>
+<th>SRD Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Platform UI 3 ภาษา</td>
+<td>ไทย, อังกฤษ, ญี่ปุ่น</td>
+<td>FR-I18N-001</td>
+</tr>
+<tr>
+<td>✅ Trip Plan ภาษาเดียว</td>
+<td>Admin เลือกภาษาหลักตอนสร้าง</td>
+<td>FR-I18N-002</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MVP ไม่มี:</strong> Trip plan 1 อันแสดงหลายภาษา — เพิ่มใน Phase
+3</p>
+<hr />
+<h2 id="mvp-scope-สงทไมทำ">3. MVP Scope — สิ่งที่ไม่ทำ ❌</h2>
+<h3 id="ตดออกจาก-mvp-พรอมเหตผล">3.1 ตัดออกจาก MVP (พร้อมเหตุผล)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>เหตุผลที่ตัด</th>
+<th>เพิ่มเมื่อไหร่</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>❌ Social Login (Google, LINE)</td>
+<td>Email+Password พอสำหรับ pilot</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ แจ้งเตือนก่อนวันถัดไป (Auto noti)</td>
+<td>ต้องทำ scheduler + timezone logic ซับซ้อน</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Batch send notification</td>
+<td>Admin ส่งทีละ change ก่อน ช่วง pilot ไม่ถี่</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Archive (portfolio mode)</td>
+<td>Unpublish พอก่อน archive เป็น growth feature</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Change log ฝั่ง guest</td>
+<td>Banner + รับทราบ พอก่อน</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Full Analytics</td>
+<td>Views + Followers count พอ ยังไม่ต้อง chart</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Client Member System (ลูกค้า login)</td>
+<td>MVP: Guest view only ไม่ต้อง login — เพิ่มใน Phase 2</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Full Support Ticket System</td>
+<td>MVP มี feedback form พื้นฐาน — full system เพิ่มทีหลัง</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>❌ Travel Points / Elite Member</td>
+<td>ราคา TBD กับทีม marketing</td>
+<td>Phase 2+</td>
+</tr>
+<tr>
+<td>❌ Template System</td>
+<td>ยังไม่จำเป็น ช่วง pilot ทำทริปไม่เกิน 10 อัน</td>
+<td>Phase 3</td>
+</tr>
+<tr>
+<td>❌ Custom theme color</td>
+<td>ใช้ default theme เดียว</td>
+<td>Phase 3</td>
+</tr>
+<tr>
+<td>❌ White-label (ซ่อน Powered by)</td>
+<td>ต้องมี revenue ก่อน</td>
+<td>Phase 3</td>
+</tr>
+<tr>
+<td>❌ Multi-language trip plan</td>
+<td>1 trip = 1 ภาษา ก่อน</td>
+<td>Phase 3</td>
+</tr>
+<tr>
+<td>❌ วลีที่ใช้บ่อย / Checklist</td>
+<td>Nice to have ไม่ใช่ core</td>
+<td>Phase 3</td>
+</tr>
+<tr>
+<td>❌ Booking System</td>
+<td>MVP แค่ showcase ทัวร์ ยังไม่มีจอง</td>
+<td>Phase 3+</td>
+</tr>
+<tr>
+<td>❌ Review System</td>
+<td>ยังไม่มี — ต้องมี Client Member ก่อน</td>
+<td>Phase 3+</td>
+</tr>
+<tr>
+<td>❌ Collaborative editing</td>
+<td>Admin คนเดียวต่อบริษัทก่อน</td>
+<td>Phase 4</td>
+</tr>
+<tr>
+<td>❌ API for enterprise</td>
+<td>ยังไม่มี enterprise customer</td>
+<td>Phase 4</td>
+</tr>
+<tr>
+<td>❌ PWA / Offline (full)</td>
+<td>Immigration view มี offline cache เฉพาะจุด</td>
+<td>Phase 4</td>
+</tr>
+<tr>
+<td>❌ Mobile App</td>
+<td>Web-only ตลอด ไม่ทำ app</td>
+<td>ไม่ทำ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="หลกคดในการตด">3.2 หลักคิดในการตัด</h3>
+<pre><code>ถ้าฟีเจอร์นี้ไม่มี → pilot ยังทำได้ไหม?
   ได้  → ตัดออก
   ไม่ได้ → ต้องมี
 
 ถ้าฟีเจอร์นี้ไม่มี → พิสูจน์สมมติฐานได้ไหม?
   ได้  → ตัดออก
-  ไม่ได้ → ต้องมี</pre>
-    </div>
-  </div>
-
-  <!-- Section 4 -->
-  <div class="section">
-    <div class="section-title"><span class="num">4</span> Development Timeline (10 สัปดาห์)</div>
-    <div class="card">
-      <pre>สัปดาห์ 1-2: Foundation
+  ไม่ได้ → ต้องมี</code></pre>
+<hr />
+<h2 id="development-timeline-10-สปดาห">4. Development Timeline (10
+สัปดาห์)</h2>
+<h3 id="sprint-plan">Sprint Plan</h3>
+<pre><code>สัปดาห์ 1-2: Foundation
 ├── Database schema + PostgreSQL (Docker) + Drizzle setup
 ├── Auth (Email + Password, session)
 ├── Account Types (Company / Freelance Guide / Personal)
@@ -245,7 +837,7 @@
 ├── Activity CRUD (add, remove, reorder, Google Maps link)
 ├── Emergency contacts + Important notes
 ├── Posts CRUD (create, edit, delete, status management)
-└── Posts fields: title, destination, description, highlights, images, price, etc.
+└── Posts fields: title, destination, description, highlights, images, price, duration, travelPeriod, slots, tags
 
 สัปดาห์ 5-6: Guest View + Publishing + Portfolio
 ├── Publish flow → generate slug + URL
@@ -254,14 +846,14 @@
 ├── Immigration-Friendly View (โหมดยื่น ตม.)
 ├── Auto-highlight current activity by time
 ├── Company branding on guest view
-├── Powered by NatGan badge
-├── Portfolio Page (toggle on/off)
+├── Powered by [Platform] badge
+├── Portfolio Page (public page for Company / Guide, toggle on/off)
 └── Posts แสดงบน Info Website (ส่งข้อมูลให้ Nes)
 
-สัปดาห์ 7-8: Notification System + B2C
+สัปดาห์ 7-8: Notification System ⭐ + B2C
 ├── LINE Messaging API integration (LINE OA webhook)
 ├── Web Push setup (VAPID keys, Service Worker)
-├── Follow button on guest view (LINE / Web Push)
+├── Follow button on guest view (เลือก LINE / Web Push)
 ├── Change detection (diff ก่อน-หลังแก้ plan)
 ├── Change summary generation
 ├── Send notification (LINE + Web Push)
@@ -272,53 +864,111 @@
 สัปดาห์ 9: Dashboard + Billing + Support
 ├── Admin Dashboard (trip list, posts list, views, followers)
 ├── Change Log (admin view)
-├── Free tier (3 ทริปฟรี) + Pay-per-Trip + Pack pricing
+├── Free tier (3 ทริปฟรี) + Pay-per-Trip ฿49 + Pack pricing
 ├── Usage display
 ├── Feedback form (basic support)
 └── Multi-language UI (TH/EN/JP)
 
 สัปดาห์ 10: Testing + Deploy + Pilot
-├── End-to-end testing
+├── End-to-end testing (สร้าง → publish → follow → แก้ → noti → รับทราบ)
+├── Posts testing (สร้าง → publish → แสดงบน Info Website)
 ├── Mobile testing (LINE in-app browser, iOS Safari, Android Chrome)
+├── Immigration view testing (offline cache)
 ├── Deploy to production (Vercel + VPS PostgreSQL)
-├── Custom domain: natgan.com
-└── Onboard เพื่อน 1 บริษัท → สร้างทริป + โพสต์จริง</pre>
-    </div>
-  </div>
-
-  <!-- Section 5 -->
-  <div class="section">
-    <div class="section-title"><span class="num">5</span> Success Criteria (หลัง pilot 4 สัปดาห์)</div>
-    <div class="card">
-      <h3>Must-have (ถ้าไม่ผ่าน → ต้อง rethink)</h3>
-      <table>
-        <tr><th>Metric</th><th>Target</th><th>วัดยังไง</th></tr>
-        <tr><td>บริษัททัวร์สร้างทริปจริง</td><td>3+ ทริป</td><td>นับใน dashboard</td></tr>
-        <tr><td>ลูกทริปเปิดดูจริง</td><td>> 50% ของลูกทริปในกรุ๊ป</td><td>Views / จำนวนลูกทริป</td></tr>
-        <tr><td>ลูกทริปกด Follow</td><td>> 30%</td><td>Followers count</td></tr>
-        <tr><td>Acknowledge rate</td><td>> 50% เมื่อมีการเปลี่ยนแปลง</td><td>Acknowledged / Total followers</td></tr>
-        <tr><td>Posts ถูกสร้างจริง</td><td>3+ posts</td><td>นับใน dashboard</td></tr>
-        <tr><td>เพื่อนบอกว่า "ดีกว่า Line"</td><td>Yes / No</td><td>ถามตรงๆ</td></tr>
-      </table>
-    </div>
-    <div class="card">
-      <h3>Nice-to-have (ถ้าผ่าน → สัญญาณดี)</h3>
-      <table>
-        <tr><th>Metric</th><th>Target</th><th>วัดยังไง</th></tr>
-        <tr><td>ลูกทริปแชร์ link ต่อ</td><td>มี views จากคนนอกกรุ๊ป</td><td>Views > Followers</td></tr>
-        <tr><td>เพื่อนแนะนำบริษัทอื่น</td><td>1+ บริษัทใหม่</td><td>Referral</td></tr>
-        <tr><td>Personal users สร้างทริป</td><td>3+ personal trips</td><td>นับใน dashboard</td></tr>
-        <tr><td>Posts มีคนดูจาก Info Website</td><td>มี views จากเว็บ</td><td>Analytics</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- Section 6 -->
-  <div class="section">
-    <div class="section-title"><span class="num">6</span> Pilot Plan</div>
-    <div class="card">
-      <h3>เพื่อน 1 บริษัท — ทริปในประเทศ</h3>
-      <pre>สัปดาห์ 1-2 (หลัง launch):
+├── Custom domain: [your-domain.com]
+└── Onboard เพื่อน 1 บริษัท → สร้างทริป + โพสต์จริง</code></pre>
+<hr />
+<h2 id="success-criteria-หลง-pilot-4-สปดาห">5. Success Criteria (หลัง
+pilot 4 สัปดาห์)</h2>
+<h3 id="must-have-ถาไมผาน-ตอง-rethink">Must-have (ถ้าไม่ผ่าน → ต้อง
+rethink)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>วัดยังไง</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>บริษัททัวร์สร้างทริปจริง</td>
+<td>3+ ทริป</td>
+<td>นับใน dashboard</td>
+</tr>
+<tr>
+<td>ลูกทริปเปิดดูจริง</td>
+<td>&gt; 50% ของลูกทริปในกรุ๊ป</td>
+<td>Views / จำนวนลูกทริป</td>
+</tr>
+<tr>
+<td>ลูกทริปกด Follow</td>
+<td>&gt; 30% ของลูกทริปในกรุ๊ป</td>
+<td>Followers count</td>
+</tr>
+<tr>
+<td>Acknowledge rate</td>
+<td>&gt; 50% เมื่อมีการเปลี่ยนแปลง</td>
+<td>Acknowledged / Total followers</td>
+</tr>
+<tr>
+<td>Posts ถูกสร้างจริง</td>
+<td>3+ posts</td>
+<td>นับใน dashboard</td>
+</tr>
+<tr>
+<td>เพื่อนบอกว่า “ดีกว่า Line”</td>
+<td>Yes / No</td>
+<td>ถามตรงๆ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nice-to-have-ถาผาน-สญญาณด">Nice-to-have (ถ้าผ่าน → สัญญาณดี)</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>วัดยังไง</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ลูกทริปแชร์ link ต่อ</td>
+<td>มี views จากคนนอกกรุ๊ป</td>
+<td>Views &gt; Followers</td>
+</tr>
+<tr>
+<td>เพื่อนแนะนำบริษัทอื่น</td>
+<td>1+ บริษัทใหม่</td>
+<td>Referral</td>
+</tr>
+<tr>
+<td>ลูกทริปใช้โหมดยื่น ตม.</td>
+<td>1+ คนใช้จริง</td>
+<td>ถามหลังทริปจบ</td>
+</tr>
+<tr>
+<td>Personal users สร้างทริป</td>
+<td>3+ personal trips</td>
+<td>นับใน dashboard</td>
+</tr>
+<tr>
+<td>Posts มีคนดูจาก Info Website</td>
+<td>มี views จากเว็บ</td>
+<td>Analytics</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="pilot-plan">6. Pilot Plan</h2>
+<h3 id="เพอน-1-บรษท-ทรปในประเทศ">เพื่อน 1 บริษัท — ทริปในประเทศ</h3>
+<pre><code>สัปดาห์ 1-2 (หลัง launch):
 ├── Onboard เพื่อน → สร้าง account (Company) → ใส่ logo + contacts
 ├── สร้างทริปจริง 1 ทริป (ทริปที่ใกล้ที่สุด)
 ├── สร้าง Post ประกาศแพ็กเกจทัวร์ 1 โพสต์
@@ -329,89 +979,197 @@
 ├── ทดสอบ: แก้ plan → ลูกทริปได้ noti ไหม? กดรับทราบไหม?
 ├── ทดสอบ: Personal user สร้างทริปส่วนตัว + แชร์กับเพื่อน
 ├── เก็บ feedback จากเพื่อน (admin experience)
+├── เก็บ feedback จากลูกทริป (ถ้าทำได้)
 ├── สร้างทริปเพิ่ม 2-3 ทริป + Posts เพิ่ม
 └── วัด Success Criteria
 
 สัปดาห์ 5+:
 ├── ปรับ product ตาม feedback
 ├── ถ้าผ่าน → ขอ referral → onboard 3-5 บริษัทเพิ่ม
-└── ถ้าไม่ผ่าน → วิเคราะห์ว่าทำไม → pivot หรือ stop</pre>
-    </div>
-  </div>
-
-  <!-- Section 7 -->
-  <div class="section">
-    <div class="section-title"><span class="num">7</span> Tech Stack Decision (MVP)</div>
-    <div class="card">
-      <table>
-        <tr><th>Layer</th><th>Technology</th><th>เหตุผล</th></tr>
-        <tr><td>Frontend</td><td>Next.js 16 + React 19</td><td>มี codebase อยู่แล้ว, SSR สำหรับ guest view</td></tr>
-        <tr><td>Styling</td><td>Tailwind CSS 4</td><td>มี codebase อยู่แล้ว, rapid UI development</td></tr>
-        <tr><td>Auth</td><td>Auth.js (NextAuth v5)</td><td>Open-source, email auth, JWT, self-hosted</td></tr>
-        <tr><td>Database</td><td>PostgreSQL 16 (Docker, self-host VPS)</td><td>Full control, Drizzle ORM</td></tr>
-        <tr><td>ORM</td><td>Drizzle ORM</td><td>Type-safe, lightweight, PostgreSQL-native</td></tr>
-        <tr><td>Storage</td><td>Local disk + S3-compatible (MinIO)</td><td>เก็บ logo, cover images, self-hosted</td></tr>
-        <tr><td>Hosting</td><td>Vercel</td><td>ฟรี tier, auto deploy จาก Git</td></tr>
-        <tr><td>LINE Messaging API</td><td>LINE Messaging API</td><td>ฟรี 500 msg/เดือน, คนไทยคุ้นเคย</td></tr>
-        <tr><td>Web Push</td><td>web-push (npm) + Service Worker</td><td>ฟรี, self-hosted, VAPID</td></tr>
-        <tr><td>QR Code</td><td>qrcode (npm)</td><td>Client-side, ฟรี</td></tr>
-        <tr><td>Maps</td><td>Google Maps URL scheme</td><td>ฟรี (ไม่ใช้ API, แค่สร้าง link)</td></tr>
-      </table>
-      <p><strong>Monthly cost (MVP):</strong> ~150-250 บ/เดือน (VPS) + Vercel ฟรี</p>
-    </div>
-  </div>
-
-  <!-- Section 8 -->
-  <div class="section">
-    <div class="section-title"><span class="num">8</span> Risks สำหรับ MVP</div>
-    <div class="card">
-      <table>
-        <tr><th>Risk</th><th>ผลกระทบ</th><th>Plan B</th></tr>
-        <tr><td>VPS ต้อง upgrade</td><td>ต้องเพิ่ม RAM/CPU</td><td>ง่าย — แค่เพิ่ม RAM/CPU บน VPS</td></tr>
-        <tr><td>ลูกทริปไม่เพิ่มเพื่อน LINE OA</td><td>ลูกทริปไม่กด follow</td><td>มี Web Push เป็นทางเลือก</td></tr>
-        <tr><td>Web Push ไม่ work บน iOS</td><td>iPhone ไม่ได้ noti</td><td>มี LINE เป็น fallback</td></tr>
-        <tr><td>เพื่อนไม่มีเวลาทดสอบ</td><td>ไม่ได้ feedback</td><td>นัดวันที่ชัดเจน + ช่วย onboard</td></tr>
-        <tr><td>Guest view ช้าบน LINE in-app</td><td>UX ไม่ดี</td><td>Optimize: ลด image size, lazy load</td></tr>
-        <tr><td>Posts ไม่มีคนดู</td><td>ไม่มี exposure</td><td>ทำ SEO + แชร์ผ่าน social media</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- Section 9 -->
-  <div class="section">
-    <div class="section-title"><span class="num">9</span> Definition of Done (MVP)</div>
-    <div class="card">
-      <p>MVP ถือว่า "เสร็จ" เมื่อ:</p>
-      <ul class="checklist">
-        <li>Admin สร้าง account (Company / Freelance Guide / Personal) + onboarding ได้</li>
-        <li>Admin ใส่ logo + contacts + profile ได้</li>
-        <li>Admin สร้าง trip plan ครบ (days + activities + emergency + notes) ได้</li>
-        <li>Admin สร้าง Post (ประกาศแพ็กเกจทัวร์) ได้ — draft / published / closed</li>
-        <li>Posts แสดงบน Info Website ถูกต้อง</li>
-        <li>Admin กด publish trip → ได้ URL + QR Code</li>
-        <li>Guest เปิด URL → เห็น trip plan สวย responsive บน mobile</li>
-        <li>Guest กด "โหมดยื่น ตม." → เห็นข้อมูล official + offline cache</li>
-        <li>Guest กด "ติดตาม" → เลือก LINE หรือ Web Push ได้</li>
-        <li>Admin แก้ plan → ลูกทริปที่ follow ได้รับ noti ทั้ง LINE + Web Push</li>
-        <li>Guest เห็น banner "มีการเปลี่ยนแปลง" + กด "รับทราบ" ได้</li>
-        <li>Admin เห็น read receipt dashboard</li>
-        <li>Portfolio Page สำหรับ Company / Guide — toggle on/off ได้</li>
-        <li>Personal user สร้างทริปส่วนตัว + แชร์ link ได้</li>
-        <li>Free tier (3 ทริปฟรี) + Pay-per-Trip + Pack pricing ทำงาน</li>
-        <li>Feedback form ทำงาน</li>
-        <li>Platform UI รองรับ 3 ภาษา (TH/EN/JP)</li>
-        <li>ทดสอบบน LINE in-app browser, iOS Safari, Android Chrome ผ่าน</li>
-        <li>Deploy บน natgan.com สำเร็จ</li>
-        <li>เพื่อน 1 บริษัทสร้างทริป + โพสต์จริงได้สำเร็จ</li>
-      </ul>
-    </div>
-  </div>
-
+└── ถ้าไม่ผ่าน → วิเคราะห์ว่าทำไม → pivot หรือ stop</code></pre>
+<h3 id="ถามทรปตางประเทศ">ถ้ามีทริปต่างประเทศ</h3>
+<ul>
+<li>ทดสอบ Immigration-Friendly View ด้วย</li>
+<li>ถามลูกทริปว่ายื่นหน้าจอ ตม. แล้วเป็นยังไง</li>
+<li>ทดสอบ multi-language (ภาษาอังกฤษ/ญี่ปุ่น)</li>
+</ul>
+<hr />
+<h2 id="tech-stack-decision-mvp">7. Tech Stack Decision (MVP)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>เหตุผล</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend</td>
+<td>Next.js 16 + React 19</td>
+<td>มี codebase อยู่แล้ว, SSR สำหรับ guest view</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Tailwind CSS 4</td>
+<td>มี codebase อยู่แล้ว, rapid UI development</td>
+</tr>
+<tr>
+<td>Auth</td>
+<td>Auth.js (NextAuth v5)</td>
+<td>Open-source, email auth, JWT, self-hosted</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>PostgreSQL 16 (Docker, self-host VPS)</td>
+<td>Full control, Drizzle ORM</td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>Drizzle ORM</td>
+<td>Type-safe, lightweight, PostgreSQL-native</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Local disk + S3-compatible (MinIO)</td>
+<td>เก็บ logo, cover images, self-hosted</td>
+</tr>
+<tr>
+<td>Hosting</td>
+<td>Vercel</td>
+<td>ฟรี tier, auto deploy จาก Git, edge network</td>
+</tr>
+<tr>
+<td>LINE Messaging API</td>
+<td>LINE Messaging API</td>
+<td>ฟรี 500 msg/เดือน (Communication plan), คนไทยคุ้นเคย</td>
+</tr>
+<tr>
+<td>Web Push</td>
+<td>web-push (npm) + Service Worker</td>
+<td>ฟรี, self-hosted, VAPID</td>
+</tr>
+<tr>
+<td>QR Code</td>
+<td>qrcode (npm)</td>
+<td>Client-side, ฟรี</td>
+</tr>
+<tr>
+<td>Maps</td>
+<td>Google Maps URL scheme</td>
+<td>ฟรี (ไม่ใช้ API, แค่สร้าง link)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Monthly cost (MVP):</strong> ~150-250 บ/เดือน (VPS) + Vercel
+ฟรี</p>
+<hr />
+<h2 id="risks-สำหรบ-mvp">8. Risks สำหรับ MVP</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Risk</th>
+<th>ผลกระทบ</th>
+<th>Plan B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VPS ต้อง upgrade</td>
+<td>ต้องเพิ่ม RAM/CPU</td>
+<td>ง่ายกว่า — แค่เพิ่ม RAM/CPU บน VPS, ไม่ถูก vendor lock-in</td>
+</tr>
+<tr>
+<td>ลูกทริปไม่เพิ่มเพื่อน LINE OA</td>
+<td>ลูกทริปไม่กด follow</td>
+<td>มี Web Push เป็นทางเลือก + ทำ UX ให้ง่ายที่สุด</td>
+</tr>
+<tr>
+<td>Web Push ไม่ work บน iOS</td>
+<td>iPhone ไม่ได้ noti</td>
+<td>มี LINE Messaging API เป็น fallback สำหรับ iOS</td>
+</tr>
+<tr>
+<td>เพื่อนไม่มีเวลาทดสอบ</td>
+<td>ไม่ได้ feedback</td>
+<td>นัดวันที่ชัดเจน + ช่วย onboard ด้วยตัวเอง</td>
+</tr>
+<tr>
+<td>Guest view ช้าบน LINE in-app browser</td>
+<td>UX ไม่ดี</td>
+<td>Optimize: ลด image size, lazy load, minimal JS</td>
+</tr>
+<tr>
+<td>Posts ไม่มีคนดูบน Info Website</td>
+<td>ไม่มี exposure</td>
+<td>ทำ SEO + แชร์ผ่าน social media</td>
+</tr>
+<tr>
+<td>Pay-per-Trip pricing ไม่เหมาะสม</td>
+<td>คนไม่ยอมจ่าย</td>
+<td>ปรับราคาตาม feedback — รอตกลงกับ marketing</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="definition-of-done-mvp">9. Definition of Done (MVP)</h2>
+<p>MVP ถือว่า “เสร็จ” เมื่อ:</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Admin สร้าง account (Company /
+Freelance Guide / Personal) + onboarding ได้</label></li>
+<li><label><input type="checkbox" />Admin ใส่ logo + contacts + profile
+ได้</label></li>
+<li><label><input type="checkbox" />Admin สร้าง trip plan ครบ (days +
+activities + emergency + notes) ได้</label></li>
+<li><label><input type="checkbox" />Admin สร้าง Post (ประกาศแพ็กเกจทัวร์) ได้
+— draft / published / closed</label></li>
+<li><label><input type="checkbox" />Posts แสดงบน Info Website
+ถูกต้อง</label></li>
+<li><label><input type="checkbox" />Admin กด publish trip → ได้ URL + QR
+Code</label></li>
+<li><label><input type="checkbox" />Guest เปิด URL → เห็น trip plan สวย
+responsive บน mobile</label></li>
+<li><label><input type="checkbox" />Guest กด “โหมดยื่น ตม.” → เห็นข้อมูล
+official + offline cache</label></li>
+<li><label><input type="checkbox" />Guest กด “ติดตาม” → เลือก LINE (ผ่าน
+LINE OA) หรือ Web Push ได้</label></li>
+<li><label><input type="checkbox" />Admin แก้ plan → ลูกทริปที่ follow ได้รับ
+noti ทั้ง LINE + Web Push</label></li>
+<li><label><input type="checkbox" />Guest เห็น banner “มีการเปลี่ยนแปลง” +
+กด “รับทราบ” ได้</label></li>
+<li><label><input type="checkbox" />Admin เห็น read receipt dashboard
+(ใครรับทราบ/ไม่รับทราบ)</label></li>
+<li><label><input type="checkbox" />Portfolio Page สำหรับ Company / Guide
+— toggle on/off ได้</label></li>
+<li><label><input type="checkbox" />Personal user สร้างทริปส่วนตัว + แชร์
+link ได้</label></li>
+<li><label><input type="checkbox" />Free tier (3 ทริปฟรี) + Pay-per-Trip +
+Pack pricing ทำงาน</label></li>
+<li><label><input type="checkbox" />Feedback form (basic support)
+ทำงาน</label></li>
+<li><label><input type="checkbox" />Platform UI รองรับ 3 ภาษา
+(TH/EN/JP)</label></li>
+<li><label><input type="checkbox" />ทดสอบบน LINE in-app browser, iOS
+Safari, Android Chrome ผ่าน</label></li>
+<li><label><input type="checkbox" />Deploy บน [your-domain.com]
+สำเร็จ</label></li>
+<li><label><input type="checkbox" />เพื่อน 1 บริษัทสร้างทริป +
+โพสต์จริงได้สำเร็จ</label></li>
+</ul>
+<hr />
+<p><em>Document End — [Platform] MVP Scope Lock v2.0</em></p>
 </div>
-
-<div class="footer">
-  <p>NatGan (นัดกัน) — Trip Communication Platform</p>
-  <p>Confidential — Version 2.0 — 29 March 2026</p>
+<div class="footer">© 2569 TripApp Development Team — Confidential</div>
 </div>
 </body>
 </html>

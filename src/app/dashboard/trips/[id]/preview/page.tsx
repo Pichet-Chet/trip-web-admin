@@ -15,6 +15,7 @@ interface TripDetail {
   title: string;
   slug: string | null;
   scope: string;
+  visibility: string;
   destination: string;
   startDate: string;
   endDate: string;
@@ -23,6 +24,7 @@ interface TripDetail {
   language: string;
   status: string;
   importantNotes: string | null;
+  staffUnpublishReason: string | null;
   editCount: number;
   viewCount: number;
   followerCount: number;
@@ -82,10 +84,11 @@ interface EmergencyDetail {
   icon: string | null;
 }
 
-interface PublishResponse {
-  slug: string;
-  url: string;
-  publishedAt: string;
+interface SubmitReviewResponse {
+  status: string;
+  visibility: string;
+  message: string;
+  submittedAt: string;
 }
 
 /* ─── Helpers ─── */
@@ -121,9 +124,11 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
 
   const [trip, setTrip] = useState<TripDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [publishing, setPublishing] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [unpublishing, setUnpublishing] = useState(false);
-  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
   const [visibility, setVisibility] = useState<"link_only" | "marketplace">("link_only");
@@ -141,8 +146,10 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     })();
   }, []);
 
-  const isPublished = trip?.status?.toLowerCase() === "published";
-  const isDraft = trip?.status?.toLowerCase() === "draft";
+  const isPublished     = trip?.status === "Published";
+  const isDraft         = trip?.status === "Draft";
+  const isPendingReview = trip?.status === "PendingReview";
+  const isUnpublished   = trip?.status === "Unpublished";
   const tripUrl = trip?.slug ? `${CLIENT_BASE}/t/${trip.slug}` : "";
   const totalDays = trip ? Math.max(1, Math.floor((new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime()) / 86400000) + 1) : 0;
   const totalActivities = trip?.days.reduce((s, d) => s + d.activities.length, 0) ?? 0;
@@ -167,20 +174,35 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     return () => { cancelled = true; };
   }, [id, toast]);
 
-  /* ─── Publish ─── */
-  const handlePublish = useCallback(async () => {
-    setPublishing(true);
+  /* ─── Submit for review ─── */
+  const handleSubmitReview = useCallback(async () => {
+    setSubmitting(true);
     try {
-      const res = await api.post<PublishResponse>(`/admin/trips/${id}/publish`, {});
-      setTrip((prev) => prev ? { ...prev, status: "Published", slug: res.slug, publishedAt: res.publishedAt } : prev);
-      setShowPublishModal(false);
-      toast("เผยแพร่ทริปสำเร็จ แชร์ลิงก์ให้ลูกทริปได้เลย");
+      const res = await api.post<SubmitReviewResponse>(`/admin/trips/${id}/publish`, { visibility });
+      setTrip((prev) => prev ? { ...prev, status: "PendingReview" } : prev);
+      setShowSubmitModal(false);
+      toast(res.message || "ส่งตรวจสอบเรียบร้อย ทีมงานจะตรวจสอบและแจ้งผลโดยเร็ว");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ไม่สามารถเผยแพร่ได้", "error");
+      toast(err instanceof ApiError ? err.message : "ไม่สามารถส่งตรวจสอบได้", "error");
     } finally {
-      setPublishing(false);
+      setSubmitting(false);
     }
-  }, [id, customSlug, toast]);
+  }, [id, visibility, toast]);
+
+  /* ─── Cancel review ─── */
+  const handleCancelReview = useCallback(async () => {
+    setCancelling(true);
+    try {
+      await api.post(`/admin/trips/${id}/cancel-review`, {});
+      setTrip((prev) => prev ? { ...prev, status: "Draft" } : prev);
+      setShowCancelConfirm(false);
+      toast("ยกเลิกการส่งตรวจสอบแล้ว");
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "ไม่สามารถยกเลิกได้", "error");
+    } finally {
+      setCancelling(false);
+    }
+  }, [id, toast]);
 
   /* ─── Unpublish ─── */
   const handleUnpublish = useCallback(async () => {
@@ -273,11 +295,15 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       <FooterActionBar
         backLabel="ย้อนกลับ"
         onBack={() => router.push(ROUTES.tripEdit(id))}
-        nextLabel={isPublished ? "อัปเดตการเผยแพร่" : "เผยแพร่ทริป"}
+        nextLabel={
+          isPendingReview ? "รอตรวจสอบ..."
+          : isPublished ? "ส่งตรวจสอบอีกครั้ง"
+          : "ส่งตรวจสอบ"
+        }
         nextVariant="success"
-        nextIcon="rocket_launch"
-        onNext={() => setShowPublishModal(true)}
-        disabled={issues.length > 0}
+        nextIcon={isPendingReview ? "hourglass_empty" : "send"}
+        onNext={() => !isPendingReview && setShowSubmitModal(true)}
+        disabled={issues.length > 0 || isPendingReview}
       />
 
       {/* ═══ Content ═══ */}
@@ -288,6 +314,20 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
             <h2 className="text-2xl lg:text-3xl font-extrabold text-(--on-surface) tracking-tight mb-1">ดูตัวอย่างก่อนเผยแพร่</h2>
             <p className="text-sm text-(--on-surface-variant)">ตรวจสอบทริปของคุณก่อนแชร์ให้ลูกทริป</p>
           </div>
+
+          {/* Staff Unpublish Reason Banner */}
+          {isUnpublished && trip.staffUnpublishReason && (
+            <div className="mb-6 bg-orange-50 border border-orange-200 rounded-2xl p-5">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-orange-500 text-xl mt-0.5">block</span>
+                <div>
+                  <p className="font-bold text-sm text-orange-800">ถูกระงับโดยทีมงาน</p>
+                  <p className="text-sm text-orange-700 mt-1 leading-relaxed">{trip.staffUnpublishReason}</p>
+                  <p className="text-xs text-orange-500 mt-2">กรุณาแก้ไขตามเหตุผลด้านบน แล้วส่งตรวจสอบใหม่อีกครั้ง</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Validation Issues */}
           {issues.length > 0 && (
@@ -444,37 +484,66 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
             <div className="col-span-12 lg:col-span-7 space-y-6 order-2">
 
               {/* Status Card */}
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
-                <div className="flex items-center justify-between">
+              <div className={`rounded-3xl p-6 md:p-8 shadow-sm border ${isPendingReview ? "bg-orange-50 border-orange-200" : "bg-white border-(--outline-variant)/30"}`}>
+                <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${isPublished ? "bg-(--primary-container) text-(--on-primary-container)" : "bg-(--surface-variant) text-(--on-surface-variant)"}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+                      isPublished ? "bg-(--primary-container) text-(--on-primary-container)"
+                      : isPendingReview ? "bg-orange-100 text-orange-600"
+                      : "bg-(--surface-variant) text-(--on-surface-variant)"
+                    }`}>
                       <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {isPublished ? "check_circle" : "edit_note"}
+                        {isPublished ? "check_circle" : isPendingReview ? "hourglass_empty" : "edit_note"}
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg text-(--on-surface)">
-                        {isPublished ? "เผยแพร่แล้ว" : isDraft ? "ฉบับร่าง" : "ยกเลิกเผยแพร่แล้ว"}
+                      <h3 className={`font-bold text-lg ${isPendingReview ? "text-orange-800" : "text-(--on-surface)"}`}>
+                        {isPublished ? "เผยแพร่แล้ว"
+                          : isPendingReview ? "รอตรวจสอบ"
+                          : isDraft ? "ฉบับร่าง"
+                          : "ยกเลิกเผยแพร่แล้ว"}
                       </h3>
-                      <p className="text-sm text-(--on-surface-variant)">
-                        {isPublished ? "ทุกคนที่มีลิงก์สามารถเข้าดูได้" : isDraft ? "ยังไม่เผยแพร่ มีแค่คุณที่เห็น" : "ลูกทริปไม่สามารถเข้าดูได้จนกว่าจะเผยแพร่ใหม่"}
+                      <p className={`text-sm ${isPendingReview ? "text-orange-700" : "text-(--on-surface-variant)"}`}>
+                        {isPublished ? "ทุกคนที่มีลิงก์สามารถเข้าดูได้"
+                          : isPendingReview ? "ทีมงานกำลังตรวจสอบ จะแจ้งผลทาง email โดยเร็ว"
+                          : isDraft ? "ยังไม่เผยแพร่ มีแค่คุณที่เห็น"
+                          : "ลูกทริปไม่สามารถเข้าดูได้จนกว่าจะส่งตรวจสอบใหม่"}
                       </p>
                       {isPublished && (
                         <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-lg bg-(--primary-container) text-(--on-primary-container) text-[10px] font-bold">
                           <span className="material-symbols-outlined text-xs">link</span>
-                          เฉพาะคนที่มีลิงก์
+                          {trip.visibility === "marketplace" ? "แสดงบน Marketplace" : "เฉพาะคนที่มีลิงก์"}
+                        </span>
+                      )}
+                      {isPendingReview && (
+                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-lg bg-orange-100 text-orange-700 text-[10px] font-bold">
+                          <span className="material-symbols-outlined text-xs">
+                            {trip.visibility === "marketplace" ? "storefront" : "link"}
+                          </span>
+                          {trip.visibility === "marketplace" ? "ขอเข้า Marketplace" : "เฉพาะคนที่มีลิงก์"}
                         </span>
                       )}
                     </div>
                   </div>
-                  {isPublished && (
-                    <button
-                      onClick={() => setShowUnpublishConfirm(true)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-(--on-surface-variant) hover:bg-(--surface-variant) transition-colors"
-                    >
-                      ยกเลิกเผยแพร่
-                    </button>
-                  )}
+                  <div className="flex flex-col gap-2 shrink-0">
+                    {isPublished && (
+                      <button
+                        onClick={() => setShowUnpublishConfirm(true)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-(--on-surface-variant) hover:bg-(--surface-variant) transition-colors whitespace-nowrap"
+                      >
+                        ยกเลิกเผยแพร่
+                      </button>
+                    )}
+                    {isPendingReview && (
+                      <button
+                        onClick={() => setShowCancelConfirm(true)}
+                        disabled={cancelling}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-orange-700 hover:bg-orange-100 border border-orange-200 transition-colors whitespace-nowrap disabled:opacity-50"
+                      >
+                        ยกเลิกส่งตรวจสอบ
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Stats row */}
@@ -617,23 +686,25 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      {/* ═══ Publish Modal ═══ */}
-      {showPublishModal && (
+      {/* ═══ Submit Review Modal ═══ */}
+      {showSubmitModal && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowPublishModal(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer" onClick={() => setShowSubmitModal(false)} />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="p-6 md:p-8 space-y-6">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-(--primary-container) flex items-center justify-center mx-auto mb-3">
-                  <span className="material-symbols-outlined text-(--on-primary-container) text-4xl">rocket_launch</span>
+                <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-3">
+                  <span className="material-symbols-outlined text-orange-600 text-4xl">send</span>
                 </div>
-                <h3 className="text-lg font-bold text-(--on-surface)">เผยแพร่ทริป</h3>
-                <p className="text-sm text-(--on-surface-variant) mt-1">เลือกการมองเห็นและตั้งค่าลิงก์</p>
+                <h3 className="text-lg font-bold text-(--on-surface)">ส่งตรวจสอบ</h3>
+                <p className="text-sm text-(--on-surface-variant) mt-1">
+                  {isPublished ? "ส่งเวอร์ชันใหม่ให้ทีมงานตรวจสอบก่อนอัปเดต" : "ส่งทริปให้ทีมงานตรวจสอบก่อนเผยแพร่"}
+                </p>
               </div>
 
               {/* Visibility */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">การมองเห็น</label>
+                <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">การมองเห็นหลังอนุมัติ</label>
                 <button
                   onClick={() => setVisibility("link_only")}
                   className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${
@@ -666,53 +737,75 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                       <p className={`text-sm font-bold ${visibility === "marketplace" ? "text-(--primary)" : "text-(--on-surface)"}`}>
                         เปิดบน Marketplace
                       </p>
-                      <p className="text-xs text-(--on-surface-variant) mt-0.5">แสดงบนเว็บไซต์ ค้นหาผ่าน Google ได้ เพิ่มโอกาสให้ลูกค้าเจอคุณ</p>
+                      <p className="text-xs text-(--on-surface-variant) mt-0.5">แสดงบนเว็บไซต์ เพิ่มโอกาสให้ลูกค้าค้นหาพบ</p>
                     </div>
                   </div>
-                  {visibility === "marketplace" && (
-                    <div className="flex items-center gap-2 mt-3 ml-9 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
-                      <span className="material-symbols-outlined text-amber-500 text-sm">info</span>
-                      <p className="text-xs text-amber-700">ทริปจะถูกตรวจสอบโดยทีมงานก่อนแสดงบน Marketplace</p>
-                    </div>
-                  )}
                 </button>
               </div>
 
-              {/* Link preview (read-only, auto-generated) */}
-              <div>
-                <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">ลิงก์ทริป</label>
-                <div className="mt-1.5 bg-(--surface-container-low) rounded-xl py-3.5 px-4">
-                  <p className="text-sm font-medium text-(--on-surface) break-all">
-                    {CLIENT_BASE}/t/{trip?.slug || `${username || "user"}/${id.slice(0, 8)}`}
-                  </p>
-                </div>
-                <p className="text-[10px] text-(--on-surface-variant) mt-1.5 px-1">ลิงก์สร้างอัตโนมัติ แก้ไขไม่ได้</p>
+              {/* Link preview */}
+              <div className="bg-(--surface-container-low) rounded-2xl p-4 space-y-1">
+                <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest">ลิงก์ทริป (สร้างอัตโนมัติหลังอนุมัติ)</p>
+                <p className="text-sm font-medium text-(--on-surface) break-all">
+                  {CLIENT_BASE}/t/{trip?.slug || `${username || "user"}/${id.slice(0, 8)}`}
+                </p>
               </div>
+
+              {/* I7 (Q3=B): Credit policy notice — only show on FIRST submit (not re-publish) */}
+              {!isPublished && !isPendingReview && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-amber-600 text-lg flex-shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+                    <div className="flex-1 space-y-1.5">
+                      <p className="text-sm font-bold text-amber-900">การใช้เครดิต</p>
+                      <p className="text-xs text-amber-800 leading-relaxed">
+                        การส่งตรวจสอบครั้งแรก <strong>หัก 1 เครดิต</strong> จากแพลนของคุณ (per_trip / pack_5 / Subscription)
+                      </p>
+                      <ul className="text-xs text-amber-800 space-y-1 ml-3 list-disc list-inside marker:text-amber-500">
+                        <li>ถ้า staff reject → แก้ไขแล้ว <strong>ส่งใหม่ฟรี</strong> (ไม่หักเครดิตเพิ่ม)</li>
+                        <li>เครดิตที่ใช้ผูกกับทริปนี้ตลอดอายุ — re-publish ฟรีหลัง unpublish</li>
+                        <li>หากต้องการขอคืนเงิน กรุณาติดต่อทีมงาน</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowPublishModal(false)}
+                  onClick={() => setShowSubmitModal(false)}
                   className="flex-1 py-3.5 rounded-xl border border-(--outline-variant)/30 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-variant)/50 transition-colors"
                 >
                   ยกเลิก
                 </button>
                 <button
-                  onClick={handlePublish}
-                  disabled={publishing}
+                  onClick={handleSubmitReview}
+                  disabled={submitting}
                   className="flex-1 py-3.5 rounded-xl bg-(--primary) text-(--on-primary) text-sm font-bold hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {publishing ? (
+                  {submitting ? (
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <span className="material-symbols-outlined text-lg">rocket_launch</span>
+                    <span className="material-symbols-outlined text-lg">send</span>
                   )}
-                  {publishing ? "กำลังเผยแพร่..." : "เผยแพร่เลย"}
+                  {submitting ? "กำลังส่ง..." : "ส่งตรวจสอบ"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* ═══ Cancel Review Confirm ═══ */}
+      <ConfirmDialog
+        open={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancelReview}
+        title="ยกเลิกการส่งตรวจสอบ"
+        description="ทริปจะกลับสู่สถานะ ฉบับร่าง คุณสามารถแก้ไขและส่งใหม่ได้ภายหลัง"
+        confirmLabel="ยกเลิกส่งตรวจสอบ"
+        variant="danger"
+      />
 
       {/* ═══ Unpublish Confirm ═══ */}
       <ConfirmDialog

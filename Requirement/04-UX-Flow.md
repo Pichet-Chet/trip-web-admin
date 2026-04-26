@@ -1,5 +1,5 @@
 # UX Flow & Screen Design
-# NatGan (นัดกัน) — v1.0
+# [Platform Name] — v1.0
 
 **Version:** 1.0
 **Date:** 17 March 2026
@@ -22,7 +22,7 @@
 
 ### วิจารณ์ปัญหาของคู่แข่ง
 
-| ปัญหาที่เจอ | ตัวอย่าง | NatGan แก้ยังไง |
+| ปัญหาที่เจอ | ตัวอย่าง | [Platform] แก้ยังไง |
 |---|---|---|
 | ข้อความยุบยิบ แน่นเกินไป | Wanderlog, TripAdvisor — 20+ fields ต่อ activity | ≤4 fields: เวลา, สถานที่, emoji, หมายเหตุสั้น |
 | UI ออกแบบสำหรับคนจัด ไม่ใช่คนไป | Google Sheets itinerary — ตารางเต็มจอ | แยก Admin view (ตาราง) vs Guest view (visual card) |
@@ -56,7 +56,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    NatGan Platform                       │
+│                    [Platform] Platform                       │
 │                                                         │
 │  👔 Admin (บริษัททัวร์/ไกด์)                              │
 │  ├── Login required                                     │
@@ -268,7 +268,7 @@ G4. Immigration-Friendly View
      │                                                │
      │  🔗 URL:                                       │
      │  ┌──────────────────────────────────────┐      │
-     │  │ natgan.com/t/tokyo-winter-2026       │ [📋] │
+     │  │ [your-domain.com]/t/tokyo-winter-2026       │ [📋] │
      │  └──────────────────────────────────────┘      │
      │  [แก้ slug]                                     │
      │                                                │
@@ -288,7 +288,7 @@ G4. Immigration-Friendly View
      │  │ สวัสดีค่ะ 🙏                           │      │
      │  │ ทริป Tokyo Winter 2026 พร้อมแล้วค่ะ     │      │
      │  │ เปิดดู itinerary ได้ที่:                  │      │
-     │  │ 👉 natgan.com/t/tokyo-winter-2026      │      │
+     │  │ 👉 [your-domain.com]/t/tokyo-winter-2026      │      │
      │  │                                        │      │
      │  │ กด "ติดตาม" เพื่อรับแจ้งเตือน            │      │
      │  │ เมื่อมีการเปลี่ยนแปลงค่ะ 🔔              │      │
@@ -450,7 +450,7 @@ G4. Immigration-Friendly View
 │ │  ── บริษัท: Amazing Tour ──                          │ │
 │ │  [Logo]  📞 02-XXX-XXXX  LINE: @amazingtour         │ │
 │ │                                                     │ │
-│ │  [🛂 โหมดยื่น ตม.]      Powered by NatGan           │ │
+│ │  [🛂 โหมดยื่น ตม.]      Powered by [Platform]           │ │
 │ └─────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -467,7 +467,7 @@ G4. Immigration-Friendly View
 
 5. **Company branding ต้องอยู่ล่างสุด** — ไม่ใช่บนสุด เพราะ content ของทริปสำคัญกว่า แต่ footer ต้องชัด: logo + เบอร์ + LINE → เป็นที่แรกที่ลูกทริปจะมองหาเมื่อต้องการติดต่อ
 
-6. **"Powered by NatGan" ต้องเล็กแต่ชัด** — viral loop อยู่ตรงนี้ ลูกทริปที่ประทับใจจะกดดูว่า NatGan คืออะไร
+6. **"Powered by [Platform]" ต้องเล็กแต่ชัด** — viral loop อยู่ตรงนี้ ลูกทริปที่ประทับใจจะกดดูว่า [Platform] คืออะไร
 
 ---
 
@@ -487,7 +487,7 @@ G4. Immigration-Friendly View
      │                                        │
      │  ┌──────────────────────────────┐      │
      │  │  💚 LINE (ผ่าน LINE OA)       │      │
-     │  │  เพิ่มเพื่อน LINE OA ของ NatGan  │      │
+     │  │  เพิ่มเพื่อน LINE OA ของระบบ  │      │
      │  │  (แนะนำสำหรับคนไทย)          │      │
      │  └──────────────────────────────┘      │
      │                                        │
@@ -506,7 +506,7 @@ G4. Immigration-Friendly View
 
 **เลือก LINE:**
 ```
-→ เปิดหน้าเพิ่มเพื่อน LINE OA ของ NatGan
+→ เปิดหน้าเพิ่มเพื่อน LINE OA ของระบบ
 → กดเพิ่มเพื่อน
 → กลับมาหน้าเดิม → "✅ ติดตามสำเร็จ!"
 → ปุ่มเปลี่ยนเป็น "✅ ติดตามอยู่ (LINE)"
@@ -514,7 +514,7 @@ G4. Immigration-Friendly View
 
 **เลือก Web Push:**
 ```
-→ Browser popup: "natgan.com wants to send notifications"
+→ Browser popup: "[your-domain.com] wants to send notifications"
 → กด Allow
 → "✅ ติดตามสำเร็จ!"
 → ปุ่มเปลี่ยนเป็น "✅ ติดตามอยู่ (Push)"
@@ -539,7 +539,7 @@ G4. Immigration-Friendly View
 
 [LINE Notification]
 ┌────────────────────────────────────┐
-│  🔔 NatGan - Tokyo Winter 2026    │
+│  🔔 [Platform] - Tokyo Winter 2026    │
 │                                    │
 │  ⚠️ มีการเปลี่ยนแปลง:              │
 │  • Day 2: เปลี่ยนเวลา teamLab     │
@@ -548,7 +548,7 @@ G4. Immigration-Friendly View
 │    เวลา 08:00                      │
 │                                    │
 │  👉 ดูรายละเอียด + กดรับทราบ:       │
-│  natgan.com/t/tokyo-winter-2026    │
+│  [your-domain.com]/t/tokyo-winter-2026    │
 └────────────────────────────────────┘
 
 [Web Push Notification]
@@ -846,4 +846,4 @@ Priority 3 — Change Notification:
 
 ---
 
-*Document End — NatGan UX Flow v1.0*
+*Document End — [Platform] UX Flow v1.0*

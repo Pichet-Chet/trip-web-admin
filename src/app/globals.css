@@ -51,6 +51,14 @@
     color: var(--on-surface);
     font-family: var(--font-noto-thai), 'Noto Sans Thai', sans-serif !important;
   }
+
+  button, select {
+    cursor: pointer;
+  }
+
+  button:disabled, select:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* Material Symbols */

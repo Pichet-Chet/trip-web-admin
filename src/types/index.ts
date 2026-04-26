@@ -1,5 +1,5 @@
 // ─── Enums ───
-export type TripStatus = "draft" | "published" | "unpublished";
+export type TripStatus = "draft" | "pending_review" | "published" | "unpublished" | "archived";
 export type ActivityType = "attraction" | "restaurant" | "hotel" | "transport" | "shopping" | "other";
 export type FollowChannel = "line" | "web_push";
 export type SubscriptionTier = "free" | "pro" | "business";

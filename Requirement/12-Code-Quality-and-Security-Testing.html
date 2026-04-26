@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripApp Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1978e5;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --on-surface: #191c20;
+  --on-surface-variant: #44474e;
+  --outline: #74777f;
+  --outline-variant: #c4c6d0;
+  --surface-container: #f2f3fd;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--on-surface);
+  background: var(--surface-container);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-light);
+}
+h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+li { margin-bottom: 4px; }
+strong { color: var(--on-surface); font-weight: 600; }
+blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 16px 20px;
+  border-radius: 0 12px 12px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+blockquote p { color: var(--on-surface-variant); margin: 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  background: var(--surface-container);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--on-surface-variant);
+  vertical-align: top;
+}
+tr:hover td { background: #fafbff; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-container);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 20px 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 12px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 32px 0;
+  opacity: 0.3;
+}
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--outline);
+}
+input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--primary);
+}
+@media (max-width: 768px) {
+  .card { padding: 24px; border-radius: 16px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1 id="มาตรฐานคณภาพโคดและการทดสอบความปลอดภย">12.
+มาตรฐานคุณภาพโค้ดและการทดสอบความปลอดภัย</h1>
+<blockquote>
+<p>Code Quality &amp; Security Testing Standard
+เอกสารกำหนดมาตรฐานการตรวจสอบคุณภาพโค้ดและการทดสอบเจาะระบบก่อน Deploy
+Production</p>
+</blockquote>
+<p><strong>Version:</strong> 1.0 <strong>อัปเดตล่าสุด:</strong> 31 มีนาคม
+2569 <strong>ผู้จัดทำ:</strong> TripApp Development Team</p>
+<hr />
+<h2 id="ภาพรวม">1. ภาพรวม</h2>
+<h3 id="วตถประสงค">1.1 วัตถุประสงค์</h3>
+<p>กำหนดมาตรฐานการตรวจสอบโค้ดและทดสอบความปลอดภัยของระบบ TripApp ก่อนนำขึ้น
+Production เพื่อให้มั่นใจว่า:</p>
+<ul>
+<li>โค้ดไม่มีช่องโหว่ด้านความปลอดภัย (Vulnerability)</li>
+<li>โค้ดมีคุณภาพตามมาตรฐาน (Maintainability, Reliability)</li>
+<li>ระบบทนทานต่อการโจมตี (Attack Resistance)</li>
+<li>สอดคล้องกับมาตรฐาน OWASP Top 10</li>
+</ul>
+<h3 id="เครองมอทใช">1.2 เครื่องมือที่ใช้</h3>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 25%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>เครื่องมือ</th>
+<th>ประเภท</th>
+<th>วัตถุประสงค์</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SonarQube</strong></td>
+<td>Static Application Security Testing (SAST)</td>
+<td>วิเคราะห์โค้ดอัตโนมัติ หาช่องโหว่ + code smell</td>
+</tr>
+<tr>
+<td><strong>Penetration Testing</strong></td>
+<td>Dynamic Application Security Testing (DAST)</td>
+<td>ทดสอบเจาะระบบจริงโดยผู้เชี่ยวชาญ</td>
+</tr>
+<tr>
+<td><strong>Dependency Check</strong></td>
+<td>Software Composition Analysis (SCA)</td>
+<td>ตรวจ library/package ที่มีช่องโหว่</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ขนตอนการตรวจสอบกอน-deploy">1.3 ขั้นตอนการตรวจสอบก่อน Deploy</h3>
+<pre><code>Development → Code Review → SonarQube Scan → Fix Issues
+    → Dependency Check → Staging Deploy → Penetration Test
+    → Fix Findings → Re-test → Production Deploy</code></pre>
+<hr />
+<h2 id="sonarqube-static-code-analysis">2. SonarQube — Static Code
+Analysis</h2>
+<h3 id="quality-gate-เกณฑผาน">2.1 Quality Gate (เกณฑ์ผ่าน)</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>เกณฑ์ขั้นต่ำ</th>
+<th>หมายเหตุ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bugs</strong></td>
+<td>0 (A rating)</td>
+<td>ห้ามมี bug</td>
+</tr>
+<tr>
+<td><strong>Vulnerabilities</strong></td>
+<td>0 (A rating)</td>
+<td>ห้ามมีช่องโหว่</td>
+</tr>
+<tr>
+<td><strong>Security Hotspots</strong></td>
+<td>Reviewed 100%</td>
+<td>ตรวจสอบทุกจุด</td>
+</tr>
+<tr>
+<td><strong>Code Smells</strong></td>
+<td>≤ 5% Technical Debt Ratio</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Coverage</strong></td>
+<td>≥ 60% (target 80%)</td>
+<td>Unit test coverage</td>
+</tr>
+<tr>
+<td><strong>Duplications</strong></td>
+<td>≤ 3%</td>
+<td>โค้ดซ้ำ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security-rules-ทตองผาน">2.2 Security Rules ที่ต้องผ่าน</h3>
+<h4 id="injection-owasp-a03">2.2.1 Injection (OWASP A03)</h4>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 27%" />
+<col style="width: 54%" />
+</colgroup>
+<thead>
+<tr>
+<th>Rule</th>
+<th>คำอธิบาย</th>
+<th>ตัวอย่างที่ถูกต้อง</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQL Injection</td>
+<td>ห้าม string concatenation ใน query</td>
+<td>ใช้ EF Core parameterized queries</td>
+</tr>
+<tr>
+<td>Command Injection</td>
+<td>ห้าม execute shell command จาก user input</td>
+<td>ไม่มี Process.Start จาก input</td>
+</tr>
+<tr>
+<td>LDAP Injection</td>
+<td>ห้าม inject LDAP query</td>
+<td>ไม่ใช้ LDAP</td>
+</tr>
+<tr>
+<td>XSS</td>
+<td>ห้าม render user input โดยไม่ encode</td>
+<td>Output encoding ทุกจุด</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ SonarQube จะ flag</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> sql <span class="op">=</span> $<span class="st">&quot;SELECT * FROM users WHERE email = &#39;{email}&#39;&quot;</span><span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ ถูกต้อง</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> user <span class="op">=</span> await _db<span class="op">.</span><span class="fu">Users</span><span class="op">.</span><span class="fu">FirstOrDefaultAsync</span><span class="op">(</span>u <span class="op">=&gt;</span> u<span class="op">.</span><span class="fu">Email</span> <span class="op">==</span> email<span class="op">);</span></span></code></pre></div>
+<h4 id="broken-authentication-owasp-a07">2.2.2 Broken Authentication
+(OWASP A07)</h4>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>คำอธิบาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hardcoded Credentials</td>
+<td>ห้าม hardcode password, key, token ใน source</td>
+</tr>
+<tr>
+<td>Weak Password</td>
+<td>enforce minimum 8 chars</td>
+</tr>
+<tr>
+<td>Session Fixation</td>
+<td>สร้าง session ใหม่หลัง login</td>
+</tr>
+<tr>
+<td>JWT Validation</td>
+<td>validate issuer, audience, expiry, signature</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ SonarQube จะ flag</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> secret <span class="op">=</span> <span class="st">&quot;my-secret-key-hardcoded&quot;</span><span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ ถูกต้อง</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> secret <span class="op">=</span> _config<span class="op">[</span><span class="st">&quot;Jwt:Secret&quot;</span><span class="op">];</span></span></code></pre></div>
+<h4 id="sensitive-data-exposure-owasp-a02">2.2.3 Sensitive Data Exposure
+(OWASP A02)</h4>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>คำอธิบาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plaintext Password</td>
+<td>ห้ามเก็บ password เป็น plaintext</td>
+</tr>
+<tr>
+<td>Sensitive Data in Log</td>
+<td>ห้าม log ข้อมูลส่วนบุคคล</td>
+</tr>
+<tr>
+<td>Weak Hashing</td>
+<td>ห้ามใช้ MD5, SHA1 สำหรับ password</td>
+</tr>
+<tr>
+<td>Missing Encryption</td>
+<td>sensitive data ต้อง encrypt at rest</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ SonarQube จะ flag</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>_logger<span class="op">.</span><span class="fu">LogInformation</span><span class="op">(</span>$<span class="st">&quot;User {firstName} {lastName} registered&quot;</span><span class="op">);</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ ถูกต้อง</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>_logger<span class="op">.</span><span class="fu">LogInformation</span><span class="op">(</span><span class="st">&quot;User registered: {Email}&quot;</span><span class="op">,</span> email<span class="op">);</span></span></code></pre></div>
+<h4 id="security-misconfiguration-owasp-a05">2.2.4 Security
+Misconfiguration (OWASP A05)</h4>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr>
+<th>Rule</th>
+<th>คำอธิบาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debug in Production</td>
+<td>ห้าม EnableDetailedErrors, EnableSensitiveDataLogging ใน
+production</td>
+</tr>
+<tr>
+<td>CORS Wildcard</td>
+<td>ห้ามใช้ <code>*</code> ใน production CORS</td>
+</tr>
+<tr>
+<td>Missing Security Headers</td>
+<td>ต้องมี HSTS, X-Frame-Options, CSP</td>
+</tr>
+<tr>
+<td>Default Credentials</td>
+<td>ห้ามใช้ default password ใน production</td>
+</tr>
+<tr>
+<td>Stack Trace Exposure</td>
+<td>ห้าม return stack trace ให้ client</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ SonarQube จะ flag — ถ้าอยู่นอก #if DEBUG</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>options<span class="op">.</span><span class="fu">EnableSensitiveDataLogging</span><span class="op">();</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ ถูกต้อง</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">if</span> <span class="op">(</span>builder<span class="op">.</span><span class="fu">Environment</span><span class="op">.</span><span class="fu">IsDevelopment</span><span class="op">())</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    options<span class="op">.</span><span class="fu">EnableSensitiveDataLogging</span><span class="op">();</span></span></code></pre></div>
+<h4 id="insecure-design-owasp-a04">2.2.5 Insecure Design (OWASP
+A04)</h4>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>คำอธิบาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mass Assignment</td>
+<td>ห้าม bind entity ตรงจาก request</td>
+</tr>
+<tr>
+<td>Missing Authorization</td>
+<td>ทุก endpoint ต้องมี [Authorize] ยกเว้น public</td>
+</tr>
+<tr>
+<td>IDOR</td>
+<td>ตรวจ ownership ก่อนให้เข้าถึง resource</td>
+</tr>
+<tr>
+<td>Missing Input Validation</td>
+<td>validate ทุก input ก่อน process</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ❌ IDOR — ไม่ตรวจ ownership</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> trip <span class="op">=</span> await _db<span class="op">.</span><span class="fu">TripPlans</span><span class="op">.</span><span class="fu">FindAsync</span><span class="op">(</span>id<span class="op">);</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">// ✅ ถูกต้อง — ตรวจ companyId</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> trip <span class="op">=</span> await _db<span class="op">.</span><span class="fu">TripPlans</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">FirstOrDefaultAsync</span><span class="op">(</span>t <span class="op">=&gt;</span> t<span class="op">.</span><span class="fu">Id</span> <span class="op">==</span> id <span class="op">&amp;&amp;</span> t<span class="op">.</span><span class="fu">CompanyId</span> <span class="op">==</span> companyId<span class="op">);</span></span></code></pre></div>
+<h3 id="code-smell-rules">2.3 Code Smell Rules</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>คำอธิบาย</th>
+<th>เกณฑ์</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method Length</td>
+<td>method ยาวเกินไป</td>
+<td>≤ 40 lines</td>
+</tr>
+<tr>
+<td>Cyclomatic Complexity</td>
+<td>logic ซับซ้อน</td>
+<td>≤ 15</td>
+</tr>
+<tr>
+<td>Cognitive Complexity</td>
+<td>อ่านยาก</td>
+<td>≤ 15</td>
+</tr>
+<tr>
+<td>Parameter Count</td>
+<td>parameter มากเกินไป</td>
+<td>≤ 7</td>
+</tr>
+<tr>
+<td>Class Length</td>
+<td>class ยาวเกินไป</td>
+<td>≤ 300 lines</td>
+</tr>
+<tr>
+<td>Duplicate Code</td>
+<td>โค้ดซ้ำ</td>
+<td>≤ 3%</td>
+</tr>
+<tr>
+<td>Commented Out Code</td>
+<td>โค้ดที่ comment ทิ้งไว้</td>
+<td>ห้ามมี</td>
+</tr>
+<tr>
+<td>TODO/FIXME</td>
+<td>ค้างอยู่ใน production</td>
+<td>ห้ามมี (ยกเว้น tracked issue)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="penetration-testing">3. Penetration Testing</h2>
+<h3 id="ขอบเขตการทดสอบ">3.1 ขอบเขตการทดสอบ</h3>
+<table>
+<thead>
+<tr>
+<th>ระบบ</th>
+<th>URL</th>
+<th>ประเภท</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>trip-api</td>
+<td>api.tripapp.co</td>
+<td>API Testing</td>
+</tr>
+<tr>
+<td>trip-web-admin</td>
+<td>admin.tripapp.co</td>
+<td>Web Application Testing</td>
+</tr>
+<tr>
+<td>trip-web-client</td>
+<td>app.tripapp.co</td>
+<td>Web Application Testing</td>
+</tr>
+<tr>
+<td>trip-web-staff</td>
+<td>staff.tripapp.co</td>
+<td>Web Application Testing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="testing-categories">3.2 Testing Categories</h3>
+<h4 id="authentication-testing">3.2.1 Authentication Testing</h4>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 32%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>วิธีทดสอบ</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Brute Force Login</td>
+<td>ลอง login ผิดหลายครั้ง</td>
+<td>Rate limit 10/min, lock after 5 fails</td>
+</tr>
+<tr>
+<td>Password Policy</td>
+<td>สมัครด้วย weak password</td>
+<td>Reject &lt; 8 chars</td>
+</tr>
+<tr>
+<td>Token Manipulation</td>
+<td>แก้ไข JWT payload</td>
+<td>Signature validation fail</td>
+</tr>
+<tr>
+<td>Token Expiry</td>
+<td>ใช้ expired token</td>
+<td>Return 401</td>
+</tr>
+<tr>
+<td>Session Fixation</td>
+<td>ใช้ session เก่าหลัง login</td>
+<td>Session ใหม่ทุกครั้ง</td>
+</tr>
+<tr>
+<td>Email Verification Bypass</td>
+<td>เข้าใช้งานโดยไม่ verify</td>
+<td>Block, return error</td>
+</tr>
+<tr>
+<td>Registration Spam</td>
+<td>สมัครซ้ำรัว</td>
+<td>Rate limit</td>
+</tr>
+</tbody>
+</table>
+<h4 id="authorization-testing">3.2.2 Authorization Testing</h4>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 32%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>วิธีทดสอบ</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Horizontal Privilege</td>
+<td>Admin A เข้าถึง trip ของ Admin B</td>
+<td>Return 403/404</td>
+</tr>
+<tr>
+<td>Vertical Privilege</td>
+<td>User เข้าถึง Staff API</td>
+<td>Return 401/403</td>
+</tr>
+<tr>
+<td>IDOR</td>
+<td>เปลี่ยน ID ใน URL</td>
+<td>ตรวจ ownership</td>
+</tr>
+<tr>
+<td>Role Bypass</td>
+<td>แก้ role ใน token</td>
+<td>Signature validation fail</td>
+</tr>
+<tr>
+<td>Menu Access</td>
+<td>เข้า endpoint ที่ role ไม่มีสิทธิ์</td>
+<td>Return 403</td>
+</tr>
+</tbody>
+</table>
+<h4 id="input-validation-testing">3.2.3 Input Validation Testing</h4>
+<table>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>Payload ตัวอย่าง</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQL Injection</td>
+<td><code>' OR 1=1 --</code></td>
+<td>Parameterized query ป้องกัน</td>
+</tr>
+<tr>
+<td>XSS (Stored)</td>
+<td><code>&lt;script&gt;alert(1)&lt;/script&gt;</code></td>
+<td>Encoded/sanitized</td>
+</tr>
+<tr>
+<td>XSS (Reflected)</td>
+<td><code>?q=&lt;img onerror=alert(1)&gt;</code></td>
+<td>Encoded/sanitized</td>
+</tr>
+<tr>
+<td>Command Injection</td>
+<td><code>; rm -rf /</code></td>
+<td>ไม่มี shell execution</td>
+</tr>
+<tr>
+<td>Path Traversal</td>
+<td><code>../../etc/passwd</code></td>
+<td>Validate file path</td>
+</tr>
+<tr>
+<td>File Upload</td>
+<td><code>shell.php.jpg</code></td>
+<td>Validate content type + extension</td>
+</tr>
+<tr>
+<td>JSON Injection</td>
+<td>Nested/oversized JSON</td>
+<td>Size limit + depth limit</td>
+</tr>
+<tr>
+<td>Unicode Bypass</td>
+<td>Homoglyph characters</td>
+<td>Normalize input</td>
+</tr>
+</tbody>
+</table>
+<h4 id="business-logic-testing">3.2.4 Business Logic Testing</h4>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 32%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>วิธีทดสอบ</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quota Bypass</td>
+<td>สร้าง trip เกิน free quota</td>
+<td>Return 402</td>
+</tr>
+<tr>
+<td>Price Manipulation</td>
+<td>แก้ราคาใน request</td>
+<td>Server-side price validation</td>
+</tr>
+<tr>
+<td>Race Condition</td>
+<td>ส่ง request พร้อมกัน</td>
+<td>Database lock/transaction</td>
+</tr>
+<tr>
+<td>Data Tampering</td>
+<td>แก้ไข trip ของคนอื่น</td>
+<td>Ownership check</td>
+</tr>
+<tr>
+<td>Agreement Bypass</td>
+<td>สมัครโดยไม่ accept terms</td>
+<td>Validate termsReadAt/privacyReadAt</td>
+</tr>
+<tr>
+<td>Email Verify Bypass</td>
+<td>ใช้ token ซ้ำ</td>
+<td>Token invalidated after use</td>
+</tr>
+</tbody>
+</table>
+<h4 id="api-security-testing">3.2.5 API Security Testing</h4>
+<table>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>วิธีทดสอบ</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rate Limiting</td>
+<td>ส่ง request เกิน limit</td>
+<td>Return 429</td>
+</tr>
+<tr>
+<td>CORS Bypass</td>
+<td>Request จาก unauthorized origin</td>
+<td>Block by CORS</td>
+</tr>
+<tr>
+<td>HTTP Methods</td>
+<td>ใช้ PUT/DELETE กับ GET-only endpoint</td>
+<td>Return 405</td>
+</tr>
+<tr>
+<td>Content-Type</td>
+<td>ส่ง XML แทน JSON</td>
+<td>Reject non-JSON</td>
+</tr>
+<tr>
+<td>API Versioning</td>
+<td>เรียก deprecated endpoint</td>
+<td>Return 404/301</td>
+</tr>
+<tr>
+<td>Large Payload</td>
+<td>ส่ง body &gt; 10MB</td>
+<td>Reject with 413</td>
+</tr>
+<tr>
+<td>Missing Headers</td>
+<td>ไม่ส่ง Authorization header</td>
+<td>Return 401</td>
+</tr>
+</tbody>
+</table>
+<h4 id="data-protection-testing">3.2.6 Data Protection Testing</h4>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 32%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>วิธีทดสอบ</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sensitive Data in Response</td>
+<td>ดู API response</td>
+<td>ไม่มี password, token, internal error</td>
+</tr>
+<tr>
+<td>Sensitive Data in DB</td>
+<td>ดู DB dump</td>
+<td>FirstName/LastName encrypted (AES-256)</td>
+</tr>
+<tr>
+<td>Sensitive Data in Log</td>
+<td>ดู log files</td>
+<td>ไม่มี plaintext ชื่อ/นามสกุล</td>
+</tr>
+<tr>
+<td>Password Storage</td>
+<td>ดู DB</td>
+<td>BCrypt hash เท่านั้น</td>
+</tr>
+<tr>
+<td>HTTPS Enforcement</td>
+<td>เข้าผ่าน HTTP</td>
+<td>Redirect to HTTPS</td>
+</tr>
+<tr>
+<td>Cookie Security</td>
+<td>ดู cookies</td>
+<td>HttpOnly, Secure, SameSite</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="dependency-security">4. Dependency Security</h2>
+<h3 id="nuget-packages-.net">4.1 NuGet Packages (.NET)</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ตรวจ vulnerability</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> list package <span class="at">--vulnerable</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ตรวจ outdated</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> list package <span class="at">--outdated</span></span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>เกณฑ์</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Critical vulnerability</td>
+<td>แก้ไขทันที ห้าม deploy</td>
+</tr>
+<tr>
+<td>High vulnerability</td>
+<td>แก้ไขภายใน 7 วัน</td>
+</tr>
+<tr>
+<td>Medium vulnerability</td>
+<td>แก้ไขภายใน 30 วัน</td>
+</tr>
+<tr>
+<td>Low vulnerability</td>
+<td>แก้ไขใน sprint ถัดไป</td>
+</tr>
+</tbody>
+</table>
+<h3 id="npm-packages-next.js">4.2 npm Packages (Next.js)</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ตรวจ vulnerability</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># แก้ไขอัตโนมัติ</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> audit fix</span></code></pre></div>
+<h3 id="container-security-docker">4.3 Container Security (Docker)</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># scan Docker image</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> scout quickview</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> scout cves</span></code></pre></div>
+<hr />
+<h2 id="security-testing-schedule">5. Security Testing Schedule</h2>
+<h3 id="ตารางการตรวจสอบ">5.1 ตารางการตรวจสอบ</h3>
+<table>
+<thead>
+<tr>
+<th>กิจกรรม</th>
+<th>ความถี่</th>
+<th>ผู้รับผิดชอบ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SonarQube scan (CI/CD)</td>
+<td>ทุก commit / PR</td>
+<td>อัตโนมัติ</td>
+</tr>
+<tr>
+<td>Code review (security focus)</td>
+<td>ทุก PR</td>
+<td>Developer + Reviewer</td>
+</tr>
+<tr>
+<td>Dependency check</td>
+<td>สัปดาห์ละ 1 ครั้ง</td>
+<td>อัตโนมัติ (Dependabot/Snyk)</td>
+</tr>
+<tr>
+<td>Penetration test (internal)</td>
+<td>ก่อน release ใหญ่</td>
+<td>Dev Team</td>
+</tr>
+<tr>
+<td>Penetration test (external)</td>
+<td>ปีละ 1 ครั้ง</td>
+<td>บริษัท pentest ภายนอก</td>
+</tr>
+<tr>
+<td>Security audit</td>
+<td>ปีละ 1 ครั้ง</td>
+<td>ผู้เชี่ยวชาญภายนอก</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pre-production-checklist">5.2 Pre-Production Checklist</h3>
+<h4 id="must-pass-หาม-deploy-ถาไมผาน">Must Pass (ห้าม deploy
+ถ้าไม่ผ่าน)</h4>
+<ul class="task-list">
+<li><label><input type="checkbox" />SonarQube: 0 Bugs, 0
+Vulnerabilities</label></li>
+<li><label><input type="checkbox" />SonarQube: All Security Hotspots
+reviewed</label></li>
+<li><label><input type="checkbox" />No Critical/High dependency
+vulnerabilities</label></li>
+<li><label><input type="checkbox" />Penetration test: No Critical/High
+findings</label></li>
+<li><label><input type="checkbox" />HTTPS enforced</label></li>
+<li><label><input type="checkbox" />Security headers
+configured</label></li>
+<li><label><input type="checkbox" />Rate limiting active</label></li>
+<li><label><input type="checkbox" />Sensitive data encrypted in
+DB</label></li>
+<li><label><input type="checkbox" />Error messages do not expose
+internals</label></li>
+<li><label><input type="checkbox" />All endpoints have proper
+authorization</label></li>
+</ul>
+<h4 id="should-pass-แกไขภายใน-30-วน">Should Pass (แก้ไขภายใน 30 วัน)</h4>
+<ul class="task-list">
+<li><label><input type="checkbox" />SonarQube: Coverage ≥
+60%</label></li>
+<li><label><input type="checkbox" />SonarQube: Technical Debt Ratio ≤
+5%</label></li>
+<li><label><input type="checkbox" />SonarQube: Duplication ≤
+3%</label></li>
+<li><label><input type="checkbox" />No Medium dependency
+vulnerabilities</label></li>
+<li><label><input type="checkbox" />Penetration test: No Medium
+findings</label></li>
+<li><label><input type="checkbox" />API documentation up to
+date</label></li>
+</ul>
+<hr />
+<h2 id="reporting">6. Reporting</h2>
+<h3 id="sonarqube-report">6.1 SonarQube Report</h3>
+<p>ทุก sprint ต้องสรุป: - จำนวน issues ใหม่ vs แก้ไขแล้ว - Coverage trend -
+Technical debt trend - Security rating (A/B/C/D/E)</p>
+<h3 id="penetration-test-report">6.2 Penetration Test Report</h3>
+<p>ทุกครั้งที่ทำ pentest ต้องมี: - Executive Summary - Scope &amp; Methodology
+- Findings (Critical → Low) with evidence - Remediation recommendations
+- Re-test results after fix</p>
+<h3 id="incident-report">6.3 Incident Report</h3>
+<p>เมื่อพบ vulnerability ใน production: - วันที่พบ - ความรุนแรง (CVSS score) -
+ระบบที่ได้รับผลกระทบ - Root cause - Remediation timeline - Lessons
+learned</p>
+<hr />
+<h2 id="security-development-guidelines">7. Security Development
+Guidelines</h2>
+<h3 id="secure-coding-checklist-สำหรบ-developer">7.1 Secure Coding
+Checklist (สำหรับ Developer)</h3>
+<p>ก่อน commit ทุกครั้ง ตรวจสอบ:</p>
+<pre><code>□ ไม่มี hardcoded secrets (password, key, token)
+□ ทุก endpoint มี [Authorize] หรือ [AllowAnonymous] ชัดเจน
+□ ทุก database query ใช้ parameterized (EF Core)
+□ ทุก user input ถูก validate (DTO + model validation)
+□ ทุก resource access ตรวจ ownership (companyId/userId)
+□ Error response ไม่ expose internal details
+□ Sensitive data ใช้ EncryptedConverter
+□ ไม่ log sensitive data (ชื่อ นามสกุล password token)
+□ File upload validate type + size + content
+□ ไม่มี commented-out code ที่ไม่จำเป็น</code></pre>
+<h3 id="code-review-checklist-สำหรบ-reviewer">7.2 Code Review Checklist
+(สำหรับ Reviewer)</h3>
+<pre><code>□ ตรวจ OWASP Top 10 ครบ
+□ ตรวจ authorization ถูกต้อง
+□ ตรวจ input validation ครบ
+□ ตรวจ error handling เหมาะสม
+□ ตรวจ sensitive data handling
+□ ตรวจ logging ไม่มี sensitive data
+□ ตรวจ business logic bypass
+□ ตรวจ race condition
+□ ตรวจ proper HTTP status codes
+□ ตรวจ DTO ไม่ expose internal fields</code></pre>
+<hr />
+<h2 id="owasp-top-10-2021-mapping">8. OWASP Top 10 (2021) Mapping</h2>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 44%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Category</th>
+<th>สถานะระบบ TripApp</th>
+<th>มาตรการ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A01</td>
+<td>Broken Access Control</td>
+<td>✅ มี</td>
+<td>[Authorize] policies, RBAC, ownership check</td>
+</tr>
+<tr>
+<td>A02</td>
+<td>Cryptographic Failures</td>
+<td>✅ มี</td>
+<td>AES-256-GCM, BCrypt, HTTPS/TLS 1.3</td>
+</tr>
+<tr>
+<td>A03</td>
+<td>Injection</td>
+<td>✅ มี</td>
+<td>EF Core parameterized, DTO validation</td>
+</tr>
+<tr>
+<td>A04</td>
+<td>Insecure Design</td>
+<td>✅ มี</td>
+<td>DTO pattern, agreement logging, email verify</td>
+</tr>
+<tr>
+<td>A05</td>
+<td>Security Misconfiguration</td>
+<td>✅ มี</td>
+<td>Security headers, CORS, rate limiting</td>
+</tr>
+<tr>
+<td>A06</td>
+<td>Vulnerable Components</td>
+<td>⚠️ ต้องตรวจ</td>
+<td>ต้องตั้ง Dependabot/Snyk</td>
+</tr>
+<tr>
+<td>A07</td>
+<td>Authentication Failures</td>
+<td>✅ มี</td>
+<td>JWT, BCrypt, email verification, rate limit</td>
+</tr>
+<tr>
+<td>A08</td>
+<td>Software &amp; Data Integrity</td>
+<td>⚠️ ต้องตรวจ</td>
+<td>ต้องตั้ง CI/CD security scan</td>
+</tr>
+<tr>
+<td>A09</td>
+<td>Security Logging &amp; Monitoring</td>
+<td>✅ มี</td>
+<td>RequestLoggingMiddleware, AgreementLog</td>
+</tr>
+<tr>
+<td>A10</td>
+<td>Server-Side Request Forgery</td>
+<td>✅ มี</td>
+<td>ไม่มี user-controlled URL fetch</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="revision-history">9. Revision History</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>วันที่</th>
+<th>ผู้แก้ไข</th>
+<th>รายละเอียด</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>31 มี.ค. 2569</td>
+<td>Dev Team</td>
+<td>ฉบับแรก</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="footer">© 2569 TripApp Development Team — Confidential</div>
+</div>
+</body>
+</html>

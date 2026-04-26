@@ -293,7 +293,7 @@ export default function MediaPage(): React.ReactNode {
                 {/* Context menu */}
                 {contextFolder === f && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setContextFolder(null)} />
+                    <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setContextFolder(null)} />
                     <div className="absolute right-2 top-10 z-50 bg-white rounded-xl shadow-xl border border-(--outline-variant)/30 py-1 w-40">
                       <button
                         onClick={() => { setRenamingFolder(f); setRenameFolderValue(f); setContextFolder(null); }}
@@ -521,7 +521,7 @@ export default function MediaPage(): React.ReactNode {
       {/* Rename Folder Modal */}
       {renamingFolder && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setRenamingFolder(null)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer" onClick={() => setRenamingFolder(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <h3 className="text-lg font-bold text-(--on-surface)">เปลี่ยนชื่อโฟลเดอร์</h3>
             <input

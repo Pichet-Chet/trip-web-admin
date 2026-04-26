@@ -1,5 +1,5 @@
 # MVP Scope Lock
-# NatGan (นัดกัน) — v2.0
+# [Platform Name] — v2.0
 
 **Version:** 2.0
 **Date:** 29 March 2026
@@ -80,11 +80,11 @@
 | Feature | รายละเอียด | SRD Ref |
 |---|---|---|
 | ✅ Publish Trip Plan | ปุ่ม Publish → เปิดให้ guest เข้าดู | FR-PUB-001 |
-| ✅ Unique URL | `natgan.com/t/{slug}` กำหนดเอง หรือ auto-generate | FR-PUB-001 |
+| ✅ Unique URL | `[your-domain.com]/t/{slug}` กำหนดเอง หรือ auto-generate | FR-PUB-001 |
 | ✅ QR Code | สร้างอัตโนมัติ + ดาวน์โหลด PNG | FR-PUB-001 |
 | ✅ Guest View | เปิด URL → เห็น trip plan ทันที ไม่ต้อง login | FR-PUB-002 |
 | ✅ Company Branding | Logo + ช่องทางติดต่อ แสดงบน guest view | FR-PUB-002 |
-| ✅ Powered by NatGan | แสดง badge + link ถาวร (free tier) | FR-BRAND-002 |
+| ✅ Powered by [Platform] | แสดง badge + link ถาวร (free tier) | FR-BRAND-002 |
 | ✅ Auto-highlight ตามเวลา | highlight กิจกรรมปัจจุบันอัตโนมัติ | FR-PUB-002 |
 | ✅ Immigration-Friendly View | โหมดยื่น ตม. — ข้อมูล official, ภาษา destination, offline cache | FR-PUB-003 |
 | ✅ Unpublish | ปิดไม่ให้เข้าดู | FR-PUB-004 |
@@ -126,9 +126,9 @@
 |---|---|---|
 | ✅ สร้างทริปส่วนตัว | Personal users สร้างทริปเพื่อแชร์กับเพื่อน | FR-B2C-001 |
 | ✅ แชร์ link | ส่ง link ให้เพื่อนดู trip plan | FR-B2C-001 |
-| ✅ Powered by NatGan | แสดง badge บน guest view → สร้าง brand exposure | FR-BRAND-002 |
+| ✅ Powered by [Platform] | แสดง badge บน guest view → สร้าง brand exposure | FR-BRAND-002 |
 
-**วัตถุประสงค์:** สร้าง engagement + Powered by NatGan exposure
+**วัตถุประสงค์:** สร้าง engagement + Powered by [Platform] exposure
 
 **MVP ไม่มี:** Notification สำหรับ Personal users — ไม่เน้นในตอนนี้
 
@@ -262,7 +262,7 @@
 ├── Immigration-Friendly View (โหมดยื่น ตม.)
 ├── Auto-highlight current activity by time
 ├── Company branding on guest view
-├── Powered by NatGan badge
+├── Powered by [Platform] badge
 ├── Portfolio Page (public page for Company / Guide, toggle on/off)
 └── Posts แสดงบน Info Website (ส่งข้อมูลให้ Nes)
 
@@ -291,7 +291,7 @@
 ├── Mobile testing (LINE in-app browser, iOS Safari, Android Chrome)
 ├── Immigration view testing (offline cache)
 ├── Deploy to production (Vercel + VPS PostgreSQL)
-├── Custom domain: natgan.com
+├── Custom domain: [your-domain.com]
 └── Onboard เพื่อน 1 บริษัท → สร้างทริป + โพสต์จริง
 ```
 
@@ -412,9 +412,9 @@ MVP ถือว่า "เสร็จ" เมื่อ:
 - [ ] Feedback form (basic support) ทำงาน
 - [ ] Platform UI รองรับ 3 ภาษา (TH/EN/JP)
 - [ ] ทดสอบบน LINE in-app browser, iOS Safari, Android Chrome ผ่าน
-- [ ] Deploy บน natgan.com สำเร็จ
+- [ ] Deploy บน [your-domain.com] สำเร็จ
 - [ ] เพื่อน 1 บริษัทสร้างทริป + โพสต์จริงได้สำเร็จ
 
 ---
 
-*Document End — NatGan MVP Scope Lock v2.0*
+*Document End — [Platform] MVP Scope Lock v2.0*

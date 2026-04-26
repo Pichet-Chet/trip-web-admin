@@ -1,17 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { mockPosts } from "@/lib/mock-data";
-import { FilterTabs, EmptyState, ConfirmDialog, StatusBadge, useToast } from "@/components/shared";
+import { api, ApiError } from "@/lib/api";
+import { FilterTabs, EmptyState, ConfirmDialog, PageSkeleton, useToast } from "@/components/shared";
 import type { PostStatus } from "@/types";
 
 type FilterTab = "all" | PostStatus;
 
-const statusConfig: Record<PostStatus, { label: string; color: "emerald" | "amber" | "slate" }> = {
-  published: { label: "เปิดรับ", color: "emerald" },
-  draft: { label: "ร่าง", color: "amber" },
-  closed: { label: "ปิดรับแล้ว", color: "slate" },
+interface PostResponse {
+  id: string;
+  title: string;
+  destination: string | null;
+  description: string | null;
+  highlights: string | null;
+  images: string[];
+  price: number | null;
+  duration: string | null;
+  travelPeriod: string | null;
+  slots: number | null;
+  tags: string[];
+  status: PostStatus;
+  viewCount: number;
+  inquiryCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const statusConfig: Record<PostStatus, { label: string; cls: string }> = {
+  published: { label: "เปิดรับ", cls: "bg-emerald-500" },
+  draft: { label: "ร่าง", cls: "bg-amber-500" },
+  closed: { label: "ปิดรับแล้ว", cls: "bg-slate-500" },
 };
 
 function formatPrice(n: number): string {
@@ -19,14 +38,49 @@ function formatPrice(n: number): string {
 }
 
 export default function PostsPage(): React.ReactNode {
+  const { toast } = useToast();
+  const [posts, setPosts] = useState<PostResponse[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<PostResponse | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const filtered = mockPosts
-    .filter((p) => filter === "all" || p.status === filter)
-    .filter((p) => search === "" || p.title.toLowerCase().includes(search.toLowerCase()) || p.destination.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => {
+    api.get<PostResponse[]>("/admin/posts")
+      .then(setPosts)
+      .catch((err) => toast(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ", "error"))
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filtered = useMemo(() =>
+    posts
+      .filter((p) => filter === "all" || p.status === filter)
+      .filter((p) =>
+        search === ""
+        || p.title.toLowerCase().includes(search.toLowerCase())
+        || (p.destination?.toLowerCase().includes(search.toLowerCase()) ?? false)
+      ),
+    [posts, filter, search]
+  );
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/posts/${deleteTarget.id}`);
+      setPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      toast("ลบแพ็กเกจเรียบร้อยแล้ว", "success");
+      setDeleteTarget(null);
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -78,7 +132,6 @@ export default function PostsPage(): React.ReactNode {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((post) => {
             const cfg = statusConfig[post.status];
-            const soldOut = post.slotsLeft === 0;
             return (
               <div key={post.id} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 flex flex-col">
                 {/* Image */}
@@ -90,23 +143,18 @@ export default function PostsPage(): React.ReactNode {
                       <span className="material-symbols-outlined text-4xl text-slate-300">image</span>
                     </div>
                   )}
-                  <div className="absolute top-3 left-3 flex gap-1.5">
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${
-                      cfg.color === "emerald" ? "bg-emerald-500 text-white" :
-                      cfg.color === "amber" ? "bg-amber-500 text-white" :
-                      "bg-slate-500 text-white"
-                    }`}>
+                  <div className="absolute top-3 left-3">
+                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm text-white ${cfg.cls}`}>
                       {cfg.label}
                     </span>
-                    {soldOut && (
-                      <span className="bg-red-500 text-white text-[9px] font-bold px-2.5 py-1 rounded-md shadow-sm">เต็มแล้ว</span>
-                    )}
                   </div>
-                  <div className="absolute bottom-3 right-3">
-                    <span className="bg-white/90 backdrop-blur-sm text-slate-800 text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
-                      {post.destination}
-                    </span>
-                  </div>
+                  {post.destination && (
+                    <div className="absolute bottom-3 right-3">
+                      <span className="bg-white/90 backdrop-blur-sm text-slate-800 text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
+                        {post.destination}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Body */}
@@ -114,36 +162,32 @@ export default function PostsPage(): React.ReactNode {
                   <h3 className="font-bold text-sm text-slate-900 line-clamp-2 group-hover:text-blue-600 transition-colors">{post.title}</h3>
 
                   {/* Price + Duration */}
-                  <div className="flex items-baseline gap-2 mt-2">
-                    <span className="text-lg font-extrabold text-blue-600">฿{formatPrice(post.priceStartFrom)}</span>
-                    <span className="text-[11px] text-slate-400">/ท่าน</span>
-                  </div>
+                  {post.price !== null && (
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="text-lg font-extrabold text-blue-600">฿{formatPrice(post.price)}</span>
+                      <span className="text-[11px] text-slate-400">/ท่าน</span>
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      {post.duration}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">date_range</span>
-                      {post.travelPeriod}
-                    </span>
-                  </div>
-
-                  {/* Slots */}
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <span className="text-slate-400">ที่ว่าง</span>
-                      <span className={`font-bold ${soldOut ? "text-red-500" : "text-slate-700"}`}>
-                        {soldOut ? "เต็มแล้ว" : `${post.slotsLeft} / ${post.totalSlots} ที่`}
+                    {post.duration && (
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">schedule</span>
+                        {post.duration}
                       </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${soldOut ? "bg-red-400" : "bg-blue-500"}`}
-                        style={{ width: `${((post.totalSlots - post.slotsLeft) / post.totalSlots) * 100}%` }}
-                      />
-                    </div>
+                    )}
+                    {post.travelPeriod && (
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">date_range</span>
+                        {post.travelPeriod}
+                      </span>
+                    )}
+                    {post.slots !== null && (
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">groups</span>
+                        {post.slots} คน
+                      </span>
+                    )}
                   </div>
 
                   {/* Tags */}
@@ -168,7 +212,7 @@ export default function PostsPage(): React.ReactNode {
                       <Link href={`/dashboard/posts/${post.id}/edit`} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
                         <span className="material-symbols-outlined text-[16px]">edit</span>
                       </Link>
-                      <button onClick={() => setDeleteTarget(post.id)} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => setDeleteTarget(post)} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
                         <span className="material-symbols-outlined text-[16px]">delete</span>
                       </button>
                     </div>
@@ -188,11 +232,11 @@ export default function PostsPage(): React.ReactNode {
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={() => toast("ลบแพ็กเกจเรียบร้อยแล้ว")}
-        title="ลบแพ็กเกจนี้?"
-        description="แพ็กเกจจะถูกลบออกจากระบบและ Marketplace"
-        confirmLabel="ลบแพ็กเกจ"
+        onClose={() => !deleting && setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title={`ลบ "${deleteTarget?.title ?? "แพ็กเกจ"}"?`}
+        description="แพ็กเกจจะถูกลบออกจากระบบและ Marketplace ถาวร"
+        confirmLabel={deleting ? "กำลังลบ..." : "ลบแพ็กเกจ"}
         variant="danger"
       />
     </div>

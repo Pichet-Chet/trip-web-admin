@@ -25,7 +25,7 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-900/50 cursor-pointer" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
         <h3 className="text-lg font-bold text-slate-900">{title}</h3>
         <p className="text-sm text-slate-500">{description}</p>

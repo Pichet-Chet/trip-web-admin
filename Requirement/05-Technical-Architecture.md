@@ -1,5 +1,5 @@
 # Technical Architecture Document (TAD)
-# NatGan (นัดกัน) — v1.0
+# [Platform Name] — v1.0
 
 **Version:** 1.0
 **Date:** 17 March 2026
@@ -845,13 +845,13 @@ POST /api/notify/send/:changelogId
 │
 ├── 3. Prepare message
 │      ┌──────────────────────────────┐
-│      │ 🔔 NatGan - {trip.title}      │
+│      │ 🔔 [Platform] - {trip.title}      │
 │      │                              │
 │      │ ⚠️ มีการเปลี่ยนแปลง:          │
 │      │ {summary_text}               │
 │      │                              │
 │      │ 👉 ดูรายละเอียด + กดรับทราบ:   │
-│      │ natgan.com/t/{slug}           │
+│      │ [your-domain.com]/t/{slug}           │
 │      └──────────────────────────────┘
 │
 ├── 4. Send concurrently (Promise.allSettled)
@@ -889,8 +889,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: data.icon || '/icons/natgan-192.png',
-      badge: '/icons/natgan-badge.png',
+      icon: data.icon || '/icons/app-192.png',
+      badge: '/icons/app-badge.png',
       data: { url: data.data?.url },
       vibrate: [100, 50, 100], // haptic feedback
     })
@@ -902,12 +902,12 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification.data?.url || '/';
   event.waitUntil(
-    clients.openWindow(`https://natgan.com${url}`)
+    clients.openWindow(`https://[your-domain.com]${url}`)
   );
 });
 
 // ─── Offline Cache (Immigration View) ───
-const IMM_CACHE = 'natgan-imm-v1';
+const IMM_CACHE = 'tripapp-imm-v1';
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
@@ -938,7 +938,7 @@ self.addEventListener('fetch', (event) => {
 > **Note:** Cloudflare R2 ฟรี 10GB storage, ไม่มี egress fee (ต่างจาก S3/Supabase)
 
 ```
-R2 Bucket: natgan-uploads
+R2 Bucket: trip-uploads
 ├── company-logos/
 │   └── {company_id}/logo.{ext}
 │       Max: 2MB, Types: jpg/png/webp
@@ -1002,7 +1002,7 @@ Serving:
 ```
 Layer 1: Network
 ├── HTTPS everywhere (Vercel auto-SSL)
-├── CORS: only natgan.com origin
+├── CORS: only [your-domain.com] origin
 └── Rate limiting: Vercel Edge middleware
     ├── /api/auth/*: 10 req/min per IP
     ├── /api/notify/*: 5 req/min per user
@@ -1062,11 +1062,11 @@ Implementation:
 
 ```bash
 # ─── Database (PostgreSQL on VPS) ───
-DATABASE_URL=postgresql://user:pass@vps-ip:5432/natgan
+DATABASE_URL=postgresql://user:pass@vps-ip:5432/tripapp
 
 # ─── Auth.js (NextAuth v5) ───
 NEXTAUTH_SECRET=xxx                     # Random secret for JWT signing
-NEXTAUTH_URL=https://natgan.com         # Canonical URL
+NEXTAUTH_URL=https://[your-domain.com]         # Canonical URL
 
 # ─── LINE Messaging API ───
 LINE_CHANNEL_ID=xxxxx
@@ -1081,19 +1081,19 @@ LINE_LOGIN_CHANNEL_SECRET=xxxxx
 R2_ACCOUNT_ID=xxx
 R2_ACCESS_KEY_ID=xxx
 R2_SECRET_ACCESS_KEY=xxx
-R2_BUCKET_NAME=natgan-uploads
-R2_PUBLIC_URL=https://cdn.natgan.com    # Custom domain or R2.dev URL
+R2_BUCKET_NAME=trip-uploads
+R2_PUBLIC_URL=https://cdn.[your-domain.com]    # Custom domain or R2.dev URL
 
 # ─── Web Push (VAPID) ───
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=BL...      # Public, used in client
 VAPID_PRIVATE_KEY=xxx                   # Server-side only
-VAPID_SUBJECT=mailto:admin@natgan.com
+VAPID_SUBJECT=mailto:admin@[your-domain.com]
 
 # ─── Encryption ───
 ENCRYPTION_KEY=xxx                      # AES-256 key (reserved for future use)
 
 # ─── App ───
-NEXT_PUBLIC_BASE_URL=https://natgan.com
+NEXT_PUBLIC_BASE_URL=https://[your-domain.com]
 NODE_ENV=production
 ```
 
@@ -1141,11 +1141,11 @@ NODE_ENV=production
 ```
 GitHub Repository
 │
-├── main branch → Vercel Production (natgan.com)
+├── main branch → Vercel Production ([your-domain.com])
 │
-├── develop branch → Vercel Preview (develop.natgan.vercel.app)
+├── develop branch → Vercel Preview (develop.tripapp.vercel.app)
 │
-└── PR branches → Vercel Preview (pr-{n}.natgan.vercel.app)
+└── PR branches → Vercel Preview (pr-{n}.tripapp.vercel.app)
 
 Deploy Steps (automatic):
 1. Push to GitHub
@@ -1192,7 +1192,7 @@ Database:
 
 Uptime:
 └── ใช้ free tier monitoring (e.g. UptimeRobot)
-    - natgan.com/api/health → 200 OK
+    - [your-domain.com]/api/health → 200 OK
     - Alert via LINE Messaging API to admin
 ```
 
@@ -1201,7 +1201,7 @@ Uptime:
 ## 10. Project Structure
 
 ```
-natgan/
+tripapp/
 ├── public/
 │   ├── sw.js                      # Service Worker
 │   ├── icons/                     # PWA icons
@@ -1503,7 +1503,7 @@ Strategies:
 ├── [ ] Adapt Demo App components for dynamic data
 ├── [ ] QR Code generation + download
 ├── [ ] Company branding on guest view
-├── [ ] Powered by NatGan badge
+├── [ ] Powered by [Platform] badge
 ├── [ ] Immigration View (/t/[slug]/imm)
 ├── [ ] Service Worker (offline cache for imm)
 ├── [ ] Auto-highlight current activity
@@ -1540,7 +1540,7 @@ Strategies:
 ├── [ ] End-to-end testing (create → publish → follow → noti → ack)
 ├── [ ] Mobile testing (LINE browser, iOS Safari, Android Chrome)
 ├── [ ] Immigration view testing (offline cache)
-├── [ ] Custom domain: natgan.com
+├── [ ] Custom domain: [your-domain.com]
 ├── [ ] Production env vars
 ├── [ ] VPS production PostgreSQL + pg_dump backup cron
 ├── [ ] Health check endpoint
@@ -1591,4 +1591,4 @@ Strategies:
 
 ---
 
-*Document End — NatGan Technical Architecture v1.0*
+*Document End — [Platform] Technical Architecture v1.0*

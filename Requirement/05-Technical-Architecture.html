@@ -3,1263 +3,1912 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NatGan — Technical Architecture Document</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>TripApp Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --indigo: #1b2a4a;
-    --indigo-light: #2d4373;
-    --cyan: #06b6d4;
-    --cyan-dark: #0891b2;
-    --teal: #0d9488;
-    --slate: #334155;
-    --green: #22c55e;
-    --amber: #f59e0b;
-    --red: #ef4444;
-    --purple: #7c3aed;
-    --bg: #0f172a;
-    --bg-card: #1e293b;
-    --bg-code: #0d1117;
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --border: #334155;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Noto Sans Thai', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-  }
-
-  code, .mono { font-family: 'JetBrains Mono', monospace; }
-
-  /* Header */
-  .header {
-    background: linear-gradient(135deg, #0f172a 0%, #164e63 50%, #0f172a 100%);
-    padding: 60px 24px;
-    text-align: center;
-    border-bottom: 2px solid var(--cyan);
-    position: relative;
-    overflow: hidden;
-  }
-  .header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 40px,
-      rgba(6,182,212,0.03) 40px, rgba(6,182,212,0.03) 41px
-    ),
-    repeating-linear-gradient(
-      90deg, transparent, transparent 40px,
-      rgba(6,182,212,0.03) 40px, rgba(6,182,212,0.03) 41px
-    );
-  }
-  .header * { position: relative; }
-  .header h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--cyan), #67e8f9);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .header .subtitle { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
-  .header .meta {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-  }
-  .header .meta span {
-    background: rgba(6,182,212,0.15);
-    border: 1px solid rgba(6,182,212,0.3);
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    color: #67e8f9;
-  }
-
-  /* Container */
-  .container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
-
-  /* Section */
-  .section { margin-bottom: 48px; }
-  .section-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--cyan);
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #67e8f9;
-  }
-  .section-title .num {
-    background: var(--cyan-dark);
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-  }
-
-  /* Cards */
-  .card {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-  }
-  .card h3 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: #67e8f9;
-  }
-  .card h4 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-    margin: 16px 0 8px;
-  }
-
-  /* Tables */
-  .tech-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  .tech-table th {
-    background: rgba(6,182,212,0.15);
-    color: #67e8f9;
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 1px solid var(--border);
-  }
-  .tech-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(51,65,85,0.5);
-    vertical-align: top;
-  }
-  .tech-table tr:hover td { background: rgba(6,182,212,0.04); }
-
-  /* Code blocks */
-  .code-block {
-    background: var(--bg-code);
-    border-radius: 10px;
-    padding: 16px;
-    margin: 12px 0;
-    overflow-x: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    line-height: 1.6;
-    color: #c9d1d9;
-    border: 1px solid var(--border);
-  }
-  .code-block .comment { color: #6b7280; }
-  .code-block .keyword { color: #ff7b72; }
-  .code-block .string { color: #a5d6ff; }
-  .code-block .type { color: #d2a8ff; }
-  .code-block .func { color: #79c0ff; }
-
-  /* Architecture diagram */
-  .arch-diagram {
-    background: var(--bg-code);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 16px 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    line-height: 1.5;
-    color: #67e8f9;
-    overflow-x: auto;
-    border: 1px solid var(--cyan-dark);
-    white-space: pre;
-  }
-
-  /* Tech stack badges */
-  .stack-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin: 12px 0;
-  }
-  .stack-item {
-    background: rgba(6,182,212,0.08);
-    border: 1px solid rgba(6,182,212,0.2);
-    border-radius: 10px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .stack-item .icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  .stack-item .info h5 { font-size: 0.85rem; font-weight: 600; color: var(--text); }
-  .stack-item .info p { font-size: 0.72rem; color: var(--text-muted); }
-
-  /* Rendering strategy */
-  .render-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-    margin: 12px 0;
-  }
-  .render-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-  }
-  .render-item .badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .badge-ssr { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
-  .badge-csr { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
-  .badge-ssg { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-  .render-item .path { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
-
-  /* API route tree */
-  .api-tree {
-    background: var(--bg-code);
-    border-radius: 10px;
-    padding: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    line-height: 1.7;
-    border: 1px solid var(--border);
-  }
-  .api-tree .method {
-    display: inline-block;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    margin-right: 4px;
-  }
-  .method-get { background: rgba(34,197,94,0.2); color: #4ade80; }
-  .method-post { background: rgba(59,130,246,0.2); color: #60a5fa; }
-  .method-put { background: rgba(245,158,11,0.2); color: #fbbf24; }
-  .method-delete { background: rgba(239,68,68,0.2); color: #f87171; }
-  .api-desc { color: var(--text-muted); font-size: 0.7rem; }
-
-  /* Security layers */
-  .security-layers {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 12px 0;
-  }
-  .security-layer {
-    background: var(--bg-card);
-    border-radius: 10px;
-    padding: 14px 18px;
-    border-left: 3px solid;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .security-layer .layer-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: white;
-    flex-shrink: 0;
-  }
-  .security-layer h5 { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
-  .security-layer p { font-size: 0.8rem; color: var(--text-muted); }
-
-  /* Project structure */
-  .file-tree {
-    background: var(--bg-code);
-    border-radius: 10px;
-    padding: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.73rem;
-    line-height: 1.6;
-    border: 1px solid var(--border);
-    overflow-x: auto;
-  }
-  .file-tree .dir { color: #79c0ff; font-weight: 600; }
-  .file-tree .file { color: #c9d1d9; }
-  .file-tree .desc { color: #6b7280; }
-
-  /* Decision table */
-  .decision-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .decision-table th {
-    background: rgba(6,182,212,0.15);
-    color: #67e8f9;
-    padding: 8px 10px;
-    text-align: left;
-    font-weight: 600;
-  }
-  .decision-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid rgba(51,65,85,0.5);
-    vertical-align: top;
-  }
-  .decision-id {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    color: var(--cyan);
-    font-size: 0.78rem;
-  }
-
-  /* Limits check */
-  .limit-ok { color: #4ade80; font-weight: 600; }
-  .limit-warn { color: #fbbf24; font-weight: 600; }
-
-  /* Sprint timeline */
-  .sprint-card {
-    background: var(--bg-card);
-    border-radius: 12px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-  .sprint-header {
-    padding: 12px 18px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .sprint-header .week {
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
-  .sprint-body {
-    padding: 12px 18px;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    border-top: 1px solid var(--border);
-  }
-  .sprint-body ul { padding-left: 20px; }
-  .sprint-body li { margin-bottom: 4px; }
-
-  /* Flow diagram */
-  .flow-box {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 16px 0;
-    border: 1px solid var(--border);
-  }
-  .flow-box h4 {
-    color: #67e8f9;
-    font-size: 0.95rem;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* Env vars */
-  .env-grid {
-    display: grid;
-    gap: 6px;
-    margin: 12px 0;
-  }
-  .env-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--bg-code);
-    border-radius: 8px;
-    font-size: 0.78rem;
-    border: 1px solid var(--border);
-  }
-  .env-key {
-    font-family: 'JetBrains Mono', monospace;
-    color: #79c0ff;
-    font-weight: 500;
-    min-width: 280px;
-  }
-  .env-desc { color: var(--text-muted); font-size: 0.72rem; }
-  .env-badge {
-    font-size: 0.6rem;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-  .env-public { background: rgba(245,158,11,0.2); color: #fbbf24; }
-  .env-secret { background: rgba(239,68,68,0.2); color: #f87171; }
-
-  /* Deps */
-  .dep-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    margin: 12px 0;
-  }
-  .dep-item {
-    background: var(--bg-code);
-    border-radius: 8px;
-    padding: 10px;
-    border: 1px solid var(--border);
-    text-align: center;
-  }
-  .dep-item .name {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .dep-item .purpose { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
-
-  /* Responsive */
-  @media (max-width: 640px) {
-    .stack-grid { grid-template-columns: 1fr; }
-    .render-grid { grid-template-columns: 1fr 1fr; }
-    .env-item { flex-direction: column; align-items: flex-start; }
-    .env-key { min-width: auto; }
-  }
-
-  @media print {
-    body { background: white; color: #111; }
-    .card, .sprint-card, .flow-box { border: 1px solid #ddd; background: #fafafa; }
-    .header { background: #1e293b; }
-  }
+:root {
+  --primary: #1978e5;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --on-surface: #191c20;
+  --on-surface-variant: #44474e;
+  --outline: #74777f;
+  --outline-variant: #c4c6d0;
+  --surface-container: #f2f3fd;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--on-surface);
+  background: var(--surface-container);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-light);
+}
+h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+li { margin-bottom: 4px; }
+strong { color: var(--on-surface); font-weight: 600; }
+blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 16px 20px;
+  border-radius: 0 12px 12px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+blockquote p { color: var(--on-surface-variant); margin: 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  background: var(--surface-container);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--on-surface-variant);
+  vertical-align: top;
+}
+tr:hover td { background: #fafbff; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-container);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 20px 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 12px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 32px 0;
+  opacity: 0.3;
+}
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--outline);
+}
+input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--primary);
+}
+@media (max-width: 768px) {
+  .card { padding: 24px; border-radius: 16px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+}
 </style>
 </head>
 <body>
-
-<!-- Header -->
-<div class="header">
-  <h1>⚙️ Technical Architecture</h1>
-  <div class="subtitle">NatGan (นัดกัน) — Trip Communication Platform</div>
-  <div class="meta">
-    <span>📄 Version 1.0</span>
-    <span>📅 17 March 2026</span>
-    <span>🏗️ MVP Phase</span>
-    <span>💰 Cost: ~150-250 บาท/เดือน</span>
-  </div>
-</div>
-
 <div class="container">
+<div class="card">
+<h1 id="technical-architecture-document-tad">Technical Architecture
+Document (TAD)</h1>
+<h1 id="platform-name-v1.0">[Platform Name] — v1.0</h1>
+<p><strong>Version:</strong> 1.0 <strong>Date:</strong> 17 March 2026
+<strong>Status:</strong> Draft <strong>Reference:</strong> 01-SRD,
+03-MVP-Scope-Lock, 04-UX-Flow</p>
+<hr />
+<h2 id="architecture-overview">1. Architecture Overview</h2>
+<h3 id="tech-stack-summary">1.1 Tech Stack Summary</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>เหตุผล</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontend</strong></td>
+<td>Next.js 16 + React 19</td>
+<td>มี codebase อยู่แล้ว, App Router, Server Components</td>
+</tr>
+<tr>
+<td><strong>Styling</strong></td>
+<td>Tailwind CSS 4</td>
+<td>มี codebase อยู่แล้ว, utility-first</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>Next.js API Routes (Route Handlers)</td>
+<td>เดียวกับ frontend, serverless</td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td>Auth.js (NextAuth v5)</td>
+<td>ฟรี, email auth + LINE Login, JWT, session management</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>PostgreSQL 16 (Docker, self-host VPS)</td>
+<td>~150-250 บ/เดือน (VPS), full control, no latency</td>
+</tr>
+<tr>
+<td><strong>ORM</strong></td>
+<td>Drizzle ORM</td>
+<td>Type-safe queries, lightweight, SQL-like syntax</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>Cloudflare R2 (S3-compatible)</td>
+<td>ฟรี 10GB, no egress fee, เก็บ images (logo, cover)</td>
+</tr>
+<tr>
+<td><strong>Hosting</strong></td>
+<td>Vercel</td>
+<td>ฟรี tier, Git auto-deploy, Edge Network</td>
+</tr>
+<tr>
+<td><strong>Notification</strong></td>
+<td>LINE Messaging API + web-push (npm)</td>
+<td>Communication plan (free 500 msg/month), dual channel</td>
+</tr>
+<tr>
+<td><strong>QR</strong></td>
+<td>qrcode (npm)</td>
+<td>Client-side generation</td>
+</tr>
+<tr>
+<td><strong>Maps</strong></td>
+<td>Google Maps URL scheme</td>
+<td>ฟรี (ไม่ใช้ API key)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="system-architecture-diagram">1.2 System Architecture
+Diagram</h3>
+<pre><code>┌────────────────────────────────────────────────────────────────┐
+│                         Client (Browser)                        │
+│                                                                │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐ │
+│  │  Admin SPA       │  │  Guest View     │  │  Immigration   │ │
+│  │  (React 19)      │  │  (SSR + ISR)    │  │  View (SSR)    │ │
+│  │  /dashboard/*    │  │  /t/{slug}      │  │  /t/{slug}/imm │ │
+│  └────────┬─────────┘  └───────┬─────────┘  └───────┬────────┘ │
+│           │                    │                     │          │
+│           │  Service Worker (Web Push + Offline Cache)          │
+└───────────┼────────────────────┼─────────────────────┼──────────┘
+            │                    │                     │
+            ▼                    ▼                     ▼
+┌────────────────────────────────────────────────────────────────┐
+│                    Vercel (Edge Network)                        │
+│                                                                │
+│  Next.js App Router                                            │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  /api/auth/*          Auth.js (NextAuth v5)              │  │
+│  │  /api/trips/*         Trip CRUD                          │  │
+│  │  /api/publish/*       Publish + QR generation            │  │
+│  │  /api/follow/*        LINE webhook + Web Push sub        │  │
+│  │  /api/notify/*        Change detection + send noti       │  │
+│  │  /api/acknowledge/*   Acknowledge endpoint               │  │
+│  │  /api/upload/*        Image upload → Cloudflare R2       │  │
+│  └──────────────────────┬───────────────────────────────────┘  │
+└──────────────────────────┼─────────────────────────────────────┘
+                           │
+            ┌──────────────┼──────────────┐
+            ▼              ▼              ▼
+┌──────────────────┐ ┌──────────┐ ┌─────────────────┐
+│  VPS (Docker)    │ │ LINE     │ │ Web Push        │
+│  ┌────────────┐  │ │ Messaging│ │ (VAPID)         │
+│  │ PostgreSQL │  │ │ API      │ │                 │
+│  │ 16         │  │ └──────────┘ └─────────────────┘
+│  └────────────┘  │
+│                  │ ┌─────────────────┐
+│  Auth.js         │ │ Cloudflare R2   │
+│  (NextAuth v5)   │ │ (S3-compatible) │
+│  (in Vercel)     │ │ File Storage    │
+│                  │ └─────────────────┘
+└──────────────────┘</code></pre>
+<h3 id="rendering-strategy">1.3 Rendering Strategy</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Page</th>
+<th>Strategy</th>
+<th>เหตุผล</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/t/{slug}</code> (Guest View)</td>
+<td><strong>SSR + ISR</strong> (revalidate 60s)</td>
+<td>SEO + fast load + ข้อมูลใกล้ real-time</td>
+</tr>
+<tr>
+<td><code>/t/{slug}/imm</code> (Immigration)</td>
+<td><strong>SSR</strong> + Service Worker cache</td>
+<td>ต้อง fresh + offline capable</td>
+</tr>
+<tr>
+<td><code>/dashboard/*</code> (Admin)</td>
+<td><strong>CSR</strong> (Client-side SPA)</td>
+<td>ต้อง auth + interactive forms</td>
+</tr>
+<tr>
+<td><code>/</code> (Landing)</td>
+<td><strong>SSG</strong></td>
+<td>Static, SEO, fast</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="database-schema-postgresql-16-self-hosted-vps">2. Database
+Schema (PostgreSQL 16 — Self-hosted VPS)</h2>
+<h3 id="table-naming-convention">2.1 Table Naming Convention</h3>
+<pre><code>Prefix Groups:
+├── mst_   (Master)       — ข้อมูลหลัก ไม่ค่อยเปลี่ยน
+├── trip_  (Trip)         — ข้อมูลทริป (core transaction)
+└── noti_  (Notification) — ข้อมูลการแจ้งเตือน + ติดตาม</code></pre>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Table Name</th>
+<th>คำอธิบาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mst_</code></td>
+<td><code>mst_companies</code></td>
+<td>บริษัท / ไกด์</td>
+</tr>
+<tr>
+<td><code>mst_</code></td>
+<td><code>mst_users</code></td>
+<td>ผู้ใช้ admin (managed by Auth.js)</td>
+</tr>
+<tr>
+<td><code>trip_</code></td>
+<td><code>trip_plans</code></td>
+<td>แผนทริป</td>
+</tr>
+<tr>
+<td><code>trip_</code></td>
+<td><code>trip_days</code></td>
+<td>วัน (ย่อยของทริป)</td>
+</tr>
+<tr>
+<td><code>trip_</code></td>
+<td><code>trip_activities</code></td>
+<td>กิจกรรม (ย่อยของวัน)</td>
+</tr>
+<tr>
+<td><code>noti_</code></td>
+<td><code>noti_followers</code></td>
+<td>ผู้ติดตาม (LINE / Web Push)</td>
+</tr>
+<tr>
+<td><code>noti_</code></td>
+<td><code>noti_change_logs</code></td>
+<td>ประวัติการเปลี่ยนแปลง</td>
+</tr>
+<tr>
+<td><code>noti_</code></td>
+<td><code>noti_acknowledgements</code></td>
+<td>การรับทราบ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="er-diagram">2.2 ER Diagram</h3>
+<pre><code>┌──────────────────────┐     ┌──────────────────────┐
+│   mst_companies       │     │      mst_users        │
+├──────────────────────┤     ├──────────────────────┤
+│ id (uuid) PK         │──┐  │ id (uuid) PK         │
+│ name                 │  │  │ company_id FK         │──┐
+│ logo_url             │  │  │ email                 │  │
+│ phone                │  │  │ name                  │  │
+│ line_id              │  │  │ role                  │  │
+│ facebook             │  │  │ created_at            │  │
+│ instagram            │  │  └──────────────────────┘  │
+│ website              │  │                             │
+│ tat_license          │  │  ┌──────────────────────┐  │
+│ tier                 │  ├─▶│     trip_plans        │  │
+│ created_at           │  │  ├──────────────────────┤  │
+│ updated_at           │  │  │ id (uuid) PK         │  │
+└──────────────────────┘  │  │ company_id FK         │──┘
+                          │  │ title                 │
+                          │  │ slug (unique)         │
+                          │  │ destination           │
+                          │  │ start_date            │
+                          │  │ end_date              │
+                          │  │ cover_image_url       │
+                          │  │ travelers_count       │
+                          │  │ language              │
+                          │  │ airline_info (jsonb)   │
+                          │  │ accommodations (jsonb) │
+                          │  │ emergency_contacts(jsonb)│
+                          │  │ notes (text)          │
+                          │  │ status (enum)         │
+                          │  │ edit_count            │
+                          │  │ view_count            │
+                          │  │ published_at          │
+                          │  │ created_at            │
+                          │  │ updated_at            │
+                          │  └──────────┬───────────┘
+                          │             │
+                          │  ┌──────────▼───────────┐
+                          │  │     trip_days         │
+                          │  ├──────────────────────┤
+                          │  │ id (uuid) PK         │
+                          │  │ trip_id FK            │
+                          │  │ day_number            │
+                          │  │ title                 │
+                          │  │ subtitle              │
+                          │  │ cover_image_url       │
+                          │  │ date                  │
+                          │  │ sort_order            │
+                          │  └──────────┬───────────┘
+                          │             │
+                          │  ┌──────────▼───────────┐
+                          │  │   trip_activities     │
+                          │  ├──────────────────────┤
+                          │  │ id (uuid) PK         │
+                          │  │ day_id FK             │
+                          │  │ time (time)           │
+                          │  │ name                  │
+                          │  │ description           │
+                          │  │ type (enum)           │
+                          │  │ place_name            │
+                          │  │ lat (decimal)         │
+                          │  │ lng (decimal)         │
+                          │  │ maps_link             │
+                          │  │ image_url             │
+                          │  │ emoji                 │
+                          │  │ sort_order            │
+                          │  │ created_at            │
+                          │  │ updated_at            │
+                          │  └──────────────────────┘
+                          │
+                          │  ┌──────────────────────┐
+                          │  │   noti_followers      │
+                          │  ├──────────────────────┤
+                          │  │ id (uuid) PK         │
+                          ├─▶│ trip_id FK            │
+                          │  │ display_name          │
+                          │  │ channel (enum)        │
+                          │  │ line_user_id          │
+                          │  │ web_push_subscription │
+                          │  │ followed_at           │
+                          │  └──────────┬───────────┘
+                          │             │
+                          │  ┌──────────┼──────────┐
+                          │  │          │           │
+                          │  ▼          │           │
+                          │ ┌──────────────────────┐│
+                          │ │  noti_change_logs     ││
+                          │ ├──────────────────────┤│
+                          │ │ id (uuid) PK         ││
+                          ├▶│ trip_id FK            ││
+                             │ changed_by FK (user) ││
+                             │ changes (jsonb)      ││
+                             │ summary_text         ││
+                             │ noti_sent            ││
+                             │ noti_sent_at         ││
+                             │ created_at           ││
+                             └──────────┬───────────┘│
+                                        │            │
+                             ┌──────────▼───────────┐│
+                             │ noti_acknowledgements ││
+                             ├──────────────────────┤│
+                             │ id (uuid) PK         ││
+                             │ changelog_id FK      │┘
+                             │ follower_id FK       │
+                             │ acknowledged_at      │
+                             └──────────────────────┘</code></pre>
+<h3 id="sql-schema">2.3 SQL Schema</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- ENUMS</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TYPE</span> trip_status <span class="kw">AS</span> ENUM (<span class="st">&#39;draft&#39;</span>, <span class="st">&#39;published&#39;</span>, <span class="st">&#39;unpublished&#39;</span>);</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TYPE</span> activity_type <span class="kw">AS</span> ENUM (<span class="st">&#39;attraction&#39;</span>, <span class="st">&#39;restaurant&#39;</span>, <span class="st">&#39;hotel&#39;</span>, <span class="st">&#39;transport&#39;</span>, <span class="st">&#39;shopping&#39;</span>, <span class="st">&#39;other&#39;</span>);</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TYPE</span> follow_channel <span class="kw">AS</span> ENUM (<span class="st">&#39;line&#39;</span>, <span class="st">&#39;web_push&#39;</span>);</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TYPE</span> subscription_tier <span class="kw">AS</span> ENUM (<span class="st">&#39;free&#39;</span>, <span class="st">&#39;pro&#39;</span>, <span class="st">&#39;business&#39;</span>);</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TYPE</span> user_role <span class="kw">AS</span> ENUM (<span class="st">&#39;owner&#39;</span>, <span class="st">&#39;editor&#39;</span>);</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- COMPANIES</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> mst_companies (</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>            uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  name          text <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  logo_url      text,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  phone         text,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  line_id       text,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  facebook      text,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  instagram     text,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  website       text,</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  tat_license   text,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  tier          subscription_tier <span class="kw">DEFAULT</span> <span class="st">&#39;free&#39;</span>,</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  created_at    timestamptz <span class="kw">DEFAULT</span> now(),</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  updated_at    timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="co">-- USERS (managed by Auth.js)</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> mst_users (</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>            uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  company_id    uuid <span class="kw">REFERENCES</span> mst_companies(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">SET</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  email         text <span class="kw">UNIQUE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  password_hash text <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  name          text,</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">role</span>          user_role <span class="kw">DEFAULT</span> <span class="st">&#39;owner&#39;</span>,</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  created_at    timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co">-- TRIP PLANS</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> trip_plans (</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>              uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  company_id      uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> mst_companies(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>  title           text <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  slug            text <span class="kw">UNIQUE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  destination     text,</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  start_date      <span class="dt">date</span>,</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  end_date        <span class="dt">date</span>,</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>  cover_image_url text,</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  travelers_count <span class="dt">integer</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>  language        text <span class="kw">DEFAULT</span> <span class="st">&#39;th&#39;</span>,</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  airline_info    jsonb <span class="kw">DEFAULT</span> <span class="st">&#39;[]&#39;</span>:<span class="ch">:jsonb</span>,</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  accommodations  jsonb <span class="kw">DEFAULT</span> <span class="st">&#39;[]&#39;</span>:<span class="ch">:jsonb</span>,</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  emergency_contacts jsonb <span class="kw">DEFAULT</span> <span class="st">&#39;[]&#39;</span>:<span class="ch">:jsonb</span>,</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  notes           text,</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  status          trip_status <span class="kw">DEFAULT</span> <span class="st">&#39;draft&#39;</span>,</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>  edit_count      <span class="dt">integer</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>  view_count      <span class="dt">integer</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>  published_at    timestamptz,</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  created_at      timestamptz <span class="kw">DEFAULT</span> now(),</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>  updated_at      timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_trip_plans_slug <span class="kw">ON</span> trip_plans(slug);</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_trip_plans_company <span class="kw">ON</span> trip_plans(company_id);</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_trip_plans_status <span class="kw">ON</span> trip_plans(status);</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a><span class="co">-- DAYS</span></span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> trip_days (</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>              uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>  trip_id         uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> trip_plans(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>  day_number      <span class="dt">integer</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>  title           text,</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>  subtitle        text,</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>  cover_image_url text,</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>  <span class="dt">date</span>            <span class="dt">date</span>,</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>  sort_order      <span class="dt">integer</span> <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>  created_at      timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_trip_days_trip <span class="kw">ON</span> trip_days(trip_id);</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a><span class="co">-- ACTIVITIES</span></span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> trip_activities (</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>            uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>  day_id        uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> trip_days(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>  <span class="dt">time</span>          <span class="dt">time</span>,</span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>  name          text <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>  description   text,</span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span>          activity_type <span class="kw">DEFAULT</span> <span class="st">&#39;attraction&#39;</span>,</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>  place_name    text,</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>  lat           <span class="dt">decimal</span>(<span class="dv">10</span>, <span class="dv">7</span>),</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>  lng           <span class="dt">decimal</span>(<span class="dv">10</span>, <span class="dv">7</span>),</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>  maps_link     text,</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>  image_url     text,</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>  emoji         text <span class="kw">DEFAULT</span> <span class="st">&#39;📍&#39;</span>,</span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>  sort_order    <span class="dt">integer</span> <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>  created_at    timestamptz <span class="kw">DEFAULT</span> now(),</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>  updated_at    timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_trip_activities_day <span class="kw">ON</span> trip_activities(day_id);</span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a><span class="co">-- FOLLOWERS</span></span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> noti_followers (</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>                    uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>  trip_id               uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> trip_plans(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>  display_name          text <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;Guest&#39;</span>,</span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>  channel               follow_channel <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>  line_user_id          text,  <span class="co">-- from LINE OA add friend</span></span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>  web_push_subscription jsonb, <span class="co">-- { endpoint, keys: { p256dh, auth } }</span></span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>  followed_at           timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_noti_followers_trip <span class="kw">ON</span> noti_followers(trip_id);</span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a><span class="co">-- CHANGE LOGS</span></span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> noti_change_logs (</span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>            uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a>  trip_id       uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> trip_plans(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>  changed_by    uuid <span class="kw">REFERENCES</span> mst_users(<span class="kw">id</span>),</span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>  changes       jsonb <span class="kw">NOT</span> <span class="kw">NULL</span>,    <span class="co">-- structured diff</span></span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a>  summary_text  text <span class="kw">NOT</span> <span class="kw">NULL</span>,     <span class="co">-- human-readable summary</span></span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>  noti_sent     <span class="dt">boolean</span> <span class="kw">DEFAULT</span> <span class="kw">false</span>,</span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>  noti_sent_at  timestamptz,</span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>  created_at    timestamptz <span class="kw">DEFAULT</span> now()</span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_noti_changelogs_trip <span class="kw">ON</span> noti_change_logs(trip_id);</span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a><span class="co">-- ACKNOWLEDGEMENTS</span></span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============================================</span></span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> noti_acknowledgements (</span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>              uuid <span class="kw">DEFAULT</span> gen_random_uuid() <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>  changelog_id    uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> noti_change_logs(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a>  follower_id     uuid <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">REFERENCES</span> noti_followers(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>  acknowledged_at timestamptz <span class="kw">DEFAULT</span> now(),</span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNIQUE</span> (changelog_id, follower_id)</span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_noti_ack_changelog <span class="kw">ON</span> noti_acknowledgements(changelog_id);</span></code></pre></div>
+<h3 id="jsonb-field-structures">2.4 JSONB Field Structures</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// airline_info: jsonb</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AirlineInfo <span class="op">=</span> {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  airline<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>       <span class="co">// &quot;Xiamen Air&quot;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  flight_number<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> <span class="co">// &quot;MF834&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  departure_time<span class="op">:</span> <span class="dt">string</span><span class="op">;</span><span class="co">// &quot;17:40&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  arrival_time<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>  <span class="co">// &quot;22:05&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  departure_airport<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> <span class="co">// &quot;BKK&quot;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  arrival_airport<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>   <span class="co">// &quot;XMN&quot;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  type<span class="op">:</span> <span class="st">&#39;departure&#39;</span> <span class="op">|</span> <span class="st">&#39;return&#39;</span> <span class="op">|</span> <span class="st">&#39;transit&#39;</span><span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>}[]<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">// accommodations: jsonb</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Accommodation <span class="op">=</span> {</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>         <span class="co">// &quot;The QUBE Hotel Chiba&quot;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  address<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>      <span class="co">// &quot;1-2-3 Chiba, Japan&quot;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  phone<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>        <span class="co">// &quot;+81-XX-XXXX-XXXX&quot;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  check_in<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>     <span class="co">// &quot;15:00&quot;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  check_out<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>    <span class="co">// &quot;11:00&quot;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  nights<span class="op">:</span> <span class="dt">number</span><span class="op">;</span>       <span class="co">// 5</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>}[]<span class="op">;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co">// emergency_contacts: jsonb</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> EmergencyContact <span class="op">=</span> {</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>         <span class="co">// &quot;สถานทูตไทย โตเกียว&quot;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  phone<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>        <span class="co">// &quot;+81-3-2207-9100&quot;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  icon<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>         <span class="co">// &quot;🏥&quot;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  sort_order<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>}[]<span class="op">;</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="co">// changes: jsonb (in change_logs)</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ChangeEntry <span class="op">=</span> {</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  type<span class="op">:</span> <span class="st">&#39;add&#39;</span> <span class="op">|</span> <span class="st">&#39;update&#39;</span> <span class="op">|</span> <span class="st">&#39;delete&#39;</span><span class="op">;</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  entity<span class="op">:</span> <span class="st">&#39;day&#39;</span> <span class="op">|</span> <span class="st">&#39;activity&#39;</span> <span class="op">|</span> <span class="st">&#39;trip_info&#39;</span><span class="op">;</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  day_number<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  field<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  old_value<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  new_value<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> <span class="co">// &quot;เปลี่ยนเวลา teamLab: 08:30 → 09:00&quot;</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>}[]<span class="op">;</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="co">// web_push_subscription: jsonb (in followers)</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> WebPushSubscription <span class="op">=</span> {</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  endpoint<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  expirationTime<span class="op">:</span> <span class="dt">number</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  keys<span class="op">:</span> {</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    p256dh<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    auth<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h3 id="app-level-authorization-drizzle-middleware-service-layer">2.5
+App-level Authorization (Drizzle Middleware + Service Layer)</h3>
+<blockquote>
+<p><strong>Note:</strong> แทนที่จะใช้ PostgreSQL RLS (ต้องการ Supabase),
+เราใช้ authorization ที่ service layer ผ่าน Drizzle ORM middleware แทน —
+ง่ายกว่า debug ได้, test ได้</p>
+</blockquote>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/db/auth-middleware.ts — Authorization helpers</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { db } <span class="im">from</span> <span class="st">&#39;./drizzle&#39;</span><span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { mstUsers<span class="op">,</span> tripPlans } <span class="im">from</span> <span class="st">&#39;./schema&#39;</span><span class="op">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { eq<span class="op">,</span> and } <span class="im">from</span> <span class="st">&#39;drizzle-orm&#39;</span><span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Get current user&#39;s company_id from session ───</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">async</span> <span class="kw">function</span> <span class="fu">getUserCompanyId</span>(userId<span class="op">:</span> <span class="dt">string</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">string</span> <span class="op">|</span> <span class="dt">null</span><span class="op">&gt;</span> {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> db<span class="op">.</span><span class="at">query</span><span class="op">.</span><span class="at">mstUsers</span><span class="op">.</span><span class="fu">findFirst</span>({</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> <span class="fu">eq</span>(mstUsers<span class="op">.</span><span class="at">id</span><span class="op">,</span> userId)<span class="op">,</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">:</span> { companyId<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> user<span class="op">?.</span><span class="at">companyId</span> <span class="op">??</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Verify user owns this company ───</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">async</span> <span class="kw">function</span> <span class="fu">assertCompanyOwner</span>(userId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span> companyId<span class="op">:</span> <span class="dt">string</span>) {</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> db<span class="op">.</span><span class="at">query</span><span class="op">.</span><span class="at">mstUsers</span><span class="op">.</span><span class="fu">findFirst</span>({</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> <span class="fu">and</span>(<span class="fu">eq</span>(mstUsers<span class="op">.</span><span class="at">id</span><span class="op">,</span> userId)<span class="op">,</span> <span class="fu">eq</span>(mstUsers<span class="op">.</span><span class="at">companyId</span><span class="op">,</span> companyId))<span class="op">,</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>user) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Forbidden: not company owner&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Verify user owns this trip (via company) ───</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">async</span> <span class="kw">function</span> <span class="fu">assertTripOwner</span>(userId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span> tripId<span class="op">:</span> <span class="dt">string</span>) {</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> companyId <span class="op">=</span> <span class="cf">await</span> <span class="fu">getUserCompanyId</span>(userId)<span class="op">;</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>companyId) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Forbidden: no company&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> trip <span class="op">=</span> <span class="cf">await</span> db<span class="op">.</span><span class="at">query</span><span class="op">.</span><span class="at">tripPlans</span><span class="op">.</span><span class="fu">findFirst</span>({</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> <span class="fu">and</span>(<span class="fu">eq</span>(tripPlans<span class="op">.</span><span class="at">id</span><span class="op">,</span> tripId)<span class="op">,</span> <span class="fu">eq</span>(tripPlans<span class="op">.</span><span class="at">companyId</span><span class="op">,</span> companyId))<span class="op">,</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>trip) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Forbidden: not trip owner&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Public access: only published trips ───</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">async</span> <span class="kw">function</span> <span class="fu">assertTripPublished</span>(tripId<span class="op">:</span> <span class="dt">string</span>) {</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> trip <span class="op">=</span> <span class="cf">await</span> db<span class="op">.</span><span class="at">query</span><span class="op">.</span><span class="at">tripPlans</span><span class="op">.</span><span class="fu">findFirst</span>({</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> <span class="fu">and</span>(<span class="fu">eq</span>(tripPlans<span class="op">.</span><span class="at">id</span><span class="op">,</span> tripId)<span class="op">,</span> <span class="fu">eq</span>(tripPlans<span class="op">.</span><span class="at">status</span><span class="op">,</span> <span class="st">&#39;published&#39;</span>))<span class="op">,</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>trip) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Not found or not published&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<pre><code>Authorization Rules (enforced at API route / service layer):
 
-  <!-- Section 1: Tech Stack -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">1</span> Tech Stack</h2>
+MST_COMPANIES:
+├── SELECT own company → assertCompanyOwner(userId, companyId)
+└── UPDATE own company → assertCompanyOwner(userId, companyId)
 
-    <div class="stack-grid">
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(0,0,0,0.3);">⚛️</div>
-        <div class="info"><h5>Next.js 16 + React 19</h5><p>Frontend + API Routes</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(6,182,212,0.2);">🎨</div>
-        <div class="info"><h5>Tailwind CSS 4</h5><p>Utility-first styling</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(34,197,94,0.2);">🗄️</div>
-        <div class="info"><h5>PostgreSQL 16 (Docker)</h5><p>Database on VPS</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(124,58,237,0.2);">🔑</div>
-        <div class="info"><h5>Auth.js (NextAuth v5)</h5><p>Authentication</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(245,158,11,0.2);">🔶</div>
-        <div class="info"><h5>Drizzle ORM</h5><p>Type-safe SQL queries</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(245,158,11,0.2);">☁️</div>
-        <div class="info"><h5>Cloudflare R2</h5><p>Object Storage (S3-compat)</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(0,0,0,0.3);">▲</div>
-        <div class="info"><h5>Vercel</h5><p>Hosting (Singapore)</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(34,197,94,0.2);">💚</div>
-        <div class="info"><h5>LINE Messaging API</h5><p>Push via LINE</p></div>
-      </div>
-      <div class="stack-item">
-        <div class="icon" style="background:rgba(124,58,237,0.2);">🔔</div>
-        <div class="info"><h5>Web Push (VAPID)</h5><p>Browser notifications</p></div>
-      </div>
-    </div>
+TRIP_PLANS:
+├── CRUD own trips → assertTripOwner(userId, tripId)
+└── Public SELECT published → WHERE status = &#39;published&#39;
 
-    <div class="card">
-      <h3>📐 Rendering Strategy</h3>
-      <div class="render-grid">
-        <div class="render-item">
-          <span class="badge badge-ssr">SSR + ISR</span>
-          <div style="font-size:0.85rem; font-weight:600;">Guest View</div>
-          <div class="path">/t/{slug}</div>
-        </div>
-        <div class="render-item">
-          <span class="badge badge-ssr">SSR + Cache</span>
-          <div style="font-size:0.85rem; font-weight:600;">Immigration</div>
-          <div class="path">/t/{slug}/imm</div>
-        </div>
-        <div class="render-item">
-          <span class="badge badge-csr">CSR (SPA)</span>
-          <div style="font-size:0.85rem; font-weight:600;">Admin</div>
-          <div class="path">/dashboard/*</div>
-        </div>
-        <div class="render-item">
-          <span class="badge badge-ssg">SSG</span>
-          <div style="font-size:0.85rem; font-weight:600;">Landing</div>
-          <div class="path">/</div>
-        </div>
-      </div>
-    </div>
-  </div>
+TRIP_DAYS &amp; TRIP_ACTIVITIES:
+├── CRUD → assertTripOwner(userId, trip_id of parent)
+└── Public SELECT → via published trip check
 
-  <!-- Section 2: Architecture -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">2</span> System Architecture</h2>
-    <div class="arch-diagram">
-┌─────────────────────────────────────────────────────────────┐
-│                      Client (Browser)                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐ │
-│  │ Admin (CSR)   │  │ Guest (SSR)  │  │ Immigration (SSR) │ │
-│  │ /dashboard/*  │  │ /t/{slug}    │  │ /t/{slug}/imm     │ │
-│  └──────┬───────┘  └──────┬───────┘  └────────┬──────────┘ │
-│         │  Service Worker (Web Push + Offline Cache)         │
-└─────────┼──────────────────┼──────────────────┼─────────────┘
-          ▼                  ▼                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Vercel (Singapore Region)                    │
-│  Next.js App Router                                          │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  /api/auth      /api/trips     /api/follow           │   │
-│  │  /api/notify    /api/public    /api/acknowledge       │   │
-│  └──────────────────────┬───────────────────────────────┘   │
-└──────────────────────────┼──────────────────────────────────┘
-          ┌────────────────┼────────────────┐
-          ▼                ▼                ▼
-┌──────────────────┐ ┌──────────┐ ┌──────────────────┐
-│  VPS (Docker)    │ │  LINE    │ │  Web Push        │
-│  ├─ PostgreSQL16 │ │ Messaging│ │  (VAPID)         │
-│  ├─ Auth.js      │ │  API     │ │  Google/Apple    │
-│  ├─ Drizzle ORM  │ └──────────┘ └──────────────────┘
-│  └─ Cloudflare R2│
-└──────────────────┘</div>
-  </div>
+NOTI_FOLLOWERS:
+├── INSERT → assertTripPublished(tripId) — anyone can follow published trip
+└── SELECT (admin) → assertTripOwner(userId, tripId)
 
-  <!-- Section 3: Database -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">3</span> Database Schema</h2>
-
-    <div class="card">
-      <h3>📊 Entity Relationship</h3>
-      <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Prefix: <code style="color:#4ade80;">mst_</code> Master · <code style="color:#60a5fa;">trip_</code> Trip · <code style="color:#fbbf24;">noti_</code> Notification</p>
-      <div class="arch-diagram" style="font-size:0.68rem;">
-<span style="color:#4ade80">mst_companies</span> ──┬──▶ <span style="color:#4ade80">mst_users</span>
-                  │
-                  └──▶ <span style="color:#60a5fa">trip_plans</span> ──┬──▶ <span style="color:#60a5fa">trip_days</span> ──▶ <span style="color:#60a5fa">trip_activities</span>
-                                     │
-                                     ├──▶ <span style="color:#fbbf24">noti_followers</span> ──┐
-                                     │                      │
-                                     └──▶ <span style="color:#fbbf24">noti_change_logs</span> ┤
-                                                             ▼
-                                                   <span style="color:#fbbf24">noti_acknowledgements</span></div>
-    </div>
-
-    <div class="card">
-      <h3>🗄️ Core Tables</h3>
-      <table class="tech-table">
-        <thead><tr><th>Table</th><th>Key Fields</th><th>Access Control</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code style="color:#4ade80">mst_companies</code></td>
-            <td>name, logo_url, phone, line_id, tier</td>
-            <td>Owner only</td>
-          </tr>
-          <tr>
-            <td><code style="color:#4ade80">mst_users</code></td>
-            <td>company_id, email, name, role</td>
-            <td>Self only</td>
-          </tr>
-          <tr>
-            <td><code style="color:#60a5fa">trip_plans</code></td>
-            <td>slug (unique), destination, status, airline_info (jsonb), accommodations (jsonb)</td>
-            <td>Admin: all, Public: published only</td>
-          </tr>
-          <tr>
-            <td><code style="color:#60a5fa">trip_days</code></td>
-            <td>trip_id, day_number, title, sort_order</td>
-            <td>Follow trip_plans</td>
-          </tr>
-          <tr>
-            <td><code style="color:#60a5fa">trip_activities</code></td>
-            <td>day_id, time, name, emoji, place_name, maps_link, sort_order</td>
-            <td>Follow trip_plans</td>
-          </tr>
-          <tr>
-            <td><code style="color:#fbbf24">noti_followers</code></td>
-            <td>trip_id, display_name, channel, line_user_id, web_push_subscription (jsonb)</td>
-            <td>Public: insert, Admin: read</td>
-          </tr>
-          <tr>
-            <td><code style="color:#fbbf24">noti_change_logs</code></td>
-            <td>trip_id, changes (jsonb), summary_text, noti_sent</td>
-            <td>Admin only</td>
-          </tr>
-          <tr>
-            <td><code style="color:#fbbf24">noti_acknowledgements</code></td>
-            <td>changelog_id, follower_id, acknowledged_at</td>
-            <td>Public: insert, Admin: read</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3>💡 JSONB Design Decision</h3>
-      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">airline_info, accommodations, emergency_contacts เก็บเป็น JSONB แทนสร้าง table แยก เพราะ:</p>
-      <table class="tech-table">
-        <thead><tr><th>JSONB (เลือก)</th><th>Normalized Tables (ไม่เลือก)</th></tr></thead>
-        <tbody>
-          <tr><td>✅ Schema ยืดหยุ่น ไม่ต้อง migrate บ่อย</td><td>❌ ต้อง JOIN ทุกครั้ง</td></tr>
-          <tr><td>✅ อ่านง่าย 1 query ได้ครบ</td><td>❌ เพิ่ม field ต้อง migrate</td></tr>
-          <tr><td>✅ เหมาะกับข้อมูลที่มีไม่เกิน 20 items</td><td>✅ ดีกว่าถ้า query individual items บ่อย</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Section 4: API Design -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">4</span> API Design</h2>
-
-    <div class="card">
-      <h3>🔌 API Routes</h3>
-      <div class="api-tree">
-<strong style="color:#67e8f9;">/api/auth</strong> <span class="api-desc">— Authentication</span>
-  <span class="method method-post">POST</span> /register <span class="api-desc">สมัครสมาชิก</span>
-  <span class="method method-post">POST</span> /login <span class="api-desc">เข้าสู่ระบบ</span>
-  <span class="method method-post">POST</span> /logout <span class="api-desc">ออกจากระบบ</span>
-
-<strong style="color:#67e8f9;">/api/company</strong> <span class="api-desc">— Company Profile</span>
-  <span class="method method-get">GET</span>  /me <span class="api-desc">ข้อมูลบริษัทของตัวเอง</span>
-  <span class="method method-put">PUT</span>  /me <span class="api-desc">แก้ไขข้อมูลบริษัท</span>
-  <span class="method method-post">POST</span> /me/logo <span class="api-desc">อัปโหลด logo</span>
-
-<strong style="color:#67e8f9;">/api/trips</strong> <span class="api-desc">— Trip Management (Auth Required)</span>
-  <span class="method method-get">GET</span>    / <span class="api-desc">รายการทริป (dashboard)</span>
-  <span class="method method-post">POST</span>   / <span class="api-desc">สร้างทริปใหม่</span>
-  <span class="method method-get">GET</span>    /:id <span class="api-desc">ข้อมูลทริป</span>
-  <span class="method method-put">PUT</span>    /:id <span class="api-desc">แก้ไขทริป + change detection</span>
-  <span class="method method-delete">DEL</span> /:id <span class="api-desc">ลบทริป</span>
-  <span class="method method-post">POST</span>   /:id/publish <span class="api-desc">Publish ทริป</span>
-  <span class="method method-post">POST</span>   /:id/unpublish <span class="api-desc">Unpublish</span>
-  <span class="method method-get">GET</span>    /:id/followers <span class="api-desc">รายการ followers</span>
-  <span class="method method-get">GET</span>    /:id/changelog <span class="api-desc">ประวัติเปลี่ยนแปลง</span>
-
-<strong style="color:#67e8f9;">/api/trips/:tripId/days</strong> <span class="api-desc">— Day CRUD</span>
-  <span class="method method-post">POST</span>   / <span class="api-desc">เพิ่มวัน</span>
-  <span class="method method-put">PUT</span>    /:dayId <span class="api-desc">แก้ไขวัน</span>
-  <span class="method method-delete">DEL</span> /:dayId <span class="api-desc">ลบวัน</span>
-  <span class="method method-put">PUT</span>    /reorder <span class="api-desc">เรียงลำดับ</span>
-
-<strong style="color:#67e8f9;">/api/trips/:dayId/activities</strong> <span class="api-desc">— Activity CRUD</span>
-  <span class="method method-post">POST</span>   / <span class="api-desc">เพิ่มกิจกรรม</span>
-  <span class="method method-put">PUT</span>    /:actId <span class="api-desc">แก้ไข</span>
-  <span class="method method-delete">DEL</span> /:actId <span class="api-desc">ลบ</span>
-  <span class="method method-put">PUT</span>    /reorder <span class="api-desc">เรียงลำดับ</span>
-
-<strong style="color:#4ade80;">/api/public</strong> <span class="api-desc">— No Auth Required</span>
-  <span class="method method-get">GET</span>  /t/:slug <span class="api-desc">Guest View data</span>
-  <span class="method method-get">GET</span>  /t/:slug/imm <span class="api-desc">Immigration data</span>
-  <span class="method method-post">POST</span> /t/:slug/view <span class="api-desc">นับ view</span>
-
-<strong style="color:#4ade80;">/api/follow</strong> <span class="api-desc">— Follow Trip</span>
-  <span class="method method-post">POST</span> /line/callback <span class="api-desc">LINE OAuth callback</span>
-  <span class="method method-post">POST</span> /web-push/subscribe <span class="api-desc">Web Push subscription</span>
-
-<strong style="color:#4ade80;">/api/acknowledge</strong>
-  <span class="method method-post">POST</span> /:changelogId <span class="api-desc">กดรับทราบ</span>
-
-<strong style="color:#fbbf24;">/api/notify</strong> <span class="api-desc">— Internal (Admin triggered)</span>
-  <span class="method method-post">POST</span> /send/:changelogId <span class="api-desc">ส่ง noti ทุกคน</span>
-  <span class="method method-post">POST</span> /resend/:changelogId <span class="api-desc">ส่งซ้ำคนที่ยังไม่อ่าน</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 5: Auth Flow -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">5</span> Authentication Flow</h2>
-
-    <div class="flow-box">
-      <h4>🔐 Admin Auth (Auth.js / NextAuth v5)</h4>
-      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
-Register:
-[Admin] → POST /register { email, password, company_name }
-  ├── Auth.js: Credentials provider → bcrypt hash + insert mst_users via Drizzle
-  ├── Create companies record { name, tier: 'free' }
-  ├── Create users record { id: generated UUID, company_id }
-  └── Return { user, session }
-
-Login:
-[Admin] → POST /login { email, password }
-  ├── Auth.js: signIn("credentials") → JWT session
-  ├── Set httpOnly cookies (next-auth.session-token)
-  └── Return { user, company }
-
-Session:
-  ├── JWT in httpOnly cookies (NOT localStorage)
-  ├── Auto-refresh via Auth.js middleware
-  └── Next.js middleware protects /dashboard/*</div>
-    </div>
-
-    <div class="flow-box">
-      <h4>💚 LINE OA Follow Flow</h4>
-      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
-[Guest] กด "เพิ่มเพื่อน LINE OA"
-  │
-  ├── User เพิ่มเพื่อน LINE OA
-  │   (ผ่าน QR Code หรือ LINE URL Scheme)
-  │
-  ├── LINE Platform ส่ง Webhook: follow event → userId
-  │
-  ├── Server: รับ follow event → บันทึก line_user_id to followers table
-  │
-  └── ส่ง Welcome message ผ่าน LINE Messaging API</div>
-    </div>
-
-    <div class="flow-box">
-      <h4>🔔 Web Push Follow Flow</h4>
-      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
-[Guest] กด "ติดตาม (Web Push)"
-  │
-  ├── Notification.requestPermission() → "granted"
-  │
-  ├── registration.pushManager.subscribe({
-  │     userVisibleOnly: true,
-  │     applicationServerKey: VAPID_PUBLIC_KEY
-  │   })
-  │
-  ├── POST /api/follow/web-push/subscribe
-  │   { trip_id, display_name, subscription }
-  │
-  └── Save to followers table → ✅</div>
-    </div>
-  </div>
-
-  <!-- Section 6: Notification -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">6</span> Notification Architecture</h2>
-
-    <div class="flow-box">
-      <h4>⚡ Change Detection + Send Flow</h4>
-      <div class="arch-diagram" style="font-size:0.7rem; color: #c9d1d9;">
-Admin แก้ไข Trip → กด "บันทึก"
-  │
-  ├── 1. Load BEFORE snapshot
-  ├── 2. Apply changes → save to DB
-  ├── 3. Compare BEFORE vs AFTER → diff
-  ├── 4. Generate summary: "เปลี่ยนเวลา teamLab 08:30 → 09:00"
-  ├── 5. Save to change_logs
-  ├── 6. Increment edit_count
-  │
-  ▼ [Frontend: Change Summary Modal]
-  │
-  ├── "ส่งแจ้งเตือน" → POST /api/notify/send/:changelogId
-  │   │
-  │   ├── Load all followers
-  │   ├── Send concurrently (Promise.allSettled):
-  │   │   ├── LINE: POST notify-api.line.me/api/notify
-  │   │   └── Push: webpush.sendNotification(subscription, payload)
-  │   ├── Handle failures (expired token → mark inactive)
-  │   └── Update changelog: noti_sent = true
-  │
-  └── "บันทึกอย่างเดียว" → (ไม่ส่ง noti)</div>
-    </div>
-
-    <div class="card">
-      <h3>📨 Notification Message Format</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div>
-          <h4 style="color:#4ade80;">💚 LINE Messaging API</h4>
-          <div style="background:var(--bg-code); border-radius:8px; padding:12px; font-size:0.78rem; border:1px solid var(--border);">
-            🔔 NatGan - Tokyo Winter 2026<br><br>
-            ⚠️ มีการเปลี่ยนแปลง:<br>
-            • Day 2: เปลี่ยนเวลา teamLab<br>
-            &nbsp;&nbsp;08:30 → 09:00<br><br>
-            👉 ดูรายละเอียด + กดรับทราบ:<br>
-            natgan.com/t/tokyo-winter-2026
-          </div>
-        </div>
-        <div>
-          <h4 style="color:#a78bfa;">🔔 Web Push</h4>
-          <div style="background:var(--bg-code); border-radius:8px; padding:12px; font-size:0.78rem; border:1px solid var(--border);">
-            <strong>title:</strong> "Tokyo Winter 2026 มีการเปลี่ยน"<br>
-            <strong>body:</strong> "Day 2: เปลี่ยนเวลา teamLab →..."<br>
-            <strong>icon:</strong> company.logo_url<br>
-            <strong>data.url:</strong> "/t/tokyo-winter-2026"<br>
-            <strong>vibrate:</strong> [100, 50, 100]
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 7: Security -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">7</span> Security Architecture</h2>
-
-    <div class="security-layers">
-      <div class="security-layer" style="border-color:#ef4444;">
-        <div class="layer-num" style="background:#ef4444;">1</div>
-        <div>
-          <h5>Network</h5>
-          <p>HTTPS everywhere (Vercel auto-SSL) · CORS: natgan.com only · Rate limiting (auth: 10/min, noti: 5/min, public: 100/min)</p>
-        </div>
-      </div>
-      <div class="security-layer" style="border-color:#f59e0b;">
-        <div class="layer-num" style="background:#f59e0b;">2</div>
-        <div>
-          <h5>Authentication</h5>
-          <p>JWT via Auth.js (NextAuth v5) · httpOnly cookies (not localStorage) · Token auto-refresh · CSRF via SameSite</p>
-        </div>
-      </div>
-      <div class="security-layer" style="border-color:#22c55e;">
-        <div class="layer-num" style="background:#22c55e;">3</div>
-        <div>
-          <h5>Authorization</h5>
-          <p>Drizzle middleware auth (query filters) · API middleware: verify auth + company ownership · Rate limit per tier</p>
-        </div>
-      </div>
-      <div class="security-layer" style="border-color:#06b6d4;">
-        <div class="layer-num" style="background:#06b6d4;">4</div>
-        <div>
-          <h5>Data Protection</h5>
-          <p>LINE tokens: AES-256-GCM encrypted · Passwords: bcrypt (Auth.js) · PII minimal: display_name only for followers</p>
-        </div>
-      </div>
-      <div class="security-layer" style="border-color:#7c3aed;">
-        <div class="layer-num" style="background:#7c3aed;">5</div>
-        <div>
-          <h5>Input Validation</h5>
-          <p>Zod schema validation on all API inputs · Slug: alphanumeric + hyphen only · HTML sanitization · File type + size check</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 8: Environment Variables -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">8</span> Environment Variables</h2>
-    <div class="env-grid">
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">DATABASE_URL</span>
-        <span class="env-desc">PostgreSQL connection string (Drizzle)</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">NEXTAUTH_SECRET</span>
-        <span class="env-desc">Auth.js session encryption key</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-public">PUBLIC</span>
-        <span class="env-key">NEXTAUTH_URL</span>
-        <span class="env-desc">https://natgan.com (Auth.js base URL)</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">R2_ACCESS_KEY_ID</span>
-        <span class="env-desc">Cloudflare R2 access key</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">R2_SECRET_ACCESS_KEY</span>
-        <span class="env-desc">Cloudflare R2 secret key</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-public">PUBLIC</span>
-        <span class="env-key">NEXT_PUBLIC_R2_PUBLIC_URL</span>
-        <span class="env-desc">Cloudflare R2 public bucket URL</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">LINE_CHANNEL_ID</span>
-        <span class="env-desc">LINE Messaging API channel ID</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">LINE_CHANNEL_SECRET</span>
-        <span class="env-desc">LINE Messaging API channel secret</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">LINE_CHANNEL_ACCESS_TOKEN</span>
-        <span class="env-desc">LINE Messaging API long-lived access token</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-public">PUBLIC</span>
-        <span class="env-key">NEXT_PUBLIC_VAPID_PUBLIC_KEY</span>
-        <span class="env-desc">Web Push VAPID public key</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">VAPID_PRIVATE_KEY</span>
-        <span class="env-desc">Web Push VAPID private key</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-secret">SECRET</span>
-        <span class="env-key">ENCRYPTION_KEY</span>
-        <span class="env-desc">AES-256 key for LINE token encryption</span>
-      </div>
-      <div class="env-item">
-        <span class="env-badge env-public">PUBLIC</span>
-        <span class="env-key">NEXT_PUBLIC_BASE_URL</span>
-        <span class="env-desc">https://natgan.com</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 9: Deployment -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">9</span> Deployment</h2>
-    <div class="card">
-      <h3>🚀 Infrastructure</h3>
-      <div class="arch-diagram" style="font-size:0.7rem;">
-┌───────────────────────────────────────────────┐
-│              Vercel (Singapore)                 │
-│  ┌───────────┐ ┌────────────┐ ┌─────────────┐│
-│  │ Edge CDN   │ │ Serverless │ │ Static      ││
-│  │ HTML cache │ │ Functions  │ │ Assets      ││
-│  │ ISR pages  │ │ (API)      │ │ JS/CSS/img  ││
-│  └───────────┘ └────────────┘ └─────────────┘│
-│  Git: main → auto deploy                      │
-│  PR → preview URL                              │
-└────────────────────┬──────────────────────────┘
-        ┌────────────┼────────────┐
-        ▼            ▼            ▼
-┌──────────────┐ ┌────────┐ ┌──────────┐
-│ VPS (Docker) │ │ LINE   │ │ Web Push │
-│ PostgreSQL16 │ │  Msg.  │ │ Services │
-│ ~150-250บ/ด. │ │ (Free) │ │ (Free)   │
-└──────┬───────┘ └────────┘ └──────────┘
-       ▼
-┌──────────────┐
-│ Cloudflare R2│
-│ Storage(Free)│
-└──────────────┘</div>
-    </div>
-
-    <div class="card">
-      <h3>📊 Resource Capacity</h3>
-      <table class="tech-table">
-        <thead><tr><th>Service</th><th>Resource</th><th>Limit / Cost</th><th>MVP Estimate</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>VPS (Docker)</td><td>PostgreSQL 16</td><td>1 GB RAM / 25 GB SSD</td><td>~5 MB data</td><td><span class="limit-ok">✅ เหลือเฟือ</span></td></tr>
-          <tr><td>Cloudflare R2</td><td>Storage</td><td>10 GB free</td><td>~100 MB</td><td><span class="limit-ok">✅</span></td></tr>
-          <tr><td>Auth.js</td><td>Auth Sessions</td><td>Unlimited (self-hosted)</td><td>&lt;10</td><td><span class="limit-ok">✅</span></td></tr>
-          <tr><td>Vercel</td><td>Bandwidth</td><td>100 GB/month</td><td>~5 GB</td><td><span class="limit-ok">✅</span></td></tr>
-          <tr><td>Vercel</td><td>Serverless</td><td>100 GB-hrs</td><td>~2 GB-hrs</td><td><span class="limit-ok">✅</span></td></tr>
-          <tr><td>LINE</td><td>Messaging API</td><td>Unlimited</td><td>~100/month</td><td><span class="limit-ok">✅</span></td></tr>
-          <tr><td>Web Push</td><td>VAPID</td><td>Unlimited</td><td>~100/month</td><td><span class="limit-ok">✅</span></td></tr>
-        </tbody>
-      </table>
-      <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:12px; margin-top:12px; text-align:center; font-size:0.9rem;">
-        <strong style="color:#fbbf24;">💰 Monthly Cost: ~150-250 บาท/เดือน</strong> — VPS (Docker + PostgreSQL) · Vercel + R2 + LINE + Push = free
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 10: Project Structure -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">10</span> Project Structure</h2>
-    <div class="file-tree">
-<span class="dir">natgan/</span>
-├── <span class="dir">public/</span>
-│   ├── <span class="file">sw.js</span>                      <span class="desc"># Service Worker (Push + Offline)</span>
-│   └── <span class="dir">icons/</span>                     <span class="desc"># PWA icons</span>
+NOTI_ACKNOWLEDGEMENTS:
+├── INSERT → validated at API layer with follower_id
+└── SELECT (admin) → assertTripOwner via changelog → trip</code></pre>
+<hr />
+<h2 id="api-design">3. API Design</h2>
+<h3 id="api-routes-overview">3.1 API Routes Overview</h3>
+<pre><code>/api
+├── /auth
+│   ├── POST /register          สมัครสมาชิก
+│   ├── POST /login             เข้าสู่ระบบ
+│   └── POST /logout            ออกจากระบบ
 │
-├── <span class="dir">src/</span>
-│   ├── <span class="dir">app/</span>
-│   │   ├── <span class="file">layout.tsx</span>             <span class="desc"># Root layout (fonts, providers)</span>
-│   │   ├── <span class="file">page.tsx</span>               <span class="desc"># Landing page (SSG)</span>
-│   │   ├── <span class="file">globals.css</span>            <span class="desc"># Tailwind + custom theme</span>
-│   │   │
-│   │   ├── <span class="dir">(auth)/</span>
-│   │   │   ├── <span class="file">login/page.tsx</span>
-│   │   │   └── <span class="file">register/page.tsx</span>
-│   │   │
-│   │   ├── <span class="dir">dashboard/</span>             <span class="desc"># Admin area (CSR, auth required)</span>
-│   │   │   ├── <span class="file">layout.tsx</span>         <span class="desc"># Sidebar + auth check</span>
-│   │   │   ├── <span class="file">page.tsx</span>           <span class="desc"># Trip list</span>
-│   │   │   ├── <span class="dir">trips/</span>
-│   │   │   │   ├── <span class="file">new/page.tsx</span>   <span class="desc"># Trip builder step 1</span>
-│   │   │   │   └── <span class="dir">[id]/</span>
-│   │   │   │       ├── <span class="file">edit/page.tsx</span>    <span class="desc"># Day & Activity editor</span>
-│   │   │   │       ├── <span class="file">preview/page.tsx</span> <span class="desc"># Preview</span>
-│   │   │   │       ├── <span class="file">publish/page.tsx</span> <span class="desc"># Publish & share</span>
-│   │   │   │       └── <span class="file">receipts/page.tsx</span><span class="desc"># Read receipts</span>
-│   │   │   └── <span class="file">usage/page.tsx</span>     <span class="desc"># Usage & limits</span>
-│   │   │
-│   │   ├── <span class="dir">t/[slug]/</span>              <span class="desc"># Guest view (SSR + ISR)</span>
-│   │   │   ├── <span class="file">page.tsx</span>           <span class="desc"># Full trip view</span>
-│   │   │   └── <span class="dir">imm/</span>
-│   │   │       └── <span class="file">page.tsx</span>       <span class="desc"># Immigration view</span>
-│   │   │
-│   │   └── <span class="dir">api/</span>                   <span class="desc"># Route Handlers</span>
-│   │       ├── <span class="dir">auth/</span>  <span class="dir">company/</span>  <span class="dir">trips/</span>
-│   │       ├── <span class="dir">public/</span>  <span class="dir">follow/</span>  <span class="dir">notify/</span>
-│   │       └── <span class="dir">acknowledge/</span>  <span class="dir">upload/</span>
+├── /company
+│   ├── GET  /me                ข้อมูลบริษัทของตัวเอง
+│   ├── PUT  /me                แก้ไขข้อมูลบริษัท
+│   └── POST /me/logo           อัปโหลด logo
+│
+├── /trips
+│   ├── GET    /                รายการทริป (dashboard)
+│   ├── POST   /                สร้างทริปใหม่
+│   ├── GET    /:id             ข้อมูลทริป (admin)
+│   ├── PUT    /:id             แก้ไขทริป
+│   ├── DELETE /:id             ลบทริป
 │   │
-│   ├── <span class="dir">components/</span>
-│   │   ├── <span class="dir">admin/</span>                 <span class="desc"># TripForm, DayEditor, ActivityEditor...</span>
-│   │   ├── <span class="dir">guest/</span>                 <span class="desc"># HeroSection, DayCard, FollowButton...</span>
-│   │   ├── <span class="dir">immigration/</span>           <span class="desc"># ImmigrationView</span>
-│   │   └── <span class="dir">shared/</span>                <span class="desc"># QRCode, ImageUpload, LangSwitcher</span>
+│   ├── POST   /:id/publish     Publish ทริป
+│   ├── POST   /:id/unpublish   Unpublish ทริป
 │   │
-│   ├── <span class="dir">lib/</span>
-│   │   ├── <span class="dir">db/</span>                    <span class="desc"># schema.ts, drizzle.ts, migrate.ts (Drizzle ORM)</span>
-│   │   ├── <span class="dir">auth/</span>                  <span class="desc"># auth.ts, auth.config.ts (Auth.js / NextAuth v5)</span>
-│   │   ├── <span class="dir">storage/</span>               <span class="desc"># r2.ts (Cloudflare R2 S3 client)</span>
-│   │   ├── <span class="dir">notifications/</span>         <span class="desc"># line-messaging.ts, web-push.ts, change-detector.ts</span>
-│   │   ├── <span class="file">encryption.ts</span>          <span class="desc"># AES-256-GCM</span>
-│   │   └── <span class="file">slug.ts</span>                <span class="desc"># Slug gen + validation</span>
+│   ├── /days
+│   │   ├── GET    /:tripId/days            รายการวัน
+│   │   ├── POST   /:tripId/days            เพิ่มวัน
+│   │   ├── PUT    /:tripId/days/:dayId     แก้ไขวัน
+│   │   ├── DELETE /:tripId/days/:dayId     ลบวัน
+│   │   └── PUT    /:tripId/days/reorder    เรียงลำดับวัน
 │   │
-│   └── <span class="dir">types/</span>                     <span class="desc"># database.ts, api.ts, trip.ts</span>
+│   ├── /activities
+│   │   ├── POST   /:dayId/activities               เพิ่มกิจกรรม
+│   │   ├── PUT    /:dayId/activities/:actId         แก้ไขกิจกรรม
+│   │   ├── DELETE /:dayId/activities/:actId         ลบกิจกรรม
+│   │   └── PUT    /:dayId/activities/reorder        เรียงลำดับ
+│   │
+│   ├── /followers
+│   │   └── GET    /:tripId/followers        รายการ followers (admin)
+│   │
+│   ├── /changelog
+│   │   ├── GET    /:tripId/changelog        ประวัติการเปลี่ยนแปลง
+│   │   └── GET    /:tripId/changelog/:id/ack  สถานะรับทราบ
+│   │
+│   └── /stats
+│       └── GET    /:tripId/stats            Views + Followers count
 │
-├── <span class="dir">drizzle/</span>
-│   ├── <span class="dir">migrations/</span>                <span class="desc"># 0000_create_tables, 0001_indexes</span>
-│   └── <span class="file">seed.ts</span>
+├── /public (ไม่ต้อง auth)
+│   ├── GET    /t/:slug                     Guest View data
+│   ├── GET    /t/:slug/imm                 Immigration View data
+│   └── POST   /t/:slug/view               นับ view (+1)
 │
-├── <span class="dir">docker/</span>
-│   └── <span class="file">docker-compose.yml</span>         <span class="desc"># PostgreSQL 16 + pgAdmin</span>
+├── /follow (ไม่ต้อง auth)
+│   ├── POST   /line/webhook                LINE Messaging API webhook
+│   ├── POST   /web-push/subscribe          Web Push subscription
+│   └── DELETE /unfollow/:followerId        ยกเลิกติดตาม
 │
-└── <span class="file">package.json</span></div>
-  </div>
+├── /acknowledge (ไม่ต้อง auth)
+│   └── POST   /:changelogId               กดรับทราบ
+│
+├── /notify (internal)
+│   ├── POST   /send/:changelogId          ส่ง noti ให้ followers ทั้งหมด
+│   └── POST   /resend/:changelogId        ส่ง noti ซ้ำเฉพาะคนที่ยังไม่รับทราบ
+│
+└── /upload
+    └── POST   /image                      Upload image → Cloudflare R2</code></pre>
+<h3 id="key-api-contracts">3.2 Key API Contracts</h3>
+<h4 id="post-apitrips-สรางทรปใหม">POST /api/trips — สร้างทริปใหม่</h4>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Request</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  title<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  destination<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  start_date<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>       <span class="co">// &quot;2026-04-15&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  end_date<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>         <span class="co">// &quot;2026-04-22&quot;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  cover_image_url<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  travelers_count<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  language<span class="op">?:</span> <span class="st">&#39;th&#39;</span> <span class="op">|</span> <span class="st">&#39;en&#39;</span> <span class="op">|</span> <span class="st">&#39;ja&#39;</span><span class="op">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  airline_info<span class="op">?:</span> AirlineInfo[]<span class="op">;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  accommodations<span class="op">?:</span> Accommodation[]<span class="op">;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Response 201</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  id<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  slug<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> <span class="co">// auto-generated</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  status<span class="op">:</span> <span class="st">&#39;draft&#39;</span><span class="op">;</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  days<span class="op">:</span> Day[]<span class="op">;</span>  <span class="co">// auto-generated from date range</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="get-apipublictslug-guest-view-data">GET /api/public/t/:slug —
+Guest View Data</h4>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Response 200</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  trip<span class="op">:</span> {</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    title<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    destination<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    start_date<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    end_date<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    cover_image_url<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    travelers_count<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    language<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    airline_info<span class="op">:</span> AirlineInfo[]<span class="op">;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    accommodations<span class="op">:</span> Accommodation[]<span class="op">;</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    notes<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  company<span class="op">:</span> {</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    name<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    logo_url<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    phone<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    line_id<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    facebook<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    instagram<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  days<span class="op">:</span> {</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    day_number<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    title<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    subtitle<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    cover_image_url<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    date<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    activities<span class="op">:</span> {</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      time<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>      name<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      description<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>      emoji<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>      place_name<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>      maps_link<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>    }[]<span class="op">;</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  }[]<span class="op">;</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  emergency_contacts<span class="op">:</span> EmergencyContact[]<span class="op">;</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  pending_changes<span class="op">?:</span> {</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>    changelog_id<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>    summary_text<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    created_at<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>  follower_count<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="post-apifollowlinewebhook-line-messaging-api-webhook">POST
+/api/follow/line/webhook — LINE Messaging API Webhook</h4>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Request (from LINE Platform)</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">// LINE Messaging API webhook event (follow event)</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  events<span class="op">:</span> [{</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&#39;follow&#39;</span><span class="op">;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    source<span class="op">:</span> { userId<span class="op">:</span> <span class="dt">string</span> }<span class="op">;</span>  <span class="co">// LINE userId</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    replyToken<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  }]</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Flow:</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Receive webhook event from LINE, extract userId</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. Create follower record with userId</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. Reply with welcome message via reply API</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Response: 200 OK</span></span></code></pre></div>
+<h4 id="post-apinotifysendchangelogid-สง-notification">POST
+/api/notify/send/:changelogId — ส่ง Notification</h4>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Internal endpoint (called after admin saves changes)</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Flow:</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Get changelog + trip data</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. Get all followers of this trip</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. For each follower:</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">//    - channel = &#39;line&#39; → call LINE Messaging API push message</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">//    - channel = &#39;web_push&#39; → call web-push library</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">// 4. Update changelog.noti_sent = true</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">// 5. Return results</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Response 200</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  total_followers<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  sent<span class="op">:</span> {</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    line<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    web_push<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  failed<span class="op">:</span> {</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    line<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    web_push<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<hr />
+<h2 id="authentication-flow">4. Authentication Flow</h2>
+<h3 id="admin-auth-auth.js-nextauth-v5">4.1 Admin Auth (Auth.js /
+NextAuth v5)</h3>
+<pre><code>Register Flow:
+──────────────
+[Admin] → POST /api/auth/register { email, password, company_name }
+  │
+  ├── 1. Validate input (Zod)
+  │
+  ├── 2. Hash password (bcrypt via Auth.js)
+  │
+  ├── 3. Create mst_companies record
+  │      → { name: company_name, tier: &#39;free&#39; }
+  │
+  ├── 4. Create mst_users record (Drizzle)
+  │      → { email, password_hash, company_id, role: &#39;owner&#39; }
+  │
+  └── 5. Auto sign-in via Auth.js → Return { user, session }
 
-  <!-- Section 11: Dependencies -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">11</span> Dependencies</h2>
-    <div class="dep-grid">
-      <div class="dep-item"><div class="name">next</div><div class="purpose">Framework</div></div>
-      <div class="dep-item"><div class="name">react</div><div class="purpose">UI Library</div></div>
-      <div class="dep-item"><div class="name">drizzle-orm</div><div class="purpose">Type-safe ORM</div></div>
-      <div class="dep-item"><div class="name">next-auth</div><div class="purpose">Auth.js (v5)</div></div>
-      <div class="dep-item"><div class="name">@aws-sdk/client-s3</div><div class="purpose">R2 Storage</div></div>
-      <div class="dep-item"><div class="name">pg</div><div class="purpose">PostgreSQL driver</div></div>
-      <div class="dep-item"><div class="name">web-push</div><div class="purpose">Push Notifications</div></div>
-      <div class="dep-item"><div class="name">qrcode</div><div class="purpose">QR Generation</div></div>
-      <div class="dep-item"><div class="name">zod</div><div class="purpose">Input Validation</div></div>
-      <div class="dep-item"><div class="name">@dnd-kit/core</div><div class="purpose">Drag & Drop</div></div>
-      <div class="dep-item"><div class="name">tailwindcss</div><div class="purpose">Styling</div></div>
-      <div class="dep-item"><div class="name">typescript</div><div class="purpose">Type Safety</div></div>
-    </div>
-  </div>
+Login Flow:
+───────────
+[Admin] → Auth.js Credentials Provider { email, password }
+  │
+  ├── 1. Auth.js: authorize(email, password)
+  │      → Drizzle query: find user by email
+  │      → bcrypt.compare(password, password_hash)
+  │
+  ├── 2. Auth.js sets session cookie (httpOnly, secure, sameSite)
+  │      → next-auth.session-token (JWT)
+  │
+  └── 3. Return { user, company }
 
-  <!-- Section 12: Technical Decisions -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">12</span> Technical Decisions</h2>
-    <div class="card" style="overflow-x:auto;">
-      <table class="decision-table">
-        <thead><tr><th>#</th><th>Decision</th><th>เหตุผล</th><th>Alternative ที่ตัด</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><span class="decision-id">T1</span></td>
-            <td>PostgreSQL + Auth.js + Drizzle ORM (self-hosted)</td>
-            <td>No vendor lock-in, full control, type-safe queries</td>
-            <td>Supabase (vendor dependency), Firebase (lock-in)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T2</span></td>
-            <td>Next.js API Routes (monorepo)</td>
-            <td>Deploy เดียว, shared types</td>
-            <td>Separate NestJS (complexity + cost)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T3</span></td>
-            <td>SSR + ISR สำหรับ Guest View</td>
-            <td>SEO + fast FCP + fresh data</td>
-            <td>CSR (ช้า), SSG (ไม่ fresh)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T4</span></td>
-            <td>JSONB สำหรับ airline/accommodation</td>
-            <td>Flexible, ไม่ต้อง JOIN</td>
-            <td>Normalized tables (over-engineering)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T5</span></td>
-            <td>LINE token encrypted at app layer</td>
-            <td>Defense in depth, ป้องกัน DB leak</td>
-            <td>Plaintext (security risk)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T6</span></td>
-            <td>Service Worker for Immigration + Push</td>
-            <td>Offline + push ใน file เดียว</td>
-            <td>No offline (bad UX ตอนยื่น ตม.)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T7</span></td>
-            <td>Client-side image resize</td>
-            <td>ลด upload time + storage cost</td>
-            <td>Server resize (ช้า, ใช้ compute)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T8</span></td>
-            <td>Vercel Singapore region</td>
-            <td>ใกล้ไทย latency ~30ms</td>
-            <td>US region (~200ms)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T9</span></td>
-            <td>Slug-based URL (/t/{slug})</td>
-            <td>จำง่าย, SEO, share ง่าย</td>
-            <td>UUID URL (น่าเกลียด)</td>
-          </tr>
-          <tr>
-            <td><span class="decision-id">T10</span></td>
-            <td>Change detection at API layer</td>
-            <td>Control ได้, debug ง่าย</td>
-            <td>DB trigger (complex)</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+Social Login (LINE Login):
+──────────────────────────
+- Auth.js supports LINE Login provider for social login
+- Users can sign in with their LINE account
+- Automatic account linking via email
 
-  <!-- Section 13: Sprint Timeline -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">13</span> Development Sequence</h2>
+Session Management:
+───────────────────
+- JWT stored in httpOnly cookie: next-auth.session-token
+- Auth.js middleware auto-validates session
+- Next.js middleware checks auth on /dashboard/* routes
+- Unauthenticated → redirect to /login</code></pre>
+<h3 id="guest-access-no-auth">4.2 Guest Access (No Auth)</h3>
+<pre><code>Guest View:
+───────────
+[Guest] → GET /t/{slug}
+  │
+  ├── 1. Server: fetch trip_plan WHERE slug = :slug AND status = &#39;published&#39;
+  ├── 2. If not found → 404 page
+  ├── 3. If found → SSR render full trip view
+  └── 4. Client: increment view_count (debounced, 1 per session)
 
-    <div class="sprint-card">
-      <div class="sprint-header" style="color:#60a5fa;">
-        <span class="week" style="background:rgba(59,130,246,0.2); color:#60a5fa;">W1-2</span>
-        Foundation
-      </div>
-      <div class="sprint-body">
-        <ul>
-          <li>VPS setup + Docker + PostgreSQL 16</li>
-          <li>Drizzle ORM schema + migrations</li>
-          <li>Auth.js (NextAuth v5) + Login/Register pages</li>
-          <li>Company Profile CRUD</li>
-          <li>Auth middleware + Dashboard layout</li>
-        </ul>
-      </div>
-    </div>
+Follow (LINE OA):
+─────────────────
+[Guest] → กดปุ่ม &quot;ติดตาม (LINE)&quot;
+  │
+  ├── 1. User เพิ่มเพื่อน LINE OA
+  │      (via LINE OA link / QR code on trip page)
+  │
+  ├── 2. LINE Platform sends follow event webhook
+  │      POST /api/follow/line/webhook
+  │
+  ├── 3. Webhook: follow event → userId
+  │      Extract userId from event.source.userId
+  │
+  ├── 4. Server: save userId to noti_followers table
+  │
+  └── 5. Reply welcome message with trip link
 
-    <div class="sprint-card">
-      <div class="sprint-header" style="color:#a78bfa;">
-        <span class="week" style="background:rgba(124,58,237,0.2); color:#a78bfa;">W3-4</span>
-        Trip Builder
-      </div>
-      <div class="sprint-body">
-        <ul>
-          <li>Trip CRUD + auto-generate days from dates</li>
-          <li>Day editor (add/remove/reorder with @dnd-kit)</li>
-          <li>Activity editor (add/remove/reorder/drag)</li>
-          <li>Image upload + Cloudflare R2 Storage + preset covers</li>
-          <li>Emergency contacts + Notes editor</li>
-        </ul>
-      </div>
-    </div>
+Follow (Web Push):
+──────────────────
+[Guest] → กดปุ่ม &quot;ติดตาม (Web Push)&quot;
+  │
+  ├── 1. Request notification permission
+  │      Notification.requestPermission()
+  │
+  ├── 2. Subscribe to push service
+  │      registration.pushManager.subscribe({
+  │        userVisibleOnly: true,
+  │        applicationServerKey: VAPID_PUBLIC_KEY
+  │      })
+  │
+  ├── 3. POST /api/follow/web-push/subscribe
+  │      { trip_id, display_name, subscription }
+  │
+  └── 4. Save to followers table</code></pre>
+<hr />
+<h2 id="notification-architecture">5. Notification Architecture</h2>
+<h3 id="change-detection-flow">5.1 Change Detection Flow</h3>
+<pre><code>Admin แก้ไข Trip → กด &quot;บันทึก&quot;
+│
+▼
+[API: PUT /api/trips/:id]
+│
+├── 1. Load current trip data (snapshot BEFORE)
+│
+├── 2. Apply changes → save to DB
+│
+├── 3. Compare BEFORE vs AFTER → generate diff
+│      diffTrip(before, after) → ChangeEntry[]
+│
+├── 4. Generate human-readable summary
+│      &quot;Day 2: เปลี่ยนเวลา teamLab 08:30 → 09:00&quot;
+│
+├── 5. Save to noti_change_logs table
+│      { trip_id, changes: diff, summary_text }
+│
+├── 6. Increment edit_count (free tier tracking)
+│
+├── 7. Return { changelog_id, summary, edit_count }
+│
+▼
+[Frontend: แสดง Change Summary Modal]
+│
+├── Admin กด &quot;ส่งแจ้งเตือน&quot;
+│   └── POST /api/notify/send/:changelogId
+│
+└── Admin กด &quot;บันทึกอย่างเดียว&quot;
+    └── (ไม่ส่ง noti)</code></pre>
+<h3 id="notification-sending-flow">5.2 Notification Sending Flow</h3>
+<pre><code>POST /api/notify/send/:changelogId
+│
+├── 1. Load changelog + trip data
+│
+├── 2. Load all followers WHERE trip_id = :tripId
+│
+├── 3. Prepare message
+│      ┌──────────────────────────────┐
+│      │ 🔔 [Platform] - {trip.title}      │
+│      │                              │
+│      │ ⚠️ มีการเปลี่ยนแปลง:          │
+│      │ {summary_text}               │
+│      │                              │
+│      │ 👉 ดูรายละเอียด + กดรับทราบ:   │
+│      │ [your-domain.com]/t/{slug}           │
+│      └──────────────────────────────┘
+│
+├── 4. Send concurrently (Promise.allSettled)
+│      ┌─── LINE Messaging API ─────────────────────┐
+│      │  POST https://api.line.me/v2/bot/message/push│
+│      │  Authorization: Bearer {channel_access_token}│
+│      │  to: {userId}, messages: [{formatted_message}]│
+│      └──────────────────────────────────────────────┘
+│      ┌─── Web Push ─────────────────────────────────┐
+│      │  webpush.sendNotification(subscription, {    │
+│      │    title: &quot;{trip.title} มีการเปลี่ยน&quot;,        │
+│      │    body: summary_text.substring(0, 100),     │
+│      │    icon: company.logo_url,                   │
+│      │    data: { url: &quot;/t/{slug}&quot; }                │
+│      │  })                                          │
+│      └──────────────────────────────────────────────┘
+│
+├── 5. Handle failures
+│      - LINE API error → mark follower as inactive
+│      - Web Push subscription invalid → delete follower
+│
+├── 6. Update changelog: noti_sent = true, noti_sent_at = now()
+│
+└── 7. Return send results</code></pre>
+<h3 id="service-worker-web-push-offline">5.3 Service Worker (Web Push +
+Offline)</h3>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// public/sw.js</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Web Push Handler ───</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;push&#39;</span><span class="op">,</span> (<span class="bu">event</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> data <span class="op">=</span> <span class="bu">event</span><span class="op">.</span><span class="at">data</span><span class="op">.</span><span class="fu">json</span>()<span class="op">;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">event</span><span class="op">.</span><span class="fu">waitUntil</span>(</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    self<span class="op">.</span><span class="at">registration</span><span class="op">.</span><span class="fu">showNotification</span>(data<span class="op">.</span><span class="at">title</span><span class="op">,</span> {</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">body</span><span class="op">:</span> data<span class="op">.</span><span class="at">body</span><span class="op">,</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">icon</span><span class="op">:</span> data<span class="op">.</span><span class="at">icon</span> <span class="op">||</span> <span class="st">&#39;/icons/app-192.png&#39;</span><span class="op">,</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">badge</span><span class="op">:</span> <span class="st">&#39;/icons/app-badge.png&#39;</span><span class="op">,</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">data</span><span class="op">:</span> { <span class="dt">url</span><span class="op">:</span> data<span class="op">.</span><span class="at">data</span><span class="op">?.</span><span class="at">url</span> }<span class="op">,</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">vibrate</span><span class="op">:</span> [<span class="dv">100</span><span class="op">,</span> <span class="dv">50</span><span class="op">,</span> <span class="dv">100</span>]<span class="op">,</span> <span class="co">// haptic feedback</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Click Handler ───</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;notificationclick&#39;</span><span class="op">,</span> (<span class="bu">event</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  <span class="bu">event</span><span class="op">.</span><span class="at">notification</span><span class="op">.</span><span class="fu">close</span>()<span class="op">;</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> url <span class="op">=</span> <span class="bu">event</span><span class="op">.</span><span class="at">notification</span><span class="op">.</span><span class="at">data</span><span class="op">?.</span><span class="at">url</span> <span class="op">||</span> <span class="st">&#39;/&#39;</span><span class="op">;</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="bu">event</span><span class="op">.</span><span class="fu">waitUntil</span>(</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    clients<span class="op">.</span><span class="fu">openWindow</span>(<span class="vs">`https://[your-domain.com]</span><span class="sc">${</span>url<span class="sc">}</span><span class="vs">`</span>)</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="co">// ─── Offline Cache (Immigration View) ───</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> IMM_CACHE <span class="op">=</span> <span class="st">&#39;tripapp-imm-v1&#39;</span><span class="op">;</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;fetch&#39;</span><span class="op">,</span> (<span class="bu">event</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> url <span class="op">=</span> <span class="kw">new</span> <span class="fu">URL</span>(<span class="bu">event</span><span class="op">.</span><span class="at">request</span><span class="op">.</span><span class="at">url</span>)<span class="op">;</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Cache immigration view pages</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (url<span class="op">.</span><span class="at">pathname</span><span class="op">.</span><span class="fu">endsWith</span>(<span class="st">&#39;/imm&#39;</span>)) {</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    <span class="bu">event</span><span class="op">.</span><span class="fu">respondWith</span>(</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>      caches<span class="op">.</span><span class="fu">open</span>(IMM_CACHE)<span class="op">.</span><span class="fu">then</span>(<span class="kw">async</span> (cache) <span class="kw">=&gt;</span> {</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> {</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>          <span class="kw">const</span> response <span class="op">=</span> <span class="cf">await</span> <span class="fu">fetch</span>(<span class="bu">event</span><span class="op">.</span><span class="at">request</span>)<span class="op">;</span></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>          cache<span class="op">.</span><span class="fu">put</span>(<span class="bu">event</span><span class="op">.</span><span class="at">request</span><span class="op">,</span> response<span class="op">.</span><span class="fu">clone</span>())<span class="op">;</span></span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>          <span class="cf">return</span> response<span class="op">;</span></span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>        } <span class="cf">catch</span> {</span>
+<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a>          <span class="cf">return</span> cache<span class="op">.</span><span class="fu">match</span>(<span class="bu">event</span><span class="op">.</span><span class="at">request</span>)<span class="op">;</span></span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a>      })</span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a>    )<span class="op">;</span></span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="file-storage-architecture">6. File Storage Architecture</h2>
+<h3 id="cloudflare-r2-storage-s3-compatible">6.1 Cloudflare R2 Storage
+(S3-compatible)</h3>
+<blockquote>
+<p><strong>Note:</strong> Cloudflare R2 ฟรี 10GB storage, ไม่มี egress fee
+(ต่างจาก S3/Supabase)</p>
+</blockquote>
+<pre><code>R2 Bucket: trip-uploads
+├── company-logos/
+│   └── {company_id}/logo.{ext}
+│       Max: 2MB, Types: jpg/png/webp
+│       Access: public (แสดงบน trip view)
+│
+├── trip-covers/
+│   └── {trip_id}/cover.{ext}
+│       Max: 5MB, Types: jpg/png/webp
+│       Access: public (แสดงบน trip view)
+│
+├── day-covers/
+│   └── {day_id}/cover.{ext}
+│       Max: 5MB, Types: jpg/png/webp
+│       Access: public
+│
+└── preset-covers/
+    └── japan-01.jpg, korea-01.jpg, beach-01.jpg...
+    Pre-uploaded, read-only
+    Access: public
 
-    <div class="sprint-card">
-      <div class="sprint-header" style="color:#4ade80;">
-        <span class="week" style="background:rgba(34,197,94,0.2); color:#4ade80;">W5-6</span>
-        Guest View + Publishing
-      </div>
-      <div class="sprint-body">
-        <ul>
-          <li>Publish flow (slug gen, QR code, share page)</li>
-          <li>Guest View SSR (/t/[slug]) — adapt Demo App components</li>
-          <li>Immigration View (/t/[slug]/imm) + Service Worker offline</li>
-          <li>Auto-highlight + Countdown badge</li>
-          <li>Company branding + Powered by badge</li>
-        </ul>
-      </div>
-    </div>
+R2 Free Tier:
+├── Storage: 10 GB/month
+├── Class A operations: 1M/month (PUT, POST)
+├── Class B operations: 10M/month (GET)
+└── Egress: Free (ไม่มีค่า bandwidth)</code></pre>
+<h3 id="image-optimization">6.2 Image Optimization</h3>
+<pre><code>Upload Flow:
+[Admin uploads image]
+  │
+  ├── 1. Client-side: resize + compress (max 1920px, quality 80%)
+  │      using browser Canvas API
+  │
+  ├── 2. Upload to Cloudflare R2 via API route
+  │      POST /api/upload/image { file, bucket, path }
+  │      (uses @aws-sdk/client-s3 with R2 endpoint)
+  │
+  ├── 3. Get public URL
+  │      https://{custom-domain}.r2.dev/{bucket}/{path}
+  │
+  └── 4. Save URL to trip_plan/day record
 
-    <div class="sprint-card" style="border-color:var(--amber);">
-      <div class="sprint-header" style="color:#fbbf24;">
-        <span class="week" style="background:rgba(245,158,11,0.2); color:#fbbf24;">W7-8</span>
-        ⭐ Notification System
-      </div>
-      <div class="sprint-body">
-        <ul>
-          <li>LINE Messaging API setup + Webhook integration</li>
-          <li>Web Push VAPID + Service Worker push handler</li>
-          <li>Follow button + modal</li>
-          <li>Change detection engine (diff)</li>
-          <li>Send notification (LINE + Web Push parallel)</li>
-          <li>Acknowledge banner + Read Receipt dashboard</li>
-        </ul>
-      </div>
-    </div>
+Serving:
+- Cloudflare R2 serves via Cloudflare CDN (global edge)
+- Next.js &lt;Image&gt; component handles:
+  - Lazy loading
+  - Responsive srcset
+  - WebP conversion
+  - Blur placeholder (shimmer)</code></pre>
+<hr />
+<h2 id="security-architecture">7. Security Architecture</h2>
+<h3 id="security-layers">7.1 Security Layers</h3>
+<pre><code>Layer 1: Network
+├── HTTPS everywhere (Vercel auto-SSL)
+├── CORS: only [your-domain.com] origin
+└── Rate limiting: Vercel Edge middleware
+    ├── /api/auth/*: 10 req/min per IP
+    ├── /api/notify/*: 5 req/min per user
+    └── /api/public/*: 100 req/min per IP
 
-    <div class="sprint-card">
-      <div class="sprint-header" style="color:#67e8f9;">
-        <span class="week" style="background:rgba(6,182,212,0.2); color:#67e8f9;">W9</span>
-        Dashboard + Limits
-      </div>
-      <div class="sprint-body">
-        <ul>
-          <li>Admin dashboard (trip list + stats)</li>
-          <li>Free tier limit enforcement</li>
-          <li>Platform i18n (TH/EN/JP)</li>
-        </ul>
-      </div>
-    </div>
+Layer 2: Authentication
+├── Auth.js session + JWT (NextAuth v5)
+├── httpOnly cookie: next-auth.session-token (SameSite)
+├── Session auto-validation via Auth.js middleware
+└── CSRF protection via SameSite cookies
 
-    <div class="sprint-card">
-      <div class="sprint-header" style="color:#f87171;">
-        <span class="week" style="background:rgba(239,68,68,0.2); color:#f87171;">W10</span>
-        Testing + Deploy + Pilot
-      </div>
-      <div class="sprint-body">
-        <ul>
-          <li>E2E testing (create → publish → follow → noti → ack)</li>
-          <li>Mobile testing (LINE browser, iOS Safari, Android Chrome)</li>
-          <li>Custom domain: natgan.com</li>
-          <li>Onboard pilot company</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+Layer 3: Authorization
+├── Drizzle middleware + service-layer auth checks
+├── API route middleware: verify auth + company ownership
+└── Rate limit per tier (free: 10 noti/month)
 
+Layer 4: Data Protection
+├── LINE User IDs: stored securely
+│   (not secret data, no encryption needed)
+├── Web Push subscriptions: stored as-is (not secret)
+├── Passwords: Auth.js handles (bcrypt)
+├── PostgreSQL + VPS disk encryption
+└── PII minimal: only display_name for followers
+
+Layer 5: Input Validation
+├── Zod schema validation on all API inputs
+├── Slug: alphanumeric + hyphen only, max 60 chars
+├── HTML sanitization on notes/description fields
+└── File upload: type + size validation</code></pre>
+<h3 id="pdpa-compliance">7.2 PDPA Compliance</h3>
+<pre><code>ข้อมูลที่เก็บ:
+├── Admin: email, company name, contacts → consent at registration
+├── Follower: display_name, LINE userId/Web Push sub → consent at follow
+└── Guest (anonymous): view count only, no PII
+
+สิทธิ์ของเจ้าของข้อมูล:
+├── สิทธิ์ในการเข้าถึง → Admin: dashboard, Follower: ไม่เก็บ PII มาก
+├── สิทธิ์ในการลบ → Admin: delete account, Follower: unfollow
+├── สิทธิ์ในการถอนความยินยอม → Unfollow button on trip page
+└── สิทธิ์ในการโอนย้าย → Export trip data as JSON (Phase 2)
+
+Implementation:
+├── Privacy Policy page: /privacy
+├── Terms of Service page: /terms
+├── Consent checkboxes at registration + follow
+├── LINE User ID → deleted when unfollowed
+└── Admin delete account → cascade delete all data</code></pre>
+<hr />
+<h2 id="environment-variables">8. Environment Variables</h2>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── Database (PostgreSQL on VPS) ───</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="va">DATABASE_URL</span><span class="op">=</span>postgresql://user:pass@vps-ip:5432/tripapp</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── Auth.js (NextAuth v5) ───</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="va">NEXTAUTH_SECRET</span><span class="op">=</span>xxx                     <span class="co"># Random secret for JWT signing</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="va">NEXTAUTH_URL</span><span class="op">=</span>https://<span class="pp">[</span><span class="ss">your</span><span class="pp">-</span><span class="ss">domain.com</span><span class="pp">]</span>         <span class="co"># Canonical URL</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── LINE Messaging API ───</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="va">LINE_CHANNEL_ID</span><span class="op">=</span>xxxxx</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="va">LINE_CHANNEL_SECRET</span><span class="op">=</span>xxxxx</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="va">LINE_CHANNEL_ACCESS_TOKEN</span><span class="op">=</span>xxxxx</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── LINE Login (Auth.js provider) ───</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="va">LINE_LOGIN_CHANNEL_ID</span><span class="op">=</span>xxxxx</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="va">LINE_LOGIN_CHANNEL_SECRET</span><span class="op">=</span>xxxxx</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── Cloudflare R2 ───</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="va">R2_ACCOUNT_ID</span><span class="op">=</span>xxx</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="va">R2_ACCESS_KEY_ID</span><span class="op">=</span>xxx</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="va">R2_SECRET_ACCESS_KEY</span><span class="op">=</span>xxx</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="va">R2_BUCKET_NAME</span><span class="op">=</span>trip-uploads</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="va">R2_PUBLIC_URL</span><span class="op">=</span>https://cdn.<span class="pp">[</span><span class="ss">your</span><span class="pp">-</span><span class="ss">domain.com</span><span class="pp">]</span>    <span class="co"># Custom domain or R2.dev URL</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── Web Push (VAPID) ───</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="va">NEXT_PUBLIC_VAPID_PUBLIC_KEY</span><span class="op">=</span>BL...      <span class="co"># Public, used in client</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="va">VAPID_PRIVATE_KEY</span><span class="op">=</span>xxx                   <span class="co"># Server-side only</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="va">VAPID_SUBJECT</span><span class="op">=</span>mailto:admin@<span class="pp">[</span><span class="ss">your</span><span class="pp">-</span><span class="ss">domain.com</span><span class="pp">]</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── Encryption ───</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="va">ENCRYPTION_KEY</span><span class="op">=</span>xxx                      <span class="co"># AES-256 key (reserved for future use)</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── App ───</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a><span class="va">NEXT_PUBLIC_BASE_URL</span><span class="op">=</span>https://<span class="pp">[</span><span class="ss">your</span><span class="pp">-</span><span class="ss">domain.com</span><span class="pp">]</span></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a><span class="va">NODE_ENV</span><span class="op">=</span>production</span></code></pre></div>
+<hr />
+<h2 id="deployment-architecture">9. Deployment Architecture</h2>
+<h3 id="infrastructure">9.1 Infrastructure</h3>
+<pre><code>┌─────────────────────────────────────────────────┐
+│                    Vercel                         │
+│                                                  │
+│  ┌─────────────┐  ┌──────────┐  ┌────────────┐ │
+│  │ Edge Network │  │ Serverless│  │ Static     │ │
+│  │ (CDN)        │  │ Functions │  │ Assets     │ │
+│  │              │  │ (API)     │  │ (images,   │ │
+│  │ - HTML cache │  │           │  │  JS, CSS)  │ │
+│  │ - ISR pages  │  │ Region:   │  │            │ │
+│  │              │  │ sin1      │  │            │ │
+│  │              │  │ (Singapore)│  │            │ │
+│  └─────────────┘  └──────────┘  └────────────┘ │
+│                                                  │
+│  Git: main → auto deploy                        │
+│  Preview: PR → preview URL                       │
+└──────────────────────┬──────────────────────────┘
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+┌──────────────┐ ┌──────────┐ ┌──────────┐
+│ VPS (Docker) │ │ LINE     │ │ Web Push │
+│ PostgreSQL 16│ │ Messaging│ │ Services │
+│              │ │ (Japan)  │ │ (Google/ │
+│ Vultr/Hetzner│ │          │ │  Apple)  │
+│ SG or Thai DC│ └──────────┘ └──────────┘
+│              │ ┌──────────────────┐
+│ ~150-250 บ/mo│ │ Cloudflare R2    │
+│ 1 vCPU, 1GB │ │ File Storage     │
+│              │ │ Free 10GB        │
+└──────────────┘ └──────────────────┘</code></pre>
+<h3 id="cicd-pipeline">9.2 CI/CD Pipeline</h3>
+<pre><code>GitHub Repository
+│
+├── main branch → Vercel Production ([your-domain.com])
+│
+├── develop branch → Vercel Preview (develop.tripapp.vercel.app)
+│
+└── PR branches → Vercel Preview (pr-{n}.tripapp.vercel.app)
+
+Deploy Steps (automatic):
+1. Push to GitHub
+2. Vercel detects change
+3. Install dependencies (npm ci)
+4. Build (next build)
+5. Deploy to edge network
+6. Health check
+7. Alias to production domain
+
+Database Migrations (Drizzle):
+- drizzle/migrations/*.sql (auto-generated by drizzle-kit)
+- Run via: npx drizzle-kit push (dev) / npx drizzle-kit migrate (prod)
+- Automate with GitHub Actions in Phase 2
+
+VPS Setup:
+- Docker Compose: PostgreSQL 16 + automated backup
+- Backup: pg_dump cron (daily → Cloudflare R2)
+- VPS providers: Vultr/Hetzner Singapore or Thai DC
+- SSH key-only access, UFW firewall (allow 5432 from Vercel IPs only)</code></pre>
+<h3 id="monitoring-mvp-ใชของฟร">9.3 Monitoring (MVP — ใช้ของฟรี)</h3>
+<pre><code>Performance:
+├── Vercel Analytics (built-in, free)
+│   - Web Vitals (LCP, FID, CLS)
+│   - Page load times
+│   - Error rates
+└── Vercel Speed Insights
+
+Errors:
+├── Vercel Logs (built-in)
+│   - API route errors
+│   - Build errors
+└── console.error → Vercel log stream
+
+Database:
+├── PostgreSQL pg_stat_statements (query performance)
+├── Docker health checks
+├── Disk usage monitoring (VPS)
+└── Row counts via admin dashboard
+
+Uptime:
+└── ใช้ free tier monitoring (e.g. UptimeRobot)
+    - [your-domain.com]/api/health → 200 OK
+    - Alert via LINE Messaging API to admin</code></pre>
+<hr />
+<h2 id="project-structure">10. Project Structure</h2>
+<pre><code>tripapp/
+├── public/
+│   ├── sw.js                      # Service Worker
+│   ├── icons/                     # PWA icons
+│   └── preset-covers/             # Preset images (local dev)
+│
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx             # Root layout (fonts, providers)
+│   │   ├── page.tsx               # Landing page (SSG)
+│   │   ├── globals.css            # Tailwind + custom theme
+│   │   │
+│   │   ├── (auth)/
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   │
+│   │   ├── dashboard/             # Admin area (CSR, auth required)
+│   │   │   ├── layout.tsx         # Sidebar + auth check
+│   │   │   ├── page.tsx           # Trip list
+│   │   │   ├── profile/page.tsx   # Company profile
+│   │   │   ├── trips/
+│   │   │   │   ├── new/page.tsx   # Trip builder step 1
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── edit/page.tsx    # Trip builder step 2
+│   │   │   │   │   ├── preview/page.tsx # Preview
+│   │   │   │   │   ├── publish/page.tsx # Publish &amp; share
+│   │   │   │   │   └── receipts/page.tsx# Read receipts
+│   │   │   │   └── page.tsx       # Redirect to list
+│   │   │   └── usage/page.tsx     # Usage &amp; limits
+│   │   │
+│   │   ├── t/[slug]/              # Guest view (SSR + ISR)
+│   │   │   ├── page.tsx           # Full trip view
+│   │   │   └── imm/page.tsx       # Immigration view
+│   │   │
+│   │   ├── api/                   # API routes
+│   │   │   ├── auth/
+│   │   │   ├── company/
+│   │   │   ├── trips/
+│   │   │   ├── public/
+│   │   │   ├── follow/
+│   │   │   ├── acknowledge/
+│   │   │   ├── notify/
+│   │   │   ├── upload/
+│   │   │   └── health/route.ts
+│   │   │
+│   │   └── privacy/page.tsx       # Privacy policy
+│   │
+│   ├── components/
+│   │   ├── admin/                 # Admin-only components
+│   │   │   ├── TripForm.tsx
+│   │   │   ├── DayEditor.tsx
+│   │   │   ├── ActivityEditor.tsx
+│   │   │   ├── ReceiptDashboard.tsx
+│   │   │   └── Sidebar.tsx
+│   │   │
+│   │   ├── guest/                 # Guest view components
+│   │   │   ├── HeroSection.tsx
+│   │   │   ├── DayCard.tsx
+│   │   │   ├── ActivityItem.tsx
+│   │   │   ├── DayNav.tsx
+│   │   │   ├── FollowButton.tsx
+│   │   │   ├── AcknowledgeBanner.tsx
+│   │   │   ├── CompanyFooter.tsx
+│   │   │   ├── CountdownBadge.tsx
+│   │   │   └── EmergencySection.tsx
+│   │   │
+│   │   ├── immigration/
+│   │   │   └── ImmigrationView.tsx
+│   │   │
+│   │   └── shared/                # Shared components
+│   │       ├── QRCode.tsx
+│   │       ├── ImageUpload.tsx
+│   │       ├── LangSwitcher.tsx
+│   │       └── LoadingSpinner.tsx
+│   │
+│   ├── lib/
+│   │   ├── db/
+│   │   │   ├── drizzle.ts         # Drizzle ORM client
+│   │   │   ├── schema.ts          # Drizzle table definitions
+│   │   │   └── auth-middleware.ts  # Authorization helpers
+│   │   │
+│   │   ├── auth/
+│   │   │   ├── auth.ts            # Auth.js (NextAuth v5) config
+│   │   │   └── providers.ts       # Credentials + LINE Login providers
+│   │   │
+│   │   ├── storage/
+│   │   │   └── r2.ts              # Cloudflare R2 client (S3-compatible)
+│   │   │
+│   │   ├── notifications/
+│   │   │   ├── line-messaging.ts   # LINE Messaging API wrapper
+│   │   │   ├── web-push.ts        # web-push wrapper
+│   │   │   └── change-detector.ts # Diff engine
+│   │   │
+│   │   ├── encryption.ts          # AES-256-GCM (reserved for future use)
+│   │   ├── slug.ts                # Slug generation + validation
+│   │   ├── i18n.ts                # Platform i18n
+│   │   └── utils.ts               # Shared utilities
+│   │
+│   ├── types/
+│   │   ├── database.ts            # Drizzle inferred types
+│   │   ├── api.ts                 # API request/response types
+│   │   └── trip.ts                # Domain types
+│   │
+│   └── middleware.ts              # Next.js middleware (auth, i18n)
+│
+├── drizzle/
+│   ├── migrations/                # Auto-generated by drizzle-kit
+│   │   ├── 0000_initial_schema.sql
+│   │   └── 0001_indexes.sql
+│   ├── seed.ts                    # Test data (TypeScript)
+│   └── drizzle.config.ts          # Drizzle Kit config
+│
+├── docker/
+│   ├── docker-compose.yml         # PostgreSQL 16 + backup
+│   └── backup.sh                  # pg_dump cron script → R2
+│
+├── .env.local                     # Local env vars
+├── next.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+├── package.json
+└── README.md</code></pre>
+<hr />
+<h2 id="key-technical-decisions">11. Key Technical Decisions</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>เหตุผล</th>
+<th>Alternative ที่ตัด</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1</td>
+<td>PostgreSQL self-host + Auth.js + Drizzle ORM</td>
+<td>ไม่มี subscription cost (~150-250 บ/mo VPS), ไม่มี latency (เลือก Thai DC
+ได้), full control, no vendor lock-in</td>
+<td>Supabase (free tier limit, SG latency), Firebase (vendor
+lock-in)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Next.js API Routes แทน separate backend</td>
+<td>Monorepo, deploy เดียว, shared types</td>
+<td>Separate NestJS/Express (complexity + cost)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>SSR + ISR สำหรับ Guest View</td>
+<td>SEO + fast first load + fresh data</td>
+<td>CSR (ช้า FCP), SSG (ข้อมูลไม่ fresh)</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>JSONB สำหรับ airline/accommodation</td>
+<td>Flexible schema, ไม่ต้องสร้าง table เพิ่ม</td>
+<td>Normalized tables (over-engineering สำหรับ MVP)</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>LINE User ID stored (no encryption needed - not secret)</td>
+<td>userId ไม่ใช่ secret, ไม่ต้อง encrypt</td>
+<td>Encrypt userId (unnecessary overhead)</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>Service Worker สำหรับ Immigration + Push</td>
+<td>Offline + push noti ใน file เดียว</td>
+<td>ไม่ทำ offline (bad UX ตอนยื่น ตม.)</td>
+</tr>
+<tr>
+<td>T7</td>
+<td>Client-side image resize ก่อน upload</td>
+<td>ลด upload time + storage cost</td>
+<td>Server-side resize (ช้า, ใช้ compute)</td>
+</tr>
+<tr>
+<td>T8</td>
+<td>Vercel Singapore region</td>
+<td>ใกล้ไทยที่สุด, latency ~30ms</td>
+<td>US (latency ~200ms)</td>
+</tr>
+<tr>
+<td>T9</td>
+<td>Slug-based URL (/t/{slug})</td>
+<td>จำง่าย, SEO-friendly, share ง่าย</td>
+<td>UUID-based URL (/t/{uuid}) — น่าเกลียด</td>
+</tr>
+<tr>
+<td>T10</td>
+<td>Change detection at API layer</td>
+<td>Control เมื่อไหร่จะ diff, ไม่ต้อง trigger</td>
+<td>DB trigger (complex, hard to debug)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="free-tier-limits-enforcement">12. Free Tier Limits &amp;
+Enforcement</h2>
+<h3 id="vps-postgresql-self-hosted">12.1 VPS + PostgreSQL
+(Self-hosted)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Spec</th>
+<th>Cost</th>
+<th>หมายเหตุ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VPS (Vultr/Hetzner)</td>
+<td>1 vCPU, 1GB RAM, 25GB SSD</td>
+<td>~150-250 บ/เดือน (flat)</td>
+<td>SG or Thai DC</td>
+</tr>
+<tr>
+<td>PostgreSQL 16</td>
+<td>Docker container</td>
+<td>included</td>
+<td>Unlimited DB size (limited by disk)</td>
+</tr>
+<tr>
+<td>Backup</td>
+<td>pg_dump → Cloudflare R2</td>
+<td>ฟรี (R2 free tier)</td>
+<td>Daily cron</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cloudflare-r2-free-tier">12.1.1 Cloudflare R2 Free Tier</h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Free Limit</th>
+<th>MVP Usage Estimate</th>
+<th>เพียงพอ?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Storage</td>
+<td>10 GB/month</td>
+<td>~100 MB (images)</td>
+<td>✅ เหลือเฟือ</td>
+</tr>
+<tr>
+<td>Class A ops (PUT)</td>
+<td>1M/month</td>
+<td>~1K</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Class B ops (GET)</td>
+<td>10M/month</td>
+<td>~10K</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Egress</td>
+<td>Unlimited (free)</td>
+<td>—</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vercel-free-tier">12.2 Vercel Free Tier</h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Free Limit</th>
+<th>MVP Usage Estimate</th>
+<th>เพียงพอ?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bandwidth</td>
+<td>100 GB/month</td>
+<td>~5 GB</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Serverless Functions</td>
+<td>100 GB-hrs</td>
+<td>~2 GB-hrs</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Builds</td>
+<td>6,000 min/month</td>
+<td>~60 min</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Edge Middleware</td>
+<td>1M invocations</td>
+<td>~10K</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="app-level-limits-free-tier">12.3 App-level Limits (Free
+Tier)</h3>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">// lib/limits.ts</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { db } <span class="im">from</span> <span class="st">&#39;./db/drizzle&#39;</span><span class="op">;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { tripPlans } <span class="im">from</span> <span class="st">&#39;./db/schema&#39;</span><span class="op">;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { eq<span class="op">,</span> ne<span class="op">,</span> and<span class="op">,</span> count } <span class="im">from</span> <span class="st">&#39;drizzle-orm&#39;</span><span class="op">;</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> FREE_TIER_LIMITS <span class="op">=</span> {</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  trip_slots<span class="op">:</span> <span class="dv">3</span><span class="op">,</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  edits_per_trip<span class="op">:</span> <span class="dv">2</span><span class="op">,</span>          <span class="co">// after publish</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  followers_per_trip<span class="op">:</span> <span class="dv">30</span><span class="op">,</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>  notifications_per_month<span class="op">:</span> <span class="dv">10</span><span class="op">,</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Enforcement: check before action</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">checkTripSlotLimit</span>(companyId<span class="op">:</span> <span class="dt">string</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">boolean</span><span class="op">&gt;</span> {</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> [result] <span class="op">=</span> <span class="cf">await</span> db</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">select</span>({ count<span class="op">:</span> <span class="fu">count</span>() })</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">from</span>(tripPlans)</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">where</span>(<span class="fu">and</span>(</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">eq</span>(tripPlans<span class="op">.</span><span class="at">companyId</span><span class="op">,</span> companyId)<span class="op">,</span></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ne</span>(tripPlans<span class="op">.</span><span class="at">status</span><span class="op">,</span> <span class="st">&#39;unpublished&#39;</span>)</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>    ))<span class="op">;</span></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (result<span class="op">?.</span><span class="at">count</span> <span class="op">??</span> <span class="dv">0</span>) <span class="op">&lt;</span> FREE_TIER_LIMITS<span class="op">.</span><span class="at">trip_slots</span><span class="op">;</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">checkEditLimit</span>(tripId<span class="op">:</span> <span class="dt">string</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">boolean</span><span class="op">&gt;</span> {</span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> trip <span class="op">=</span> <span class="cf">await</span> db<span class="op">.</span><span class="at">query</span><span class="op">.</span><span class="at">tripPlans</span><span class="op">.</span><span class="fu">findFirst</span>({</span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>    where<span class="op">:</span> <span class="fu">eq</span>(tripPlans<span class="op">.</span><span class="at">id</span><span class="op">,</span> tripId)<span class="op">,</span></span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">:</span> { editCount<span class="op">:</span> <span class="kw">true</span><span class="op">,</span> status<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (trip<span class="op">?.</span><span class="at">status</span> <span class="op">!==</span> <span class="st">&#39;published&#39;</span>) <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span> <span class="co">// draft = unlimited</span></span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (trip<span class="op">?.</span><span class="at">editCount</span> <span class="op">??</span> <span class="dv">0</span>) <span class="op">&lt;</span> FREE_TIER_LIMITS<span class="op">.</span><span class="at">edits_per_trip</span><span class="op">;</span></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<hr />
+<h2 id="performance-optimization">13. Performance Optimization</h2>
+<h3 id="guest-view-critical-path">13.1 Guest View (Critical Path)</h3>
+<pre><code>Target: First Contentful Paint &lt; 2 seconds on 3G
+
+Strategies:
+├── SSR + Streaming (React Server Components)
+│   - Hero section renders first (above the fold)
+│   - Day cards stream progressively
+│
+├── Image Optimization
+│   - Cover images: WebP, max 1200px width
+│   - Lazy load below-the-fold images
+│   - Blur placeholder (base64 embedded)
+│   - Next.js &lt;Image&gt; with sizes + srcset
+│
+├── JavaScript Optimization
+│   - Minimal client JS on guest view
+│   - Map links = plain &lt;a&gt; tags (no JS needed)
+│   - Follow button = only interactive component
+│   - Code split: follow modal loads on click
+│
+├── Caching
+│   - ISR: revalidate every 60 seconds
+│   - CDN: Vercel Edge caches HTML
+│   - Browser: static assets cache 1 year
+│
+└── LINE In-app Browser Specific
+    - Test on LINE iOS + Android
+    - Avoid features not supported (e.g. Web Share API)
+    - Minimal viewport animations (LINE browser may lag)</code></pre>
+<h3 id="admin-dashboard">13.2 Admin Dashboard</h3>
+<pre><code>Strategies:
+├── Auto-save drafts (debounced 2 seconds)
+│   - Never lose work
+│   - No explicit &quot;save&quot; button in edit mode
+│
+├── Optimistic updates
+│   - Reorder days/activities → UI updates immediately
+│   - Background sync to DB
+│
+└── Image upload
+    - Client-side resize before upload
+    - Show preview immediately from local file
+    - Upload in background</code></pre>
+<hr />
+<h2 id="development-sequence-สอดคลองกบ-sprint-plan">14. Development
+Sequence (สอดคล้องกับ Sprint Plan)</h2>
+<pre><code>สัปดาห์ 1-2: Foundation
+━━━━━━━━━━━━━━━━━━━━━━
+├── [x] VPS setup (Vultr/Hetzner SG or Thai DC)
+├── [x] Docker + PostgreSQL 16 setup
+├── [x] Drizzle ORM schema + initial migration
+├── [x] Next.js project setup (from existing codebase)
+├── [x] Auth.js (NextAuth v5) integration (Credentials + LINE Login)
+├── [x] Login / Register pages
+├── [x] Company Profile CRUD (Drizzle)
+├── [x] Auth middleware (/dashboard/* protection)
+└── [x] Basic dashboard layout (sidebar)
+
+สัปดาห์ 3-4: Trip Builder
+━━━━━━━━━━━━━━━━━━━━━━━━
+├── [ ] Trip CRUD API routes
+├── [ ] Trip form (step 1: general info)
+├── [ ] Auto-generate days from date range
+├── [ ] Day editor (add/remove/reorder)
+├── [ ] Activity editor (add/remove/reorder/drag)
+├── [ ] Image upload component + Cloudflare R2
+├── [ ] Preset cover images
+├── [ ] Emergency contacts editor
+└── [ ] Notes editor
+
+สัปดาห์ 5-6: Guest View + Publishing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── [ ] Publish flow (generate slug, update status)
+├── [ ] Guest View SSR page (/t/[slug])
+├── [ ] Adapt Demo App components for dynamic data
+├── [ ] QR Code generation + download
+├── [ ] Company branding on guest view
+├── [ ] Powered by [Platform] badge
+├── [ ] Immigration View (/t/[slug]/imm)
+├── [ ] Service Worker (offline cache for imm)
+├── [ ] Auto-highlight current activity
+├── [ ] Trip countdown badge
+├── [ ] Publish &amp; Share page (URL + QR + message template)
+└── [ ] View count tracking
+
+สัปดาห์ 7-8: Notification System ⭐
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── [ ] LINE OA + Messaging API setup
+├── [ ] Follow button + modal (LINE / Web Push)
+├── [ ] LINE webhook handler + userId storage
+├── [ ] Web Push VAPID setup + Service Worker push handler
+├── [ ] Web Push subscribe flow
+├── [ ] Change detection engine (diffTrip)
+├── [ ] Change summary generation (human-readable)
+├── [ ] Send notification (LINE + Web Push parallel)
+├── [ ] Acknowledge banner + button
+├── [ ] Read Receipt dashboard
+├── [ ] Resend to un-acknowledged
+└── [ ] Follower name collection
+
+สัปดาห์ 9: Dashboard + Limits
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── [ ] Admin dashboard (trip list + stats)
+├── [ ] Change log view (admin)
+├── [ ] Free tier limit checks (slots, edits, followers, noti)
+├── [ ] Usage display component
+├── [ ] Platform i18n (TH/EN/JP)
+└── [ ] Unpublish flow
+
+สัปดาห์ 10: Testing + Deploy
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+├── [ ] End-to-end testing (create → publish → follow → noti → ack)
+├── [ ] Mobile testing (LINE browser, iOS Safari, Android Chrome)
+├── [ ] Immigration view testing (offline cache)
+├── [ ] Custom domain: [your-domain.com]
+├── [ ] Production env vars
+├── [ ] VPS production PostgreSQL + pg_dump backup cron
+├── [ ] Health check endpoint
+├── [ ] Onboard pilot company
+└── [ ] Seed data cleanup</code></pre>
+<hr />
+<h2 id="npm-dependencies">15. npm Dependencies</h2>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;dependencies&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;next&quot;</span><span class="fu">:</span> <span class="st">&quot;^16.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;react&quot;</span><span class="fu">:</span> <span class="st">&quot;^19.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;react-dom&quot;</span><span class="fu">:</span> <span class="st">&quot;^19.0.0&quot;</span><span class="fu">,</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;next-auth&quot;</span><span class="fu">:</span> <span class="st">&quot;^5.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;drizzle-orm&quot;</span><span class="fu">:</span> <span class="st">&quot;^0.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;@aws-sdk/client-s3&quot;</span><span class="fu">:</span> <span class="st">&quot;^3.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;bcrypt&quot;</span><span class="fu">:</span> <span class="st">&quot;^5.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;web-push&quot;</span><span class="fu">:</span> <span class="st">&quot;^3.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;qrcode&quot;</span><span class="fu">:</span> <span class="st">&quot;^1.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;zod&quot;</span><span class="fu">:</span> <span class="st">&quot;^3.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;@dnd-kit/core&quot;</span><span class="fu">:</span> <span class="st">&quot;^6.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;@dnd-kit/sortable&quot;</span><span class="fu">:</span> <span class="st">&quot;^8.x&quot;</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;devDependencies&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;typescript&quot;</span><span class="fu">:</span> <span class="st">&quot;^5.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tailwindcss&quot;</span><span class="fu">:</span> <span class="st">&quot;^4.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;@types/web-push&quot;</span><span class="fu">:</span> <span class="st">&quot;^3.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;@types/qrcode&quot;</span><span class="fu">:</span> <span class="st">&quot;^1.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;@types/bcrypt&quot;</span><span class="fu">:</span> <span class="st">&quot;^5.x&quot;</span><span class="fu">,</span></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;drizzle-kit&quot;</span><span class="fu">:</span> <span class="st">&quot;^0.x&quot;</span></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>หมายเหตุ dependencies:</strong> - <code>@dnd-kit</code> —
+drag-and-drop สำหรับ reorder days/activities - <code>zod</code> — input
+validation ทุก API route - <code>web-push</code> — server-side push
+notification - <code>qrcode</code> — QR code generation -
+<code>next-auth</code> — Auth.js (NextAuth v5) สำหรับ authentication -
+<code>drizzle-orm</code> + <code>drizzle-kit</code> — type-safe ORM +
+migration tool - <code>@aws-sdk/client-s3</code> — Cloudflare R2 client
+(S3-compatible) - <code>bcrypt</code> — password hashing</p>
+<hr />
+<p><em>Document End — [Platform] Technical Architecture v1.0</em></p>
 </div>
-
-<!-- Footer -->
-<div style="text-align:center; padding:40px 20px; color:var(--text-muted); font-size:0.75rem; border-top:1px solid var(--border);">
-  NatGan (นัดกัน) — Technical Architecture Document v1.0 · March 2026
+<div class="footer">© 2569 TripApp Development Team — Confidential</div>
 </div>
-
 </body>
 </html>

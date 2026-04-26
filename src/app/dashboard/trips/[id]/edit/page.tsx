@@ -554,7 +554,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                           </button>
                           {emojiPickerFor === act.id && (
                             <>
-                              <div className="fixed inset-0 z-30" onClick={() => setEmojiPickerFor(null)} />
+                              <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setEmojiPickerFor(null)} />
                               <div className="absolute left-0 top-12 z-40 bg-white rounded-xl shadow-xl border border-(--outline-variant)/30 p-3 grid grid-cols-7 gap-1 w-64">
                                 {EMOJI_OPTIONS.map((em) => (
                                   <button

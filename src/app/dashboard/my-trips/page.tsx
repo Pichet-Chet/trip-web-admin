@@ -6,7 +6,7 @@ import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ConfirmDialog, useToast, EmptyState } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
 
-type FilterTab = "all" | "draft" | "published" | "unpublished" | "archived";
+type FilterTab = "all" | "draft" | "pending_review" | "published" | "unpublished" | "archived";
 
 interface Trip {
   id: string;
@@ -20,7 +20,16 @@ interface Trip {
   travelersCount: number;
   followerCount: number;
   createdAt: string;
+  /** H3.3 — Entitlement source consumed at create. */
+  quotaSource?: string | null;
 }
+
+const QUOTA_SOURCE_LABEL: Record<string, { text: string; cls: string; icon: string }> = {
+  free:         { text: "ฟรี",            cls: "bg-slate-100 text-slate-600 border-slate-200",       icon: "card_giftcard" },
+  per_trip:     { text: "ต่อทริป",         cls: "bg-sky-50 text-sky-700 border-sky-200",              icon: "credit_card" },
+  pack_5:       { text: "แพ็ค 5",          cls: "bg-violet-50 text-violet-700 border-violet-200",     icon: "redeem" },
+  subscription: { text: "Subscription",   cls: "bg-emerald-50 text-emerald-700 border-emerald-200",  icon: "workspace_premium" },
+};
 
 function formatDateRange(start: string | null, end: string | null): string {
   if (!start) return "ยังไม่กำหนดวัน";
@@ -43,16 +52,32 @@ export default function MyTripsPage(): React.ReactNode {
   useEffect(() => {
     Promise.all([
       api.get<Trip[]>("/admin/trips"),
-      api.get<{ tripQuotaUsed: number; tripQuotaLimit: number }>("/admin/usage"),
+      api.get<{
+        tripQuotaUsed: number;
+        tripQuotaLimit: number;
+        creditsRemaining: number;
+        hasActiveSubscription: boolean;
+      }>("/admin/usage"),
     ]).then(([tripsData, usage]) => {
       setTrips(tripsData);
-      setQuotaFull(usage.tripQuotaUsed >= usage.tripQuotaLimit);
+      // Quota is "full" only when ALL three sources are exhausted:
+      //   - free quota used up (tripQuotaUsed >= tripQuotaLimit)
+      //   - no purchased credits remaining
+      //   - no active subscription (subscription = unlimited)
+      const freeExhausted = usage.tripQuotaUsed >= usage.tripQuotaLimit;
+      const noCredits = (usage.creditsRemaining ?? 0) <= 0;
+      const noSub = !usage.hasActiveSubscription;
+      setQuotaFull(freeExhausted && noCredits && noSub);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
 
   const filtered = trips
-    .filter((t) => filter === "all" || t.status.toLowerCase() === filter)
+    .filter((t) => {
+      if (filter === "all") return true;
+      if (filter === "pending_review") return t.status === "PendingReview";
+      return t.status.toLowerCase() === filter;
+    })
     .filter((t) => search === "" || t.title.toLowerCase().includes(search.toLowerCase()) || t.destination.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -79,6 +104,7 @@ export default function MyTripsPage(): React.ReactNode {
           <FilterTabs
             tabs={[
               { value: "all" as FilterTab, label: `ทั้งหมด (${trips.length})` },
+              { value: "pending_review" as FilterTab, label: `รอตรวจสอบ (${trips.filter(t => t.status === "PendingReview").length})` },
               { value: "published" as FilterTab, label: `เผยแพร่ (${trips.filter(t => t.status === "Published").length})` },
               { value: "draft" as FilterTab, label: `ร่าง (${trips.filter(t => t.status === "Draft").length})` },
               { value: "unpublished" as FilterTab, label: "ปิดแล้ว" },
@@ -123,6 +149,7 @@ export default function MyTripsPage(): React.ReactNode {
             {/* Trip Cards */}
             {filtered.map((trip) => {
               const isDraft = trip.status === "Draft";
+              const isPendingReview = trip.status === "PendingReview";
               const isArchived = trip.status === "Archived";
               const isEnded = isArchived || (trip.endDate ? new Date(trip.endDate + "T23:59:59") < new Date() : false);
 
@@ -139,15 +166,29 @@ export default function MyTripsPage(): React.ReactNode {
                     )}
                     <div className="absolute top-3 left-3 flex gap-1.5">
                       <span className={`text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${
-                        isArchived ? "bg-slate-400" : isDraft ? "bg-amber-500" : isEnded ? "bg-slate-500" : "bg-emerald-500"
+                        isArchived ? "bg-slate-400"
+                        : isPendingReview ? "bg-orange-500"
+                        : isDraft ? "bg-amber-500"
+                        : isEnded ? "bg-slate-500"
+                        : "bg-emerald-500"
                       }`}>
-                        {isArchived ? "จบแล้ว" : isDraft ? "ฉบับร่าง" : isEnded ? "สิ้นสุด" : "เผยแพร่"}
+                        {isArchived ? "จบแล้ว" : isPendingReview ? "รอตรวจสอบ" : isDraft ? "ฉบับร่าง" : isEnded ? "สิ้นสุด" : "เผยแพร่"}
                       </span>
                       <span className={`text-[9px] font-bold px-2 py-1 rounded-md shadow-sm ${
                         trip.scope === "international" ? "bg-purple-500 text-white" : "bg-white/90 text-slate-700"
                       }`}>
                         {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}
                       </span>
+                      {/* H3.3: Quota source badge — shows which entitlement was used to create this trip */}
+                      {trip.quotaSource && QUOTA_SOURCE_LABEL[trip.quotaSource] && (
+                        <span
+                          className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-md border ${QUOTA_SOURCE_LABEL[trip.quotaSource].cls}`}
+                          title={`สร้างด้วยเครดิต: ${QUOTA_SOURCE_LABEL[trip.quotaSource].text}`}
+                        >
+                          <span className="material-symbols-outlined text-[10px]">{QUOTA_SOURCE_LABEL[trip.quotaSource].icon}</span>
+                          {QUOTA_SOURCE_LABEL[trip.quotaSource].text}
+                        </span>
+                      )}
                     </div>
                   </div>
 

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
 
 const navItems = [
@@ -12,16 +14,35 @@ const navItems = [
   { label: "โปรไฟล์", href: ROUTES.profile, icon: "person" },
   { label: "การใช้งาน", href: ROUTES.usage, icon: "speed" },
   { label: "การชำระเงิน", href: "/dashboard/billing", icon: "receipt_long" },
+  { label: "ตั๋วสนับสนุน", href: "/dashboard/support/tickets", icon: "support_agent" },
 ] as const;
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }): React.ReactNode {
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchBadge = () => {
+      if (document.hidden) return;
+      api.get<{ unread: number }>("/admin/support/tickets/summary")
+        .then((s) => setUnreadCount(s.unread))
+        .catch(() => {});
+    };
+    fetchBadge();
+    const interval = setInterval(fetchBadge, 60_000);
+    const onVisible = () => { if (!document.hidden) fetchBadge(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   return (
     <>
       {/* Mobile overlay */}
       {open && (
-        <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={onClose} />
+        <div className="fixed inset-0 z-40 bg-black/40 md:hidden cursor-pointer" onClick={onClose} />
       )}
 
       <aside
@@ -62,6 +83,11 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                     {item.icon}
                   </span>
                   <span className="text-sm font-medium md:hidden lg:block">{item.label}</span>
+                  {item.href === "/dashboard/support/tickets" && unreadCount > 0 && (
+                    <span className="ml-auto md:hidden lg:flex shrink-0 min-w-5 h-5 items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

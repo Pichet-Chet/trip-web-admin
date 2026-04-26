@@ -31,6 +31,8 @@ interface Usage {
   remainingTrips: number;
   publishedCount: number;
   draftCount: number;
+  creditsRemaining: number;
+  hasActiveSubscription: boolean;
 }
 
 export default function DashboardPage(): React.ReactNode {
@@ -77,7 +79,10 @@ export default function DashboardPage(): React.ReactNode {
   const showOnboarding = !loading && trips.length === 0;
   const hasProfile = !!(user?.companyName);
   const quotaPercent = usage ? Math.min(100, Math.round((usage.tripQuotaUsed / usage.tripQuotaLimit) * 100)) : 0;
-  const quotaFull = usage ? usage.remainingTrips <= 0 : false;
+  // Quota "full" only when free + credits + subscription all exhausted
+  const quotaFull = usage
+    ? usage.remainingTrips <= 0 && (usage.creditsRemaining ?? 0) <= 0 && !usage.hasActiveSubscription
+    : false;
   const [apiError, setApiError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
 

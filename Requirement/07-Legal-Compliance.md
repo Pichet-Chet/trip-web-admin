@@ -1,5 +1,5 @@
 # Legal & Compliance
-# NatGan (นัดกัน) — v1.0
+# [Platform Name] — v1.0
 
 **Version:** 1.0
 **Date:** 17 March 2026
@@ -22,7 +22,7 @@
 
 ## 2. PDPA Compliance — Checklist
 
-### 2.1 ข้อมูลส่วนบุคคลที่ NatGan เก็บ
+### 2.1 ข้อมูลส่วนบุคคลที่ [Platform] เก็บ
 
 | ข้อมูล | ประเภท | เจ้าของข้อมูล | ฐานกฎหมาย |
 |---|---|---|---|
@@ -44,7 +44,7 @@
 |---|---|---|---|
 | 1 | **Privacy Policy (นโยบายความเป็นส่วนตัว)** | 🔲 ต้องทำ | หน้า `/privacy` — ภาษาไทย + อังกฤษ |
 | 2 | **Consent Management** | 🔲 ต้องทำ | Cookie banner + LINE follow consent |
-| 3 | **Data Processing Agreement (DPA)** | 🔲 ต้องทำ | ระหว่าง NatGan กับบริษัททัวร์ (Data Controller = บริษัททัวร์, Data Processor = NatGan) |
+| 3 | **Data Processing Agreement (DPA)** | 🔲 ต้องทำ | ระหว่าง [Platform] กับบริษัททัวร์ (Data Controller = บริษัททัวร์, Data Processor = [Platform]) |
 | 4 | **Right to Access** | 🔲 ต้องทำ | API endpoint ให้ user ดูข้อมูลตัวเอง |
 | 5 | **Right to Erasure (ลบข้อมูล)** | 🔲 ต้องทำ | Soft delete + hard delete after 30 days |
 | 6 | **Right to Portability** | 🔲 ต้องทำ | Export trip data เป็น JSON/PDF |
@@ -58,14 +58,14 @@
 ```
 บริษัททัวร์ (Data Controller)
      │
-     ├── สร้างทริป → NatGan เก็บข้อมูลทริป (Contract basis)
+     ├── สร้างทริป → [Platform] เก็บข้อมูลทริป (Contract basis)
      │
-     ├── ลูกทริปดู Guest View → NatGan เก็บ IP, device (Legitimate Interest)
+     ├── ลูกทริปดู Guest View → [Platform] เก็บ IP, device (Legitimate Interest)
      │
-     ├── ลูกทริปกด Follow (LINE) → NatGan เก็บ LINE User ID (Consent)
-     │     └── Consent text: "อนุญาตให้ NatGan ส่งแจ้งเตือนผ่าน LINE เมื่อ itinerary เปลี่ยนแปลง"
+     ├── ลูกทริปกด Follow (LINE) → [Platform] เก็บ LINE User ID (Consent)
+     │     └── Consent text: "อนุญาตให้ [Platform] ส่งแจ้งเตือนผ่าน LINE เมื่อ itinerary เปลี่ยนแปลง"
      │
-     └── ลูกทริปกรอก Immigration → NatGan เก็บ passport info (Consent)
+     └── ลูกทริปกรอก Immigration → [Platform] เก็บ passport info (Consent)
            └── Consent text: "อนุญาตให้เก็บข้อมูลหนังสือเดินทางชั่วคราว สำหรับแสดงที่ ตม. เท่านั้น"
 ```
 
@@ -88,10 +88,10 @@
 
 ### 3.1 Privacy Policy Outline (ภาษาไทย)
 
-1. **ผู้ควบคุมข้อมูล** — บริษัท NatGan / ที่อยู่ / ช่องทางติดต่อ
+1. **ผู้ควบคุมข้อมูล** — บริษัท [Platform] / ที่อยู่ / ช่องทางติดต่อ
 2. **ข้อมูลที่เราเก็บรวบรวม** — ตามตาราง 2.1
 3. **วัตถุประสงค์ในการเก็บข้อมูล**
-   - ให้บริการแพลตฟอร์ม NatGan
+   - ให้บริการแพลตฟอร์ม [Platform]
    - ส่งแจ้งเตือนเมื่อ itinerary เปลี่ยนแปลง
    - แสดงข้อมูลสำหรับ ตม. (Immigration View)
    - ปรับปรุงบริการ
@@ -120,8 +120,8 @@
 | Cookie | ประเภท | วัตถุประสงค์ | อายุ |
 |---|---|---|---|
 | `next-auth.session-token` | จำเป็น (Essential) | Auth.js session | Session |
-| `natgan-theme` | Functional | ธีมสี (บริษัททัวร์) | 1 ปี |
-| `natgan-lang` | Functional | ภาษา | 1 ปี |
+| `tripapp-theme` | Functional | ธีมสี (บริษัททัวร์) | 1 ปี |
+| `tripapp-lang` | Functional | ภาษา | 1 ปี |
 
 > **ไม่มี Analytics cookie / Advertising cookie ใน MVP** — ถ้าเพิ่มในอนาคตต้อง update consent
 
@@ -132,7 +132,7 @@
 ### 4.1 Terms of Service Outline
 
 1. **คำจำกัดความ**
-   - "บริการ" = แพลตฟอร์ม NatGan
+   - "บริการ" = แพลตฟอร์ม [Platform]
    - "ผู้ใช้" = บริษัททัวร์ (Admin)
    - "ผู้เยี่ยมชม" = ลูกทริป (Guest)
 2. **ขอบเขตบริการ**
@@ -150,11 +150,11 @@
    - ห้าม spam ผ่านระบบ notification
    - ห้ามอัพโหลดเนื้อหาที่ผิดกฎหมาย
 6. **ทรัพย์สินทางปัญญา**
-   - NatGan เป็นเจ้าของแพลตฟอร์ม
+   - [Platform] เป็นเจ้าของแพลตฟอร์ม
    - ข้อมูลทริปเป็นของบริษัททัวร์
 7. **การจำกัดความรับผิด**
-   - NatGan ไม่รับผิดชอบข้อมูลทริปที่ไม่ถูกต้อง (บริษัททัวร์เป็นผู้ใส่)
-   - NatGan ไม่รับผิดชอบ LINE service outage
+   - [Platform] ไม่รับผิดชอบข้อมูลทริปที่ไม่ถูกต้อง (บริษัททัวร์เป็นผู้ใส่)
+   - [Platform] ไม่รับผิดชอบ LINE service outage
    - SLA ของ Free tier = best effort
 8. **การระงับและยกเลิกบัญชี**
 9. **การเปลี่ยนแปลงข้อกำหนด**
@@ -169,10 +169,10 @@
 
 | ข้อกำหนด | สิ่งที่ต้องทำ | สถานะ |
 |---|---|---|
-| **LINE Official Account** | สร้าง LINE OA สำหรับ NatGan | 🔲 ต้องทำ |
+| **LINE Official Account** | สร้าง LINE OA สำหรับ [Platform] | 🔲 ต้องทำ |
 | **Messaging API Channel** | สร้าง channel ใน LINE Developers Console | 🔲 ต้องทำ |
 | **User Consent** | ต้องได้ consent ก่อนส่ง push message | 🔲 ต้องทำ (ผ่าน add friend flow) |
-| **Message Content** | ห้ามส่ง spam, ต้องเกี่ยวข้องกับบริการ | ✅ NatGan ส่งเฉพาะ trip update |
+| **Message Content** | ห้ามส่ง spam, ต้องเกี่ยวข้องกับบริการ | ✅ [Platform] ส่งเฉพาะ trip update |
 | **Rich Menu** | สร้าง rich menu สำหรับ LINE OA | 🔲 ต้องทำ (Phase 2) |
 | **Webhook Security** | ใช้ signature validation ทุก request | 🔲 ต้องทำ |
 | **Rate Limit** | Communication plan: ไม่มี rate limit แต่จำกัด 500 msg/เดือน | ✅ เข้าใจแล้ว |
@@ -180,9 +180,9 @@
 ### 5.2 LINE OA Setup Checklist
 
 1. ✅ ตัดสินใจใช้ Communication plan (ฟรี, 500 msg/เดือน)
-2. 🔲 สร้าง LINE Official Account "NatGan นัดกัน"
+2. 🔲 สร้าง LINE Official Account
 3. 🔲 เปิดใช้ Messaging API ใน LINE Developers Console
-4. 🔲 ตั้งค่า Webhook URL → `https://natgan.com/api/line/webhook`
+4. 🔲 ตั้งค่า Webhook URL → `https://[your-domain.com]/api/line/webhook`
 5. 🔲 สร้าง Channel Access Token (long-lived)
 6. 🔲 ตั้งค่า Greeting Message เมื่อ add friend
 7. 🔲 ตั้งค่า Rich Menu (ลิงก์ไปหน้า trip ต่างๆ)
@@ -219,7 +219,7 @@
       "contents": [
         {
           "type": "button",
-          "action": { "type": "uri", "label": "ดูรายละเอียด", "uri": "https://natgan.com/trip/xxx" },
+          "action": { "type": "uri", "label": "ดูรายละเอียด", "uri": "https://[your-domain.com]/trip/xxx" },
           "style": "primary"
         },
         {
@@ -345,8 +345,8 @@ Admin สร้างทริป → กรอก passport info (optional)
 |---|---|---|
 | **จดทะเบียนบริษัท** | บริษัทจำกัด หรือ หจก. | ก่อน launch Pro tier |
 | **จดทะเบียน VAT** | เมื่อรายได้เกิน 1.8 ล้าน/ปี | เมื่อถึง threshold |
-| **จด e-Service VAT** | ไม่จำเป็น — NatGan ให้บริการในไทย | ไม่ต้อง |
-| **จดทะเบียนเครื่องหมายการค้า** | "NatGan" + "นัดกัน" | ก่อน launch |
+| **จด e-Service VAT** | ไม่จำเป็น — [Platform] ให้บริการในไทย | ไม่ต้อง |
+| **จดทะเบียนเครื่องหมายการค้า** | "[Platform Name]" | ก่อน launch |
 
 ### 9.2 SaaS Revenue — ภาษี
 
@@ -390,7 +390,7 @@ Admin สร้างทริป → กรอก passport info (optional)
 
 ## 11. สรุป
 
-### NatGan Legal Status
+### [Platform] Legal Status
 
 ```
 ✅ ไม่มี sensitive data ตาม PDPA (ศาสนา, เชื้อชาติ, สุขภาพ, อาชญากรรม, พันธุกรรม, etc.)
@@ -412,4 +412,4 @@ Admin สร้างทริป → กรอก passport info (optional)
 
 ---
 
-*Document End — NatGan Legal & Compliance v1.0*
+*Document End — [Platform] Legal & Compliance v1.0*

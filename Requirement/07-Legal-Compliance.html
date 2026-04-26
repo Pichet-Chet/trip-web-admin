@@ -3,872 +3,1163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NatGan — Legal & Compliance</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>TripApp Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --indigo: #1b2a4a;
-    --indigo-light: #2d4373;
-    --emerald: #059669;
-    --emerald-light: #34d399;
-    --emerald-dark: #047857;
-    --teal: #0d9488;
-    --red: #ef4444;
-    --amber: #f59e0b;
-    --green: #22c55e;
-    --purple: #7c3aed;
-    --cream: #f0fdf4;
-    --warm-white: #f8fffe;
-    --bg-card: #ffffff;
-    --text: #1e293b;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Noto Sans Thai', sans-serif;
-    background: var(--cream);
-    color: var(--text);
-    line-height: 1.7;
-  }
-
-  /* Header */
-  .header {
-    background: linear-gradient(135deg, #064e3b 0%, #047857 30%, #059669 50%, #047857 70%, #064e3b 100%);
-    color: white;
-    padding: 60px 24px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .header::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      -45deg, transparent, transparent 20px,
-      rgba(255,255,255,0.02) 20px, rgba(255,255,255,0.02) 21px
-    );
-  }
-  .header * { position: relative; }
-  .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; }
-  .header .subtitle { font-size: 1.1rem; opacity: 0.85; font-weight: 300; }
-  .header .meta {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-  }
-  .header .meta span {
-    background: rgba(255,255,255,0.15);
-    padding: 4px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-  }
-
-  /* Container */
-  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
-
-  /* Law Overview */
-  .law-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-  .law-card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    border-left: 5px solid var(--emerald);
-  }
-  .law-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
-  .law-card .abbr {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--emerald);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-  }
-  .law-card p { font-size: 0.85rem; color: var(--text-muted); }
-
-  /* Section */
-  .section { margin-bottom: 48px; }
-  .section-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--indigo);
-    margin-bottom: 20px;
-    padding-bottom: 8px;
-    border-bottom: 3px solid var(--emerald);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .section-title .num {
-    background: var(--emerald);
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
-
-  /* Tables */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-    background: var(--bg-card);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    margin-bottom: 24px;
-  }
-  .data-table th {
-    background: var(--indigo);
-    color: white;
-    padding: 12px 16px;
-    text-align: left;
-    font-weight: 600;
-  }
-  .data-table td {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  .data-table tr:nth-child(even) { background: #f8fffe; }
-  .data-table tr:last-child td { border-bottom: none; }
-
-  /* Checklist */
-  .checklist {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    margin-bottom: 24px;
-  }
-  .check-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.9rem;
-  }
-  .check-item:last-child { border-bottom: none; }
-  .check-icon {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-  .check-icon.todo { background: #fef3c7; color: #92400e; }
-  .check-icon.done { background: #dcfce7; color: #166534; }
-  .check-icon.warn { background: #fee2e2; color: #991b1b; }
-  .check-item .desc { flex: 1; }
-  .check-item .impl { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
-
-  /* Data Flow */
-  .flow-box {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 28px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    margin-bottom: 24px;
-  }
-  .flow-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 16px;
-    position: relative;
-    padding-left: 24px;
-  }
-  .flow-step::before {
-    content: '';
-    position: absolute;
-    left: 8px;
-    top: 28px;
-    bottom: -16px;
-    width: 2px;
-    background: var(--border);
-  }
-  .flow-step:last-child::before { display: none; }
-  .flow-dot {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--emerald);
-    flex-shrink: 0;
-    position: absolute;
-    left: 0;
-    top: 4px;
-  }
-  .flow-step .flow-label { font-weight: 700; font-size: 0.9rem; }
-  .flow-step .flow-basis {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-left: 8px;
-  }
-  .basis-contract { background: #dbeafe; color: #1e40af; }
-  .basis-consent { background: #fce7f3; color: #9d174d; }
-  .basis-legit { background: #f3e8ff; color: #6b21a8; }
-
-  /* Retention Cards */
-  .retention-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .retention-card {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border-top: 4px solid var(--emerald);
-  }
-  .retention-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
-  .retention-card .period { font-size: 1.2rem; font-weight: 800; color: var(--emerald-dark); }
-  .retention-card .after { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
-
-  /* Passport Security */
-  .passport-section {
-    background: linear-gradient(135deg, #fef2f2, #fff1f2);
-    border: 2px solid var(--red);
-    border-radius: 16px;
-    padding: 28px;
-    margin-bottom: 24px;
-  }
-  .passport-section h3 {
-    color: var(--red);
-    font-size: 1.1rem;
-    margin-bottom: 16px;
-  }
-  .security-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    font-size: 0.9rem;
-  }
-  .security-icon {
-    width: 32px;
-    height: 32px;
-    background: #fee2e2;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
-
-  /* Priority Cards */
-  .priority-grid {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .priority-item {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 14px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .priority-badge {
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .priority-badge.critical { background: #fee2e2; color: #991b1b; }
-  .priority-badge.high { background: #fef3c7; color: #92400e; }
-  .priority-badge.medium { background: #dcfce7; color: #166534; }
-  .priority-badge.low { background: #f1f5f9; color: #475569; }
-  .priority-badge.done { background: #dcfce7; color: #166534; }
-  .priority-item .title { font-weight: 600; font-size: 0.9rem; }
-  .priority-item .when { font-size: 0.8rem; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
-
-  /* Code Block */
-  .code-block {
-    background: #0f172a;
-    color: #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.8rem;
-    line-height: 1.6;
-    overflow-x: auto;
-    margin-bottom: 24px;
-  }
-  .code-block .comment { color: #94a3b8; }
-  .code-block .key { color: #67e8f9; }
-  .code-block .string { color: #86efac; }
-
-  /* Summary */
-  .summary-box {
-    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-    border: 2px solid var(--emerald);
-    border-radius: 20px;
-    padding: 32px;
-    margin-top: 40px;
-  }
-  .summary-box h2 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--emerald-dark);
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  .status-grid {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 8px 12px;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-  }
-  .status-grid .icon { text-align: center; }
-
-  .risk-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-    background: var(--bg-card);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-top: 16px;
-  }
-  .risk-table th {
-    background: var(--emerald-dark);
-    color: white;
-    padding: 10px 14px;
-    text-align: left;
-    font-weight: 600;
-  }
-  .risk-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
-  .risk-table tr:nth-child(even) { background: #f8fffe; }
-
-  /* Footer */
-  .footer {
-    text-align: center;
-    padding: 40px 24px;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-
-  @media (max-width: 768px) {
-    .header h1 { font-size: 1.8rem; }
-    .law-grid { grid-template-columns: 1fr; }
-    .retention-grid { grid-template-columns: 1fr; }
-    .container { padding: 20px 16px; }
-    .priority-item { flex-wrap: wrap; }
-    .priority-item .when { margin-left: 0; }
-  }
+:root {
+  --primary: #1978e5;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --on-surface: #191c20;
+  --on-surface-variant: #44474e;
+  --outline: #74777f;
+  --outline-variant: #c4c6d0;
+  --surface-container: #f2f3fd;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--on-surface);
+  background: var(--surface-container);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-light);
+}
+h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+li { margin-bottom: 4px; }
+strong { color: var(--on-surface); font-weight: 600; }
+blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 16px 20px;
+  border-radius: 0 12px 12px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+blockquote p { color: var(--on-surface-variant); margin: 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  background: var(--surface-container);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--on-surface-variant);
+  vertical-align: top;
+}
+tr:hover td { background: #fafbff; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-container);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 20px 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 12px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 32px 0;
+  opacity: 0.3;
+}
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--outline);
+}
+input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--primary);
+}
+@media (max-width: 768px) {
+  .card { padding: 24px; border-radius: 16px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+}
 </style>
 </head>
 <body>
-
-<!-- Header -->
-<div class="header">
-  <h1>Legal & Compliance</h1>
-  <div class="subtitle">NatGan (นัดกัน) — กฎหมาย PDPA, Terms, Privacy, LINE Platform</div>
-  <div class="meta">
-    <span>v1.0</span>
-    <span>17 March 2026</span>
-    <span>Draft</span>
-  </div>
-</div>
-
 <div class="container">
-
-  <!-- Section 1: Law Overview -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">1</span> กฎหมายที่เกี่ยวข้อง</h2>
-
-    <div class="law-grid">
-      <div class="law-card">
-        <div class="abbr">PDPA</div>
-        <h3>พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล 2562</h3>
-        <p>เก็บ/ใช้/เปิดเผยข้อมูลส่วนบุคคลของลูกทริป</p>
-      </div>
-      <div class="law-card">
-        <div class="abbr">ETA</div>
-        <h3>พ.ร.บ. ธุรกรรมอิเล็กทรอนิกส์ 2544</h3>
-        <p>สัญญา SaaS ทางอิเล็กทรอนิกส์</p>
-      </div>
-      <div class="law-card">
-        <div class="abbr">CCA</div>
-        <h3>พ.ร.บ. การกระทำความผิดเกี่ยวกับคอมพิวเตอร์ 2550</h3>
-        <p>ความปลอดภัยของระบบ, การเข้าถึงข้อมูล</p>
-      </div>
-      <div class="law-card" style="border-left-color: #22c55e;">
-        <div class="abbr" style="color: #22c55e;">LINE</div>
-        <h3>LINE Platform Terms</h3>
-        <p>ข้อกำหนดการใช้ LINE Messaging API</p>
-      </div>
-      <div class="law-card" style="border-left-color: #7c3aed;">
-        <div class="abbr" style="color: #7c3aed;">VPS</div>
-        <h3>VPS Provider Terms of Service</h3>
-        <p>การเก็บข้อมูลบน PostgreSQL (Docker) บน VPS — DC ในไทย</p>
-      </div>
-      <div class="law-card" style="border-left-color: #1e293b;">
-        <div class="abbr" style="color: #1e293b;">VERCEL</div>
-        <h3>Vercel Terms of Service</h3>
-        <p>Deploy, bandwidth, CDN</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 2: PDPA -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">2</span> PDPA Compliance</h2>
-
-    <h3 style="font-weight: 700; margin-bottom: 12px;">ข้อมูลส่วนบุคคลที่ NatGan เก็บ</h3>
-
-    <table class="data-table">
-      <thead>
-        <tr><th>ข้อมูล</th><th>เจ้าของ</th><th>ฐานกฎหมาย</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>ชื่อ-นามสกุล</td><td>Admin, Guest</td><td><span class="flow-basis basis-contract">Contract</span></td></tr>
-        <tr><td>อีเมล</td><td>Admin</td><td><span class="flow-basis basis-contract">Contract</span></td></tr>
-        <tr><td>เบอร์โทรศัพท์</td><td>Admin</td><td><span class="flow-basis basis-contract">Contract</span></td></tr>
-        <tr><td>LINE User ID</td><td>Follower</td><td><span class="flow-basis basis-consent">Consent</span></td></tr>
-        <tr><td><strong>หมายเลข Passport</strong></td><td>Guest</td><td><span class="flow-basis basis-consent">Consent</span></td></tr>
-        <tr><td>ข้อมูล airline / ที่พัก</td><td>Trip</td><td><span class="flow-basis basis-contract">Contract</span></td></tr>
-        <tr><td>IP Address / Device</td><td>Visitor</td><td><span class="flow-basis basis-legit">Legitimate Interest</span></td></tr>
-        <tr><td>Cookie / Session</td><td>Admin</td><td><span class="flow-basis basis-legit">Legitimate Interest</span></td></tr>
-      </tbody>
-    </table>
-
-    <h3 style="font-weight: 700; margin-bottom: 12px;">PDPA Compliance Checklist</h3>
-
-    <div class="checklist">
-      <div class="check-item">
-        <span class="check-icon todo">1</span>
-        <div>
-          <div class="desc"><strong>Privacy Policy</strong> (นโยบายความเป็นส่วนตัว)</div>
-          <div class="impl">หน้า /privacy — ภาษาไทย + อังกฤษ</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">2</span>
-        <div>
-          <div class="desc"><strong>Consent Management</strong></div>
-          <div class="impl">Cookie banner + LINE follow consent</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">3</span>
-        <div>
-          <div class="desc"><strong>Data Processing Agreement (DPA)</strong></div>
-          <div class="impl">ระหว่าง NatGan (Processor) กับบริษัททัวร์ (Controller)</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">4</span>
-        <div>
-          <div class="desc"><strong>Right to Access / Erasure / Portability</strong></div>
-          <div class="impl">API endpoints + soft delete → hard delete 30 วัน + export JSON/PDF</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">5</span>
-        <div>
-          <div class="desc"><strong>Data Breach Notification</strong></div>
-          <div class="impl">แจ้ง สคส. ภายใน 72 ชม. + แจ้งเจ้าของข้อมูลทันที</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">6</span>
-        <div>
-          <div class="desc"><strong>ROPA (Record of Processing Activities)</strong></div>
-          <div class="impl">เอกสาร internal บันทึกการประมวลผลข้อมูล</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon done">✓</span>
-        <div>
-          <div class="desc"><strong>Cross-border Transfer</strong> — ไม่จำเป็น!</div>
-          <div class="impl">VPS สามารถเลือก DC ในไทยได้ → ไม่มี cross-border transfer — ข้อดีสำคัญสำหรับ PDPA</div>
-        </div>
-      </div>
-    </div>
-
-    <h3 style="font-weight: 700; margin-bottom: 12px;">Data Flow & PDPA Mapping</h3>
-
-    <div class="flow-box">
-      <div class="flow-step">
-        <div class="flow-dot"></div>
-        <div>
-          <div class="flow-label">บริษัททัวร์สร้างทริป <span class="flow-basis basis-contract">Contract</span></div>
-          <div class="impl">NatGan เก็บข้อมูลทริป — เป็นส่วนหนึ่งของสัญญาบริการ</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot"></div>
-        <div>
-          <div class="flow-label">ลูกทริปดู Guest View <span class="flow-basis basis-legit">Legitimate Interest</span></div>
-          <div class="impl">NatGan เก็บ IP, device — เพื่อปรับปรุงบริการ</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: #ec4899;"></div>
-        <div>
-          <div class="flow-label">ลูกทริปกด Follow (LINE) <span class="flow-basis basis-consent">Consent</span></div>
-          <div class="impl">"อนุญาตให้ NatGan ส่งแจ้งเตือนผ่าน LINE เมื่อ itinerary เปลี่ยนแปลง"</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--red);"></div>
-        <div>
-          <div class="flow-label">ลูกทริปกรอก Immigration <span class="flow-basis basis-consent">Consent</span></div>
-          <div class="impl">"อนุญาตให้เก็บข้อมูลหนังสือเดินทางชั่วคราว สำหรับแสดงที่ ตม. เท่านั้น — ลบอัตโนมัติ 7 วันหลังทริปจบ"</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 3: Data Retention -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">3</span> Data Retention Policy</h2>
-
-    <div class="retention-grid">
-      <div class="retention-card">
-        <h4>Trip Data</h4>
-        <div class="period">ทริปจบ + 90 วัน</div>
-        <div class="after">Soft delete → Hard delete 30 วัน</div>
-      </div>
-      <div class="retention-card" style="border-top-color: var(--red);">
-        <h4>Immigration (Passport)</h4>
-        <div class="period" style="color: var(--red);">ทริปจบ + 7 วัน</div>
-        <div class="after">Auto hard delete ทันที</div>
-      </div>
-      <div class="retention-card">
-        <h4>LINE User ID</h4>
-        <div class="period">จนกว่า Unfollow</div>
-        <div class="after">Delete เมื่อ unfollow</div>
-      </div>
-      <div class="retention-card">
-        <h4>Admin Account</h4>
-        <div class="period">จนกว่าลบ Account</div>
-        <div class="after">Soft delete → Hard delete 30 วัน</div>
-      </div>
-      <div class="retention-card">
-        <h4>Access Logs</h4>
-        <div class="period">90 วัน</div>
-        <div class="after">Auto delete</div>
-      </div>
-      <div class="retention-card">
-        <h4>Change Logs</h4>
-        <div class="period">ทริปจบ + 90 วัน</div>
-        <div class="after">Delete พร้อม trip data</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 4: Passport Security -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">4</span> Immigration View — Security พิเศษ</h2>
-
-    <div class="passport-section">
-      <h3>Passport Data — High Sensitivity</h3>
-      <div class="security-item"><div class="security-icon">🔐</div><div><strong>แยกเก็บ</strong> — passport_number เก็บใน column แยก ไม่รวมกับ JSONB</div></div>
-      <div class="security-item"><div class="security-icon">⏰</div><div><strong>Auto-delete 7 วัน</strong> — ลบอัตโนมัติหลังทริปจบ ด้วย cron job</div></div>
-      <div class="security-item"><div class="security-icon">🔒</div><div><strong>Access Control</strong> — เฉพาะ admin + เจ้าของ passport เท่านั้นเห็น</div></div>
-      <div class="security-item"><div class="security-icon">🚫</div><div><strong>ไม่แคช</strong> — ไม่เก็บใน CDN cache / service worker cache</div></div>
-      <div class="security-item"><div class="security-icon">📋</div><div><strong>Audit Log</strong> — บันทึกทุกครั้งที่มีคนเข้าดู Immigration View</div></div>
-      <div class="security-item"><div class="security-icon">📱</div><div><strong>QR Code only</strong> — ไม่แสดง passport ใน Guest View ปกติ ต้องกด QR เฉพาะ</div></div>
-    </div>
-
-    <div class="flow-box">
-      <h3 style="font-weight: 700; margin-bottom: 16px;">Consent Flow สำหรับ Immigration</h3>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--indigo);"></div>
-        <div>
-          <div class="flow-label">Admin กรอก passport info</div>
-          <div class="impl">อาศัย contract basis — Admin มีข้อมูล passengers อยู่แล้ว</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: #ec4899;"></div>
-        <div>
-          <div class="flow-label">Guest กรอกเอง → แสดง Consent Popup</div>
-          <div class="impl" style="background: #fef2f2; padding: 12px; border-radius: 8px; margin-top: 8px; border: 1px solid #fca5a5;">
-            "ข้อมูลหนังสือเดินทางจะถูกเก็บชั่วคราว เพื่อแสดงที่ ตม. เท่านั้น จะถูกลบอัตโนมัติ 7 วันหลังทริปจบ"<br>
-            <strong style="color: var(--emerald);">[ ยินยอม ]</strong> &nbsp; <span style="color: var(--text-muted);">[ ไม่ยินยอม ]</span>
-          </div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--emerald);"></div>
-        <div>
-          <div class="flow-label">บันทึก consent timestamp + version</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 5: LINE Compliance -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">5</span> LINE Platform Compliance</h2>
-
-    <div class="checklist">
-      <div class="check-item">
-        <span class="check-icon todo">1</span>
-        <div>
-          <div class="desc"><strong>LINE Official Account</strong> — สร้าง LINE OA "NatGan นัดกัน"</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">2</span>
-        <div>
-          <div class="desc"><strong>Messaging API Channel</strong> — สร้างใน LINE Developers Console</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">3</span>
-        <div>
-          <div class="desc"><strong>Webhook URL</strong> → <code>https://natgan.com/api/line/webhook</code></div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon todo">4</span>
-        <div>
-          <div class="desc"><strong>Signature Validation</strong> — validate ทุก webhook request</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon done">✓</span>
-        <div>
-          <div class="desc"><strong>Message Content</strong> — NatGan ส่งเฉพาะ trip update, ไม่ spam</div>
-        </div>
-      </div>
-      <div class="check-item">
-        <span class="check-icon done">✓</span>
-        <div>
-          <div class="desc"><strong>Communication Plan</strong> — ฟรี 500 msg/เดือน เพียงพอสำหรับ MVP</div>
-        </div>
-      </div>
-    </div>
-
-    <h3 style="font-weight: 700; margin: 16px 0 12px;">LINE Flex Message Template — Trip Update</h3>
-
-    <div class="code-block">
-      <span class="comment">// Flex Message — ส่งเมื่อ itinerary เปลี่ยนแปลง</span><br>
-      {<br>
-      &nbsp;&nbsp;<span class="key">"type"</span>: <span class="string">"flex"</span>,<br>
-      &nbsp;&nbsp;<span class="key">"altText"</span>: <span class="string">"ทริปโตเกียว — มีการเปลี่ยนแปลง"</span>,<br>
-      &nbsp;&nbsp;<span class="key">"contents"</span>: {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"type"</span>: <span class="string">"bubble"</span>,<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"header"</span>: { <span class="comment">// ชื่อทริป</span> },<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"body"</span>: { <span class="comment">// Day + รายละเอียดที่เปลี่ยน</span> },<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"footer"</span>: {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// ปุ่ม "ดูรายละเอียด" (URI action)</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// ปุ่ม "✅ รับทราบ" (Postback action)</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-      &nbsp;&nbsp;}<br>
-      }
-    </div>
-  </div>
-
-  <!-- Section 6: Security -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">6</span> Security Measures</h2>
-
-    <table class="data-table">
-      <thead>
-        <tr><th>Layer</th><th>Measure</th><th>Implementation</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Authentication</td><td>Auth.js + JWT</td><td>httpOnly cookie, auto-refresh</td></tr>
-        <tr><td>Authorization</td><td>App-level authorization</td><td>Drizzle middleware</td></tr>
-        <tr><td>Transport</td><td>TLS 1.2+</td><td>Vercel automatic HTTPS</td></tr>
-        <tr><td>Data at Rest</td><td>AES-256</td><td>PostgreSQL + disk encryption on VPS</td></tr>
-        <tr><td>Input Validation</td><td>Zod schema</td><td>ทุก API endpoint</td></tr>
-        <tr><td>XSS Prevention</td><td>React auto-escape + CSP</td><td>Next.js default protection</td></tr>
-        <tr><td>CSRF Protection</td><td>SameSite cookie</td><td>Auth.js default</td></tr>
-        <tr><td>Rate Limiting</td><td>Edge middleware</td><td>100 req/min per IP</td></tr>
-        <tr><td><strong>Passport Data</strong></td><td>แยกเก็บ + auto-delete</td><td>Separate column + cron 7 วัน</td></tr>
-      </tbody>
-    </table>
-
-    <h3 style="font-weight: 700; margin: 16px 0 12px;">Incident Response Flow</h3>
-
-    <div class="flow-box">
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--amber);"></div>
-        <div><div class="flow-label">1. ตรวจพบเหตุการณ์ (Detection)</div></div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--amber);"></div>
-        <div>
-          <div class="flow-label">2. ประเมินระดับความรุนแรง</div>
-          <div class="impl">Low: ไม่มีข้อมูลรั่ว → แก้ไข + บันทึก | Medium: อาจมี → สืบสวน | High: ข้อมูลรั่วจริง → ไปข้อ 3</div>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--red);"></div>
-        <div><div class="flow-label" style="color: var(--red);">3. แจ้ง สคส. ภายใน 72 ชม. (PDPA Section 37(4))</div></div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--red);"></div>
-        <div><div class="flow-label" style="color: var(--red);">4. แจ้งเจ้าของข้อมูลทันที (ถ้าผลกระทบสูง)</div></div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--emerald);"></div>
-        <div><div class="flow-label">5. แก้ไข + ป้องกัน (Remediation)</div></div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-dot" style="background: var(--emerald);"></div>
-        <div><div class="flow-label">6. Post-mortem + อัพเดท security measures</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 7: MVP Priority -->
-  <div class="section">
-    <h2 class="section-title"><span class="num">7</span> MVP Compliance Priority</h2>
-
-    <h3 style="font-weight: 700; margin-bottom: 12px; color: var(--red);">ต้องทำก่อน Launch</h3>
-
-    <div class="priority-grid">
-      <div class="priority-item">
-        <span class="priority-badge critical">CRITICAL</span>
-        <span class="title">Privacy Policy หน้าเว็บ (ไทย + EN)</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge critical">CRITICAL</span>
-        <span class="title">Terms of Service หน้าเว็บ</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge critical">CRITICAL</span>
-        <span class="title">LINE OA + Messaging API setup</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge critical">CRITICAL</span>
-        <span class="title">Passport data consent popup</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge critical">CRITICAL</span>
-        <span class="title">Passport auto-delete (7 วัน cron)</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge critical">CRITICAL</span>
-        <span class="title">App-level authorization (Drizzle middleware)</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge high">HIGH</span>
-        <span class="title">Cookie consent banner</span>
-        <span class="when">ก่อน launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge done">AUTO</span>
-        <span class="title">HTTPS everywhere</span>
-        <span class="when">Vercel ทำให้</span>
-      </div>
-    </div>
-
-    <h3 style="font-weight: 700; margin: 24px 0 12px;">Phase 2 (หลัง Launch)</h3>
-
-    <div class="priority-grid">
-      <div class="priority-item">
-        <span class="priority-badge high">HIGH</span>
-        <span class="title">จดทะเบียนบริษัท</span>
-        <span class="when">ก่อน Pro tier</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge high">HIGH</span>
-        <span class="title">DPA กับบริษัททัวร์ pilot</span>
-        <span class="when">เมื่อ pilot เริ่ม</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge high">HIGH</span>
-        <span class="title">ROPA (Record of Processing)</span>
-        <span class="when">3 เดือนหลัง launch</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge medium">MEDIUM</span>
-        <span class="title">Data export (Right to Portability)</span>
-        <span class="when">Phase 2</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge medium">MEDIUM</span>
-        <span class="title">จดเครื่องหมายการค้า NatGan</span>
-        <span class="when">6 เดือน</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge medium">MEDIUM</span>
-        <span class="title">Incident Response Plan (formal)</span>
-        <span class="when">ก่อน Pro tier</span>
-      </div>
-      <div class="priority-item">
-        <span class="priority-badge low">LOW</span>
-        <span class="title">ใบกำกับภาษี / VAT</span>
-        <span class="when">รายได้ถึง 1.8M/ปี</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Summary -->
-  <div class="summary-box">
-    <h2>NatGan Legal Status</h2>
-
-    <div class="status-grid">
-      <div class="icon">✅</div><div>ไม่มี sensitive data ตาม PDPA (ศาสนา, เชื้อชาติ, สุขภาพ)</div>
-      <div class="icon">✅</div><div>ไม่มี payment processing ใน MVP — ไม่ต้อง PCI-DSS</div>
-      <div class="icon">✅</div><div>ไม่มี health data — ไม่ต้อง HIPAA-equivalent</div>
-      <div class="icon">⚠️</div><div>มี passport data — ต้อง auto-delete + consent + audit log</div>
-      <div class="icon">✅</div><div>VPS DC ในไทย → ไม่มี cross-border transfer — ข้อดีสำคัญสำหรับ PDPA</div>
-      <div class="icon">⚠️</div><div>LINE Messaging API — ปฏิบัติตาม LINE Platform Terms</div>
-    </div>
-
-    <table class="risk-table">
-      <thead><tr><th>ความเสี่ยง</th><th>ระดับ</th><th>แผนรับมือ</th></tr></thead>
-      <tbody>
-        <tr><td>PDPA ถูกร้องเรียน</td><td><span class="priority-badge medium" style="font-size: 0.7rem;">ต่ำ</span></td><td>Privacy Policy + Consent + Right to Delete</td></tr>
-        <tr><td>Passport data breach</td><td><span class="priority-badge high" style="font-size: 0.7rem;">กลาง</span></td><td>Auto-delete 7 วัน + เก็บแยก + audit log</td></tr>
-        <tr><td>LINE ban (spam)</td><td><span class="priority-badge medium" style="font-size: 0.7rem;">ต่ำ</span></td><td>ส่งเฉพาะ trip update ตาม LINE Terms</td></tr>
-        <tr><td>บริษัททัวร์ใช้ผิดวัตถุประสงค์</td><td><span class="priority-badge high" style="font-size: 0.7rem;">กลาง</span></td><td>ToS ระบุชัด + สิทธิ์ระงับบัญชี</td></tr>
-      </tbody>
-    </table>
-  </div>
-
+<div class="card">
+<h1 id="legal-compliance">Legal &amp; Compliance</h1>
+<h1 id="platform-name-v1.0">[Platform Name] — v1.0</h1>
+<p><strong>Version:</strong> 1.0 <strong>Date:</strong> 17 March 2026
+<strong>Status:</strong> Draft</p>
+<hr />
+<h2 id="ภาพรวมกฎหมายทเกยวของ">1. ภาพรวมกฎหมายที่เกี่ยวข้อง</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>กฎหมาย</th>
+<th>ย่อ</th>
+<th>เกี่ยวข้องอย่างไร</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</strong></td>
+<td>PDPA</td>
+<td>เก็บ/ใช้/เปิดเผยข้อมูลส่วนบุคคลของลูกทริป</td>
+</tr>
+<tr>
+<td><strong>พ.ร.บ. ว่าด้วยธุรกรรมทางอิเล็กทรอนิกส์ พ.ศ. 2544</strong></td>
+<td>ETA</td>
+<td>สัญญา SaaS ทางอิเล็กทรอนิกส์</td>
+</tr>
+<tr>
+<td><strong>พ.ร.บ. ว่าด้วยการกระทำความผิดเกี่ยวกับคอมพิวเตอร์ พ.ศ.
+2550</strong></td>
+<td>CCA</td>
+<td>ความปลอดภัยของระบบ, การเข้าถึงข้อมูล</td>
+</tr>
+<tr>
+<td><strong>LINE Platform Terms</strong></td>
+<td>—</td>
+<td>การใช้ LINE Messaging API ต้องปฏิบัติตามข้อกำหนด LINE</td>
+</tr>
+<tr>
+<td><strong>VPS Provider Terms of Service</strong></td>
+<td>—</td>
+<td>การเก็บข้อมูลบน PostgreSQL (Docker) บน VPS</td>
+</tr>
+<tr>
+<td><strong>Vercel Terms of Service</strong></td>
+<td>—</td>
+<td>การ deploy และ bandwidth</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="pdpa-compliance-checklist">2. PDPA Compliance — Checklist</h2>
+<h3 id="ขอมลสวนบคคลท-platform-เกบ">2.1 ข้อมูลส่วนบุคคลที่ [Platform] เก็บ</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>ข้อมูล</th>
+<th>ประเภท</th>
+<th>เจ้าของข้อมูล</th>
+<th>ฐานกฎหมาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ชื่อ-นามสกุล</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Admin, Guest (follower)</td>
+<td>สัญญา (Contract)</td>
+</tr>
+<tr>
+<td>อีเมล</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Admin</td>
+<td>สัญญา (Contract)</td>
+</tr>
+<tr>
+<td>เบอร์โทรศัพท์</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Admin</td>
+<td>สัญญา (Contract)</td>
+</tr>
+<tr>
+<td>LINE User ID</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Follower</td>
+<td>ความยินยอม (Consent)</td>
+</tr>
+<tr>
+<td>หมายเลขหนังสือเดินทาง</td>
+<td>ข้อมูลทั่วไป*</td>
+<td>Guest (Immigration View)</td>
+<td>ความยินยอม (Consent)</td>
+</tr>
+<tr>
+<td>ข้อมูล airline (เที่ยวบิน)</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Trip</td>
+<td>สัญญา (Contract)</td>
+</tr>
+<tr>
+<td>ข้อมูลที่พัก</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Trip</td>
+<td>สัญญา (Contract)</td>
+</tr>
+<tr>
+<td>IP Address / Device info</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Visitor</td>
+<td>ประโยชน์โดยชอบธรรม (Legitimate Interest)</td>
+</tr>
+<tr>
+<td>Cookie / Session</td>
+<td>ข้อมูลทั่วไป</td>
+<td>Admin</td>
+<td>ประโยชน์โดยชอบธรรม (Legitimate Interest)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>*หมายเลขหนังสือเดินทาง — แม้เป็น “ข้อมูลทั่วไป” ตาม PDPA แต่เป็นข้อมูล sensitive
+ในทางปฏิบัติ ต้องมี security measures เพิ่มเติม</p>
+</blockquote>
+<h3 id="pdpa-compliance-checklist-1">2.2 PDPA Compliance Checklist</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>ข้อกำหนด</th>
+<th>สถานะ</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Privacy Policy (นโยบายความเป็นส่วนตัว)</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>หน้า <code>/privacy</code> — ภาษาไทย + อังกฤษ</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Consent Management</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>Cookie banner + LINE follow consent</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Data Processing Agreement (DPA)</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>ระหว่าง [Platform] กับบริษัททัวร์ (Data Controller = บริษัททัวร์, Data
+Processor = [Platform])</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Right to Access</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>API endpoint ให้ user ดูข้อมูลตัวเอง</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Right to Erasure (ลบข้อมูล)</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>Soft delete + hard delete after 30 days</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Right to Portability</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>Export trip data เป็น JSON/PDF</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Data Breach Notification</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>แจ้ง สคส. ภายใน 72 ชม. + แจ้งเจ้าของข้อมูลทันที</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Record of Processing Activities (ROPA)</strong></td>
+<td>🔲 ต้องทำ</td>
+<td>เอกสาร internal บันทึกการประมวลผลข้อมูล</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>DPO (เจ้าหน้าที่คุ้มครองข้อมูล)</strong></td>
+<td>⚠️ อาจยังไม่จำเป็น</td>
+<td>SME startup อาจยังไม่ต้องแต่งตั้ง DPO — แต่ต้องมีคนรับผิดชอบ</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Cross-border Transfer</strong></td>
+<td>✅ ไม่จำเป็น</td>
+<td>VPS สามารถเลือก DC ในไทยได้ → ไม่มี cross-border transfer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="data-flow-pdpa-mapping">2.3 Data Flow &amp; PDPA Mapping</h3>
+<pre><code>บริษัททัวร์ (Data Controller)
+     │
+     ├── สร้างทริป → [Platform] เก็บข้อมูลทริป (Contract basis)
+     │
+     ├── ลูกทริปดู Guest View → [Platform] เก็บ IP, device (Legitimate Interest)
+     │
+     ├── ลูกทริปกด Follow (LINE) → [Platform] เก็บ LINE User ID (Consent)
+     │     └── Consent text: &quot;อนุญาตให้ [Platform] ส่งแจ้งเตือนผ่าน LINE เมื่อ itinerary เปลี่ยนแปลง&quot;
+     │
+     └── ลูกทริปกรอก Immigration → [Platform] เก็บ passport info (Consent)
+           └── Consent text: &quot;อนุญาตให้เก็บข้อมูลหนังสือเดินทางชั่วคราว สำหรับแสดงที่ ตม. เท่านั้น&quot;</code></pre>
+<h3 id="data-retention-policy">2.4 Data Retention Policy</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ข้อมูล</th>
+<th>ระยะเวลาเก็บ</th>
+<th>หลังหมดอายุ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trip data (itinerary, activities)</td>
+<td>ทริปจบ + 90 วัน</td>
+<td>Soft delete → Hard delete 30 วัน</td>
+</tr>
+<tr>
+<td>Immigration data (passport)</td>
+<td>ทริปจบ + 7 วัน</td>
+<td>Auto hard delete</td>
+</tr>
+<tr>
+<td>LINE User ID (follower)</td>
+<td>จนกว่า user unfollow</td>
+<td>Delete เมื่อ unfollow</td>
+</tr>
+<tr>
+<td>Admin account data</td>
+<td>จนกว่าลบ account</td>
+<td>Soft delete → Hard delete 30 วัน</td>
+</tr>
+<tr>
+<td>Access logs (IP, device)</td>
+<td>90 วัน</td>
+<td>Auto delete</td>
+</tr>
+<tr>
+<td>Change logs</td>
+<td>ทริปจบ + 90 วัน</td>
+<td>Delete พร้อม trip data</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="privacy-policy-โครงสราง">3. Privacy Policy — โครงสร้าง</h2>
+<p>นโยบายความเป็นส่วนตัวต้องมีหัวข้อต่อไปนี้:</p>
+<h3 id="privacy-policy-outline-ภาษาไทย">3.1 Privacy Policy Outline
+(ภาษาไทย)</h3>
+<ol type="1">
+<li><strong>ผู้ควบคุมข้อมูล</strong> — บริษัท [Platform] / ที่อยู่ /
+ช่องทางติดต่อ</li>
+<li><strong>ข้อมูลที่เราเก็บรวบรวม</strong> — ตามตาราง 2.1</li>
+<li><strong>วัตถุประสงค์ในการเก็บข้อมูล</strong>
+<ul>
+<li>ให้บริการแพลตฟอร์ม [Platform]</li>
+<li>ส่งแจ้งเตือนเมื่อ itinerary เปลี่ยนแปลง</li>
+<li>แสดงข้อมูลสำหรับ ตม. (Immigration View)</li>
+<li>ปรับปรุงบริการ</li>
+</ul></li>
+<li><strong>ฐานกฎหมาย</strong> — Contract, Consent, Legitimate
+Interest</li>
+<li><strong>การเปิดเผยข้อมูล</strong>
+<ul>
+<li>LINE Corporation (ส่งข้อความผ่าน Messaging API)</li>
+<li>PostgreSQL on VPS (เก็บข้อมูล)</li>
+<li>Vercel (hosting)</li>
+</ul></li>
+<li><strong>การโอนข้อมูลไปต่างประเทศ</strong> — VPS DC ในไทย → ไม่มี
+cross-border transfer สำหรับ DB, Global CDN (Vercel)</li>
+<li><strong>ระยะเวลาเก็บข้อมูล</strong> — ตาม Data Retention Policy</li>
+<li><strong>สิทธิของเจ้าของข้อมูล</strong>
+<ul>
+<li>สิทธิในการเข้าถึง</li>
+<li>สิทธิในการแก้ไข</li>
+<li>สิทธิในการลบ</li>
+<li>สิทธิในการโอนย้าย</li>
+<li>สิทธิในการเพิกถอนความยินยอม</li>
+<li>สิทธิในการคัดค้าน</li>
+<li>สิทธิในการร้องเรียน (ต่อ สคส.)</li>
+</ul></li>
+<li><strong>Cookie Policy</strong></li>
+<li><strong>การรักษาความปลอดภัย</strong></li>
+<li><strong>การเปลี่ยนแปลงนโยบาย</strong></li>
+<li><strong>ช่องทางติดต่อ</strong> — DPO / ผู้รับผิดชอบ</li>
+</ol>
+<h3 id="cookie-policy">3.2 Cookie Policy</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cookie</th>
+<th>ประเภท</th>
+<th>วัตถุประสงค์</th>
+<th>อายุ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>next-auth.session-token</code></td>
+<td>จำเป็น (Essential)</td>
+<td>Auth.js session</td>
+<td>Session</td>
+</tr>
+<tr>
+<td><code>tripapp-theme</code></td>
+<td>Functional</td>
+<td>ธีมสี (บริษัททัวร์)</td>
+<td>1 ปี</td>
+</tr>
+<tr>
+<td><code>tripapp-lang</code></td>
+<td>Functional</td>
+<td>ภาษา</td>
+<td>1 ปี</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>ไม่มี Analytics cookie / Advertising cookie ใน MVP</strong> —
+ถ้าเพิ่มในอนาคตต้อง update consent</p>
+</blockquote>
+<hr />
+<h2 id="terms-of-service-โครงสราง">4. Terms of Service — โครงสร้าง</h2>
+<h3 id="terms-of-service-outline">4.1 Terms of Service Outline</h3>
+<ol type="1">
+<li><strong>คำจำกัดความ</strong>
+<ul>
+<li>“บริการ” = แพลตฟอร์ม [Platform]</li>
+<li>“ผู้ใช้” = บริษัททัวร์ (Admin)</li>
+<li>“ผู้เยี่ยมชม” = ลูกทริป (Guest)</li>
+</ul></li>
+<li><strong>ขอบเขตบริการ</strong>
+<ul>
+<li>สร้างและจัดการ trip itinerary</li>
+<li>ส่ง notification เมื่อ itinerary เปลี่ยนแปลง</li>
+<li>แสดงข้อมูลสำหรับ Immigration</li>
+</ul></li>
+<li><strong>การลงทะเบียนและบัญชี</strong>
+<ul>
+<li>Admin ต้องให้ข้อมูลที่ถูกต้อง</li>
+<li>รับผิดชอบรหัสผ่านของตน</li>
+</ul></li>
+<li><strong>แผนบริการและการชำระเงิน</strong> (Phase 2)
+<ul>
+<li>Free tier: X ทริป/เดือน</li>
+<li>Pro tier: 299 บ/เดือน</li>
+</ul></li>
+<li><strong>ข้อจำกัดการใช้งาน</strong>
+<ul>
+<li>ห้ามใช้เพื่อวัตถุประสงค์ผิดกฎหมาย</li>
+<li>ห้าม spam ผ่านระบบ notification</li>
+<li>ห้ามอัพโหลดเนื้อหาที่ผิดกฎหมาย</li>
+</ul></li>
+<li><strong>ทรัพย์สินทางปัญญา</strong>
+<ul>
+<li>[Platform] เป็นเจ้าของแพลตฟอร์ม</li>
+<li>ข้อมูลทริปเป็นของบริษัททัวร์</li>
+</ul></li>
+<li><strong>การจำกัดความรับผิด</strong>
+<ul>
+<li>[Platform] ไม่รับผิดชอบข้อมูลทริปที่ไม่ถูกต้อง (บริษัททัวร์เป็นผู้ใส่)</li>
+<li>[Platform] ไม่รับผิดชอบ LINE service outage</li>
+<li>SLA ของ Free tier = best effort</li>
+</ul></li>
+<li><strong>การระงับและยกเลิกบัญชี</strong></li>
+<li><strong>การเปลี่ยนแปลงข้อกำหนด</strong></li>
+<li><strong>กฎหมายที่ใช้บังคับ</strong> — กฎหมายไทย, ศาลไทย</li>
+<li><strong>ช่องทางติดต่อ</strong></li>
+</ol>
+<hr />
+<h2 id="line-platform-compliance">5. LINE Platform Compliance</h2>
+<h3 id="line-messaging-api-terms">5.1 LINE Messaging API Terms</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ข้อกำหนด</th>
+<th>สิ่งที่ต้องทำ</th>
+<th>สถานะ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LINE Official Account</strong></td>
+<td>สร้าง LINE OA สำหรับ [Platform]</td>
+<td>🔲 ต้องทำ</td>
+</tr>
+<tr>
+<td><strong>Messaging API Channel</strong></td>
+<td>สร้าง channel ใน LINE Developers Console</td>
+<td>🔲 ต้องทำ</td>
+</tr>
+<tr>
+<td><strong>User Consent</strong></td>
+<td>ต้องได้ consent ก่อนส่ง push message</td>
+<td>🔲 ต้องทำ (ผ่าน add friend flow)</td>
+</tr>
+<tr>
+<td><strong>Message Content</strong></td>
+<td>ห้ามส่ง spam, ต้องเกี่ยวข้องกับบริการ</td>
+<td>✅ [Platform] ส่งเฉพาะ trip update</td>
+</tr>
+<tr>
+<td><strong>Rich Menu</strong></td>
+<td>สร้าง rich menu สำหรับ LINE OA</td>
+<td>🔲 ต้องทำ (Phase 2)</td>
+</tr>
+<tr>
+<td><strong>Webhook Security</strong></td>
+<td>ใช้ signature validation ทุก request</td>
+<td>🔲 ต้องทำ</td>
+</tr>
+<tr>
+<td><strong>Rate Limit</strong></td>
+<td>Communication plan: ไม่มี rate limit แต่จำกัด 500 msg/เดือน</td>
+<td>✅ เข้าใจแล้ว</td>
+</tr>
+</tbody>
+</table>
+<h3 id="line-oa-setup-checklist">5.2 LINE OA Setup Checklist</h3>
+<ol type="1">
+<li>✅ ตัดสินใจใช้ Communication plan (ฟรี, 500 msg/เดือน)</li>
+<li>🔲 สร้าง LINE Official Account</li>
+<li>🔲 เปิดใช้ Messaging API ใน LINE Developers Console</li>
+<li>🔲 ตั้งค่า Webhook URL →
+<code>https://[your-domain.com]/api/line/webhook</code></li>
+<li>🔲 สร้าง Channel Access Token (long-lived)</li>
+<li>🔲 ตั้งค่า Greeting Message เมื่อ add friend</li>
+<li>🔲 ตั้งค่า Rich Menu (ลิงก์ไปหน้า trip ต่างๆ)</li>
+<li>🔲 Implement signature validation ใน webhook handler</li>
+</ol>
+<h3 id="line-message-templates">5.3 LINE Message Templates</h3>
+<h4 id="trip-update-notification-flex-message">Trip Update Notification
+(Flex Message)</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;flex&quot;</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;altText&quot;</span><span class="fu">:</span> <span class="st">&quot;🔔 ทริปโตเกียว — มีการเปลี่ยนแปลง&quot;</span><span class="fu">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contents&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;bubble&quot;</span><span class="fu">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;header&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;box&quot;</span><span class="fu">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;layout&quot;</span><span class="fu">:</span> <span class="st">&quot;vertical&quot;</span><span class="fu">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;contents&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;🔔 ทริปอัพเดท&quot;</span><span class="fu">,</span> <span class="dt">&quot;weight&quot;</span><span class="fu">:</span> <span class="st">&quot;bold&quot;</span><span class="fu">,</span> <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="st">&quot;lg&quot;</span> <span class="fu">}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;box&quot;</span><span class="fu">,</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;layout&quot;</span><span class="fu">:</span> <span class="st">&quot;vertical&quot;</span><span class="fu">,</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;contents&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;ทริปโตเกียว 2568&quot;</span><span class="fu">,</span> <span class="dt">&quot;weight&quot;</span><span class="fu">:</span> <span class="st">&quot;bold&quot;</span><span class="fu">,</span> <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="st">&quot;md&quot;</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span> <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;Day 3 — เปลี่ยนร้านอาหารเที่ยง&quot;</span><span class="fu">,</span> <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="st">&quot;sm&quot;</span><span class="fu">,</span> <span class="dt">&quot;color&quot;</span><span class="fu">:</span> <span class="st">&quot;#666666&quot;</span> <span class="fu">}</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;footer&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;box&quot;</span><span class="fu">,</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;layout&quot;</span><span class="fu">:</span> <span class="st">&quot;vertical&quot;</span><span class="fu">,</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;contents&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;button&quot;</span><span class="fu">,</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;action&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;uri&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;ดูรายละเอียด&quot;</span><span class="fu">,</span> <span class="dt">&quot;uri&quot;</span><span class="fu">:</span> <span class="st">&quot;https://[your-domain.com]/trip/xxx&quot;</span> <span class="fu">},</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;style&quot;</span><span class="fu">:</span> <span class="st">&quot;primary&quot;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;button&quot;</span><span class="fu">,</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;action&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;postback&quot;</span><span class="fu">,</span> <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;✅ รับทราบ&quot;</span><span class="fu">,</span> <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="st">&quot;ack=trip_xxx_change_123&quot;</span> <span class="fu">},</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>          <span class="dt">&quot;style&quot;</span><span class="fu">:</span> <span class="st">&quot;secondary&quot;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>      <span class="ot">]</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="vps-postgresql-vercel-compliance">6. VPS (PostgreSQL) &amp;
+Vercel Compliance</h2>
+<h3 id="vps-postgresql-on-docker">6.1 VPS — PostgreSQL on Docker</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>เรื่อง</th>
+<th>รายละเอียด</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Region</strong></td>
+<td>Thailand DC (เลือก VPS provider ที่มี DC ในไทย)</td>
+</tr>
+<tr>
+<td><strong>Data Residency</strong></td>
+<td>ข้อมูลอยู่ในไทย → ไม่มี cross-border transfer ตาม PDPA
+(<strong>ข้อดีสำคัญ</strong>)</td>
+</tr>
+<tr>
+<td><strong>PDPA Benefit</strong></td>
+<td>ไม่ต้องกังวลเรื่อง cross-border transfer เลย — ข้อมูลอยู่ใน jurisdiction
+ไทย</td>
+</tr>
+<tr>
+<td><strong>Encryption</strong></td>
+<td>Data at rest: disk encryption on VPS + PostgreSQL TDE, Data in
+transit: TLS 1.2+</td>
+</tr>
+<tr>
+<td><strong>Backup</strong></td>
+<td>pg_dump cron job (daily backup) + offsite backup rotation</td>
+</tr>
+<tr>
+<td><strong>Authorization</strong></td>
+<td>App-level authorization via Drizzle middleware — ดู TAD Section
+2.5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vercel">6.2 Vercel</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>เรื่อง</th>
+<th>รายละเอียด</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Region</strong></td>
+<td>Singapore (sin1) — primary function region</td>
+</tr>
+<tr>
+<td><strong>CDN</strong></td>
+<td>Global edge — static assets cached worldwide</td>
+</tr>
+<tr>
+<td><strong>Data</strong></td>
+<td>Vercel ไม่เก็บ user data — เป็นแค่ compute + CDN</td>
+</tr>
+<tr>
+<td><strong>PDPA</strong></td>
+<td>ไม่ต้องกังวลมาก เพราะ user data อยู่ใน PostgreSQL บน VPS ไม่ใช่ Vercel</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="security-compliance">7. Security Compliance</h2>
+<h3 id="security-measures">7.1 Security Measures</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Measure</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Authentication</strong></td>
+<td>Auth.js + JWT</td>
+<td>httpOnly cookie, auto-refresh</td>
+</tr>
+<tr>
+<td><strong>Authorization</strong></td>
+<td>App-level authorization</td>
+<td>Drizzle middleware — ดู TAD</td>
+</tr>
+<tr>
+<td><strong>Transport</strong></td>
+<td>TLS 1.2+</td>
+<td>Vercel automatic HTTPS</td>
+</tr>
+<tr>
+<td><strong>Data at Rest</strong></td>
+<td>AES-256</td>
+<td>PostgreSQL + disk encryption on VPS</td>
+</tr>
+<tr>
+<td><strong>Input Validation</strong></td>
+<td>Zod schema</td>
+<td>ทุก API endpoint</td>
+</tr>
+<tr>
+<td><strong>XSS Prevention</strong></td>
+<td>React auto-escape + CSP</td>
+<td>Next.js default</td>
+</tr>
+<tr>
+<td><strong>CSRF Protection</strong></td>
+<td>SameSite cookie + origin check</td>
+<td>Auth.js default</td>
+</tr>
+<tr>
+<td><strong>Rate Limiting</strong></td>
+<td>Vercel Edge middleware</td>
+<td>100 req/min per IP</td>
+</tr>
+<tr>
+<td><strong>Passport Data</strong></td>
+<td>เก็บแยก + auto-delete 7 วัน</td>
+<td>Separate column + cron job</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security-incident-response-plan">7.2 Security Incident Response
+Plan</h3>
+<pre><code>1. ตรวจพบเหตุการณ์ (Detection)
+     │
+2. ประเมินระดับความรุนแรง (Assessment)
+     │  ├── Low: ไม่มีข้อมูลรั่ว → แก้ไข + บันทึก
+     │  ├── Medium: อาจมีข้อมูลรั่ว → สืบสวน
+     │  └── High: ข้อมูลรั่วจริง → ไปข้อ 3
+     │
+3. แจ้ง สคส. ภายใน 72 ชม. (PDPA Section 37(4))
+     │
+4. แจ้งเจ้าของข้อมูลทันที (ถ้ามีผลกระทบสูง)
+     │
+5. แก้ไข + ป้องกัน (Remediation)
+     │
+6. Post-mortem + อัพเดท security measures</code></pre>
+<hr />
+<h2 id="immigration-view-ขอกฎหมายพเศษ">8. Immigration View —
+ข้อกฎหมายพิเศษ</h2>
+<h3 id="ขอมลทแสดงใน-immigration-view">8.1 ข้อมูลที่แสดงใน Immigration
+View</h3>
+<table>
+<thead>
+<tr>
+<th>ข้อมูล</th>
+<th>ใครเป็นคนใส่</th>
+<th>Sensitivity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ชื่อ-นามสกุล (อังกฤษ)</td>
+<td>Admin</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>หมายเลข passport</td>
+<td>Admin หรือ Guest</td>
+<td><strong>High</strong></td>
+</tr>
+<tr>
+<td>เที่ยวบินขาเข้า-ออก</td>
+<td>Admin</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>ที่พัก (ชื่อ + ที่อยู่)</td>
+<td>Admin</td>
+<td>Low</td>
+</tr>
+<tr>
+<td>ระยะเวลาพำนัก</td>
+<td>Auto-calculate</td>
+<td>Low</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security-measures-สำหรบ-passport-data">8.2 Security Measures
+สำหรับ Passport Data</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Measure</th>
+<th>รายละเอียด</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>แยกเก็บ</strong></td>
+<td>passport_number เก็บใน column แยก ไม่รวมกับ JSONB</td>
+</tr>
+<tr>
+<td><strong>Auto-delete</strong></td>
+<td>ลบอัตโนมัติ 7 วันหลังทริปจบ</td>
+</tr>
+<tr>
+<td><strong>Access Control</strong></td>
+<td>เฉพาะ admin ของทริปนั้น + guest ที่เป็นเจ้าของ passport เท่านั้นเห็น</td>
+</tr>
+<tr>
+<td><strong>ไม่แคช</strong></td>
+<td>ไม่เก็บใน CDN cache / service worker cache</td>
+</tr>
+<tr>
+<td><strong>Audit Log</strong></td>
+<td>บันทึกทุกครั้งที่มีคนเข้าดู Immigration View</td>
+</tr>
+<tr>
+<td><strong>QR Code only</strong></td>
+<td>ไม่แสดง passport number ใน Guest View ปกติ — ต้องกด QR เฉพาะ
+Immigration</td>
+</tr>
+</tbody>
+</table>
+<h3 id="consent-flow-สำหรบ-immigration-data">8.3 Consent Flow สำหรับ
+Immigration Data</h3>
+<pre><code>Admin สร้างทริป → กรอก passport info (optional)
+     │
+     ├── ถ้า Admin กรอกเอง → อาศัย contract basis (Admin มีข้อมูล passengers อยู่แล้ว)
+     │
+     └── ถ้า Guest กรอกเอง →
+           1. แสดง consent popup:
+              &quot;ข้อมูลหนังสือเดินทางจะถูกเก็บชั่วคราว
+               เพื่อแสดงที่ ตม. เท่านั้น
+               จะถูกลบอัตโนมัติ 7 วันหลังทริปจบ&quot;
+           2. Guest กด &quot;ยินยอม&quot;
+           3. บันทึก consent timestamp + version</code></pre>
+<hr />
+<h2 id="ขอกำหนดดานธรกจ">9. ข้อกำหนดด้านธุรกิจ</h2>
+<h3 id="การจดทะเบยนธรกจ">9.1 การจดทะเบียนธุรกิจ</h3>
+<table>
+<thead>
+<tr>
+<th>เรื่อง</th>
+<th>รายละเอียด</th>
+<th>ระยะเวลา</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>จดทะเบียนบริษัท</strong></td>
+<td>บริษัทจำกัด หรือ หจก.</td>
+<td>ก่อน launch Pro tier</td>
+</tr>
+<tr>
+<td><strong>จดทะเบียน VAT</strong></td>
+<td>เมื่อรายได้เกิน 1.8 ล้าน/ปี</td>
+<td>เมื่อถึง threshold</td>
+</tr>
+<tr>
+<td><strong>จด e-Service VAT</strong></td>
+<td>ไม่จำเป็น — [Platform] ให้บริการในไทย</td>
+<td>ไม่ต้อง</td>
+</tr>
+<tr>
+<td><strong>จดทะเบียนเครื่องหมายการค้า</strong></td>
+<td>“[Platform Name]”</td>
+<td>ก่อน launch</td>
+</tr>
+</tbody>
+</table>
+<h3 id="saas-revenue-ภาษ">9.2 SaaS Revenue — ภาษี</h3>
+<table>
+<thead>
+<tr>
+<th>เรื่อง</th>
+<th>รายละเอียด</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ภาษีเงินได้นิติบุคคล</strong></td>
+<td>20% ของกำไรสุทธิ (SME อาจได้ลดหย่อน)</td>
+</tr>
+<tr>
+<td><strong>VAT</strong></td>
+<td>7% (เมื่อรายได้เกิน 1.8 ล้าน/ปี)</td>
+</tr>
+<tr>
+<td><strong>หัก ณ ที่จ่าย</strong></td>
+<td>บริษัททัวร์หัก 3% เมื่อจ่ายค่าบริการ</td>
+</tr>
+<tr>
+<td><strong>ใบเสร็จ/ใบกำกับภาษี</strong></td>
+<td>ต้องออกให้ลูกค้าทุกครั้ง (Phase 2)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="mvp-compliance-priority">10. MVP Compliance Priority</h2>
+<h3 id="สงทตองทำกอน-launch-mvp">สิ่งที่ต้องทำก่อน Launch MVP</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>เรื่อง</th>
+<th>ความสำคัญ</th>
+<th>เมื่อไหร่</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Privacy Policy หน้าเว็บ</strong></td>
+<td>🔴 สูงมาก</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Terms of Service หน้าเว็บ</strong></td>
+<td>🔴 สูงมาก</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Cookie consent banner</strong></td>
+<td>🟡 สูง</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>LINE OA + Messaging API setup</strong></td>
+<td>🔴 สูงมาก</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Passport data consent popup</strong></td>
+<td>🔴 สูงมาก</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Passport auto-delete (7 วัน)</strong></td>
+<td>🔴 สูงมาก</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>App-level authorization (Drizzle middleware)</strong></td>
+<td>🔴 สูงมาก</td>
+<td>ก่อน launch</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>HTTPS everywhere</strong></td>
+<td>✅ Vercel ทำให้</td>
+<td>Auto</td>
+</tr>
+</tbody>
+</table>
+<h3 id="สงททำภายหลงได-phase-2">สิ่งที่ทำภายหลังได้ (Phase 2)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>เรื่อง</th>
+<th>ความสำคัญ</th>
+<th>เมื่อไหร่</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9</td>
+<td>จดทะเบียนบริษัท</td>
+<td>🟡 สูง</td>
+<td>ก่อนเปิด Pro tier</td>
+</tr>
+<tr>
+<td>10</td>
+<td>DPA กับบริษัททัวร์ pilot</td>
+<td>🟡 สูง</td>
+<td>เมื่อ pilot เริ่ม</td>
+</tr>
+<tr>
+<td>11</td>
+<td>ROPA (Record of Processing)</td>
+<td>🟡 สูง</td>
+<td>ภายใน 3 เดือนหลัง launch</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Data export (Right to Portability)</td>
+<td>🟢 กลาง</td>
+<td>Phase 2</td>
+</tr>
+<tr>
+<td>13</td>
+<td>จดเครื่องหมายการค้า</td>
+<td>🟢 กลาง</td>
+<td>ภายใน 6 เดือน</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Incident Response Plan (formal)</td>
+<td>🟢 กลาง</td>
+<td>ก่อนเปิด Pro tier</td>
+</tr>
+<tr>
+<td>15</td>
+<td>ใบกำกับภาษี / VAT</td>
+<td>⚪ ต่ำ</td>
+<td>เมื่อรายได้ถึง threshold</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="สรป">11. สรุป</h2>
+<h3 id="platform-legal-status">[Platform] Legal Status</h3>
+<pre><code>✅ ไม่มี sensitive data ตาม PDPA (ศาสนา, เชื้อชาติ, สุขภาพ, อาชญากรรม, พันธุกรรม, etc.)
+✅ ไม่มี payment processing ใน MVP — ไม่ต้อง PCI-DSS
+✅ ไม่มี health data — ไม่ต้อง HIPAA-equivalent
+⚠️ มี passport data — ต้องมี special measures (auto-delete + consent)
+✅ VPS DC ในไทย → ไม่มี cross-border transfer — ข้อดีสำคัญสำหรับ PDPA
+⚠️ LINE Messaging API — ต้องปฏิบัติตาม LINE Platform Terms</code></pre>
+<h3 id="ความเสยงทางกฎหมาย">ความเสี่ยงทางกฎหมาย</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ความเสี่ยง</th>
+<th>ระดับ</th>
+<th>แผนรับมือ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PDPA ถูกร้องเรียน</td>
+<td>ต่ำ (ถ้าทำตาม checklist)</td>
+<td>Privacy Policy + Consent + Right to Delete</td>
+</tr>
+<tr>
+<td>Passport data breach</td>
+<td>กลาง (ข้อมูลสำคัญ)</td>
+<td>Auto-delete 7 วัน + เก็บแยก + audit log</td>
+</tr>
+<tr>
+<td>LINE ban เพราะ spam</td>
+<td>ต่ำ (ส่งเฉพาะ trip update)</td>
+<td>ปฏิบัติตาม LINE Terms อย่างเคร่งครัด</td>
+</tr>
+<tr>
+<td>บริษัททัวร์ใช้ผิดวัตถุประสงค์</td>
+<td>กลาง</td>
+<td>ToS ระบุชัด + มีสิทธิ์ระงับบัญชี</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Document End — [Platform] Legal &amp; Compliance v1.0</em></p>
 </div>
-
-<div class="footer">
-  NatGan Legal & Compliance v1.0 — 17 March 2026
+<div class="footer">© 2569 TripApp Development Team — Confidential</div>
 </div>
-
 </body>
 </html>

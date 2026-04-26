@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator Pricing Plans Specification — TripApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1978e5;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --on-surface: #191c20;
+  --on-surface-variant: #44474e;
+  --outline: #74777f;
+  --outline-variant: #c4c6d0;
+  --surface-container: #f2f3fd;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--on-surface);
+  background: var(--surface-container);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-light);
+}
+h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+li { margin-bottom: 4px; }
+strong { color: var(--on-surface); font-weight: 600; }
+blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 16px 20px;
+  border-radius: 0 12px 12px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+blockquote p { color: var(--on-surface-variant); margin: 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  background: var(--surface-container);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--on-surface-variant);
+  vertical-align: top;
+}
+tr:hover td { background: #fafbff; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-container);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 20px 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 12px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 32px 0;
+  opacity: 0.3;
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.badge-free     { background: #f1f8e9; color: #558b2f; }
+.badge-per-trip { background: #e3f2fd; color: #1565c0; }
+.badge-pack     { background: #fff3e0; color: #e65100; }
+.badge-sub      { background: #f3e5f5; color: #6a1b9a; }
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.plan-card {
+  border: 1px solid var(--outline-variant);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+.plan-card.highlight {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.plan-card .plan-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-bottom: 4px;
+}
+.plan-card .plan-price {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+.plan-card .plan-price-sub {
+  font-size: 11px;
+  color: var(--outline);
+}
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--outline);
+}
+.tag-no   { color: #b0bec5; font-size: 13px; }
+.tag-yes  { color: #43a047; font-size: 13px; }
+@media (max-width: 768px) {
+  .card { padding: 24px; border-radius: 16px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+  .plan-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+
+  <h1>Operator Pricing Plans Specification</h1>
+  <blockquote>
+    <p>Version: 1.0 &nbsp;|&nbsp; Date: 2026-04-03 &nbsp;|&nbsp; Status: Approved</p>
+  </blockquote>
+
+  <hr />
+
+  <h2>1. Overview</h2>
+  <p>กำหนดโครงสร้าง Pricing Plans สำหรับ Operator (บริษัททัวร์ / ไกด์อิสระ) ที่ใช้งานระบบ Trip Communication บนแพลตฟอร์ม</p>
+  <blockquote>
+    <p><strong>เป้าหมายหลัก:</strong> ดึง traffic / ผู้ใช้ใหม่เข้าระบบก่อน โดยให้ Free tier ใช้งานได้จริง แต่มี limit ที่กระตุ้นให้ upgrade เมื่อธุรกิจโตขึ้น</p>
+  </blockquote>
+
+  <hr />
+
+  <h2>2. แผนทั้งหมด</h2>
+
+  <div class="plan-grid">
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">฿0</div>
+      <div class="plan-price-sub">ตลอดไป</div>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">รายทริป</div>
+      <div class="plan-price">฿49</div>
+      <div class="plan-price-sub">ต่อทริป</div>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">แพ็ก 5 ทริป</div>
+      <div class="plan-price">฿249</div>
+      <div class="plan-price-sub">ต่อแพ็ก (ประหยัด ฿46)</div>
+    </div>
+    <div class="plan-card highlight">
+      <div class="plan-name">Subscription</div>
+      <div class="plan-price">฿299</div>
+      <div class="plan-price-sub">ต่อเดือน</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th><span class="badge badge-free">Free</span></th>
+        <th><span class="badge badge-per-trip">รายทริป</span></th>
+        <th><span class="badge badge-pack">แพ็ก 5 ทริป</span></th>
+        <th><span class="badge badge-sub">Subscription</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ทริป</strong></td>
+        <td>3 ทริป (ตลอดชีพ)</td>
+        <td>ไม่จำกัด</td>
+        <td>5 ทริป/แพ็ก</td>
+        <td>ไม่จำกัด</td>
+      </tr>
+      <tr>
+        <td><strong>ผู้เข้าร่วม/ทริป</strong></td>
+        <td>30 คน</td>
+        <td>ไม่จำกัด</td>
+        <td>ไม่จำกัด</td>
+        <td>ไม่จำกัด</td>
+      </tr>
+      <tr>
+        <td><strong>การแจ้งเตือน</strong></td>
+        <td>50/เดือน</td>
+        <td>ไม่จำกัด</td>
+        <td>ไม่จำกัด</td>
+        <td>ไม่จำกัด</td>
+      </tr>
+      <tr>
+        <td><strong>Watermark</strong></td>
+        <td class="tag-yes">✓ มี</td>
+        <td class="tag-yes">✓ มี</td>
+        <td class="tag-yes">✓ มี</td>
+        <td class="tag-no">— ไม่มี</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <h2>3. Business Rules รายแผน</h2>
+
+  <h3>3.1 Free</h3>
+  <ul>
+    <li>สร้างทริปได้ <strong>3 ทริป ตลอดชีพ</strong> — ไม่ reset ไม่มีโควต้ารายเดือน</li>
+    <li>เต็มแล้วต้อง upgrade เท่านั้น จะสร้างทริปใหม่ไม่ได้</li>
+    <li>ผู้เข้าร่วมสูงสุด <strong>30 คน/ทริป</strong></li>
+    <li>แจ้งเตือนได้ <strong>50 ครั้ง/เดือน</strong> — reset ทุกต้นเดือน</li>
+    <li>แสดง Watermark บนทุก trip page</li>
+  </ul>
+
+  <h3>3.2 รายทริป (฿49/ทริป)</h3>
+  <ul>
+    <li>จ่ายต่อทริปที่สร้าง — <strong>ไม่มีวันหมดอายุ</strong></li>
+    <li>ไม่จำกัดผู้เข้าร่วมและการแจ้งเตือน</li>
+    <li>สามารถซื้อได้ไม่จำกัดครั้ง</li>
+    <li>แสดง Watermark บนทุก trip page</li>
+  </ul>
+
+  <h3>3.3 แพ็ก 5 ทริป (฿249/แพ็ก)</h3>
+  <ul>
+    <li>ซื้อ 1 แพ็ก ได้ 5 credit ทริป</li>
+    <li>ซื้อได้หลายแพ็ก — <strong>credit สะสมได้</strong> (เช่น ซื้อ 2 แพ็ก = 10 credit)</li>
+    <li>credit ใช้ได้จนหมด <strong>ไม่มี rollover / ไม่ expire</strong></li>
+    <li>ใช้ 1 credit เมื่อสร้างทริปใหม่</li>
+    <li>ไม่จำกัดผู้เข้าร่วมและการแจ้งเตือน</li>
+    <li>แสดง Watermark บนทุก trip page</li>
+  </ul>
+
+  <h3>3.4 Subscription (฿299/เดือน)</h3>
+  <ul>
+    <li>billing cycle รายเดือน นับจากวันที่สมัคร</li>
+    <li>ไม่จำกัดทุกอย่าง</li>
+    <li>หมดอายุแล้วกลับไปสถานะ <strong>Free</strong> อัตโนมัติ</li>
+    <li>ทริปที่สร้างไว้ยังคงอยู่ แต่จะสร้างทริปใหม่ไม่ได้ถ้า Free quota หมดแล้ว</li>
+    <li>ไม่มี annual discount</li>
+    <li><strong>ไม่มี Watermark</strong></li>
+  </ul>
+
+  <hr />
+
+  <h2>4. Watermark Logic</h2>
+  <ul>
+    <li>ทุก trip response มี field <code>showWatermark: bool</code></li>
+    <li><code>true</code> — Free / รายทริป / แพ็ก</li>
+    <li><code>false</code> — Subscription เท่านั้น</li>
+    <li>หน้าบ้านดึง value ไป display เอง ไม่ได้ embed logic ใน API</li>
+  </ul>
+
+  <hr />
+
+  <h2>5. Quota Resolution Logic</h2>
+  <p>เมื่อ Operator สร้างทริปใหม่ ระบบตรวจสอบตามลำดับนี้:</p>
+  <pre><code>1. มี Active Subscription อยู่ไหม?
+   → ใช่: อนุญาต (ไม่หัก credit)
+
+2. มี Trip Pack credit เหลืออยู่ไหม?
+   → ใช่: หัก 1 credit จาก Pack
+
+3. มีการชำระ รายทริป สำหรับทริปนี้ไหม?
+   → ใช่: อนุญาต
+
+4. อยู่ใน Free และยังไม่ครบ 3 ทริปไหม?
+   → ใช่: อนุญาต (นับ Free quota)
+
+5. ไม่มีสิทธิ์: แสดงหน้า Upgrade Plan</code></pre>
+
+  <hr />
+
+  <h2>6. Break-even Analysis</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ทริป/เดือน</th>
+        <th>รายทริป</th>
+        <th>แพ็ก</th>
+        <th>Sub ฿299</th>
+        <th>แนะนำ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1–4</td><td>฿49–196</td><td>—</td><td>฿299</td><td>รายทริป</td></tr>
+      <tr><td>5</td><td>฿245</td><td>฿249</td><td>฿299</td><td>รายทริป</td></tr>
+      <tr><td>6</td><td>฿294</td><td>฿298</td><td>฿299</td><td>รายทริป</td></tr>
+      <tr style="background:#f0f7ff;">
+        <td><strong>7+</strong></td>
+        <td>฿343+</td>
+        <td>฿347+</td>
+        <td><strong>฿299 ✓</strong></td>
+        <td><strong>Subscription</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>→ Subscription คุ้มค่าชัดเจนที่ <strong>7 ทริป/เดือนขึ้นไป</strong></p>
+
+  <hr />
+
+  <h2>7. Customer Journey ที่คาดไว้</h2>
+  <pre><code>ลงทะเบียน → Free (3 ทริปตลอดชีพ)
+                │
+           ทริปหมด / ผู้เข้าร่วมเกิน 30 คน
+                │
+     ┌──────────┴──────────┐
+  ทำนานๆ ครั้ง          ทำบ่อย 4–6 ทริป/เดือน
+  รายทริป ฿49          แพ็ก 5 ทริป ฿249
+                                │
+                        7+ ทริป/เดือน
+                                │
+                       Sub ฿299/เดือน</code></pre>
+
+  <hr />
+
+  <h2>8. DB Schema (เบื้องต้น)</h2>
+
+  <h3>mst_plans</h3>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Type</th><th>หมายเหตุ</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>uuid PK</td><td></td></tr>
+      <tr><td><code>code</code></td><td>varchar(32)</td><td>free / per_trip / pack_5 / subscription</td></tr>
+      <tr><td><code>name</code></td><td>varchar(128)</td><td>ชื่อแสดงผล</td></tr>
+      <tr><td><code>price</code></td><td>decimal(10,2)</td><td>ราคา</td></tr>
+      <tr><td><code>trip_limit</code></td><td>int?</td><td>null = ไม่จำกัด</td></tr>
+      <tr><td><code>participant_limit</code></td><td>int?</td><td>null = ไม่จำกัด</td></tr>
+      <tr><td><code>notification_limit</code></td><td>int?</td><td>null = ไม่จำกัด</td></tr>
+      <tr><td><code>show_watermark</code></td><td>bool</td><td></td></tr>
+      <tr><td><code>is_subscription</code></td><td>bool</td><td>true = billing รายเดือน</td></tr>
+      <tr><td><code>is_active</code></td><td>bool</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>operator_subscriptions</h3>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Type</th><th>หมายเหตุ</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>uuid PK</td><td></td></tr>
+      <tr><td><code>company_id</code></td><td>uuid FK</td><td></td></tr>
+      <tr><td><code>plan_id</code></td><td>uuid FK</td><td></td></tr>
+      <tr><td><code>started_at</code></td><td>timestamptz</td><td></td></tr>
+      <tr><td><code>expires_at</code></td><td>timestamptz</td><td></td></tr>
+      <tr><td><code>status</code></td><td>varchar(32)</td><td>active / expired / cancelled</td></tr>
+    </tbody>
+  </table>
+
+  <h3>operator_trip_credits</h3>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Type</th><th>หมายเหตุ</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>uuid PK</td><td></td></tr>
+      <tr><td><code>company_id</code></td><td>uuid FK</td><td></td></tr>
+      <tr><td><code>credits_total</code></td><td>int</td><td></td></tr>
+      <tr><td><code>credits_used</code></td><td>int</td><td></td></tr>
+      <tr><td><code>purchased_at</code></td><td>timestamptz</td><td></td></tr>
+      <tr><td><code>source</code></td><td>varchar(32)</td><td>per_trip / pack_5</td></tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <h2>9. สิ่งที่ไม่อยู่ใน Scope ตอนนี้</h2>
+  <ul>
+    <li>❌ Annual discount</li>
+    <li>❌ Enterprise / Custom tier</li>
+    <li>❌ Per-seat pricing</li>
+    <li>❌ Analytics dashboard สำหรับ Operator</li>
+    <li>❌ Priority listing</li>
+    <li>❌ ระบบ Payment Gateway (implement แยกต่างหาก)</li>
+  </ul>
+
+</div>
+<div class="footer">TripApp Internal Specification &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; 2026-04-03</div>
+</div>
+</body>
+</html>

@@ -35,7 +35,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${notoSansThai.variable} antialiased`}>
+      <body className={`${notoSansThai.variable} antialiased`} suppressHydrationWarning>
         {children}
       </body>
     </html>

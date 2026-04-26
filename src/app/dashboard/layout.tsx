@@ -63,7 +63,7 @@ export default function DashboardLayout({
                 </button>
                 {notiOpen && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setNotiOpen(false)} />
+                    <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setNotiOpen(false)} />
                     <div className="absolute right-0 top-12 z-50 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
                       <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                         <span className="font-bold text-slate-900 text-sm">การแจ้งเตือน</span>
@@ -103,7 +103,7 @@ export default function DashboardLayout({
                 {/* Profile Dropdown */}
                 {profileOpen && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                    <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setProfileOpen(false)} />
                     <div className="absolute right-0 top-14 z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
                       <div className="p-4 border-b border-slate-100">
                         <p className="font-bold text-slate-900">{user ? `${user.firstName} ${user.lastName}` : ""}</p>

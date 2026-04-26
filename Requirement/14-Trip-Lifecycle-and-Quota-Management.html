@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripApp Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1978e5;
+  --primary-light: #e8f0fe;
+  --surface: #ffffff;
+  --on-surface: #191c20;
+  --on-surface-variant: #44474e;
+  --outline: #74777f;
+  --outline-variant: #c4c6d0;
+  --surface-container: #f2f3fd;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--on-surface);
+  background: var(--surface-container);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-light);
+}
+h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+p, li {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+li { margin-bottom: 4px; }
+strong { color: var(--on-surface); font-weight: 600; }
+blockquote {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 16px 20px;
+  border-radius: 0 12px 12px 0;
+  margin: 16px 0;
+  font-size: 13px;
+}
+blockquote p { color: var(--on-surface-variant); margin: 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  background: var(--surface-container);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--on-surface-variant);
+  vertical-align: top;
+}
+tr:hover td { background: #fafbff; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-container);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 20px 24px;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: 12px;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 32px 0;
+  opacity: 0.3;
+}
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--outline);
+}
+input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--primary);
+}
+@media (max-width: 768px) {
+  .card { padding: 24px; border-radius: 16px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1 id="trip-lifecycle-quota-management-specification">Trip Lifecycle
+&amp; Quota Management Specification</h1>
+<blockquote>
+<p>Version: 1.0 Date: 2026-04-02 Status: Approved</p>
+</blockquote>
+<hr />
+<h2 id="overview">1. Overview</h2>
+<p>กำหนดวงจรชีวิตของทริป (Trip Lifecycle) และกลไกการจัดการ Quota
+เพื่อป้องกันการนำทริปเดิมมาใช้ซ้ำโดยไม่ซื้อ Quota เพิ่ม
+โดยยังคงความยืดหยุ่นสำหรับกรณีเลื่อนไฟลท์หรือแก้ไขข้อมูลระหว่างเดินทาง</p>
+<hr />
+<h2 id="trip-status-lifecycle">2. Trip Status Lifecycle</h2>
+<pre><code>Draft → Published → Archived
+          ↓
+      Unpublished → Published (re-publish)
+                     ↓
+                  Archived</code></pre>
+<table>
+<thead>
+<tr>
+<th>สถานะ</th>
+<th>คำอธิบาย</th>
+<th>นับ Quota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Draft</strong></td>
+<td>ฉบับร่าง ยังไม่เผยแพร่</td>
+<td>✅ นับ</td>
+</tr>
+<tr>
+<td><strong>Published</strong></td>
+<td>เผยแพร่แล้ว ลูกทริปเข้าดูได้</td>
+<td>✅ นับ</td>
+</tr>
+<tr>
+<td><strong>Unpublished</strong></td>
+<td>ยกเลิกเผยแพร่ชั่วคราว</td>
+<td>✅ นับ</td>
+</tr>
+<tr>
+<td><strong>Archived</strong></td>
+<td>เดินทางเสร็จแล้ว (อัตโนมัติ)</td>
+<td>❌ ไม่นับ</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="auto-archive">3. Auto-Archive</h2>
+<h3 id="เงอนไข">เงื่อนไข</h3>
+<ul>
+<li>สถานะปัจจุบันเป็น <strong>Published</strong> หรือ
+<strong>Unpublished</strong></li>
+<li><code>endDate + 7 วัน</code> ผ่านไปแล้ว (นับจากวันกลับ)</li>
+</ul>
+<h3 id="พฤตกรรม">พฤติกรรม</h3>
+<ul>
+<li>ระบบเปลี่ยนสถานะเป็น <strong>Archived</strong> อัตโนมัติ</li>
+<li>ลูกทริปยังเข้าดูข้อมูลได้ (read-only)</li>
+<li>เจ้าของทริปแก้ไขไม่ได้ทุกอย่าง</li>
+<li><strong>ไม่นับ Quota</strong> → user สร้างทริปใหม่ได้</li>
+</ul>
+<h3 id="การ-implement">การ Implement</h3>
+<ul>
+<li>Background Job (IHostedService) ทำงานทุกวัน เวลา 00:00 UTC</li>
+<li>Query:
+<code>WHERE status IN ('Published', 'Unpublished') AND endDate &lt; now() - interval '7 days'</code></li>
+<li>Update: <code>SET status = 'Archived', updatedAt = now()</code></li>
+</ul>
+<hr />
+<h2 id="สทธการแกไขตามสถานะ">4. สิทธิ์การแก้ไขตามสถานะ</h2>
+<h3 id="draft">4.1 Draft</h3>
+<table>
+<thead>
+<tr>
+<th>ข้อมูล</th>
+<th>แก้ไขได้</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>วันเดินทาง (startDate, endDate)</td>
+<td>✅ ไม่จำกัด</td>
+</tr>
+<tr>
+<td>ชื่อ, จุดหมาย, ภาษา, ปก</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>การเดินทาง, ที่พัก, เบอร์ฉุกเฉิน</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>กิจกรรม (Days, Activities)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>หมายเหตุ</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>ลบทริป</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="published-unpublished">4.2 Published / Unpublished</h3>
+<table>
+<thead>
+<tr>
+<th>ข้อมูล</th>
+<th>แก้ไขได้</th>
+<th>เงื่อนไข</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>วันเดินทาง (startDate, endDate)</strong></td>
+<td>⚠️ มีเงื่อนไข</td>
+<td>ดูหัวข้อ 5</td>
+</tr>
+<tr>
+<td>ชื่อ, จุดหมาย, ภาษา, ปก</td>
+<td>✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td>การเดินทาง, ที่พัก, เบอร์ฉุกเฉิน</td>
+<td>✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td>กิจกรรม (Days, Activities)</td>
+<td>✅</td>
+<td>Days จะถูก sync ตามวันเดินทาง</td>
+</tr>
+<tr>
+<td>หมายเหตุ</td>
+<td>✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td>ลบทริป</td>
+<td>❌</td>
+<td>ต้อง unpublish + สร้างใหม่</td>
+</tr>
+</tbody>
+</table>
+<h3 id="archived">4.3 Archived</h3>
+<table>
+<thead>
+<tr>
+<th>ข้อมูล</th>
+<th>แก้ไขได้</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ทุกอย่าง</td>
+<td>❌ ห้ามแก้ไขทั้งหมด</td>
+</tr>
+<tr>
+<td>ลบทริป</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>ลูกทริปเข้าดู</td>
+<td>✅ read-only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="การแกไขวนเดนทาง-date-change-policy">5. การแก้ไขวันเดินทาง (Date
+Change Policy)</h2>
+<h3 id="หลกการ">5.1 หลักการ</h3>
+<p>เมื่อทริปถูก Publish ครั้งแรก ระบบจะบันทึก <strong>วันเดินทางต้นฉบับ (Original
+Dates)</strong> ไว้ การแก้ไขวันเดินทางหลังจากนั้นจะถูกเทียบกับวันต้นฉบับเสมอ</p>
+<h3 id="fields-ทเพม">5.2 Fields ที่เพิ่ม</h3>
+<pre><code>TripPlan:
+  OriginalStartDate  DateOnly?   — วันเดินทางตอน publish ครั้งแรก
+  OriginalEndDate    DateOnly?   — วันกลับตอน publish ครั้งแรก</code></pre>
+<ul>
+<li>ถูก set ครั้งเดียวตอน <code>PublishAsync()</code> เมื่อยังเป็น
+<code>null</code></li>
+<li>ไม่เปลี่ยนแปลงอีกตลอดชีวิตของทริป</li>
+</ul>
+<h3 id="การเชค-ซอนกน-overlap">5.3 การเช็ค “ซ้อนกัน” (Overlap)</h3>
+<pre><code>วันเดิม (Original):  |------- A -------|
+วันใหม่ (New):              |------- B -------|
+
+ซ้อนกัน = NewStart &lt;= OriginalEnd AND NewEnd &gt;= OriginalStart</code></pre>
+<h3 id="ผลลพธ">5.4 ผลลัพธ์</h3>
+<table>
+<thead>
+<tr>
+<th>กรณี</th>
+<th>ซ้อนกัน</th>
+<th>ผลลัพธ์</th>
+<th>Quota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>เลื่อน 1-2 วัน</td>
+<td>✅</td>
+<td>อนุญาต</td>
+<td>ฟรี</td>
+</tr>
+<tr>
+<td>เลื่อนเป็นเดือนหน้า</td>
+<td>❌</td>
+<td>ต้องมี quota เหลือ</td>
+<td>กิน 1</td>
+</tr>
+<tr>
+<td>Quota เต็ม + ไม่ซ้อน</td>
+<td>❌</td>
+<td>❌ Reject</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ตวอยาง">5.5 ตัวอย่าง</h3>
+<pre><code>Publish ครั้งแรก: 15-18 เม.ย. 2569 (Original locked)
+
+Case 1: แก้เป็น 16-19 เม.ย.
+  → 16 &lt;= 18 AND 19 &gt;= 15 → ซ้อนกัน → ✅ ฟรี
+
+Case 2: แก้เป็น 19-22 เม.ย.
+  → 19 &lt;= 18? → NO → ไม่ซ้อน → ⚠️ กิน quota 1
+
+Case 3: แก้เป็น 1-4 พ.ค.
+  → 1 &lt;= 18? → NO → ไม่ซ้อน → ⚠️ กิน quota 1
+
+Case 4: เลื่อนทีละวัน (15→16→17→18→19...)
+  → เทียบกับ Original (15-18) เสมอ
+  → 19 &lt;= 18? → NO → ไม่ซ้อน → ⚠️ กิน quota ตั้งแต่ครั้งที่เลื่อนเกิน</code></pre>
+<h3 id="algorithm-pseudocode">5.6 Algorithm (Pseudocode)</h3>
+<pre><code>function UpdateTripDates(trip, newStart, newEnd):
+    if trip.status == &#39;Draft&#39;:
+        // Draft = แก้ได้เสรี
+        trip.startDate = newStart
+        trip.endDate = newEnd
+        syncDays(trip)
+        return OK
+
+    if trip.status == &#39;Archived&#39;:
+        return ERROR(&quot;ทริปที่ archived แล้วแก้ไขไม่ได้&quot;)
+
+    // Published or Unpublished
+    if trip.originalStartDate == null:
+        return ERROR(&quot;ข้อมูลไม่ถูกต้อง&quot;)
+
+    // Check overlap with original dates
+    isOverlap = (newStart &lt;= trip.originalEndDate) AND (newEnd &gt;= trip.originalStartDate)
+
+    if isOverlap:
+        // ซ้อนกัน → ฟรี
+        trip.startDate = newStart
+        trip.endDate = newEnd
+        syncDays(trip)
+        return OK
+
+    // ไม่ซ้อน → ต้องมี quota
+    currentQuota = countTrips(trip.companyId, excludeArchived=true)
+    limit = getQuotaLimit(trip.companyId)
+
+    // ทริปนี้นับอยู่แล้ว ไม่ต้อง +1
+    // แต่ถ้า quota เต็มอยู่แล้ว (เท่ากับ limit) = ไม่มีที่ว่าง
+    // จริงๆ ทริปนี้ใช้ quota อยู่แล้ว ดังนั้นไม่ต้องเช็คเพิ่ม
+    // แค่นับว่าเป็น &quot;date change&quot; → consume 1 DateChangeCount
+
+    if trip.dateChangeCount &gt;= MAX_DATE_CHANGES:
+        return ERROR(&quot;เปลี่ยนวันเดินทางได้สูงสุด X ครั้ง&quot;)
+
+    trip.startDate = newStart
+    trip.endDate = newEnd
+    trip.dateChangeCount += 1
+    syncDays(trip)
+    return OK</code></pre>
+<hr />
+<h2 id="quota-calculation">6. Quota Calculation</h2>
+<h3 id="สตรนบ-quota">6.1 สูตรนับ Quota</h3>
+<pre><code>Quota ใช้ = จำนวนทริปที่สถานะ Draft + Published + Unpublished
+Quota คงเหลือ = Limit - Quota ใช้</code></pre>
+<p><strong>Archived ไม่นับ Quota</strong></p>
+<h3 id="free-plan-limit">6.2 Free Plan Limit</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Limit</th>
+<th>หมายเหตุ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free</td>
+<td>3 ทริป</td>
+<td>ค่าจาก system_configs <code>app.free_trip_limit</code></td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>20 ทริป</td>
+<td>อนาคต</td>
+</tr>
+<tr>
+<td>Business</td>
+<td>ไม่จำกัด</td>
+<td>อนาคต</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ปองกนการสรางทรปเกน-quota">6.3 ป้องกันการสร้างทริปเกิน Quota</h3>
+<p><strong>Backend</strong> (TripService.CreateAsync):</p>
+<pre><code>tripCount = COUNT(*) WHERE companyId = X AND status != &#39;Archived&#39;
+IF tripCount &gt;= limit → throw QuotaExceededException</code></pre>
+<p><strong>Frontend</strong>: - หน้า Dashboard: ปุ่ม “สร้างทริป” → แสดง
+warning เมื่อ quota เต็ม - หน้า My Trips: card “สร้างทริปใหม่” → เปลี่ยนเป็น
+“โควต้าเต็ม” เมื่อ quota เต็ม</p>
+<hr />
+<h2 id="date-change-quota-ไมซอน">7. Date Change Quota (ไม่ซ้อน)</h2>
+<h3 id="field-ทเพม">7.1 Field ที่เพิ่ม</h3>
+<pre><code>TripPlan:
+  DateChangeCount  int  DEFAULT 0  — จำนวนครั้งที่เปลี่ยนวันแบบไม่ซ้อน</code></pre>
+<h3 id="limit">7.2 Limit</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>จำนวนครั้งที่เปลี่ยนวันแบบไม่ซ้อนได้</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free</td>
+<td>1 ครั้ง</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>3 ครั้ง</td>
+</tr>
+<tr>
+<td>Business</td>
+<td>ไม่จำกัด</td>
+</tr>
+</tbody>
+</table>
+<p>ค่า config: <code>system_configs</code> →
+<code>app.max_date_changes</code></p>
+<h3 id="ux-เมอเปลยนวนไมซอน">7.3 UX เมื่อเปลี่ยนวันไม่ซ้อน</h3>
+<p>แสดง Confirm Dialog:</p>
+<pre><code>&quot;วันเดินทางใหม่ไม่ซ้อนกับวันเดิม&quot;
+&quot;ระบบจะนับเป็นการใช้สิทธิ์เปลี่ยนวัน (ครั้งที่ 1/1)&quot;
+&quot;ต้องการดำเนินการหรือไม่?&quot;
+[ยกเลิก] [ยืนยัน]</code></pre>
+<hr />
+<h2 id="api-changes">8. API Changes</h2>
+<h3 id="updateasync-tripservice">8.1 UpdateAsync (TripService)</h3>
+<p>เพิ่ม logic: 1. ถ้า status == Archived → reject ทุก field 2. ถ้า
+startDate/endDate เปลี่ยน + status != Draft → เช็ค overlap กับ original 3.
+ไม่ซ้อน → เช็ค dateChangeCount &lt; limit → increment + save 4. syncDays
+เมื่อวันเปลี่ยน</p>
+<h3 id="publishasync-tripservice">8.2 PublishAsync (TripService)</h3>
+<p>เพิ่ม:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">if</span> <span class="op">(</span>trip<span class="op">.</span><span class="fu">OriginalStartDate</span> <span class="kw">is</span> <span class="kw">null</span><span class="op">)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    trip<span class="op">.</span><span class="fu">OriginalStartDate</span> <span class="op">=</span> trip<span class="op">.</span><span class="fu">StartDate</span><span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    trip<span class="op">.</span><span class="fu">OriginalEndDate</span> <span class="op">=</span> trip<span class="op">.</span><span class="fu">EndDate</span><span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="usagecontroller">8.3 UsageController</h3>
+<p>แก้ Quota calculation:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> tripCount <span class="op">=</span> await _db<span class="op">.</span><span class="fu">TripPlans</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">CountAsync</span><span class="op">(</span>t <span class="op">=&gt;</span> t<span class="op">.</span><span class="fu">CompanyId</span> <span class="op">==</span> companyId <span class="op">&amp;&amp;</span> t<span class="op">.</span><span class="fu">Status</span> <span class="op">!=</span> TripStatus<span class="op">.</span><span class="fu">Archived</span><span class="op">);</span></span></code></pre></div>
+<h3 id="createasync-tripservice">8.4 CreateAsync (TripService)</h3>
+<p>แก้ Quota check:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> tripCount <span class="op">=</span> await _db<span class="op">.</span><span class="fu">TripPlans</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">CountAsync</span><span class="op">(</span>t <span class="op">=&gt;</span> t<span class="op">.</span><span class="fu">CompanyId</span> <span class="op">==</span> companyId <span class="op">&amp;&amp;</span> t<span class="op">.</span><span class="fu">Status</span> <span class="op">!=</span> TripStatus<span class="op">.</span><span class="fu">Archived</span><span class="op">);</span></span></code></pre></div>
+<hr />
+<h2 id="database-migration">9. Database Migration</h2>
+<h3 id="tripplan-เพม-columns">9.1 TripPlan — เพิ่ม Columns</h3>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> trip_plans <span class="kw">ADD</span> <span class="kw">COLUMN</span> <span class="ot">&quot;OriginalStartDate&quot;</span> <span class="dt">date</span>;</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> trip_plans <span class="kw">ADD</span> <span class="kw">COLUMN</span> <span class="ot">&quot;OriginalEndDate&quot;</span> <span class="dt">date</span>;</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> trip_plans <span class="kw">ADD</span> <span class="kw">COLUMN</span> <span class="ot">&quot;DateChangeCount&quot;</span> <span class="dt">integer</span> <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>;</span></code></pre></div>
+<h3 id="tripstatus-enum-เพม-archived">9.2 TripStatus Enum — เพิ่ม
+Archived</h3>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">enum</span> TripStatus</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    Draft<span class="op">,</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    Published<span class="op">,</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    Unpublished<span class="op">,</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    Archived    <span class="co">// เพิ่มใหม่</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="system_configs-เพม-config">9.3 system_configs — เพิ่ม Config</h3>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> system_configs (<span class="kw">category</span>, <span class="kw">key</span>, <span class="fu">value</span>, description)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">VALUES</span> (<span class="st">&#39;app&#39;</span>, <span class="st">&#39;max_date_changes&#39;</span>, <span class="st">&#39;1&#39;</span>, <span class="st">&#39;จำนวนครั้งที่เปลี่ยนวันเดินทางแบบไม่ซ้อนได้ (Free plan)&#39;</span>);</span></code></pre></div>
+<hr />
+<h2 id="background-job-auto-archive">10. Background Job — Auto
+Archive</h2>
+<h3 id="archiveservice-ihostedservice">ArchiveService
+(IHostedService)</h3>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ทำงานทุกวัน 00:00 UTC</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>await _db<span class="op">.</span><span class="fu">TripPlans</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">Where</span><span class="op">(</span>t <span class="op">=&gt;</span> <span class="op">(</span>t<span class="op">.</span><span class="fu">Status</span> <span class="op">==</span> TripStatus<span class="op">.</span><span class="fu">Published</span> <span class="op">||</span> t<span class="op">.</span><span class="fu">Status</span> <span class="op">==</span> TripStatus<span class="op">.</span><span class="fu">Unpublished</span><span class="op">)</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>             <span class="op">&amp;&amp;</span> t<span class="op">.</span><span class="fu">EndDate</span> <span class="op">&lt;</span> DateOnly<span class="op">.</span><span class="fu">FromDateTime</span><span class="op">(</span>DateTime<span class="op">.</span><span class="fu">UtcNow</span><span class="op">.</span><span class="fu">AddDays</span><span class="op">(-</span><span class="dv">7</span><span class="op">)))</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">ExecuteUpdateAsync</span><span class="op">(</span>s <span class="op">=&gt;</span> s</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">SetProperty</span><span class="op">(</span>t <span class="op">=&gt;</span> t<span class="op">.</span><span class="fu">Status</span><span class="op">,</span> TripStatus<span class="op">.</span><span class="fu">Archived</span><span class="op">)</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">SetProperty</span><span class="op">(</span>t <span class="op">=&gt;</span> t<span class="op">.</span><span class="fu">UpdatedAt</span><span class="op">,</span> DateTime<span class="op">.</span><span class="fu">UtcNow</span><span class="op">));</span></span></code></pre></div>
+<hr />
+<h2 id="frontend-impact">11. Frontend Impact</h2>
+<h3 id="หนาแกไขทรป-tripsnewscopeedit">11.1 หน้าแก้ไขทริป
+(trips/new?scope=edit)</h3>
+<ul>
+<li>ถ้า Archived → redirect ไป preview (read-only)</li>
+<li>ถ้า Published + แก้วัน → เช็ค overlap → แสดง Confirm ถ้าไม่ซ้อน</li>
+</ul>
+<h3 id="หนา-my-trips">11.2 หน้า My Trips</h3>
+<ul>
+<li>ทริป Archived → badge “จบแล้ว” + ไม่มีปุ่มแก้ไข/ลบ → กดดูได้อย่างเดียว</li>
+<li>Quota นับเฉพาะ Draft + Published + Unpublished</li>
+</ul>
+<h3 id="หนา-dashboard">11.3 หน้า Dashboard</h3>
+<ul>
+<li>Quota card → แก้สูตรนับเฉพาะ non-archived</li>
+<li>ทริป Archived → แสดงแยก section “ทริปที่เสร็จแล้ว”</li>
+</ul>
+<hr />
+<h2 id="security-considerations">12. Security Considerations</h2>
+<ul>
+<li><strong>Backend enforce ทุกเงื่อนไข</strong> — frontend เป็นแค่ UX
+ช่วย</li>
+<li><strong>Original dates เป็น immutable</strong> — set ครั้งเดียวตอน
+publish</li>
+<li><strong>Archived trip ห้ามแก้ไข</strong> — API reject ทุก PUT/POST
+ที่เกี่ยวกับ archived trip</li>
+<li><strong>Date change count ห้าม reset</strong> — แม้ unpublish แล้ว
+publish ใหม่</li>
+</ul>
+</div>
+<div class="footer">© 2569 TripApp Development Team — Confidential</div>
+</div>
+</body>
+</html>

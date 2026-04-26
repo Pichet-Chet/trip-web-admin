@@ -2,13 +2,39 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api, ApiError } from "@/lib/api";
 import { FormInput, FormTextarea, ImageUpload, useToast } from "@/components/shared";
+
+interface CreatePostRequest {
+  title: string;
+  destination?: string;
+  description?: string;
+  highlights?: string;
+  images?: string[];
+  price?: number;
+  duration?: string;
+  travelPeriod?: string;
+  slots?: number;
+  tags?: string[];
+}
 
 export default function NewPostPage(): React.ReactNode {
   const router = useRouter();
   const { toast } = useToast();
+
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [destination, setDestination] = useState("");
+  const [duration, setDuration] = useState("");
+  const [travelPeriod, setTravelPeriod] = useState("");
+  const [price, setPrice] = useState("");
+  const [slots, setSlots] = useState("");
+  const [description, setDescription] = useState("");
   const [highlights, setHighlights] = useState<string[]>([""]);
+  const [tagsInput, setTagsInput] = useState("");
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   function addHighlight(): void {
     if (highlights.length < 8) setHighlights([...highlights, ""]);
@@ -24,14 +50,43 @@ export default function NewPostPage(): React.ReactNode {
     setHighlights(highlights.filter((_, i) => i !== idx));
   }
 
-  function handlePublish(): void {
-    toast("เผยแพร่แพ็กเกจแล้ว");
-    router.push("/dashboard/posts");
+  function buildPayload(): CreatePostRequest | null {
+    if (!title.trim()) {
+      setError("กรุณากรอกชื่อแพ็กเกจ");
+      return null;
+    }
+    return {
+      title: title.trim(),
+      destination: destination.trim() || undefined,
+      description: description.trim() || undefined,
+      highlights: highlights.map((h) => h.trim()).filter(Boolean).join("\n") || undefined,
+      images: coverUrl ? [coverUrl] : undefined,
+      price: price ? Number(price) : undefined,
+      duration: duration.trim() || undefined,
+      travelPeriod: travelPeriod.trim() || undefined,
+      slots: slots ? Number(slots) : undefined,
+      tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
+    };
   }
 
-  function handleDraft(): void {
-    toast("บันทึกร่างแล้ว");
-    router.push("/dashboard/posts");
+  async function save(targetStatus: "draft" | "published") {
+    const payload = buildPayload();
+    if (!payload) return;
+
+    setError("");
+    setSaving(true);
+    try {
+      const post = await api.post<{ id: string }>("/admin/posts", payload);
+      if (targetStatus === "published") {
+        await api.put(`/admin/posts/${post.id}/status`, { status: "published" });
+      }
+      toast(targetStatus === "published" ? "เผยแพร่แพ็กเกจแล้ว" : "บันทึกร่างแล้ว", "success");
+      router.push("/dashboard/posts");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -46,7 +101,6 @@ export default function NewPostPage(): React.ReactNode {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
-        {/* Cover Image */}
         <ImageUpload
           value={coverUrl}
           onChange={setCoverUrl}
@@ -55,32 +109,59 @@ export default function NewPostPage(): React.ReactNode {
           hint="แนะนำ: 1200x630px เพื่อแสดงผลสวยบน Marketplace"
         />
 
-        {/* Additional Images */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">รูปเพิ่มเติม (ไม่บังคับ)</label>
-          <label className="block cursor-pointer">
-            <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-4 text-center transition-colors hover:bg-blue-50/30">
-              <span className="material-symbols-outlined text-xl text-slate-300">add_photo_alternate</span>
-              <p className="text-xs text-slate-400 mt-1">เพิ่มรูปภาพ (สูงสุด 10 รูป)</p>
-            </div>
-            <input type="file" accept="image/*" multiple className="hidden" />
-          </label>
-        </div>
-
-        <FormInput label="ชื่อแพ็กเกจ" placeholder="เช่น ทริปญี่ปุ่นใบไม้เปลี่ยนสี โตเกียว — ฟูจิ — เกียวโต" />
-        <FormInput label="จุดหมายปลายทาง" placeholder="เช่น ญี่ปุ่น, เกาหลีใต้, เชียงใหม่" />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormInput label="ระยะเวลา" placeholder="เช่น 5 วัน 4 คืน" />
-          <FormInput label="ช่วงเดินทาง" placeholder="เช่น ต.ค. — พ.ย. 2569" />
-        </div>
+        <FormInput
+          label="ชื่อแพ็กเกจ"
+          placeholder="เช่น ทริปญี่ปุ่นใบไม้เปลี่ยนสี โตเกียว — ฟูจิ — เกียวโต"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+        <FormInput
+          label="จุดหมายปลายทาง"
+          placeholder="เช่น ญี่ปุ่น, เกาหลีใต้, เชียงใหม่"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+        />
 
         <div className="grid grid-cols-2 gap-4">
-          <FormInput label="ราคาเริ่มต้น (บาท)" type="number" placeholder="เช่น 32900" />
-          <FormInput label="จำนวนที่รับ (คน)" type="number" placeholder="เช่น 25" />
+          <FormInput
+            label="ระยะเวลา"
+            placeholder="เช่น 5 วัน 4 คืน"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+          />
+          <FormInput
+            label="ช่วงเดินทาง"
+            placeholder="เช่น ต.ค. — พ.ย. 2569"
+            value={travelPeriod}
+            onChange={(e) => setTravelPeriod(e.target.value)}
+          />
         </div>
 
-        <FormTextarea label="รายละเอียด" rows={5} placeholder="อธิบายรายละเอียดทริป สิ่งที่รวมอยู่ในราคา จุดเด่น..." />
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput
+            label="ราคาเริ่มต้น (บาท)"
+            type="number"
+            placeholder="เช่น 32900"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+          <FormInput
+            label="จำนวนที่รับ (คน)"
+            type="number"
+            placeholder="เช่น 25"
+            value={slots}
+            onChange={(e) => setSlots(e.target.value)}
+          />
+        </div>
+
+        <FormTextarea
+          label="รายละเอียด"
+          rows={5}
+          placeholder="อธิบายรายละเอียดทริป สิ่งที่รวมอยู่ในราคา จุดเด่น..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
 
         {/* Highlights */}
         <div className="space-y-3">
@@ -109,15 +190,35 @@ export default function NewPostPage(): React.ReactNode {
           )}
         </div>
 
-        <FormInput label="แท็ก" placeholder="เช่น ญี่ปุ่น, ใบไม้เปลี่ยนสี, โตเกียว (คั่นด้วย comma)" />
+        <FormInput
+          label="แท็ก"
+          placeholder="เช่น ญี่ปุ่น, ใบไม้เปลี่ยนสี, โตเกียว (คั่นด้วย comma)"
+          value={tagsInput}
+          onChange={(e) => setTagsInput(e.target.value)}
+        />
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-slate-100">
-          <button onClick={handleDraft} className="flex-1 py-3.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
-            บันทึกร่าง
+          <button
+            onClick={() => save("draft")}
+            disabled={saving}
+            className="flex-1 py-3.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+          >
+            {saving ? "กำลังบันทึก..." : "บันทึกร่าง"}
           </button>
-          <button onClick={handlePublish} className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
-            เผยแพร่แพ็กเกจ
+          <button
+            onClick={() => save("published")}
+            disabled={saving}
+            className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {saving ? "กำลังบันทึก..." : "เผยแพร่แพ็กเกจ"}
           </button>
         </div>
       </div>
