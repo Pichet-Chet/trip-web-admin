@@ -106,6 +106,22 @@ function UpgradeContent(): React.ReactNode {
   const currentTier = usage?.tier ?? "free";
 
   const handleCheckout = async () => {
+    // Cross-tab + double-click guard. sessionStorage is per-tab in modern
+    // browsers, so localStorage is used to coordinate across tabs.
+    const FLAG = "tripapp:checkout-in-flight";
+    const now = Date.now();
+    try {
+      const existing = localStorage.getItem(FLAG);
+      if (existing && now - Number(existing) < 30_000) {
+        setError("กำลังดำเนินการชำระเงินอยู่ — โปรดรอสักครู่หรือเช็คแท็บอื่น");
+        return;
+      }
+      localStorage.setItem(FLAG, String(now));
+    } catch {
+      // localStorage may throw in private mode — proceed without lock
+    }
+
+    if (loading) return; // belt-and-braces: ignore double-click in same tab
     setLoading(true);
     setError(null);
     try {
@@ -119,7 +135,11 @@ function UpgradeContent(): React.ReactNode {
     } catch (e: unknown) {
       setError(e instanceof ApiError ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่");
       setLoading(false);
+      try { localStorage.removeItem(FLAG); } catch {}
     }
+    // On success path, page navigates to Stripe — leave the flag so a
+    // back-button return won't immediately re-trigger checkout. The 30s
+    // window above auto-expires on legitimate retry.
   };
 
   if (plansError) {
@@ -127,6 +147,23 @@ function UpgradeContent(): React.ReactNode {
       <div className="p-8 text-center space-y-3">
         <span className="material-symbols-outlined text-4xl text-red-400">error</span>
         <p className="text-on-surface-variant text-sm">{plansError}</p>
+        <button onClick={() => window.location.reload()} className="text-sm text-primary font-semibold cursor-pointer">ลองใหม่</button>
+      </div>
+    );
+  }
+
+  // Plans loaded but empty → admin disabled all plans / DB seed missing
+  if (plans && plans.length === 0) {
+    return (
+      <div className="p-8 text-center space-y-4 max-w-md mx-auto">
+        <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
+          <span className="material-symbols-outlined text-amber-500 text-3xl">inventory_2</span>
+        </div>
+        <h2 className="text-lg font-bold text-on-surface">แพลนไม่พร้อมจำหน่าย</h2>
+        <p className="text-sm text-on-surface-variant leading-relaxed">
+          ขณะนี้ไม่มีแพลนที่เปิดให้ซื้อ — ระบบอาจกำลังบำรุงรักษา กรุณาลองใหม่ในอีกสักครู่
+          หรือติดต่อ <a href="mailto:support@tripapp.co" className="text-primary hover:underline">support@tripapp.co</a>
+        </p>
         <button onClick={() => window.location.reload()} className="text-sm text-primary font-semibold cursor-pointer">ลองใหม่</button>
       </div>
     );

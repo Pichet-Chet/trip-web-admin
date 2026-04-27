@@ -103,10 +103,33 @@ function BillingContent(): React.ReactNode {
       .finally(() => setLoading(false));
   }, [page, searchParams]);
 
+  // Stripe webhook can land 1-10s after redirect — refetch usage twice at
+  // 3s and 8s when ?success=1 so the Account Status card reflects the new
+  // tier without a manual page refresh. Also clear the localStorage
+  // checkout-in-flight flag set by /dashboard/upgrade.
+  useEffect(() => {
+    if (searchParams.get("success") !== "1") return;
+    try { localStorage.removeItem("tripapp:checkout-in-flight"); } catch {}
+
+    const refetch = () => api.get<UsageData>("/admin/usage").then(setUsage).catch(() => {});
+    const t1 = setTimeout(refetch, 3_000);
+    const t2 = setTimeout(refetch, 8_000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [searchParams]);
+
   const handlePortal = async () => {
     setPortalLoading(true);
+    // 15s client-side timeout — Stripe portal usually responds in <2s, anything
+    // longer is a sign of a hung request. Without this the spinner could spin
+    // forever and the user keeps clicking, opening 5 tickets to support.
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new ApiError("Portal API ตอบช้ากว่าปกติ — กรุณาลองใหม่", 504)), 15_000)
+    );
     try {
-      const result = await api.post<{ url: string }>("/admin/billing/portal", { returnUrl: window.location.href });
+      const result = await Promise.race([
+        api.post<{ url: string }>("/admin/billing/portal", { returnUrl: window.location.href }),
+        timeout,
+      ]);
       window.location.href = result.url;
     } catch (e: unknown) {
       setPortalLoading(false);
@@ -117,10 +140,16 @@ function BillingContent(): React.ReactNode {
   const handleCancelSubscription = async () => {
     setCancelLoading(true);
     setCancelError(null);
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new ApiError("API ตอบช้ากว่าปกติ — กรุณาลองใหม่", 504)), 20_000)
+    );
     try {
-      const result = await api.post<{ accessUntil: string; status: string }>("/admin/billing/cancel-subscription", {
-        reason: cancelReason.trim() || null,
-      });
+      const result = await Promise.race([
+        api.post<{ accessUntil: string; status: string }>("/admin/billing/cancel-subscription", {
+          reason: cancelReason.trim() || null,
+        }),
+        timeout,
+      ]);
       setCancelSuccess(`ยกเลิกเรียบร้อย — ใช้งานได้ถึง ${formatDate(result.accessUntil)}`);
       setCancelOpen(false);
       setCancelReason("");
@@ -152,7 +181,10 @@ function BillingContent(): React.ReactNode {
   }
 
   const isSub = usage?.hasActiveSubscription ?? false;
-  const isPastDue = usage?.subscriptionStatus === "past_due";
+  const subStatus = usage?.subscriptionStatus ?? null;
+  const isPastDue = subStatus === "past_due";
+  const isPending = subStatus === "pending";
+  const isCancelling = subStatus === "cancelling" || subStatus === "scheduled_cancel";
   const totalRevenue = paymentPage?.totalRevenue ?? 0;
   const totalCount = paymentPage?.totalCount ?? 0;
 
@@ -228,9 +260,24 @@ function BillingContent(): React.ReactNode {
               <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-widest uppercase rounded-full">
                 แพลนปัจจุบัน
               </span>
-              {isSub && (
+              {isSub && !isPastDue && !isPending && !isCancelling && (
                 <span className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-green-200">
                   Active
+                </span>
+              )}
+              {isPastDue && (
+                <span className="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-red-200">
+                  Past Due
+                </span>
+              )}
+              {isPending && (
+                <span className="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-amber-200">
+                  Pending
+                </span>
+              )}
+              {isCancelling && (
+                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold tracking-widest uppercase rounded-full border border-slate-200">
+                  Cancelling
                 </span>
               )}
             </div>
@@ -242,7 +289,17 @@ function BillingContent(): React.ReactNode {
             </p>
             {isSub && usage?.subscriptionExpiresAt && (
               <p className="text-xs text-on-surface-variant mt-1">
-                {isPastDue ? "ต้องอัปเดตบัตรก่อน" : "ต่ออายุอัตโนมัติ"} {formatDate(usage.subscriptionExpiresAt)}
+                {isPastDue ? "ต้องอัปเดตบัตรก่อน "
+                  : isCancelling ? "ใช้งานได้ถึง "
+                  : isPending ? "รอ webhook ยืนยัน • คาดว่าครบกำหนด "
+                  : "ต่ออายุอัตโนมัติ "}
+                {formatDate(usage.subscriptionExpiresAt)}
+              </p>
+            )}
+            {isPending && (
+              <p className="text-xs text-amber-700 mt-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">hourglass_empty</span>
+                ระบบกำลังรอ Stripe webhook — สถานะจะอัปเดตในไม่กี่วินาที
               </p>
             )}
           </div>
