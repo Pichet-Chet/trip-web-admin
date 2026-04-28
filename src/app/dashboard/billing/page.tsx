@@ -102,6 +102,9 @@ function BillingContent(): React.ReactNode {
   const [refundRequests, setRefundRequests] = useState<MyRefundRequest[]>([]);
   const [refundTarget, setRefundTarget] = useState<PaymentItem | null>(null);
 
+  // Phase V — billing profile awareness (banner when not opted in)
+  const [billingProfile, setBillingProfile] = useState<{ wantsTaxInvoice: boolean; legalName: string } | null | "missing">(null);
+
   const loadRefunds = useCallback(async () => {
     try {
       const rows = await api.get<MyRefundRequest[]>("/admin/refund-requests");
@@ -110,6 +113,12 @@ function BillingContent(): React.ReactNode {
   }, []);
 
   useEffect(() => { loadRefunds(); }, [loadRefunds]);
+
+  useEffect(() => {
+    api.get<{ wantsTaxInvoice: boolean; legalName: string } | null>("/admin/billing/billing-profile")
+      .then(p => setBillingProfile(p ?? "missing"))
+      .catch(() => setBillingProfile("missing"));
+  }, []);
 
   function refundStatusFor(paymentId: string): "pending" | "rejected" | null {
     // approved → backend marks payment.status="refunded" so we don't reach here
@@ -456,6 +465,33 @@ function BillingContent(): React.ReactNode {
         </div>
       )}
 
+      {/* ═══ Tax invoice opt-in banner (Phase V) ═══ */}
+      {billingProfile === "missing" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+          <span className="material-symbols-outlined text-blue-600 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>description</span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-blue-900">ต้องการใบกำกับภาษี?</p>
+            <p className="text-xs text-blue-800 mt-0.5">ตั้งข้อมูลบริษัทเพื่อให้ระบบออกใบกำกับภาษี PDF ให้อัตโนมัติทุกครั้งที่ชำระเงิน</p>
+          </div>
+          <Link href="/dashboard/billing/profile" className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold hover:opacity-90">
+            ตั้งค่า
+            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+          </Link>
+        </div>
+      )}
+      {billingProfile && billingProfile !== "missing" && !billingProfile.wantsTaxInvoice && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <span className="material-symbols-outlined text-amber-600 mt-0.5">info</span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-amber-900">ใบกำกับภาษีปิดอยู่</p>
+            <p className="text-xs text-amber-800 mt-0.5">มีข้อมูลบริษัทแล้วแต่ยังไม่ได้เปิดออกใบกำกับภาษีอัตโนมัติ</p>
+          </div>
+          <Link href="/dashboard/billing/profile" className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-amber-600 text-white rounded-full text-xs font-bold hover:opacity-90">
+            จัดการ
+          </Link>
+        </div>
+      )}
+
       {/* ═══ Payment Table ═══ */}
       <section className="space-y-4">
         <SectionHeader title="รายการชำระเงิน" subtitle="ประวัติการชำระเงินทั้งหมดของบัญชีคุณ" />
@@ -501,7 +537,7 @@ function BillingContent(): React.ReactNode {
                       </td>
                       <td className="px-6 py-4 text-right">
                         {tx.status === "paid" ? (
-                          <div className="inline-flex items-center gap-2 justify-end">
+                          <div className="inline-flex items-center gap-4 justify-end">
                             <button
                               onClick={async () => {
                                 try {
@@ -511,32 +547,58 @@ function BillingContent(): React.ReactNode {
                                   toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
                                 }
                               }}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-(--primary) bg-(--primary-container)/60 hover:bg-(--primary-container) cursor-pointer transition-colors"
-                              title="ดาวน์โหลดใบเสร็จ"
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-(--primary) hover:underline cursor-pointer"
+                              title="ใบเสร็จ Stripe"
                             >
-                              <span className="material-symbols-outlined text-sm">receipt_long</span>
-                              ใบเสร็จ
+                              <span className="material-symbols-outlined text-[16px] leading-none">receipt_long</span>
+                              <span className="leading-none">ใบเสร็จ</span>
+                            </button>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
+                                  window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
+                                } catch (e: unknown) {
+                                  if (e instanceof ApiError && e.status === 404) {
+                                    if (confirm("ยังไม่ได้ออกใบกำกับภาษีสำหรับรายการนี้ — ออกตอนนี้?")) {
+                                      try {
+                                        const r2 = await api.post<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
+                                        window.open(r2.downloadUrl, "_blank", "noopener,noreferrer");
+                                      } catch (e2) {
+                                        toast(e2 instanceof ApiError ? e2.message : "ออกใบกำกับภาษีไม่สำเร็จ", "error");
+                                      }
+                                    }
+                                  } else {
+                                    toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบกำกับภาษีได้", "error");
+                                  }
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
+                              title="ใบกำกับภาษี (PDF)"
+                            >
+                              <span className="material-symbols-outlined text-[16px] leading-none">description</span>
+                              <span className="leading-none">ใบกำกับภาษี</span>
                             </button>
                             {refundStatusFor(tx.id) === "pending" ? (
-                              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200" title="รอ staff review">
-                                <span className="material-symbols-outlined text-sm">hourglass_empty</span>
-                                รอตรวจ
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600" title="รอ staff review">
+                                <span className="material-symbols-outlined text-[16px] leading-none">hourglass_empty</span>
+                                <span className="leading-none">รอตรวจ</span>
                               </span>
                             ) : refundStatusFor(tx.id) === "rejected" ? (
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 bg-slate-100" title="คำขอถูก reject">refund: rejected</span>
+                              <span className="text-xs font-semibold text-slate-400" title="คำขอถูก reject">ปฏิเสธ</span>
                             ) : (
                               <button
                                 onClick={() => setRefundTarget(tx)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
                                 title="ขอเงินคืน (ผ่าน staff review)"
                               >
-                                <span className="material-symbols-outlined text-sm">currency_exchange</span>
-                                ขอเงินคืน
+                                <span className="material-symbols-outlined text-[16px] leading-none">currency_exchange</span>
+                                <span className="leading-none">ขอคืนเงิน</span>
                               </button>
                             )}
                           </div>
                         ) : tx.status === "refunded" ? (
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50">refunded</span>
+                          <span className="text-xs font-semibold text-emerald-700">คืนแล้ว</span>
                         ) : (
                           <span className="text-xs text-on-surface-variant/40">—</span>
                         )}
@@ -580,9 +642,7 @@ function BillingContent(): React.ReactNode {
           <div>
             <h4 className="font-bold text-on-surface text-sm">ต้องการใบกำกับภาษี?</h4>
             <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-              หากต้องการใบกำกับภาษีหรือเพิ่มข้อมูลบริษัทในใบเสร็จ <Link href="/dashboard/support" className="text-(--primary) font-semibold hover:underline">ติดต่อฝ่ายสนับสนุน</Link>
-              {" · "}
-              <Link href="/dashboard/refund-policy" className="text-(--primary) font-semibold hover:underline">นโยบายคืนเงิน</Link>
+              ตั้งข้อมูลบริษัทเพื่อรับ <Link href="/dashboard/billing/profile" className="text-(--primary) font-semibold hover:underline">ใบกำกับภาษีอัตโนมัติ</Link> · <Link href="/dashboard/refund-policy" className="text-(--primary) font-semibold hover:underline">นโยบายคืนเงิน</Link>
             </p>
           </div>
         </div>
