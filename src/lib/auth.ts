@@ -165,6 +165,65 @@ function setMemory(data: AuthResponse) {
   tokenExpiresAt = new Date(data.expiresAt).getTime();
 }
 
+/**
+ * Phase N2.1 — accept a staff-issued impersonation token. Decodes JWT
+ * client-side (no signature verify; server validates on every request)
+ * to extract user info + expiry, then sets it as the active session.
+ * Subsequent requests via api.ts will use this token until it expires.
+ */
+export function setAccessToken(token: string): void {
+  const payload = decodeJwt(token);
+  if (!payload) throw new Error("Invalid JWT");
+
+  accessToken = token;
+  tokenExpiresAt = (payload.exp ?? 0) * 1000;
+  currentUser = {
+    id: payload.sub ?? "",
+    firstName: payload.first_name ?? "",
+    lastName: payload.last_name ?? "",
+    email: payload.email ?? "",
+    role: payload.role ?? "",
+    companyId: payload.company_id ?? "",
+    companyName: "",
+    accountType: payload.account_type ?? "",
+    companies: [],
+  };
+}
+
+interface JwtPayload {
+  sub?: string;
+  exp?: number;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  company_id?: string;
+  account_type?: string;
+  impersonating?: string;
+  impersonated_by?: string;
+}
+
+function decodeJwt(token: string): JwtPayload | null {
+  try {
+    const [, payload] = token.split(".");
+    if (!payload) return null;
+    const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(payload.length + (4 - payload.length % 4) % 4, "=");
+    return JSON.parse(atob(padded)) as JwtPayload;
+  } catch {
+    return null;
+  }
+}
+
+/** Phase N2.1 — current session is an impersonation if "impersonating" claim is set. */
+export function getImpersonationContext(): { active: boolean; impersonatedBy: string | null } {
+  if (!accessToken) return { active: false, impersonatedBy: null };
+  const payload = decodeJwt(accessToken);
+  return {
+    active: !!payload?.impersonating,
+    impersonatedBy: payload?.impersonated_by ?? null,
+  };
+}
+
 function clearMemory() {
   accessToken = null;
   currentUser = null;

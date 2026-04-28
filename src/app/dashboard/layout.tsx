@@ -4,7 +4,7 @@ import { useState, createContext, useContext, useCallback, useEffect } from "rea
 import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/shared";
 import { AuthGuard } from "@/components/shared/auth-guard";
-import { getUser, logout, switchCompany, getCompanies, type UserInfo, type CompanyInfo } from "@/lib/auth";
+import { getUser, logout, switchCompany, getCompanies, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared/toast";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
@@ -41,6 +41,7 @@ export default function DashboardLayout({
     <SidebarContext.Provider value={{ openSidebar }}>
       <ToastProvider>
       <AuthGuard>
+      <ImpersonationBanner />
       <div className="min-h-screen bg-(--surface) text-(--on-surface)">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="ml-0 md:ml-20 lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
@@ -215,5 +216,24 @@ export default function DashboardLayout({
     </AuthGuard>
     </ToastProvider>
     </SidebarContext.Provider>
+  );
+}
+
+function ImpersonationBanner(): React.ReactNode {
+  const [ctx, setCtx] = useState<{ active: boolean; impersonatedBy: string | null }>({ active: false, impersonatedBy: null });
+
+  useEffect(() => {
+    setCtx(getImpersonationContext());
+    const interval = setInterval(() => setCtx(getImpersonationContext()), 5_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!ctx.active) return null;
+
+  return (
+    <div className="sticky top-0 z-50 bg-amber-500 text-white text-sm font-bold flex items-center justify-center gap-3 py-2 px-4 shadow">
+      <span className="material-symbols-outlined text-base">visibility</span>
+      <span>โหมดดูแทน operator (read-only) โดย {ctx.impersonatedBy ?? "Staff"} — กดแก้ไขใดๆ จะถูก reject</span>
+    </div>
   );
 }
