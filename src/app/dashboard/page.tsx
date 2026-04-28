@@ -31,6 +31,8 @@ interface Usage {
   remainingTrips: number;
   publishedCount: number;
   draftCount: number;
+  creditsTotal: number;
+  creditsUsed: number;
   creditsRemaining: number;
   hasActiveSubscription: boolean;
 }
@@ -214,14 +216,18 @@ export default function DashboardPage(): React.ReactNode {
           <div className="bg-white rounded-4xl p-6 md:p-8 flex flex-col justify-between shadow-sm border border-slate-200">
             <div className="flex justify-between items-start mb-4 lg:mb-0">
               <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">ทริปทั้งหมด</span>
-              <span className="text-xs font-bold text-slate-300">{usage?.tripQuotaUsed || 0}/{usage?.tripQuotaLimit || 3}</span>
+              <span className="text-xs font-bold text-slate-300">
+                {usage?.hasActiveSubscription
+                  ? `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)}/∞`
+                  : `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)}/${(usage?.tripQuotaLimit ?? 3) + (usage?.creditsTotal ?? 0)}`}
+              </span>
             </div>
             <div>
               <p className="text-4xl md:text-5xl font-black text-slate-900">{trips.length}</p>
               <p className="text-slate-400 font-medium mt-1 text-sm">
                 {usage?.publishedCount || 0} เผยแพร่ · {usage?.draftCount || 0} ร่าง
               </p>
-              {usage && usage.remainingTrips <= 0 && (
+              {quotaFull && (
                 <p className="text-red-500 text-xs font-bold mt-2">โควต้าเต็ม — อัปเกรดเพื่อสร้างทริปเพิ่ม</p>
               )}
             </div>
