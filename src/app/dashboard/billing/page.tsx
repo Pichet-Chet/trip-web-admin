@@ -540,6 +540,33 @@ function BillingContent(): React.ReactNode {
                           <div className="inline-flex items-center gap-4 justify-end">
                             <button
                               onClick={async () => {
+                                // Try our tax invoice first (it's also a Thai-format receipt).
+                                // Fall back to Stripe-hosted receipt only when the operator
+                                // hasn't opted in / hasn't issued one.
+                                try {
+                                  const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
+                                  window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
+                                  return;
+                                } catch (e: unknown) {
+                                  if (!(e instanceof ApiError) || e.status !== 404) {
+                                    toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
+                                    return;
+                                  }
+                                }
+
+                                // 404 — no tax invoice yet. If operator has profile + toggle on, auto-issue.
+                                // Otherwise hand them the Stripe receipt (cleaner than nagging about a profile).
+                                if (billingProfile && billingProfile !== "missing" && billingProfile.wantsTaxInvoice) {
+                                  try {
+                                    const r = await api.post<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
+                                    window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
+                                    return;
+                                  } catch (e: unknown) {
+                                    toast(e instanceof ApiError ? e.message : "ออกใบเสร็จไม่สำเร็จ", "error");
+                                    return;
+                                  }
+                                }
+
                                 try {
                                   const r = await api.get<{ url: string }>(`/admin/billing/payments/${tx.id}/receipt`);
                                   window.open(r.url, "_blank", "noopener,noreferrer");
@@ -548,36 +575,10 @@ function BillingContent(): React.ReactNode {
                                 }
                               }}
                               className="inline-flex items-center gap-1 text-xs font-semibold text-(--primary) hover:underline cursor-pointer"
-                              title="ใบเสร็จ Stripe"
+                              title="ใบเสร็จ / ใบกำกับภาษี"
                             >
                               <span className="material-symbols-outlined text-[16px] leading-none">receipt_long</span>
                               <span className="leading-none">ใบเสร็จ</span>
-                            </button>
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
-                                  window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
-                                } catch (e: unknown) {
-                                  if (e instanceof ApiError && e.status === 404) {
-                                    if (confirm("ยังไม่ได้ออกใบกำกับภาษีสำหรับรายการนี้ — ออกตอนนี้?")) {
-                                      try {
-                                        const r2 = await api.post<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
-                                        window.open(r2.downloadUrl, "_blank", "noopener,noreferrer");
-                                      } catch (e2) {
-                                        toast(e2 instanceof ApiError ? e2.message : "ออกใบกำกับภาษีไม่สำเร็จ", "error");
-                                      }
-                                    }
-                                  } else {
-                                    toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบกำกับภาษีได้", "error");
-                                  }
-                                }
-                              }}
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
-                              title="ใบกำกับภาษี (PDF)"
-                            >
-                              <span className="material-symbols-outlined text-[16px] leading-none">description</span>
-                              <span className="leading-none">ใบกำกับภาษี</span>
                             </button>
                             {refundStatusFor(tx.id) === "pending" ? (
                               <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600" title="รอ staff review">
