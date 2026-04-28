@@ -82,7 +82,11 @@ export default function DashboardPage(): React.ReactNode {
 
   const showOnboarding = !loading && trips.length === 0;
   const hasProfile = !!(user?.companyName);
-  const quotaPercent = usage ? Math.min(100, Math.round((usage.tripQuotaUsed / usage.tripQuotaLimit) * 100)) : 0;
+  // Effective capacity = free quota + purchased credits. Subscription stays at 0% (visualised
+  // as "full ring of capacity available") since the denominator is unbounded.
+  const quotaPercent = usage && !usage.hasActiveSubscription
+    ? Math.min(100, Math.round(((usage.tripQuotaUsed + usage.creditsUsed) / Math.max(1, usage.tripQuotaLimit + usage.creditsTotal)) * 100))
+    : 0;
   // Quota "full" only when free + credits + subscription all exhausted
   const quotaFull = usage
     ? usage.remainingTrips <= 0 && (usage.creditsRemaining ?? 0) <= 0 && !usage.hasActiveSubscription
@@ -193,7 +197,9 @@ export default function DashboardPage(): React.ReactNode {
                   {usage?.tier || "free"} Plan
                 </span>
                 <span className="text-white/40 text-xs font-bold">
-                  {usage?.tripQuotaUsed || 0} / {usage?.tripQuotaLimit || 3} ทริป
+                  {usage?.hasActiveSubscription
+                    ? `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)} / ∞ ทริป`
+                    : `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)} / ${(usage?.tripQuotaLimit ?? 3) + (usage?.creditsTotal ?? 0)} ทริป`}
                 </span>
               </div>
               <div className="mt-6">
@@ -343,10 +349,16 @@ export default function DashboardPage(): React.ReactNode {
             </div>
             <h4 className="text-lg font-bold text-(--on-surface) mb-2">การใช้งานแพลน</h4>
             <p className="text-sm text-(--on-surface-variant) mb-6">
-              ใช้ {usage.tripQuotaUsed} จาก {usage.tripQuotaLimit} ทริป ({usage.tier} Plan)
+              {usage.hasActiveSubscription
+                ? `ใช้ ${usage.tripQuotaUsed + usage.creditsUsed} ทริป (${usage.tier} Plan)`
+                : `ใช้ ${usage.tripQuotaUsed + usage.creditsUsed} จาก ${usage.tripQuotaLimit + usage.creditsTotal} ทริป (${usage.tier} Plan)`}
             </p>
             <Link href={ROUTES.usage} className="bg-(--primary)/10 text-(--primary) px-6 py-3 rounded-full font-bold text-xs hover:bg-(--primary) hover:text-white transition-all mx-auto">
-              {usage.remainingTrips > 0 ? `เหลือ ${usage.remainingTrips} ทริป` : "อัปเกรดแพลน"}
+              {usage.hasActiveSubscription
+                ? "ใช้งานไม่จำกัด"
+                : (usage.remainingTrips + usage.creditsRemaining) > 0
+                  ? `เหลือ ${usage.remainingTrips + usage.creditsRemaining} ทริป`
+                  : "อัปเกรดแพลน"}
             </Link>
           </div>
         </section>
