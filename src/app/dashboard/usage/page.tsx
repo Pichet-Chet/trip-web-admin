@@ -118,13 +118,13 @@ export default function UsagePage(): React.ReactNode {
         <p className="text-on-surface-variant mt-2 text-base md:text-lg">ติดตามโควต้าทริป + เครดิต และอัปเกรดแพลนเมื่อต้องการ</p>
       </div>
 
-      {/* ═══ Hero — clean white cards (matches upgrade mockup) ═══ */}
+      {/* ═══ Hero — softer rounded-3xl cards matching /dashboard ═══ */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Account Status */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-(--surface-container-high) shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60">
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60 hover:shadow-md transition-shadow">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 bg-(--primary-container) rounded-lg flex-shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
                 <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
               </div>
               <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-widest uppercase rounded-full">
@@ -144,7 +144,7 @@ export default function UsagePage(): React.ReactNode {
             {isSub ? (
               <Link
                 href="/dashboard/billing"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white rounded-xl font-bold text-sm shadow-lg shadow-(--primary)/20 hover:opacity-95 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white rounded-full font-bold text-sm shadow-lg shadow-(--primary)/20 hover:shadow-xl hover:shadow-(--primary)/30 transition-all"
               >
                 <span className="material-symbols-outlined text-base">workspace_premium</span>
                 จัดการ Subscription
@@ -152,7 +152,7 @@ export default function UsagePage(): React.ReactNode {
             ) : (
               <Link
                 href="/dashboard/upgrade"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white rounded-xl font-bold text-sm shadow-lg shadow-(--primary)/20 hover:opacity-95 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white rounded-full font-bold text-sm shadow-lg shadow-(--primary)/20 hover:shadow-xl hover:shadow-(--primary)/30 transition-all"
               >
                 <span className="material-symbols-outlined text-base">arrow_upward</span>
                 {isFree ? "อัปเกรดแพลน" : "ซื้อเครดิตเพิ่ม"}
@@ -163,7 +163,7 @@ export default function UsagePage(): React.ReactNode {
         </div>
 
         {/* Gauge */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl border border-(--surface-container-high) shadow-sm flex flex-col justify-center items-center text-center space-y-4">
+        <div className="bg-white p-6 md:p-8 rounded-3xl border border-(--outline-variant)/50 shadow-sm flex flex-col justify-center items-center text-center space-y-4 hover:shadow-md transition-shadow">
           {isSub ? (
             <>
               <div className="w-32 h-32 flex items-center justify-center rounded-full bg-primary/10">
@@ -201,27 +201,29 @@ export default function UsagePage(): React.ReactNode {
         </div>
       </section>
 
-      {/* ═══ Stats Row ═══ */}
+      {/* ═══ Stats Row — pastel icon tiles, softer feel ═══ */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public" },
-          { label: "ร่าง", value: data.draftCount, icon: "draft" },
-          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll" },
-          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings" },
+          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public", bg: "from-emerald-100 to-emerald-50", color: "text-emerald-600" },
+          { label: "ร่าง", value: data.draftCount, icon: "draft", bg: "from-slate-100 to-slate-50", color: "text-slate-500" },
+          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll", bg: "from-violet-100 to-violet-50", color: "text-violet-600" },
+          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings", bg: "from-blue-100 to-blue-50", color: "text-blue-600" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-outline-variant p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-on-surface-variant font-medium mb-1">{s.label}</p>
-              <p className="text-2xl font-black text-on-surface">{s.value}</p>
+          <div key={s.label} className="bg-white rounded-3xl border border-(--outline-variant)/50 p-5 md:p-6 flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center flex-shrink-0`}>
+              <span className={`material-symbols-outlined ${s.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
             </div>
-            <span className="material-symbols-outlined text-on-surface-variant text-xl">{s.icon}</span>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">{s.label}</p>
+              <p className="text-2xl md:text-3xl font-black text-on-surface mt-0.5">{s.value}</p>
+            </div>
           </div>
         ))}
       </section>
 
       {/* ═══ Credits-by-source breakdown (E9) ═══ */}
       {!isSub && data.creditsRemaining > 0 && Object.keys(data.creditsRemainingBySource ?? {}).length > 0 && (
-        <section className="bg-white rounded-2xl border border-outline-variant p-5">
+        <section className="bg-white rounded-3xl border border-(--outline-variant)/50 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-primary text-lg">account_tree</span>
             <h3 className="text-sm font-bold text-on-surface">เครดิตคงเหลือแยกตามแหล่งซื้อ</h3>
@@ -250,7 +252,7 @@ export default function UsagePage(): React.ReactNode {
         <SectionHeader title="เพิ่มความสามารถ" subtitle="เลือกแพลนที่เหมาะกับคุณ" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {/* ── Free ──────────────────────────────────────────────── */}
-          <div className={`relative bg-white rounded-2xl border ${data.tier === "free" ? "border-(--outline)" : "border-(--outline-variant)"} p-6 flex flex-col`}>
+          <div className={`relative bg-white rounded-3xl border ${data.tier === "free" ? "border-(--outline)" : "border-(--outline-variant)/50"} p-6 flex flex-col hover:shadow-md transition-shadow`}>
             <div className="flex items-start gap-3 mb-5">
               <div className="p-2 bg-(--surface-container-high) rounded-lg flex-shrink-0">
                 <span className="material-symbols-outlined text-on-surface-variant">person</span>
@@ -285,7 +287,7 @@ export default function UsagePage(): React.ReactNode {
           </div>
 
           {/* ── Per Trip (RECOMMENDED) ───────────────────────────── */}
-          <div className="relative bg-white rounded-2xl border-2 border-(--primary) shadow-xl ring-4 ring-(--primary)/10 p-6 flex flex-col">
+          <div className="relative bg-white rounded-3xl border-2 border-(--primary) shadow-xl ring-4 ring-(--primary)/10 p-6 flex flex-col">
             <span className="absolute -top-3 right-6 px-3 py-1 bg-(--primary) text-white text-[10px] font-bold tracking-widest uppercase rounded-full shadow-md">
               แนะนำ
             </span>
@@ -327,7 +329,7 @@ export default function UsagePage(): React.ReactNode {
           </div>
 
           {/* ── Pack 5 ───────────────────────────────────────────── */}
-          <div className={`relative bg-white rounded-2xl border ${data.tier === "pack_5" ? "border-(--outline)" : "border-(--outline-variant)"} p-6 flex flex-col`}>
+          <div className={`relative bg-white rounded-3xl border ${data.tier === "pack_5" ? "border-(--outline)" : "border-(--outline-variant)/50"} p-6 flex flex-col hover:shadow-md transition-shadow`}>
             <div className="flex items-start gap-3 mb-5">
               <div className="p-2 bg-(--surface-container-high) rounded-lg flex-shrink-0">
                 <span className="material-symbols-outlined text-on-surface-variant">redeem</span>
@@ -372,7 +374,7 @@ export default function UsagePage(): React.ReactNode {
         {data.tier !== "subscription" && (
           <Link
             href="/dashboard/upgrade?plan=subscription"
-            className="block bg-(--primary-container) rounded-2xl p-5 md:p-6 hover:shadow-md transition-shadow group"
+            className="block bg-gradient-to-br from-(--primary-container) to-(--primary-container)/40 rounded-3xl p-5 md:p-6 hover:shadow-md transition-all group"
           >
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-white rounded-lg flex-shrink-0">
