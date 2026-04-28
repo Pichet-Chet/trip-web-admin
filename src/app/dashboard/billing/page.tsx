@@ -225,7 +225,7 @@ function BillingContent(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
 
-      {/* Header — clean professional style matching mockup */}
+      {/* Header — matches /dashboard/usage */}
       <div>
         <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
         <p className="text-on-surface-variant mt-2 text-base md:text-lg">ดูประวัติการชำระเงิน + จัดการ Subscription ของคุณ</p>
@@ -282,12 +282,12 @@ function BillingContent(): React.ReactNode {
         </div>
       )}
 
-      {/* ═══ Plan + Spent Summary — clean white cards (matches upgrade mockup) ═══ */}
+      {/* ═══ Plan Hero + Stat — matches /dashboard/usage layout ═══ */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Plan + Subscription mgmt */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-(--surface-container-high) shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60">
           <div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <div className="p-2.5 bg-(--primary-container) rounded-lg flex-shrink-0">
                 <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
               </div>
@@ -295,28 +295,23 @@ function BillingContent(): React.ReactNode {
                 แพลนปัจจุบัน
               </span>
               {isSub && !isPastDue && !isPending && !isCancelling && (
-                <span className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-green-200">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-green-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                   Active
                 </span>
               )}
               {isPastDue && (
-                <span className="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-red-200">
-                  Past Due
-                </span>
+                <span className="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-red-200">Past Due</span>
               )}
               {isPending && (
-                <span className="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-amber-200">
-                  Pending
-                </span>
+                <span className="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-amber-200">Pending</span>
               )}
               {isCancelling && (
-                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold tracking-widest uppercase rounded-full border border-slate-200">
-                  Cancelling
-                </span>
+                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold tracking-widest uppercase rounded-full border border-slate-200">Cancelling</span>
               )}
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
-              {usage ? (TIER_LABEL[usage.tier] ?? usage.tier) : "—"} Plan
+              {usage ? (TIER_LABEL[usage.tier] ?? usage.tier) : "—"} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">Plan</span>
             </h2>
             <p className="text-on-surface-variant mt-2 text-sm md:text-base">
               ยอดชำระสะสม <strong className="text-on-surface">฿{totalRevenue.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</strong> • {totalCount} รายการ
@@ -357,11 +352,10 @@ function BillingContent(): React.ReactNode {
                   onClick={async () => {
                     setCancelOpen(true);
                     setCancelError(null);
-                    // H3.1: load draft + published counts for warning
                     try {
                       const counts = await api.get<typeof tripCounts>("/admin/trips/counts");
                       setTripCounts(counts);
-                    } catch { /* ignore — modal still works without counts */ }
+                    } catch { /* ignore */ }
                   }}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-(--outline-variant) text-on-surface rounded-xl font-bold text-sm hover:bg-(--surface-container-low) transition-colors cursor-pointer"
                 >
@@ -381,7 +375,7 @@ function BillingContent(): React.ReactNode {
           </div>
         </div>
 
-        {/* Total Revenue Stat Card */}
+        {/* Total Revenue Stat Card — matches usage gauge card style */}
         <div className="bg-white p-6 md:p-8 rounded-2xl border border-(--surface-container-high) shadow-sm flex flex-col justify-center text-center space-y-4">
           <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
             <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
@@ -507,7 +501,7 @@ function BillingContent(): React.ReactNode {
                       </td>
                       <td className="px-6 py-4 text-right">
                         {tx.status === "paid" ? (
-                          <div className="inline-flex items-center gap-3 justify-end">
+                          <div className="inline-flex items-center gap-2 justify-end">
                             <button
                               onClick={async () => {
                                 try {
@@ -517,23 +511,23 @@ function BillingContent(): React.ReactNode {
                                   toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
                                 }
                               }}
-                              className="text-primary text-xs font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-(--primary) bg-(--primary-container)/60 hover:bg-(--primary-container) cursor-pointer transition-colors"
                               title="ดาวน์โหลดใบเสร็จ"
                             >
                               <span className="material-symbols-outlined text-sm">receipt_long</span>
                               ใบเสร็จ
                             </button>
                             {refundStatusFor(tx.id) === "pending" ? (
-                              <span className="text-xs text-amber-600 font-bold inline-flex items-center gap-1" title="รอ staff review">
+                              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200" title="รอ staff review">
                                 <span className="material-symbols-outlined text-sm">hourglass_empty</span>
                                 รอตรวจ
                               </span>
                             ) : refundStatusFor(tx.id) === "rejected" ? (
-                              <span className="text-xs text-slate-500 font-bold" title="คำขอถูก reject">refund: rejected</span>
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 bg-slate-100" title="คำขอถูก reject">refund: rejected</span>
                             ) : (
                               <button
                                 onClick={() => setRefundTarget(tx)}
-                                className="text-rose-600 text-xs font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 cursor-pointer transition-colors"
                                 title="ขอเงินคืน (ผ่าน staff review)"
                               >
                                 <span className="material-symbols-outlined text-sm">currency_exchange</span>
@@ -542,7 +536,7 @@ function BillingContent(): React.ReactNode {
                             )}
                           </div>
                         ) : tx.status === "refunded" ? (
-                          <span className="text-xs text-emerald-700 font-bold">refunded</span>
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50">refunded</span>
                         ) : (
                           <span className="text-xs text-on-surface-variant/40">—</span>
                         )}
@@ -566,11 +560,11 @@ function BillingContent(): React.ReactNode {
         </div>
       </section>
 
-      {/* ═══ Footer Info ═══ */}
+      {/* ═══ Footer Info — matches /dashboard/usage card style ═══ */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-outline-variant p-5 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-primary">verified_user</span>
+          <div className="w-10 h-10 rounded-full bg-(--primary-container) flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-(--primary)">verified_user</span>
           </div>
           <div>
             <h4 className="font-bold text-on-surface text-sm">การชำระเงินปลอดภัย</h4>
@@ -580,13 +574,15 @@ function BillingContent(): React.ReactNode {
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-outline-variant p-5 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-(--surface-container) flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-(--surface-container-high) flex items-center justify-center flex-shrink-0">
             <span className="material-symbols-outlined text-on-surface-variant">receipt</span>
           </div>
           <div>
             <h4 className="font-bold text-on-surface text-sm">ต้องการใบกำกับภาษี?</h4>
             <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-              หากต้องการใบกำกับภาษีหรือเพิ่มข้อมูลบริษัทในใบเสร็จ <Link href="/dashboard/support" className="text-primary font-semibold hover:underline">ติดต่อฝ่ายสนับสนุน</Link>
+              หากต้องการใบกำกับภาษีหรือเพิ่มข้อมูลบริษัทในใบเสร็จ <Link href="/dashboard/support" className="text-(--primary) font-semibold hover:underline">ติดต่อฝ่ายสนับสนุน</Link>
+              {" · "}
+              <Link href="/dashboard/refund-policy" className="text-(--primary) font-semibold hover:underline">นโยบายคืนเงิน</Link>
             </p>
           </div>
         </div>
@@ -609,11 +605,42 @@ interface RefundRequestModalProps {
   onSubmitted: () => void;
 }
 
+interface RefundEligibility {
+  status: "eligible" | "partial" | "blocked" | "force_majeure_only";
+  planCode: string;
+  totalAmount: number;
+  refundableAmount: number;
+  currency: string;
+  creditsTotal: number;
+  creditsUsed: number;
+  creditsRemaining: number;
+  publishedTripsConsumed: number;
+  windowExpiresAt: string | null;
+  daysRemaining: number | null;
+  blockReasonKey: string | null;
+  blockReasonMessage: string | null;
+  requiresStaffAdmin: boolean;
+}
+
 function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModalProps): React.ReactNode {
   const [reason, setReason] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verdict, setVerdict] = useState<RefundEligibility | null>(null);
+  const [verdictLoading, setVerdictLoading] = useState(true);
+
+  // Phase U — preview eligibility before letting the user fill in reason.
+  // Avoids accepting a long reason only for the API to reject at submit.
+  useEffect(() => {
+    setVerdictLoading(true);
+    api.get<RefundEligibility>(`/admin/refund-requests/eligibility?paymentId=${payment.id}`)
+      .then(setVerdict)
+      .catch((e: ApiError) => setError(e.message))
+      .finally(() => setVerdictLoading(false));
+  }, [payment.id]);
+
+  const blocked = verdict?.status === "blocked" || verdict?.status === "force_majeure_only";
 
   async function submit() {
     if (reason.trim().length < 10) {
@@ -637,7 +664,7 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !submitting && onClose()}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div>
           <h3 className="font-bold text-slate-900 text-lg">ขอเงินคืน</h3>
           <p className="text-sm text-slate-600 mt-1">
@@ -646,33 +673,90 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
           </p>
         </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">เหตุผลที่ต้องการเงินคืน <span className="text-red-500">*</span></label>
-          <textarea
-            value={reason}
-            onChange={e => setReason(e.target.value)}
-            maxLength={2048}
-            rows={4}
-            placeholder="เช่น ชำระซ้ำซ้อนโดยไม่ได้ตั้งใจ / สมัครผิดแพคเกจ / ระบบเก็บเงินผิด..."
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 resize-none"
-          />
-          <p className="text-xs text-slate-400 mt-1">{reason.length}/2048</p>
-        </div>
+        {verdictLoading && (
+          <div className="text-center py-4 text-slate-400 text-sm">
+            <span className="material-symbols-outlined animate-spin text-xl">progress_activity</span>
+            <p className="mt-1">กำลังตรวจสอบสิทธิ์ตามนโยบาย...</p>
+          </div>
+        )}
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
-          <input
-            type="checkbox"
-            id="ack"
-            checked={acknowledged}
-            onChange={e => setAcknowledged(e.target.checked)}
-            className="mt-1 w-4 h-4"
-          />
-          <label htmlFor="ack" className="text-xs text-amber-900 leading-relaxed cursor-pointer">
-            ฉันเข้าใจว่า: (1) คำขอจะส่งไปยังทีมงานเพื่อตรวจสอบ ไม่ใช่การคืนเงินทันที
-            (2) <strong>หากเครดิตถูกใช้กับทริปที่ publish แล้ว อาจไม่ได้รับเงินคืน</strong>
-            (3) Subscription ที่ active อยู่ ใช้ "ยกเลิก Subscription" แทน
-          </label>
-        </div>
+        {verdict && verdict.status === "eligible" && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1 text-xs">
+            <p className="font-bold text-emerald-800 inline-flex items-center gap-1">
+              <span className="material-symbols-outlined text-base">check_circle</span>
+              ขอคืนเงินได้เต็มจำนวน ฿{verdict.refundableAmount.toFixed(2)}
+            </p>
+            {verdict.daysRemaining !== null && (
+              <p className="text-emerald-700">เหลือเวลาขอคืนอีก {verdict.daysRemaining} วัน</p>
+            )}
+          </div>
+        )}
+
+        {verdict && verdict.status === "partial" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1 text-xs">
+            <p className="font-bold text-amber-900 inline-flex items-center gap-1">
+              <span className="material-symbols-outlined text-base">pie_chart</span>
+              คืนแบบ Pro-rata
+            </p>
+            <p className="text-amber-800">
+              ใช้เครดิตไป {verdict.creditsUsed}/{verdict.creditsTotal} → คืนได้ <strong>฿{verdict.refundableAmount.toFixed(2)}</strong> จาก ฿{verdict.totalAmount.toFixed(2)}
+            </p>
+            {verdict.daysRemaining !== null && (
+              <p className="text-amber-700">เหลือเวลาขอคืนอีก {verdict.daysRemaining} วัน</p>
+            )}
+          </div>
+        )}
+
+        {verdict && blocked && (
+          <div className="bg-rose-50 border border-rose-300 rounded-xl p-4 space-y-2">
+            <p className="font-bold text-rose-800 inline-flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-base">block</span>
+              ไม่สามารถขอคืนเงินตามนโยบายปกติ
+            </p>
+            <p className="text-xs text-rose-700 leading-relaxed">{verdict.blockReasonMessage}</p>
+            {verdict.publishedTripsConsumed > 0 && (
+              <p className="text-xs text-rose-700">มีทริปที่ publish/รอตรวจ: {verdict.publishedTripsConsumed} รายการ</p>
+            )}
+            <Link
+              href="/dashboard/support"
+              className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 hover:underline mt-1"
+            >
+              <span className="material-symbols-outlined text-sm">support_agent</span>
+              ติดต่อ Support สำหรับกรณีพิเศษ
+            </Link>
+          </div>
+        )}
+
+        {!blocked && (
+          <>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">เหตุผลที่ต้องการเงินคืน <span className="text-red-500">*</span></label>
+              <textarea
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                maxLength={2048}
+                rows={4}
+                placeholder="เช่น ชำระซ้ำซ้อนโดยไม่ได้ตั้งใจ / สมัครผิดแพคเกจ / ระบบเก็บเงินผิด..."
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 resize-none"
+              />
+              <p className="text-xs text-slate-400 mt-1">{reason.length}/2048</p>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="ack"
+                checked={acknowledged}
+                onChange={e => setAcknowledged(e.target.checked)}
+                className="mt-1 w-4 h-4"
+              />
+              <label htmlFor="ack" className="text-xs text-slate-700 leading-relaxed cursor-pointer">
+                ฉันเข้าใจว่าคำขอจะส่งไปยังทีมงานเพื่อตรวจสอบ ไม่ใช่การคืนเงินทันที — อ่าน{" "}
+                <Link href="/dashboard/refund-policy" className="text-rose-600 font-bold hover:underline">นโยบายคืนเงินฉบับเต็ม</Link>
+              </label>
+            </div>
+          </>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">{error}</div>
@@ -684,16 +768,18 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
             disabled={submitting}
             className="flex-1 py-2.5 border border-slate-200 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-50 disabled:opacity-50"
           >
-            ยกเลิก
+            {blocked ? "ปิด" : "ยกเลิก"}
           </button>
-          <button
-            onClick={submit}
-            disabled={submitting || !acknowledged || reason.trim().length < 10}
-            className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
-          >
-            {submitting && <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>}
-            ส่งคำขอ
-          </button>
+          {!blocked && (
+            <button
+              onClick={submit}
+              disabled={submitting || !acknowledged || reason.trim().length < 10 || verdictLoading}
+              className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+            >
+              {submitting && <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>}
+              ส่งคำขอ
+            </button>
+          )}
         </div>
       </div>
     </div>
