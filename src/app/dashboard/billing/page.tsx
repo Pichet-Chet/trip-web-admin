@@ -235,9 +235,18 @@ function BillingContent(): React.ReactNode {
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
 
       {/* Header — matches /dashboard/usage */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
-        <p className="text-on-surface-variant mt-2 text-base md:text-lg">ดูประวัติการชำระเงิน + จัดการ Subscription ของคุณ</p>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
+          <p className="text-on-surface-variant mt-2 text-base md:text-lg">ดูประวัติการชำระเงิน + จัดการ Subscription ของคุณ</p>
+        </div>
+        <Link
+          href="/dashboard/billing/profile"
+          className="self-start inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-(--outline-variant) text-on-surface rounded-xl font-bold text-sm hover:bg-(--surface-container-low) transition-colors"
+        >
+          <span className="material-symbols-outlined text-base">description</span>
+          ข้อมูลใบกำกับภาษี
+        </Link>
       </div>
 
       {/* ═══ Success Banner ═══ */}
