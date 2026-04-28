@@ -91,7 +91,7 @@ export default function BillingProfilePage(): React.ReactNode {
           กลับไป Billing
         </Link>
         <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">ข้อมูลใบกำกับภาษี</h1>
-        <p className="text-on-surface-variant mt-2 text-base md:text-lg">ตั้งค่าข้อมูลบริษัทเพื่อรับใบกำกับภาษีอัตโนมัติทุกครั้งที่ชำระเงิน</p>
+        <p className="text-on-surface-variant mt-2 text-base md:text-lg">ระบบออกใบเสร็จของเราให้ทุกการชำระเงินอยู่แล้ว — กรอกข้อมูลภาษีเพื่อให้ใบเสร็จเป็นใบกำกับภาษีที่นำไปใช้เครดิตภาษีได้</p>
       </div>
 
       <section className="bg-white rounded-2xl border border-(--surface-container-high) shadow-sm p-6 md:p-8 space-y-5">
@@ -100,8 +100,8 @@ export default function BillingProfilePage(): React.ReactNode {
           <div className="flex items-start gap-3 flex-1">
             <span className="material-symbols-outlined text-(--primary) mt-0.5">receipt_long</span>
             <div>
-              <p className="font-bold text-on-surface text-sm">เปิดออกใบกำกับภาษี</p>
-              <p className="text-xs text-on-surface-variant mt-1">เมื่อเปิด ระบบจะออกใบกำกับภาษี PDF อัตโนมัติทุกครั้งที่ชำระเงินสำเร็จ และส่งลิงก์ไปทางอีเมล</p>
+              <p className="font-bold text-on-surface text-sm">ขอใบกำกับภาษี (แทนใบเสร็จปกติ)</p>
+              <p className="text-xs text-on-surface-variant mt-1">เปิดเมื่อบริษัทคุณจด VAT และต้องการ TIN/สาขาแสดงในเอกสารเพื่อยื่นเครดิตภาษีซื้อ</p>
             </div>
           </div>
           <button

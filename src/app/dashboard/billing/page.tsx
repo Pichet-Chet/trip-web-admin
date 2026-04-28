@@ -465,29 +465,17 @@ function BillingContent(): React.ReactNode {
         </div>
       )}
 
-      {/* ═══ Tax invoice opt-in banner (Phase V) ═══ */}
+      {/* ═══ Tax invoice opt-in banner — only when user might want VAT-fielded invoice ═══ */}
       {billingProfile === "missing" && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
           <span className="material-symbols-outlined text-blue-600 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>description</span>
           <div className="flex-1">
             <p className="text-sm font-bold text-blue-900">ต้องการใบกำกับภาษี?</p>
-            <p className="text-xs text-blue-800 mt-0.5">ตั้งข้อมูลบริษัทเพื่อให้ระบบออกใบกำกับภาษี PDF ให้อัตโนมัติทุกครั้งที่ชำระเงิน</p>
+            <p className="text-xs text-blue-800 mt-0.5">ระบบออกใบเสร็จให้ทุกการชำระเงินอยู่แล้ว — ตั้งข้อมูลภาษี (TIN/ที่อยู่) เพื่อให้เป็นใบกำกับภาษีที่นำไปใช้เครดิตภาษีได้</p>
           </div>
           <Link href="/dashboard/billing/profile" className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold hover:opacity-90">
             ตั้งค่า
             <span className="material-symbols-outlined text-sm">arrow_forward</span>
-          </Link>
-        </div>
-      )}
-      {billingProfile && billingProfile !== "missing" && !billingProfile.wantsTaxInvoice && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-          <span className="material-symbols-outlined text-amber-600 mt-0.5">info</span>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-amber-900">ใบกำกับภาษีปิดอยู่</p>
-            <p className="text-xs text-amber-800 mt-0.5">มีข้อมูลบริษัทแล้วแต่ยังไม่ได้เปิดออกใบกำกับภาษีอัตโนมัติ</p>
-          </div>
-          <Link href="/dashboard/billing/profile" className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-amber-600 text-white rounded-full text-xs font-bold hover:opacity-90">
-            จัดการ
           </Link>
         </div>
       )}
@@ -540,9 +528,8 @@ function BillingContent(): React.ReactNode {
                           <div className="inline-flex items-center gap-4 justify-end">
                             <button
                               onClick={async () => {
-                                // Try our tax invoice first (it's also a Thai-format receipt).
-                                // Fall back to Stripe-hosted receipt only when the operator
-                                // hasn't opted in / hasn't issued one.
+                                // Always our own receipt. Auto-issue lazily for legacy
+                                // payments that predated the Phase V auto-issue webhook hook.
                                 try {
                                   const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
                                   window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
@@ -553,25 +540,11 @@ function BillingContent(): React.ReactNode {
                                     return;
                                   }
                                 }
-
-                                // 404 — no tax invoice yet. If operator has profile + toggle on, auto-issue.
-                                // Otherwise hand them the Stripe receipt (cleaner than nagging about a profile).
-                                if (billingProfile && billingProfile !== "missing" && billingProfile.wantsTaxInvoice) {
-                                  try {
-                                    const r = await api.post<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
-                                    window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
-                                    return;
-                                  } catch (e: unknown) {
-                                    toast(e instanceof ApiError ? e.message : "ออกใบเสร็จไม่สำเร็จ", "error");
-                                    return;
-                                  }
-                                }
-
                                 try {
-                                  const r = await api.get<{ url: string }>(`/admin/billing/payments/${tx.id}/receipt`);
-                                  window.open(r.url, "_blank", "noopener,noreferrer");
+                                  const r = await api.post<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
+                                  window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
                                 } catch (e: unknown) {
-                                  toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
+                                  toast(e instanceof ApiError ? e.message : "ออกใบเสร็จไม่สำเร็จ", "error");
                                 }
                               }}
                               className="inline-flex items-center gap-1 text-xs font-semibold text-(--primary) hover:underline cursor-pointer"
