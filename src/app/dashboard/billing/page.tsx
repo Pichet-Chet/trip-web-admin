@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
@@ -21,6 +21,19 @@ interface UsageData {
   hasActiveSubscription: boolean;
   subscriptionExpiresAt: string | null;
   subscriptionStatus: string | null;
+}
+
+interface MyRefundRequest {
+  id: string;
+  paymentId: string;
+  planCode: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected" | "cancelled";
+  createdAt: string;
+  resolvedAt: string | null;
+  resolutionNotes: string | null;
 }
 
 const PLAN_LABEL: Record<string, string> = {
@@ -84,6 +97,27 @@ function BillingContent(): React.ReactNode {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
+
+  // Phase A — refund requests
+  const [refundRequests, setRefundRequests] = useState<MyRefundRequest[]>([]);
+  const [refundTarget, setRefundTarget] = useState<PaymentItem | null>(null);
+
+  const loadRefunds = useCallback(async () => {
+    try {
+      const rows = await api.get<MyRefundRequest[]>("/admin/refund-requests");
+      setRefundRequests(rows);
+    } catch { /* ignore — refund flow optional */ }
+  }, []);
+
+  useEffect(() => { loadRefunds(); }, [loadRefunds]);
+
+  function refundStatusFor(paymentId: string): "pending" | "rejected" | null {
+    // approved → backend marks payment.status="refunded" so we don't reach here
+    // cancelled → operator can submit again
+    const open = refundRequests.find(r => r.paymentId === paymentId && (r.status === "pending" || r.status === "rejected"));
+    if (!open) return null;
+    return open.status === "pending" ? "pending" : "rejected";
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -450,7 +484,7 @@ function BillingContent(): React.ReactNode {
                     <th className="px-6 py-4">แพลน</th>
                     <th className="px-6 py-4">จำนวนเงิน</th>
                     <th className="px-6 py-4">สถานะ</th>
-                    <th className="px-6 py-4 text-right">ใบเสร็จ</th>
+                    <th className="px-6 py-4 text-right">การกระทำ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/40">
@@ -473,20 +507,42 @@ function BillingContent(): React.ReactNode {
                       </td>
                       <td className="px-6 py-4 text-right">
                         {tx.status === "paid" ? (
-                          <button
-                            onClick={async () => {
-                              try {
-                                const r = await api.get<{ url: string }>(`/admin/billing/payments/${tx.id}/receipt`);
-                                window.open(r.url, "_blank", "noopener,noreferrer");
-                              } catch (e: unknown) {
-                                toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
-                              }
-                            }}
-                            className="text-primary text-xs font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
-                          >
-                            <span className="material-symbols-outlined text-sm">receipt_long</span>
-                            ดาวน์โหลด
-                          </button>
+                          <div className="inline-flex items-center gap-3 justify-end">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const r = await api.get<{ url: string }>(`/admin/billing/payments/${tx.id}/receipt`);
+                                  window.open(r.url, "_blank", "noopener,noreferrer");
+                                } catch (e: unknown) {
+                                  toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
+                                }
+                              }}
+                              className="text-primary text-xs font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
+                              title="ดาวน์โหลดใบเสร็จ"
+                            >
+                              <span className="material-symbols-outlined text-sm">receipt_long</span>
+                              ใบเสร็จ
+                            </button>
+                            {refundStatusFor(tx.id) === "pending" ? (
+                              <span className="text-xs text-amber-600 font-bold inline-flex items-center gap-1" title="รอ staff review">
+                                <span className="material-symbols-outlined text-sm">hourglass_empty</span>
+                                รอตรวจ
+                              </span>
+                            ) : refundStatusFor(tx.id) === "rejected" ? (
+                              <span className="text-xs text-slate-500 font-bold" title="คำขอถูก reject">refund: rejected</span>
+                            ) : (
+                              <button
+                                onClick={() => setRefundTarget(tx)}
+                                className="text-rose-600 text-xs font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
+                                title="ขอเงินคืน (ผ่าน staff review)"
+                              >
+                                <span className="material-symbols-outlined text-sm">currency_exchange</span>
+                                ขอเงินคืน
+                              </button>
+                            )}
+                          </div>
+                        ) : tx.status === "refunded" ? (
+                          <span className="text-xs text-emerald-700 font-bold">refunded</span>
                         ) : (
                           <span className="text-xs text-on-surface-variant/40">—</span>
                         )}
@@ -536,6 +592,110 @@ function BillingContent(): React.ReactNode {
         </div>
       </section>
 
+      {refundTarget && (
+        <RefundRequestModal
+          payment={refundTarget}
+          onClose={() => setRefundTarget(null)}
+          onSubmitted={() => { setRefundTarget(null); loadRefunds(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+interface RefundRequestModalProps {
+  payment: PaymentItem;
+  onClose: () => void;
+  onSubmitted: () => void;
+}
+
+function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModalProps): React.ReactNode {
+  const [reason, setReason] = useState("");
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    if (reason.trim().length < 10) {
+      setError("กรุณาระบุเหตุผล (อย่างน้อย 10 ตัวอักษร)");
+      return;
+    }
+    if (!acknowledged) {
+      setError("กรุณาอ่านและยืนยันเงื่อนไข");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.post("/admin/refund-requests", { paymentId: payment.id, reason: reason.trim() });
+      onSubmitted();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "ส่งคำขอไม่สำเร็จ");
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !submitting && onClose()}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4" onClick={e => e.stopPropagation()}>
+        <div>
+          <h3 className="font-bold text-slate-900 text-lg">ขอเงินคืน</h3>
+          <p className="text-sm text-slate-600 mt-1">
+            <strong>฿{payment.amount.toFixed(2)}</strong> · {PLAN_LABEL[payment.planCode] ?? payment.planCode}
+            {payment.quantity > 1 && ` ×${payment.quantity}`}
+          </p>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-slate-700 block mb-1">เหตุผลที่ต้องการเงินคืน <span className="text-red-500">*</span></label>
+          <textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            maxLength={2048}
+            rows={4}
+            placeholder="เช่น ชำระซ้ำซ้อนโดยไม่ได้ตั้งใจ / สมัครผิดแพคเกจ / ระบบเก็บเงินผิด..."
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 resize-none"
+          />
+          <p className="text-xs text-slate-400 mt-1">{reason.length}/2048</p>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+          <input
+            type="checkbox"
+            id="ack"
+            checked={acknowledged}
+            onChange={e => setAcknowledged(e.target.checked)}
+            className="mt-1 w-4 h-4"
+          />
+          <label htmlFor="ack" className="text-xs text-amber-900 leading-relaxed cursor-pointer">
+            ฉันเข้าใจว่า: (1) คำขอจะส่งไปยังทีมงานเพื่อตรวจสอบ ไม่ใช่การคืนเงินทันที
+            (2) <strong>หากเครดิตถูกใช้กับทริปที่ publish แล้ว อาจไม่ได้รับเงินคืน</strong>
+            (3) Subscription ที่ active อยู่ ใช้ "ยกเลิก Subscription" แทน
+          </label>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">{error}</div>
+        )}
+
+        <div className="flex gap-2 pt-2">
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            className="flex-1 py-2.5 border border-slate-200 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-50 disabled:opacity-50"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={submit}
+            disabled={submitting || !acknowledged || reason.trim().length < 10}
+            className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+          >
+            {submitting && <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>}
+            ส่งคำขอ
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
