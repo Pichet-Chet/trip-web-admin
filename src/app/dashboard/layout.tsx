@@ -3,6 +3,7 @@
 import { useState, createContext, useContext, useCallback, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/shared";
+import { ConfirmProvider } from "@/lib/hooks/use-confirm";
 import { AuthGuard } from "@/components/shared/auth-guard";
 import { getUser, logout, switchCompany, getCompanies, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared/toast";
@@ -40,6 +41,7 @@ export default function DashboardLayout({
   return (
     <SidebarContext.Provider value={{ openSidebar }}>
       <ToastProvider>
+      <ConfirmProvider>
       <AuthGuard>
       <ImpersonationBanner />
       <div className="min-h-screen bg-(--surface) text-(--on-surface)">
@@ -214,6 +216,7 @@ export default function DashboardLayout({
         </main>
       </div>
     </AuthGuard>
+    </ConfirmProvider>
     </ToastProvider>
     </SidebarContext.Provider>
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ConfirmDialog, useToast, EmptyState } from "@/components/shared";
+import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 
 type FilterTab = "all" | "draft" | "pending_review" | "published" | "unpublished" | "archived";
@@ -50,6 +51,7 @@ export default function MyTripsPage(): React.ReactNode {
   const [quotaFull, setQuotaFull] = useState(false);
   const [cloning, setCloning] = useState<string | null>(null);
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const router = useRouter();
 
   async function handleClone(trip: Trip) {
@@ -58,7 +60,12 @@ export default function MyTripsPage(): React.ReactNode {
       toast("Quota เต็ม — ซื้อเครดิตเพิ่มก่อน clone", "error");
       return;
     }
-    if (!confirm(`Clone "${trip.title}"?\n\n• สร้างเป็น Draft ใหม่ + ใช้ 1 quota\n• ทุก day/activity/airline/accommodation ถูก copy\n• Slug จะถูกสร้างใหม่ตอน publish\n\nดำเนินการ?`)) return;
+    const ok = await confirm({
+      title: `Clone "${trip.title}"?`,
+      description: "• สร้างเป็น Draft ใหม่ + ใช้ 1 quota\n• ทุก day/activity/airline/accommodation ถูก copy\n• Slug จะถูกสร้างใหม่ตอน publish",
+      confirmLabel: "ดำเนินการ",
+    });
+    if (!ok) return;
     setCloning(trip.id);
     try {
       const result = await api.post<{ id: string; title: string }>(`/admin/trips/${trip.id}/clone`);

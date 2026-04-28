@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FormInput, SectionHeader, ImageUpload, useToast } from "@/components/shared";
+import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 
 type AccountType = "company" | "freelance" | "personal";
@@ -276,6 +277,7 @@ interface PendingInvite {
 
 function TeamSection(): React.ReactNode {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [showInvite, setShowInvite] = useState(false);
@@ -323,7 +325,13 @@ function TeamSection(): React.ReactNode {
   }
 
   async function handleRemove(id: string, name: string) {
-    if (!confirm(`ต้องการลบ ${name} ออกจากทีม?`)) return;
+    const ok = await confirm({
+      title: "ลบสมาชิกออกจากทีม?",
+      description: `${name} จะไม่สามารถเข้าถึงทริปและข้อมูลของทีมอีก`,
+      confirmLabel: "ลบ",
+      variant: "danger",
+    });
+    if (!ok) return;
     try {
       await api.delete(`/admin/company/team/${id}`);
       setMembers((prev) => prev.filter((m) => m.id !== id));
