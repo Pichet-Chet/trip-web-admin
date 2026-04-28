@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ConfirmDialog, useToast, EmptyState } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
@@ -47,7 +48,28 @@ export default function MyTripsPage(): React.ReactNode {
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
   const [quotaFull, setQuotaFull] = useState(false);
+  const [cloning, setCloning] = useState<string | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
+
+  async function handleClone(trip: Trip) {
+    if (cloning) return;
+    if (quotaFull) {
+      toast("Quota เต็ม — ซื้อเครดิตเพิ่มก่อน clone", "error");
+      return;
+    }
+    if (!confirm(`Clone "${trip.title}"?\n\n• สร้างเป็น Draft ใหม่ + ใช้ 1 quota\n• ทุก day/activity/airline/accommodation ถูก copy\n• Slug จะถูกสร้างใหม่ตอน publish\n\nดำเนินการ?`)) return;
+    setCloning(trip.id);
+    try {
+      const result = await api.post<{ id: string; title: string }>(`/admin/trips/${trip.id}/clone`);
+      toast(`Clone เรียบร้อย: ${result.title}`, "success");
+      router.push(`/dashboard/trips/new?scope=edit&id=${result.id}`);
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "Clone ไม่สำเร็จ", "error");
+    } finally {
+      setCloning(null);
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -217,6 +239,14 @@ export default function MyTripsPage(): React.ReactNode {
                             <span className="material-symbols-outlined text-[16px]">edit</span>
                           </Link>
                         )}
+                        <button
+                          onClick={() => handleClone(trip)}
+                          disabled={cloning === trip.id || quotaFull}
+                          title={quotaFull ? "Quota เต็ม — ซื้อเครดิตเพิ่มก่อน" : "Clone ทริปนี้"}
+                          className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                        </button>
                         {isDraft && (
                           <button
                             onClick={() => setDeleteTarget(trip)}
