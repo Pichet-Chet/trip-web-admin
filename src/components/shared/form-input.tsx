@@ -7,10 +7,11 @@ interface FormInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
   icon?: string;
   error?: string;
   required?: boolean;
+  hint?: string;
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ label, icon, error, required, type, className = "", ...props }, ref) => {
+  ({ label, icon, error, required, hint, type, className = "", ...props }, ref) => {
     const isPassword = type === "password";
     const [showPassword, setShowPassword] = useState(false);
 
@@ -47,6 +48,9 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             </button>
           )}
         </div>
+        {hint && !error && (
+          <p className="text-[11px] text-(--on-surface-variant) px-1">{hint}</p>
+        )}
         {error && (
           <p className="text-xs text-red-500 px-1 flex items-center gap-1">
             <span className="material-symbols-outlined text-sm">error</span>

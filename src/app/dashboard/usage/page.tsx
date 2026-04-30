@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { SectionHeader, StatCard } from "@/components/shared";
+import { ErrorState, LoadingState, SectionHeader, StatCard } from "@/components/shared";
 
 interface UsageData {
   tier: string;
@@ -77,23 +77,8 @@ export default function UsagePage(): React.ReactNode {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-60">
-        <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="p-8 text-center space-y-3">
-        <span className="material-symbols-outlined text-4xl text-red-400">error</span>
-        <p className="text-slate-500 text-sm">{error ?? "ไม่สามารถโหลดข้อมูลได้"}</p>
-        <button onClick={() => window.location.reload()} className="text-sm text-primary font-semibold cursor-pointer">ลองใหม่</button>
-      </div>
-    );
-  }
+  if (loading) return <LoadingState />;
+  if (error || !data) return <ErrorState message={error ?? "ไม่สามารถโหลดข้อมูลได้"} onRetry={() => window.location.reload()} />;
 
   const isFree = data.tier === "free";
   const isSub = data.hasActiveSubscription;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { ToggleSwitch, useToast } from "@/components/shared";
+import { FormInput, FormTextarea, LoadingState, ToggleSwitch, useToast } from "@/components/shared";
 
 interface BillingProfile {
   legalName: string;
@@ -75,13 +75,7 @@ export default function BillingProfilePage(): React.ReactNode {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-60">
-        <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
-      </div>
-    );
-  }
+  if (loading) return <LoadingState />;
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
@@ -112,31 +106,50 @@ export default function BillingProfilePage(): React.ReactNode {
         </div>
 
         {/* Form */}
-        <Field label="ชื่อบริษัทตามทะเบียน" required error={errors.legalName}>
-          <input value={legalName} onChange={e => setLegalName(e.target.value)} maxLength={256}
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
-        </Field>
+        <FormInput
+          label="ชื่อบริษัทตามทะเบียน"
+          required
+          error={errors.legalName}
+          value={legalName}
+          onChange={(e) => setLegalName(e.target.value)}
+          maxLength={256}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
-            <Field label="เลขประจำตัวผู้เสียภาษี (13 หลัก)" error={errors.taxId}>
-              <input value={taxId} onChange={e => setTaxId(e.target.value.replace(/[^\d]/g, ""))} maxLength={13} inputMode="numeric"
-                placeholder="0105500000000"
-                className="w-full px-3 py-2.5 text-sm font-mono border border-slate-200 rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
-            </Field>
+            <FormInput
+              label="เลขประจำตัวผู้เสียภาษี (13 หลัก)"
+              error={errors.taxId}
+              value={taxId}
+              onChange={(e) => setTaxId(e.target.value.replace(/[^\d]/g, ""))}
+              maxLength={13}
+              inputMode="numeric"
+              placeholder="0105500000000"
+              className="font-mono"
+            />
           </div>
-          <Field label="รหัสสาขา (5 หลัก)" error={errors.branchCode}>
-            <input value={branchCode} onChange={e => setBranchCode(e.target.value.replace(/[^\d]/g, ""))} maxLength={5} inputMode="numeric"
-              className="w-full px-3 py-2.5 text-sm font-mono border border-slate-200 rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
-            <p className="text-[11px] text-slate-400 mt-1">00000 = สำนักงานใหญ่</p>
-          </Field>
+          <FormInput
+            label="รหัสสาขา (5 หลัก)"
+            error={errors.branchCode}
+            value={branchCode}
+            onChange={(e) => setBranchCode(e.target.value.replace(/[^\d]/g, ""))}
+            maxLength={5}
+            inputMode="numeric"
+            hint="00000 = สำนักงานใหญ่"
+            className="font-mono"
+          />
         </div>
 
-        <Field label="ที่อยู่บริษัท" required={wants} error={errors.address}>
-          <textarea value={address} onChange={e => setAddress(e.target.value)} maxLength={1024} rows={3}
-            placeholder="123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110"
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none" />
-        </Field>
+        <FormTextarea
+          label="ที่อยู่บริษัท"
+          required={wants}
+          error={errors.address}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          maxLength={1024}
+          rows={3}
+          placeholder="123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110"
+        />
 
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 leading-relaxed flex items-start gap-2">
           <span className="material-symbols-outlined text-slate-400 text-base mt-0.5">lock</span>
@@ -160,20 +173,6 @@ export default function BillingProfilePage(): React.ReactNode {
           ใบกำกับภาษีฉบับเก่าจะใช้ข้อมูลที่บันทึกไว้ก่อนแก้ไข — หากต้องการออกใหม่ด้วยข้อมูลปัจจุบัน ใช้ปุ่ม &quot;ออกใหม่&quot; ในหน้า Billing
         </p>
       )}
-    </div>
-  );
-}
-
-function Field({ label, required, error, children }: {
-  label: string; required?: boolean; error?: string; children: React.ReactNode;
-}): React.ReactNode {
-  return (
-    <div>
-      <label className="text-xs font-bold text-slate-700 block mb-1.5">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }

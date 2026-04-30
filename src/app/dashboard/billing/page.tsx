@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { EmptyState, Pagination, SectionHeader, useToast } from "@/components/shared";
+import { EmptyState, ErrorState, LoadingState, Pagination, SectionHeader, useToast } from "@/components/shared";
 
 interface PaymentItem {
   id: string;
@@ -256,23 +256,8 @@ function BillingContent(): React.ReactNode {
 
   const payments = paymentPage?.items ?? [];
 
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-60">
-        <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-8 text-center space-y-3">
-        <span className="material-symbols-outlined text-4xl text-red-400">error</span>
-        <p className="text-slate-500 text-sm">{error}</p>
-        <button onClick={() => window.location.reload()} className="text-sm text-primary font-semibold cursor-pointer">ลองใหม่</button>
-      </div>
-    );
-  }
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
 
   const isSub = usage?.hasActiveSubscription ?? false;
   const subStatus = usage?.subscriptionStatus ?? null;
@@ -975,7 +960,7 @@ function InvoicePreviewModal({ runningNumber, previewUrl, paymentId, onClose }: 
 
 export default function BillingPage(): React.ReactNode {
   return (
-    <Suspense fallback={<div className="p-8 flex justify-center"><span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span></div>}>
+    <Suspense fallback={<LoadingState />}>
       <BillingContent />
     </Suspense>
   );

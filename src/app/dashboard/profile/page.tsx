@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FormInput, FormTextarea, SectionHeader, ImageUpload, ToggleSwitch, useToast } from "@/components/shared";
+import { FormInput, FormTextarea, LoadingState, SectionHeader, ImageUpload, ToggleSwitch, useToast } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 
@@ -102,11 +102,7 @@ export default function ProfilePage(): React.ReactNode {
   const isCompany = form.accountType === "company";
   const isPersonal = form.accountType === "personal";
 
-  if (loading) return (
-    <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-      <div className="text-slate-400 animate-pulse">กำลังโหลด...</div>
-    </main>
-  );
+  if (loading) return <LoadingState />;
 
   return (
     <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8 flex flex-col items-center">

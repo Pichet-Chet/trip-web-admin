@@ -18,6 +18,7 @@ export { ToastProvider, useToast } from "./toast";
 export { ConfirmDialog } from "./confirm-dialog";
 export { ToggleSwitch } from "./toggle-switch";
 export { Skeleton, CardSkeleton, TableRowSkeleton, PageSkeleton } from "./skeleton";
+export { LoadingState, ErrorState } from "./page-state";
 export { DatePicker } from "./date-picker";
 export { TimePicker } from "./time-picker";
 export { SelectPicker } from "./select-picker";
