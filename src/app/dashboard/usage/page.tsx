@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { ErrorState, LoadingState, SectionHeader, StatCard } from "@/components/shared";
+import { ErrorState, LoadingState, SectionHeader } from "@/components/shared";
 
 interface UsageData {
   tier: string;
@@ -181,48 +181,41 @@ export default function UsagePage(): React.ReactNode {
         </div>
       </section>
 
-      {/* Stats Row — pastel StatCard tiles */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section className="grid grid-cols-2 md:grid-cols-4 bg-white rounded-3xl border border-(--outline-variant)/50 divide-x divide-(--outline-variant)/30 overflow-hidden">
         {[
-          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public", gradient: "from-emerald-100 to-emerald-50", color: "text-emerald-600" },
-          { label: "ร่าง", value: data.draftCount, icon: "draft", gradient: "from-slate-100 to-slate-50", color: "text-slate-500" },
-          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll", gradient: "from-violet-100 to-violet-50", color: "text-violet-600" },
-          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings", gradient: "from-blue-100 to-blue-50", color: "text-blue-600" },
+          { label: "กำลังใช้งาน", value: data.publishedCount },
+          { label: "ร่าง", value: data.draftCount },
+          { label: "เครดิตที่ซื้อ", value: data.creditsTotal },
+          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining },
         ].map((s) => (
-          <StatCard
-            key={s.label}
-            variant="pastel"
-            icon={s.icon}
-            iconGradient={s.gradient}
-            iconColor={s.color}
-            title={s.label}
-            value={s.value}
-          />
+          <div key={s.label} className="p-5 first:rounded-l-3xl last:rounded-r-3xl">
+            <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{s.label}</p>
+            <p className="text-3xl md:text-4xl font-black text-on-surface mt-1.5">{s.value}</p>
+          </div>
         ))}
       </section>
 
       {!isSub && data.creditsRemaining > 0 && Object.keys(data.creditsRemainingBySource ?? {}).length > 0 && (
         <section className="bg-white rounded-3xl border border-(--outline-variant)/50 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-(--primary) text-lg">account_tree</span>
-            <h3 className="text-sm font-bold text-on-surface">เครดิตคงเหลือแยกตามแหล่งซื้อ</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-on-surface">เครดิตแยกตามแหล่งซื้อ</h3>
+            <span className="text-[11px] text-on-surface-variant" title="ระบบใช้เครดิตจากรอบเก่าก่อน (FIFO) — ไม่มีวันหมดอายุ">FIFO · ไม่มีหมดอายุ</span>
           </div>
-          <p className="text-xs text-on-surface-variant mb-4">ระบบจะใช้เครดิตจากการซื้อรอบเก่าก่อน (FIFO) — ใช้ได้ตลอด ไม่มีวันหมดอายุ</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <ul className="divide-y divide-(--outline-variant)/30">
             {Object.entries(data.creditsRemainingBySource).map(([source, count]) => {
               const label = source === "per_trip" ? "ซื้อต่อทริป"
                 : source === "pack_5" ? "ซื้อแพ็ค 5"
                 : source;
-              const color = source === "pack_5" ? "bg-violet-50 text-violet-700 border-violet-200"
-                : "bg-sky-50 text-sky-700 border-sky-200";
               return (
-                <div key={source} className={`rounded-xl border ${color} p-3`}>
-                  <p className="text-xs font-semibold opacity-80">{label}</p>
-                  <p className="text-2xl font-black mt-1">{count}<span className="text-xs font-medium ml-1 opacity-70">ทริป</span></p>
-                </div>
+                <li key={source} className="flex items-baseline justify-between py-3 first:pt-0 last:pb-0">
+                  <span className="text-sm text-on-surface-variant">{label}</span>
+                  <span className="text-lg font-bold text-on-surface tabular-nums">
+                    {count}<span className="text-xs font-medium text-on-surface-variant ml-1">ทริป</span>
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </section>
       )}
 
