@@ -99,21 +99,28 @@ export default function UsagePage(): React.ReactNode {
 
       <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การใช้งาน</h1>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        {/* Account Status — content-sized, no forced height */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 hover:shadow-md transition-shadow">
-          <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2">
-            {TIER_LABEL[data.tier] ?? data.tier}
-          </p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
-            สร้างแล้ว {data.tripQuotaUsed} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">ทริป</span>
-          </h2>
-          <p className="text-on-surface-variant mt-2 text-sm md:text-base">{capacityLabel}</p>
-          {isSub && data.subscriptionExpiresAt && (
-            <p className="text-xs text-on-surface-variant mt-1">ต่ออายุ {formatDate(data.subscriptionExpiresAt)}</p>
-          )}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Account Status */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60 hover:shadow-md transition-shadow">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+              </div>
+              <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-widest uppercase rounded-full">
+                {TIER_LABEL[data.tier] ?? data.tier}
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
+              สร้างแล้ว {data.tripQuotaUsed} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">ทริป</span>
+            </h2>
+            <p className="text-on-surface-variant mt-2 text-sm md:text-base">{capacityLabel}</p>
+            {isSub && data.subscriptionExpiresAt && (
+              <p className="text-xs text-on-surface-variant mt-1">ต่ออายุ {formatDate(data.subscriptionExpiresAt)}</p>
+            )}
+          </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-8">
             {isSub ? (
               <Link
                 href="/dashboard/billing"
@@ -136,7 +143,7 @@ export default function UsagePage(): React.ReactNode {
         </div>
 
         {/* Gauge */}
-        <div className="bg-white p-6 rounded-3xl border border-(--outline-variant)/50 shadow-sm flex flex-col justify-center items-center text-center space-y-3 hover:shadow-md transition-shadow">
+        <div className="bg-white p-6 md:p-8 rounded-3xl border border-(--outline-variant)/50 shadow-sm flex flex-col justify-center items-center text-center space-y-4 hover:shadow-md transition-shadow">
           {isSub ? (
             <>
               <div className="w-32 h-32 flex items-center justify-center rounded-full bg-primary/10">
@@ -174,42 +181,48 @@ export default function UsagePage(): React.ReactNode {
         </div>
       </section>
 
-      {/* Stats — data-first, dense */}
-      <section className="grid grid-cols-2 md:grid-cols-4 bg-white rounded-3xl border border-(--outline-variant)/50 divide-x divide-(--outline-variant)/30 overflow-hidden">
+      {/* Stats Row — pastel StatCard tiles */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "กำลังใช้งาน", value: data.publishedCount },
-          { label: "ร่าง", value: data.draftCount },
-          { label: "เครดิตที่ซื้อ", value: data.creditsTotal },
-          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining },
+          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public", gradient: "from-emerald-100 to-emerald-50", color: "text-emerald-600" },
+          { label: "ร่าง", value: data.draftCount, icon: "draft", gradient: "from-slate-100 to-slate-50", color: "text-slate-500" },
+          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll", gradient: "from-violet-100 to-violet-50", color: "text-violet-600" },
+          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings", gradient: "from-blue-100 to-blue-50", color: "text-blue-600" },
         ].map((s) => (
-          <div key={s.label} className="p-5 first:rounded-l-3xl last:rounded-r-3xl">
-            <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{s.label}</p>
-            <p className="text-3xl md:text-4xl font-black text-on-surface mt-1.5">{s.value}</p>
-          </div>
+          <StatCard
+            key={s.label}
+            variant="pastel"
+            icon={s.icon}
+            iconGradient={s.gradient}
+            iconColor={s.color}
+            title={s.label}
+            value={s.value}
+          />
         ))}
       </section>
 
       {!isSub && data.creditsRemaining > 0 && Object.keys(data.creditsRemainingBySource ?? {}).length > 0 && (
         <section className="bg-white rounded-3xl border border-(--outline-variant)/50 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-on-surface">เครดิตแยกตามแหล่งซื้อ</h3>
-            <span className="text-[11px] text-on-surface-variant" title="ระบบใช้เครดิตจากรอบเก่าก่อน (FIFO) — ไม่มีวันหมดอายุ">FIFO · ไม่มีหมดอายุ</span>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="material-symbols-outlined text-(--primary) text-lg">account_tree</span>
+            <h3 className="text-sm font-bold text-on-surface">เครดิตคงเหลือแยกตามแหล่งซื้อ</h3>
           </div>
-          <ul className="divide-y divide-(--outline-variant)/30">
+          <p className="text-xs text-on-surface-variant mb-4">ระบบจะใช้เครดิตจากการซื้อรอบเก่าก่อน (FIFO) — ใช้ได้ตลอด ไม่มีวันหมดอายุ</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {Object.entries(data.creditsRemainingBySource).map(([source, count]) => {
               const label = source === "per_trip" ? "ซื้อต่อทริป"
                 : source === "pack_5" ? "ซื้อแพ็ค 5"
                 : source;
+              const color = source === "pack_5" ? "bg-violet-50 text-violet-700 border-violet-200"
+                : "bg-sky-50 text-sky-700 border-sky-200";
               return (
-                <li key={source} className="flex items-baseline justify-between py-3 first:pt-0 last:pb-0">
-                  <span className="text-sm text-on-surface-variant">{label}</span>
-                  <span className="text-lg font-bold text-on-surface tabular-nums">
-                    {count}<span className="text-xs font-medium text-on-surface-variant ml-1">ทริป</span>
-                  </span>
-                </li>
+                <div key={source} className={`rounded-xl border ${color} p-3`}>
+                  <p className="text-xs font-semibold opacity-80">{label}</p>
+                  <p className="text-2xl font-black mt-1">{count}<span className="text-xs font-medium ml-1 opacity-70">ทริป</span></p>
+                </div>
               );
             })}
-          </ul>
+          </div>
         </section>
       )}
 
