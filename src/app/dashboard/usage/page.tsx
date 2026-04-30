@@ -99,24 +99,21 @@ export default function UsagePage(): React.ReactNode {
 
       <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การใช้งาน</h1>
 
-      {/* ═══ Hero — softer rounded-3xl cards matching /dashboard ═══ */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Account Status */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2">
-              {TIER_LABEL[data.tier] ?? data.tier}
-            </p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
-              สร้างแล้ว {data.tripQuotaUsed} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">ทริป</span>
-            </h2>
-            <p className="text-on-surface-variant mt-2 text-sm md:text-base">{capacityLabel}</p>
-            {isSub && data.subscriptionExpiresAt && (
-              <p className="text-xs text-on-surface-variant mt-1">ต่ออายุ {formatDate(data.subscriptionExpiresAt)}</p>
-            )}
-          </div>
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        {/* Account Status — content-sized, no forced height */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 hover:shadow-md transition-shadow">
+          <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2">
+            {TIER_LABEL[data.tier] ?? data.tier}
+          </p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
+            สร้างแล้ว {data.tripQuotaUsed} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">ทริป</span>
+          </h2>
+          <p className="text-on-surface-variant mt-2 text-sm md:text-base">{capacityLabel}</p>
+          {isSub && data.subscriptionExpiresAt && (
+            <p className="text-xs text-on-surface-variant mt-1">ต่ออายุ {formatDate(data.subscriptionExpiresAt)}</p>
+          )}
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-5">
             {isSub ? (
               <Link
                 href="/dashboard/billing"
