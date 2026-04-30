@@ -176,7 +176,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             onClick={() => setActiveTab("changelog")}
             className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "changelog"
-                ? "border-blue-600 text-blue-600"
+                ? "border-(--primary) text-(--primary)"
                 : "border-transparent text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -191,7 +191,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             onClick={() => setActiveTab("followers")}
             className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "followers"
-                ? "border-blue-600 text-blue-600"
+                ? "border-(--primary) text-(--primary)"
                 : "border-transparent text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -238,7 +238,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                     <ul className="space-y-1.5 mb-4">
                       {log.changes.map((c) => (
                         <li key={c.id} className="flex items-start gap-2 text-sm text-slate-700">
-                          <span className="material-symbols-outlined text-blue-500 text-base mt-0.5 shrink-0">edit</span>
+                          <span className="material-symbols-outlined text-(--primary) text-base mt-0.5 shrink-0">edit</span>
                           <span>{c.description}</span>
                         </li>
                       ))}
@@ -249,7 +249,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                         <button
                           onClick={() => setConfirmAction({ logId: log.id, mode: "send" })}
                           disabled={sending === log.id || followers.length === 0}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                          className="px-4 py-2 bg-(--primary) text-white text-sm font-bold rounded-lg hover:bg-(--primary) transition-colors disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2"
                         >
                           <span className="material-symbols-outlined text-sm">send</span>
                           ส่งการแจ้งเตือน

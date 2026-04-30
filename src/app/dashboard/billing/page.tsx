@@ -489,7 +489,7 @@ function BillingContent(): React.ReactNode {
           icon="description"
           title="ต้องการใบกำกับภาษี?"
           action={
-            <Link href="/dashboard/billing/profile" className="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold hover:opacity-90">
+            <Link href="/dashboard/billing/profile" className="inline-flex items-center gap-1 px-4 py-2 bg-(--primary) text-white rounded-full text-xs font-bold hover:opacity-90">
               ตั้งค่า
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </Link>

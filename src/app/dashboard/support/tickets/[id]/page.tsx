@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
+import { Modal } from "@/components/shared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
 const POLL_INTERVAL = 15_000;
@@ -36,7 +37,7 @@ interface AttachmentItem {
 }
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  Open:     { label: "เปิด",          cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  Open:     { label: "เปิด",          cls: "bg-(--primary-container)/40 text-(--primary) border-(--primary)/20" },
   Pending:  { label: "รอดำเนินการ",  cls: "bg-amber-50 text-amber-700 border-amber-200" },
   Resolved: { label: "แก้ไขแล้ว",    cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   Closed:   { label: "ปิดแล้ว",      cls: "bg-slate-100 text-slate-500 border-slate-200" },
@@ -119,8 +120,6 @@ export default function AdminTicketDetailPage() {
   const nextPollAt = useRef(0);
   // Reply fail recovery
   const [failedPayload, setFailedPayload] = useState<{ message: string; attachments: string[] } | null>(null);
-  // Confirm dialog focus trap
-  const confirmDialogRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -178,28 +177,6 @@ export default function AdminTicketDetailPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [ticket?.replies.length]);
-
-  // Focus trap for confirm dialog
-  useEffect(() => {
-    if (!confirmStatus) return;
-    const dialog = confirmDialogRef.current;
-    if (!dialog) return;
-    const focusable = dialog.querySelectorAll<HTMLElement>("button:not([disabled])");
-    focusable[focusable.length - 1]?.focus();
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setConfirmStatus(null); return; }
-      if (e.key !== "Tab") return;
-      const els = Array.from(dialog.querySelectorAll<HTMLElement>("button:not([disabled])"));
-      const first = els[0], last = els[els.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault(); last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault(); first.focus();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [confirmStatus]);
 
   // Close status menu on outside click or Escape key
   useEffect(() => {
@@ -363,7 +340,7 @@ export default function AdminTicketDetailPage() {
       <div className="p-8 text-center">
         <span className="material-symbols-outlined text-4xl text-slate-300 block mb-3">error_outline</span>
         <p className="text-slate-600 font-semibold">{error}</p>
-        <button onClick={() => router.push("/dashboard/support/tickets")} className="mt-4 text-sm text-blue-600 hover:underline">ย้อนกลับ</button>
+        <button onClick={() => router.push("/dashboard/support/tickets")} className="mt-4 text-sm text-(--primary) hover:underline">ย้อนกลับ</button>
       </div>
     );
   }
@@ -379,32 +356,35 @@ export default function AdminTicketDetailPage() {
 
       {lightboxUrl && <Lightbox url={lightboxUrl} onClose={closeLightbox} />}
 
-      {/* Confirm status dialog */}
-      {confirmStatus && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div ref={confirmDialogRef} className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-slate-900 text-base">
-              เปลี่ยนสถานะเป็น &ldquo;{STATUS_MAP[confirmStatus]?.label ?? confirmStatus}&rdquo;?
-            </h3>
-            <p className="text-sm text-slate-500 mt-2">การดำเนินการนี้จะอัปเดตสถานะตั๋วทันที</p>
-            <div className="flex gap-2 mt-5">
-              <button
-                onClick={() => setConfirmStatus(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={() => handleStatusChange(confirmStatus)}
-                disabled={statusUpdating}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {statusUpdating ? "กำลังบันทึก..." : "ยืนยัน"}
-              </button>
-            </div>
+      <Modal
+        open={!!confirmStatus}
+        onClose={() => setConfirmStatus(null)}
+        size="sm"
+        blocking={statusUpdating}
+        title={confirmStatus ? `เปลี่ยนสถานะเป็น "${STATUS_MAP[confirmStatus]?.label ?? confirmStatus}"?` : ""}
+        subtitle="การดำเนินการนี้จะอัปเดตสถานะตั๋วทันที"
+        footer={
+          <div className="flex gap-2">
+            <button
+              onClick={() => setConfirmStatus(null)}
+              disabled={statusUpdating}
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onClick={() => confirmStatus && handleStatusChange(confirmStatus)}
+              disabled={statusUpdating}
+              className="flex-1 py-2.5 rounded-xl bg-(--primary) text-white text-sm font-semibold hover:opacity-95 disabled:opacity-50 transition-colors"
+            >
+              {statusUpdating ? "กำลังบันทึก..." : "ยืนยัน"}
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        {/* Title + subtitle in header are sufficient — no body content needed */}
+        <div className="px-6 py-2" />
+      </Modal>
 
       {/* Poll failure banner */}
       {pollFailCount >= 2 && (
@@ -463,7 +443,7 @@ export default function AdminTicketDetailPage() {
               a.download = `ticket-${ticket.id.slice(0, 8)}.csv`;
               a.click();
             }}
-            className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-colors"
+            className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-(--primary) hover:border-(--primary)/30 transition-colors"
             title="Export CSV"
           >
             <span className="material-symbols-outlined text-base">download</span>
@@ -493,12 +473,12 @@ export default function AdminTicketDetailPage() {
                     }}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2 ${
                       opt.value === ticket.status
-                        ? "text-blue-600 font-semibold bg-blue-50/50"
+                        ? "text-(--primary) font-semibold bg-(--primary-container)/40"
                         : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
                     {opt.value === ticket.status && (
-                      <span className="material-symbols-outlined text-sm text-blue-600">check</span>
+                      <span className="material-symbols-outlined text-sm text-(--primary)">check</span>
                     )}
                     {opt.label}
                   </button>
@@ -525,11 +505,11 @@ export default function AdminTicketDetailPage() {
 
           {/* Original message — admin side (right / blue) */}
           <div className="flex gap-3 flex-row-reverse">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-(--primary) flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-sm text-white">person</span>
             </div>
             <div className="max-w-[80%] flex flex-col items-end">
-              <div className="bg-blue-600 text-white rounded-xl rounded-tr-sm px-4 py-3 shadow-sm">
+              <div className="bg-(--primary) text-white rounded-xl rounded-tr-sm px-4 py-3 shadow-sm">
                 <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
                 <AttachmentGrid urls={ticket.attachments} light={false} onImageClick={setLightboxUrl} />
               </div>
@@ -557,7 +537,7 @@ export default function AdminTicketDetailPage() {
             )}
             <div className={`flex gap-3 ${!reply.isStaffReply ? "flex-row-reverse" : ""}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                reply.isStaffReply ? "bg-slate-200" : "bg-blue-600"
+                reply.isStaffReply ? "bg-slate-200" : "bg-(--primary)"
               }`}>
                 <span className={`material-symbols-outlined text-sm ${reply.isStaffReply ? "text-slate-500" : "text-white"}`}>
                   {reply.isStaffReply ? "support_agent" : "person"}
@@ -567,7 +547,7 @@ export default function AdminTicketDetailPage() {
                 <div className={`rounded-xl px-4 py-3 shadow-sm ${
                   reply.isStaffReply
                     ? "bg-white text-slate-800 rounded-tl-sm border border-slate-100"
-                    : "bg-blue-600 text-white rounded-tr-sm"
+                    : "bg-(--primary) text-white rounded-tr-sm"
                 }`}>
                   {reply.isStaffReply && (
                     <p className="text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wide">{reply.repliedBy}</p>
@@ -587,15 +567,15 @@ export default function AdminTicketDetailPage() {
           {/* Sending indicator */}
           {sending && (
             <div className="flex gap-3 flex-row-reverse">
-              <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-sm text-blue-400">person</span>
+              <div className="w-8 h-8 rounded-full bg-(--primary)/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-sm text-(--primary)">person</span>
               </div>
               <div className="max-w-[80%] flex flex-col items-end">
-                <div className="bg-blue-600/10 rounded-xl rounded-tr-sm px-4 py-3.5">
+                <div className="bg-(--primary)/10 rounded-xl rounded-tr-sm px-4 py-3.5">
                   <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-blue-500/50 animate-bounce [animation-delay:0ms]" />
-                    <span className="w-2 h-2 rounded-full bg-blue-500/50 animate-bounce [animation-delay:150ms]" />
-                    <span className="w-2 h-2 rounded-full bg-blue-500/50 animate-bounce [animation-delay:300ms]" />
+                    <span className="w-2 h-2 rounded-full bg-(--primary)/50 animate-bounce [animation-delay:0ms]" />
+                    <span className="w-2 h-2 rounded-full bg-(--primary)/50 animate-bounce [animation-delay:150ms]" />
+                    <span className="w-2 h-2 rounded-full bg-(--primary)/50 animate-bounce [animation-delay:300ms]" />
                   </div>
                 </div>
               </div>
@@ -647,13 +627,13 @@ export default function AdminTicketDetailPage() {
                 </div>
               )}
 
-              <div className="border border-slate-200 rounded-2xl bg-white shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+              <div className="border border-slate-200 rounded-2xl bg-white shadow-sm focus-within:ring-2 focus-within:ring-(--primary)/20 transition-all">
                 <div className="flex items-end p-2 gap-2">
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading || attachments.length >= MAX_ATTACHMENTS}
-                    className="p-2 text-slate-400 hover:text-blue-600 transition-colors disabled:opacity-40"
+                    className="p-2 text-slate-400 hover:text-(--primary) transition-colors disabled:opacity-40"
                     title={attachments.length >= MAX_ATTACHMENTS ? `แนบได้สูงสุด ${MAX_ATTACHMENTS} ไฟล์` : "แนบรูปภาพ"}
                   >
                     {uploading
@@ -682,7 +662,7 @@ export default function AdminTicketDetailPage() {
                   <button
                     onClick={handleSend}
                     disabled={(!message.trim() && attachments.length === 0) || sending || uploading}
-                    className="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shrink-0"
+                    className="bg-(--primary) text-white w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shrink-0"
                   >
                     <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>send</span>
                   </button>
@@ -701,7 +681,7 @@ export default function AdminTicketDetailPage() {
               <button
                 onClick={() => setConfirmStatus("Open")}
                 disabled={statusUpdating}
-                className="text-xs font-semibold text-blue-600 hover:underline disabled:opacity-40"
+                className="text-xs font-semibold text-(--primary) hover:underline disabled:opacity-40"
               >
                 เปิดใหม่
               </button>

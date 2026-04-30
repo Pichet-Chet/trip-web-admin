@@ -122,7 +122,7 @@ export default function FeedbackPage(): React.ReactNode {
       <div>
         <Link
           href="/dashboard/support/tickets"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-blue-600 transition-colors mb-3 group"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-(--primary) transition-colors mb-3 group"
         >
           <span className="material-symbols-outlined text-base group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
           ตั๋วสนับสนุน
@@ -143,11 +143,11 @@ export default function FeedbackPage(): React.ReactNode {
               onClick={() => setType(ft.value)}
               className={`text-left p-4 rounded-xl border-2 transition-all ${
                 type === ft.value
-                  ? "border-blue-600 bg-blue-50/50"
+                  ? "border-(--primary) bg-(--primary-container)/40"
                   : "border-slate-200 hover:border-slate-300"
               }`}
             >
-              <p className={`text-sm font-bold ${type === ft.value ? "text-blue-600" : "text-slate-900"}`}>{ft.label}</p>
+              <p className={`text-sm font-bold ${type === ft.value ? "text-(--primary)" : "text-slate-900"}`}>{ft.label}</p>
               <p className="text-xs text-slate-400 mt-0.5">{ft.desc}</p>
             </button>
           ))}
@@ -201,7 +201,7 @@ export default function FeedbackPage(): React.ReactNode {
                     onClick={() => setPriority(p.value)}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                       priority === p.value
-                        ? "bg-blue-600 text-white"
+                        ? "bg-(--primary) text-white"
                         : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                     }`}
                   >
@@ -244,11 +244,11 @@ export default function FeedbackPage(): React.ReactNode {
                 <label className="block cursor-pointer">
                   <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
                     uploading
-                      ? "border-blue-300 bg-blue-50/30"
-                      : "border-slate-200 hover:border-blue-400 hover:bg-blue-50/30"
+                      ? "border-(--primary)/40 bg-(--primary-container)/30"
+                      : "border-slate-200 hover:border-(--primary)/40 hover:bg-(--primary-container)/20"
                   }`}>
                     {uploading
-                      ? <span className="material-symbols-outlined text-2xl text-blue-400 animate-spin">progress_activity</span>
+                      ? <span className="material-symbols-outlined text-2xl text-(--primary) animate-spin">progress_activity</span>
                       : <span className="material-symbols-outlined text-2xl text-slate-300">add_photo_alternate</span>
                     }
                     <p className="text-sm text-slate-400 mt-1">
@@ -280,7 +280,7 @@ export default function FeedbackPage(): React.ReactNode {
             <button
               type="submit"
               disabled={submitting || !subject.trim() || !detail.trim()}
-              className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-(--primary) text-white rounded-xl font-bold text-sm shadow-lg shadow-(--primary)/20 hover:opacity-95 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">send</span>
               {submitting ? "กำลังส่ง..." : "ส่ง Ticket"}

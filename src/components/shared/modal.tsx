@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type ModalSize = "sm" | "md" | "lg" | "xl" | "full";
 
@@ -55,10 +55,43 @@ export function Modal({
   footer,
   className = "",
 }: ModalProps): React.ReactNode {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (!open || blocking) return;
+    if (!open) return;
+    const dialog = dialogRef.current;
+
+    // Focus trap — Tab cycles within focusable elements; Shift+Tab reverses.
+    // Initial focus goes to the last focusable (typically the primary action),
+    // matching the previous custom focus-trap implementations.
+    const focusables = dialog?.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusables && focusables.length > 0) {
+      focusables[focusables.length - 1].focus();
+    }
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !blocking) {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !dialog) return;
+      const els = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (els.length === 0) return;
+      const first = els[0], last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -77,13 +110,17 @@ export function Modal({
         onClick={handleBackdrop}
       />
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? "modal-title" : undefined}
         className={`relative bg-white rounded-2xl shadow-2xl w-full ${SIZE_CLASS[size]} flex flex-col max-h-[90vh] overflow-hidden ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {(title || headerActions || !hideCloseButton) && (
           <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-(--outline-variant)/40 flex-shrink-0">
             <div className="min-w-0 flex-1">
-              {title && <h3 className="text-lg font-bold text-(--on-surface) truncate">{title}</h3>}
+              {title && <h3 id="modal-title" className="text-lg font-bold text-(--on-surface) truncate">{title}</h3>}
               {subtitle && (
                 <div className="text-sm text-(--on-surface-variant) mt-1">{subtitle}</div>
               )}

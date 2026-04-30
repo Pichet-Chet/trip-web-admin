@@ -683,7 +683,7 @@ export default function NewTripPage(): React.ReactNode {
                   </div>
                   <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">ต่างประเทศ</h3>
                   <p className="text-white/70 text-sm leading-relaxed">ทริปต่างประเทศ — ญี่ปุ่น, เกาหลี, ยุโรป พร้อมข้อมูลเที่ยวบิน & ตม.</p>
-                  <div className="mt-4 w-fit bg-white text-blue-800 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 group-hover:bg-blue-50 transition-colors shadow-lg">
+                  <div className="mt-4 w-fit bg-white text-(--primary) px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 group-hover:bg-(--primary-container)/40 transition-colors shadow-lg">
                     <span className="material-symbols-outlined text-lg">arrow_forward</span>
                     เลือก
                   </div>
@@ -698,7 +698,7 @@ export default function NewTripPage(): React.ReactNode {
         <form noValidate className="space-y-12 md:space-y-20" onSubmit={(e) => e.preventDefault()}>
           {/* Scope badge + change */}
           <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${tripScope === "domestic" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${tripScope === "domestic" ? "bg-green-100 text-green-700" : "bg-(--primary-container) text-(--primary)"}`}>
               <span className="material-symbols-outlined text-sm">{tripScope === "domestic" ? "holiday_village" : "flight_takeoff"}</span>
               {tripScope === "domestic" ? "ทริปในประเทศ" : "ทริปต่างประเทศ"}
             </span>

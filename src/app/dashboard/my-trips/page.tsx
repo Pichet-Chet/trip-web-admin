@@ -124,7 +124,7 @@ export default function MyTripsPage(): React.ReactNode {
           <div className="relative w-full sm:w-72">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
             <input
-              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               placeholder="ค้นหาชื่อทริป หรือจุดหมาย..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -250,7 +250,7 @@ export default function MyTripsPage(): React.ReactNode {
                           onClick={() => handleClone(trip)}
                           disabled={cloning === trip.id || quotaFull}
                           title={quotaFull ? "Quota เต็ม — ซื้อเครดิตเพิ่มก่อน" : "Clone ทริปนี้"}
-                          className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="w-7 h-7 rounded-lg hover:bg-(--primary-container)/40 flex items-center justify-center text-slate-400 hover:text-(--primary) transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <span className="material-symbols-outlined text-[16px]">content_copy</span>
                         </button>

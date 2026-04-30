@@ -44,7 +44,7 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 ];
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  Open:     { label: "เปิด",          cls: "bg-blue-50 text-blue-700" },
+  Open:     { label: "เปิด",          cls: "bg-(--primary-container)/40 text-(--primary)" },
   Pending:  { label: "รอดำเนินการ",  cls: "bg-amber-50 text-amber-700" },
   Resolved: { label: "แก้ไขแล้ว",    cls: "bg-emerald-50 text-emerald-700" },
   Closed:   { label: "ปิดแล้ว",      cls: "bg-slate-100 text-slate-500" },
@@ -169,14 +169,14 @@ export default function SupportTicketsPage() {
         </div>
         <div className="flex items-center gap-3">
           {openCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-(--primary-container)/40 text-(--primary) text-sm font-semibold rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-(--primary)" />
               {openCount} ตั๋วที่เปิดอยู่
             </span>
           )}
           <Link
             href="/dashboard/feedback"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-(--primary) text-white text-sm font-bold rounded-xl hover:bg-(--primary) active:scale-95 transition-all shadow-lg shadow-(--primary)/20"
           >
             <span className="material-symbols-outlined text-base">add</span>
             เปิด Ticket ใหม่
@@ -194,7 +194,7 @@ export default function SupportTicketsPage() {
         <select
           value={typeFilter}
           onChange={(e) => { setTypeFilter(e.target.value as TypeFilter); setPage(1); }}
-          className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 cursor-pointer text-slate-600"
+          className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/10 cursor-pointer text-slate-600"
         >
           <option value="">ทุกประเภท</option>
           <option value="Bug">แจ้งปัญหา</option>
@@ -205,7 +205,7 @@ export default function SupportTicketsPage() {
         <select
           value={priorityFilter}
           onChange={(e) => { setPriorityFilter(e.target.value as PriorityFilter); setPage(1); }}
-          className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 cursor-pointer text-slate-600"
+          className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/10 cursor-pointer text-slate-600"
         >
           <option value="">ทุกระดับ</option>
           <option value="High">เร่งด่วน</option>
@@ -220,7 +220,7 @@ export default function SupportTicketsPage() {
             value={subjectSearch}
             onChange={(e) => handleSubjectSearch(e.target.value)}
             placeholder="ค้นหาหัวข้อ..."
-            className="pl-8 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 text-slate-600 w-44"
+            className="pl-8 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/10 text-slate-600 w-44"
           />
           {subjectSearch && (
             <button
@@ -263,7 +263,7 @@ export default function SupportTicketsPage() {
           <p className="text-sm text-slate-400 mt-1">กรุณาตรวจสอบการเชื่อมต่อและลองใหม่</p>
           <button
             onClick={() => load()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+            className="mt-4 px-4 py-2 bg-(--primary) text-white text-sm font-semibold rounded-xl hover:bg-(--primary) transition-colors"
           >
             ลองใหม่
           </button>
@@ -293,7 +293,7 @@ export default function SupportTicketsPage() {
                   <div className="relative w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-slate-400 text-[20px]">confirmation_number</span>
                     {t.hasUnread && (
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white" />
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-(--primary) rounded-full border-2 border-white" />
                     )}
                   </div>
 
@@ -368,7 +368,7 @@ export default function SupportTicketsPage() {
                         onClick={() => setPage(p)}
                         className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-all ${
                           page === p
-                            ? "bg-blue-600 text-white shadow-sm"
+                            ? "bg-(--primary) text-white shadow-sm"
                             : "text-slate-600 hover:bg-slate-100"
                         }`}
                       >
