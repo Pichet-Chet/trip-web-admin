@@ -75,6 +75,23 @@ const STATUS_LABEL: Record<string, string> = {
   expired: "หมดอายุ",
 };
 
+/**
+ * Trigger a file download without leaving the current page or opening a blank tab.
+ * R2 presigned URLs already set Content-Disposition=attachment, so the browser
+ * routes this through its native download UI rather than navigating.
+ */
+function triggerDownload(url: string, suggestedName?: string): void {
+  const a = document.createElement("a");
+  a.href = url;
+  a.rel = "noopener noreferrer";
+  if (suggestedName) a.download = suggestedName;
+  // Some browsers ignore `download` for cross-origin URLs; the server-side
+  // Content-Disposition header is the actual enforcement layer.
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("th-TH", {
     year: "numeric", month: "short", day: "numeric",
@@ -541,8 +558,9 @@ function BillingContent(): React.ReactNode {
                                 // Always our own receipt. Auto-issue lazily for legacy
                                 // payments that predated the Phase V auto-issue webhook hook.
                                 try {
-                                  const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
-                                  window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
+                                  const r = await api.get<{ downloadUrl: string; runningNumber?: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
+                                  triggerDownload(r.downloadUrl, r.runningNumber ? `${r.runningNumber}.pdf` : undefined);
+                                  toast("กำลังดาวน์โหลดใบเสร็จ", "success");
                                   return;
                                 } catch (e: unknown) {
                                   if (!(e instanceof ApiError) || e.status !== 404) {
@@ -551,8 +569,9 @@ function BillingContent(): React.ReactNode {
                                   }
                                 }
                                 try {
-                                  const r = await api.post<{ downloadUrl: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
-                                  window.open(r.downloadUrl, "_blank", "noopener,noreferrer");
+                                  const r = await api.post<{ downloadUrl: string; runningNumber?: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
+                                  triggerDownload(r.downloadUrl, r.runningNumber ? `${r.runningNumber}.pdf` : undefined);
+                                  toast("ออกใบเสร็จและดาวน์โหลดให้แล้ว", "success");
                                 } catch (e: unknown) {
                                   toast(e instanceof ApiError ? e.message : "ออกใบเสร็จไม่สำเร็จ", "error");
                                 }
