@@ -269,7 +269,7 @@ function BillingContent(): React.ReactNode {
   const totalCount = paymentPage?.totalCount ?? 0;
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
 
       <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
 
