@@ -270,11 +270,7 @@ function BillingContent(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
 
-      {/* Header — matches /dashboard/usage */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
-        <p className="text-on-surface-variant mt-2 text-base md:text-lg">ดูประวัติการชำระเงิน + จัดการ Subscription ของคุณ</p>
-      </div>
+      <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
 
       {successBanner && (
         <Banner
@@ -294,23 +290,20 @@ function BillingContent(): React.ReactNode {
       )}
 
       {isPastDue && (
-        <Banner variant="warning" title="การชำระเงินไม่สำเร็จ — บัตรอาจหมดอายุหรือเงินไม่เพียงพอ">
-          <p className="text-xs text-amber-700 leading-relaxed">
-            Stripe จะลองเรียกเก็บอีกครั้งภายใน 7 วัน หากไม่สำเร็จ Subscription จะถูกระงับและปรับลงเป็น Free Plan โดยอัตโนมัติ
-          </p>
-          <button
-            onClick={handlePortal}
-            disabled={portalLoading}
-            className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-full font-bold text-xs hover:opacity-90 disabled:opacity-60 cursor-pointer"
-          >
-            {portalLoading ? (
-              <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
-            ) : (
-              <span className="material-symbols-outlined text-sm">credit_card</span>
-            )}
-            อัปเดตวิธีชำระเงินทันที
-          </button>
-        </Banner>
+        <Banner
+          variant="warning"
+          title="ชำระเงินไม่สำเร็จ — อัปเดตบัตรภายใน 7 วัน ไม่งั้นกลับเป็น Free Plan"
+          action={
+            <button
+              onClick={handlePortal}
+              disabled={portalLoading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-full font-bold text-xs hover:opacity-90 disabled:opacity-60 cursor-pointer"
+            >
+              {portalLoading && <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>}
+              อัปเดตบัตร
+            </button>
+          }
+        />
       )}
 
       {/* ═══ Plan Hero + Stat — matches /dashboard/usage layout ═══ */}
@@ -318,50 +311,34 @@ function BillingContent(): React.ReactNode {
         {/* Plan + Subscription mgmt */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-(--surface-container-high) shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60">
           <div>
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <div className="p-2.5 bg-(--primary-container) rounded-lg flex-shrink-0">
-                <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-              </div>
-              <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-widest uppercase rounded-full">
-                แพลนปัจจุบัน
-              </span>
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">แพลนปัจจุบัน</p>
               {isSub && !isPastDue && !isPending && !isCancelling && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-green-200">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                   Active
                 </span>
               )}
-              {isPastDue && (
-                <span className="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-red-200">Past Due</span>
-              )}
-              {isPending && (
-                <span className="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold tracking-widest uppercase rounded-full border border-amber-200">Pending</span>
-              )}
-              {isCancelling && (
-                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold tracking-widest uppercase rounded-full border border-slate-200">Cancelling</span>
-              )}
+              {isPastDue && <span className="text-[11px] font-semibold text-red-700">Past Due</span>}
+              {isPending && <span className="text-[11px] font-semibold text-amber-700">รอยืนยันการจ่าย</span>}
+              {isCancelling && <span className="text-[11px] font-semibold text-slate-600">Cancelling</span>}
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
               {usage ? (TIER_LABEL[usage.tier] ?? usage.tier) : "—"} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">Plan</span>
             </h2>
             <p className="text-on-surface-variant mt-2 text-sm md:text-base">
-              ยอดชำระสะสม <strong className="text-on-surface">฿{totalRevenue.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</strong> • {totalCount} รายการ
+              ยอดสะสม <strong className="text-on-surface">฿{totalRevenue.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</strong> · {totalCount} รายการ
+              {isSub && usage?.subscriptionExpiresAt && (
+                <>
+                  {" · "}
+                  {isPastDue ? "ต้องอัปเดตบัตรก่อน "
+                    : isCancelling ? "ใช้งานได้ถึง "
+                    : isPending ? "ครบกำหนด "
+                    : "ต่ออายุ "}
+                  {formatDate(usage.subscriptionExpiresAt)}
+                </>
+              )}
             </p>
-            {isSub && usage?.subscriptionExpiresAt && (
-              <p className="text-xs text-on-surface-variant mt-1">
-                {isPastDue ? "ต้องอัปเดตบัตรก่อน "
-                  : isCancelling ? "ใช้งานได้ถึง "
-                  : isPending ? "รอ webhook ยืนยัน • คาดว่าครบกำหนด "
-                  : "ต่ออายุอัตโนมัติ "}
-                {formatDate(usage.subscriptionExpiresAt)}
-              </p>
-            )}
-            {isPending && (
-              <p className="text-xs text-amber-700 mt-2 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">hourglass_empty</span>
-                ระบบกำลังรอ Stripe webhook — สถานะจะอัปเดตในไม่กี่วินาที
-              </p>
-            )}
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-8">

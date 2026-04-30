@@ -97,25 +97,16 @@ export default function UsagePage(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
 
-      {/* Header — clean professional style matching mockup */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การใช้งานของคุณ</h1>
-        <p className="text-on-surface-variant mt-2 text-base md:text-lg">ติดตามโควต้าทริป + เครดิต และอัปเกรดแพลนเมื่อต้องการ</p>
-      </div>
+      <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การใช้งาน</h1>
 
       {/* ═══ Hero — softer rounded-3xl cards matching /dashboard ═══ */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Account Status */}
         <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60 hover:shadow-md transition-shadow">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-              </div>
-              <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-widest uppercase rounded-full">
-                {TIER_LABEL[data.tier] ?? data.tier}
-              </span>
-            </div>
+            <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2">
+              {TIER_LABEL[data.tier] ?? data.tier}
+            </p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
               สร้างแล้ว {data.tripQuotaUsed} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">ทริป</span>
             </h2>
@@ -206,14 +197,12 @@ export default function UsagePage(): React.ReactNode {
         ))}
       </section>
 
-      {/* ═══ Credits-by-source breakdown (E9) ═══ */}
       {!isSub && data.creditsRemaining > 0 && Object.keys(data.creditsRemainingBySource ?? {}).length > 0 && (
         <section className="bg-white rounded-3xl border border-(--outline-variant)/50 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-primary text-lg">account_tree</span>
-            <h3 className="text-sm font-bold text-on-surface">เครดิตคงเหลือแยกตามแหล่งซื้อ</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-on-surface">เครดิตแยกตามแหล่งซื้อ</h3>
+            <span className="text-[11px] text-on-surface-variant" title="ระบบใช้เครดิตจากรอบเก่าก่อน (FIFO) — ไม่มีวันหมดอายุ">FIFO · ไม่มีหมดอายุ</span>
           </div>
-          <p className="text-xs text-on-surface-variant mb-4">ระบบจะใช้เครดิตจากการซื้อรอบเก่าก่อน (FIFO) — ใช้ได้ตลอด ไม่มีวันหมดอายุ</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {Object.entries(data.creditsRemainingBySource).map(([source, count]) => {
               const label = source === "per_trip" ? "ซื้อต่อทริป"
