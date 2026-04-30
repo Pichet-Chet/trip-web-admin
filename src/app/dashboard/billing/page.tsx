@@ -132,6 +132,30 @@ function BillingContent(): React.ReactNode {
   // Phase V — billing profile awareness (banner when not opted in)
   const [billingProfile, setBillingProfile] = useState<{ wantsTaxInvoice: boolean; legalName: string } | null | "missing">(null);
 
+  // Phase V — preview modal for tax invoice (inline PDF + download button)
+  const [previewInvoice, setPreviewInvoice] = useState<{ runningNumber: string; previewUrl: string; paymentId: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  const openInvoicePreview = useCallback(async (paymentId: string) => {
+    setPreviewLoading(true);
+    try {
+      // Try existing invoice first; if 404 → auto-issue + open
+      let invoice;
+      try {
+        invoice = await api.get<{ runningNumber: string; previewUrl: string }>(`/admin/billing/payments/${paymentId}/tax-invoice`);
+      } catch (e: unknown) {
+        if (!(e instanceof ApiError) || e.status !== 404) throw e;
+        invoice = await api.post<{ runningNumber: string; previewUrl: string }>(`/admin/billing/payments/${paymentId}/tax-invoice/issue`, {});
+        toast("ออกใบเสร็จเรียบร้อย", "success");
+      }
+      setPreviewInvoice({ runningNumber: invoice.runningNumber, previewUrl: invoice.previewUrl, paymentId });
+    } catch (e: unknown) {
+      toast(e instanceof ApiError ? e.message : "ไม่สามารถเปิดใบเสร็จได้", "error");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [toast]);
+
   const loadRefunds = useCallback(async () => {
     try {
       const rows = await api.get<MyRefundRequest[]>("/admin/refund-requests");
@@ -554,30 +578,10 @@ function BillingContent(): React.ReactNode {
                         {tx.status === "paid" ? (
                           <div className="inline-flex items-center gap-4 justify-end">
                             <button
-                              onClick={async () => {
-                                // Always our own receipt. Auto-issue lazily for legacy
-                                // payments that predated the Phase V auto-issue webhook hook.
-                                try {
-                                  const r = await api.get<{ downloadUrl: string; runningNumber?: string }>(`/admin/billing/payments/${tx.id}/tax-invoice`);
-                                  triggerDownload(r.downloadUrl, r.runningNumber ? `${r.runningNumber}.pdf` : undefined);
-                                  toast("กำลังดาวน์โหลดใบเสร็จ", "success");
-                                  return;
-                                } catch (e: unknown) {
-                                  if (!(e instanceof ApiError) || e.status !== 404) {
-                                    toast(e instanceof ApiError ? e.message : "ไม่สามารถดึงใบเสร็จได้", "error");
-                                    return;
-                                  }
-                                }
-                                try {
-                                  const r = await api.post<{ downloadUrl: string; runningNumber?: string }>(`/admin/billing/payments/${tx.id}/tax-invoice/issue`, {});
-                                  triggerDownload(r.downloadUrl, r.runningNumber ? `${r.runningNumber}.pdf` : undefined);
-                                  toast("ออกใบเสร็จและดาวน์โหลดให้แล้ว", "success");
-                                } catch (e: unknown) {
-                                  toast(e instanceof ApiError ? e.message : "ออกใบเสร็จไม่สำเร็จ", "error");
-                                }
-                              }}
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-(--primary) hover:underline cursor-pointer"
-                              title="ใบเสร็จ / ใบกำกับภาษี"
+                              onClick={() => openInvoicePreview(tx.id)}
+                              disabled={previewLoading}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-(--primary) hover:underline cursor-pointer disabled:opacity-50"
+                              title="ดู / ดาวน์โหลด ใบเสร็จ — ใบกำกับภาษี"
                             >
                               <span className="material-symbols-outlined text-[16px] leading-none">receipt_long</span>
                               <span className="leading-none">ใบเสร็จ</span>
@@ -697,6 +701,15 @@ function BillingContent(): React.ReactNode {
           payment={refundTarget}
           onClose={() => setRefundTarget(null)}
           onSubmitted={() => { setRefundTarget(null); loadRefunds(); }}
+        />
+      )}
+
+      {previewInvoice && (
+        <InvoicePreviewModal
+          runningNumber={previewInvoice.runningNumber}
+          previewUrl={previewInvoice.previewUrl}
+          paymentId={previewInvoice.paymentId}
+          onClose={() => setPreviewInvoice(null)}
         />
       )}
     </div>
@@ -884,6 +897,76 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
               ส่งคำขอ
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface InvoicePreviewModalProps {
+  runningNumber: string;
+  previewUrl: string;
+  paymentId: string;
+  onClose: () => void;
+}
+
+function InvoicePreviewModal({ runningNumber, previewUrl, paymentId, onClose }: InvoicePreviewModalProps): React.ReactNode {
+  const { toast } = useToast();
+  const [downloading, setDownloading] = useState(false);
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      // Re-fetch with download=true → server returns presigned URL with attachment header
+      const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${paymentId}/tax-invoice?download=true`);
+      triggerDownload(r.downloadUrl, `${runningNumber}.pdf`);
+      toast("กำลังดาวน์โหลดไฟล์", "success");
+    } catch (e: unknown) {
+      toast(e instanceof ApiError ? e.message : "ดาวน์โหลดไม่สำเร็จ", "error");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-(--outline-variant)/40">
+          <div className="min-w-0">
+            <h3 className="font-bold text-on-surface text-base md:text-lg truncate">ใบเสร็จ / ใบกำกับภาษี</h3>
+            <p className="text-xs text-on-surface-variant mt-0.5 font-mono">{runningNumber}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={downloadPdf}
+              disabled={downloading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-(--primary) text-white rounded-full font-bold text-xs hover:opacity-90 disabled:opacity-60 cursor-pointer transition-all"
+            >
+              {downloading ? (
+                <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+              ) : (
+                <span className="material-symbols-outlined text-base">download</span>
+              )}
+              ดาวน์โหลด PDF
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-on-surface-variant hover:bg-(--surface-container) rounded-full transition-colors cursor-pointer"
+              title="ปิด"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+
+        {/* PDF preview */}
+        <div className="flex-1 bg-(--surface-container-low) min-h-0">
+          <iframe
+            src={previewUrl}
+            title={`Tax invoice ${runningNumber}`}
+            className="w-full h-full border-0"
+          />
         </div>
       </div>
     </div>
