@@ -34,7 +34,17 @@ interface MyRefundRequest {
   createdAt: string;
   resolvedAt: string | null;
   resolutionNotes: string | null;
+  autoClassification: string | null;
+  recommendedRefundAmount: number | null;
+  approvedRefundAmount: number | null;
 }
+
+const REFUND_STATUS: Record<MyRefundRequest["status"], { label: string; cls: string; icon: string }> = {
+  pending:   { label: "รอตรวจ",      cls: "bg-amber-50 text-amber-700 border-amber-200",   icon: "hourglass_empty" },
+  approved:  { label: "อนุมัติ",       cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: "check_circle" },
+  rejected:  { label: "ปฏิเสธ",        cls: "bg-rose-50 text-rose-700 border-rose-200",       icon: "cancel" },
+  cancelled: { label: "ยกเลิกเอง",    cls: "bg-slate-100 text-slate-600 border-slate-200",   icon: "block" },
+};
 
 const PLAN_LABEL: Record<string, string> = {
   per_trip: "จ่ายต่อทริป",
@@ -595,6 +605,47 @@ function BillingContent(): React.ReactNode {
           )}
         </div>
       </section>
+
+      {/* ═══ Refund Requests History (Phase A + U) ═══ */}
+      {refundRequests.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader title="ประวัติคำขอคืนเงิน" subtitle="คำขอที่ส่งให้ทีมงานตรวจสอบ" />
+          <div className="space-y-3">
+            {refundRequests.map((r) => {
+              const style = REFUND_STATUS[r.status];
+              const isPartial = r.approvedRefundAmount !== null && r.approvedRefundAmount < r.amount;
+              return (
+                <div key={r.id} className="bg-white rounded-2xl border border-outline-variant p-4 md:p-5 hover:shadow-sm transition-shadow">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${style.cls}`}>
+                          <span className="material-symbols-outlined text-[12px]">{style.icon}</span>
+                          {style.label}
+                        </span>
+                        <span className="text-xs text-on-surface-variant">{formatDate(r.createdAt)}</span>
+                      </div>
+                      <p className="text-sm font-bold text-on-surface mt-1">
+                        {PLAN_LABEL[r.planCode] ?? r.planCode}
+                        <span className="text-on-surface-variant font-medium"> · ฿{r.amount.toFixed(2)}</span>
+                        {isPartial && (
+                          <span className="ml-2 text-xs text-emerald-700 font-bold">
+                            → คืน ฿{(r.approvedRefundAmount ?? 0).toFixed(2)}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-on-surface-variant mt-1.5 line-clamp-2"><strong>เหตุผล:</strong> {r.reason}</p>
+                      {r.resolutionNotes && (
+                        <p className="text-xs text-slate-500 mt-1 italic line-clamp-2"><strong>ทีมงาน:</strong> {r.resolutionNotes}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ═══ Footer Info — matches /dashboard/usage card style ═══ */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
