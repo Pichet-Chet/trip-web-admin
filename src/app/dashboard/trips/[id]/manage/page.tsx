@@ -9,6 +9,7 @@ import {
   ChannelBadge,
   PageSkeleton,
   ConfirmDialog,
+  Modal,
   useToast,
 } from "@/components/shared";
 import { ROUTES } from "@/constants/routes";
@@ -342,76 +343,60 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
         confirmLabel={confirmAction?.mode === "send" ? "ส่ง" : "ส่งซ้ำ"}
       />
 
-      {/* Receipts modal */}
-      {receiptOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 p-0 md:p-4" onClick={() => setReceiptOpen(null)}>
-          <div
-            className="bg-white w-full max-w-lg rounded-t-3xl md:rounded-2xl shadow-xl max-h-[85vh] flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
+      <Modal
+        open={!!receiptOpen}
+        onClose={() => setReceiptOpen(null)}
+        size="lg"
+        title="สถานะการอ่าน"
+        subtitle={receiptOpen ? formatThaiDateTime(receiptOpen.createdAt) : undefined}
+      >
+        {receiptLoading ? (
+          <div className="p-12 text-center text-slate-400 animate-pulse">กำลังโหลด...</div>
+        ) : receiptData ? (
+          <>
+            <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50">
               <div>
-                <h3 className="font-bold text-slate-900">สถานะการอ่าน</h3>
-                <p className="text-xs text-slate-500 mt-0.5">{formatThaiDateTime(receiptOpen.createdAt)}</p>
+                <p className="text-[10px] text-slate-400 uppercase">ทั้งหมด</p>
+                <p className="text-2xl font-bold text-slate-900">{receiptData.totalFollowers}</p>
               </div>
-              <button
-                onClick={() => setReceiptOpen(null)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
-                aria-label="ปิด"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
+              <div>
+                <p className="text-[10px] text-emerald-600 uppercase">อ่านแล้ว</p>
+                <p className="text-2xl font-bold text-emerald-600">{receiptData.acknowledgedCount}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-amber-600 uppercase">ยังไม่อ่าน</p>
+                <p className="text-2xl font-bold text-amber-600">{receiptData.unreadCount}</p>
+              </div>
             </div>
-
-            {receiptLoading ? (
-              <div className="p-12 text-center text-slate-400 animate-pulse">กำลังโหลด...</div>
-            ) : receiptData ? (
-              <>
-                <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50">
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase">ทั้งหมด</p>
-                    <p className="text-2xl font-bold text-slate-900">{receiptData.totalFollowers}</p>
+            <ul className="divide-y divide-slate-100">
+              {receiptData.receipts.map((r) => (
+                <li key={r.followerId} className="px-5 py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                      {r.displayName.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{r.displayName}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {channelLabel(r.channel)}
+                        {r.acknowledged && r.acknowledgedAt && ` · อ่านเมื่อ ${formatThaiDateTime(r.acknowledgedAt)}`}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-emerald-600 uppercase">อ่านแล้ว</p>
-                    <p className="text-2xl font-bold text-emerald-600">{receiptData.acknowledgedCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-amber-600 uppercase">ยังไม่อ่าน</p>
-                    <p className="text-2xl font-bold text-amber-600">{receiptData.unreadCount}</p>
-                  </div>
-                </div>
-                <ul className="flex-1 overflow-y-auto divide-y divide-slate-100">
-                  {receiptData.receipts.map((r) => (
-                    <li key={r.followerId} className="px-5 py-3 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
-                          {r.displayName.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{r.displayName}</p>
-                          <p className="text-[11px] text-slate-400">
-                            {channelLabel(r.channel)}
-                            {r.acknowledged && r.acknowledgedAt && ` · อ่านเมื่อ ${formatThaiDateTime(r.acknowledgedAt)}`}
-                          </p>
-                        </div>
-                      </div>
-                      {r.acknowledged ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                          <span className="material-symbols-outlined text-sm">done_all</span>
-                          อ่านแล้ว
-                        </span>
-                      ) : (
-                        <span className="text-[11px] font-bold text-amber-600">ยังไม่อ่าน</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
-          </div>
-        </div>
-      )}
+                  {r.acknowledged ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                      <span className="material-symbols-outlined text-sm">done_all</span>
+                      อ่านแล้ว
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold text-amber-600">ยังไม่อ่าน</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+      </Modal>
     </main>
   );
 }

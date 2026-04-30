@@ -128,7 +128,7 @@ export default function DashboardPage(): React.ReactNode {
           <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl" />
           <div className="absolute -left-10 -bottom-20 w-72 h-72 rounded-full bg-indigo-200/30 blur-3xl" />
           <div className="relative z-10 p-8 md:p-12 max-w-3xl">
-            <span className="inline-block px-3 py-1 bg-blue-600 rounded-md text-[10px] font-bold tracking-widest uppercase text-white mb-6">เริ่มต้นใช้งาน</span>
+            <span className="inline-block px-3 py-1 bg-(--primary) rounded-md text-[10px] font-bold tracking-widest uppercase text-white mb-6">เริ่มต้นใช้งาน</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
               สวัสดี {user?.firstName || ""}!
             </h2>
@@ -143,11 +143,11 @@ export default function DashboardPage(): React.ReactNode {
                     key={s.step}
                     href={s.href}
                     className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
-                      s.done ? "bg-white/60 border-transparent" : "bg-white border-blue-200 shadow-sm hover:shadow-md"
+                      s.done ? "bg-white/60 border-transparent" : "bg-white border-(--primary)/20 shadow-sm hover:shadow-md"
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
-                      s.done ? "bg-green-500 text-white" : "bg-blue-600 text-white"
+                      s.done ? "bg-green-500 text-white" : "bg-(--primary) text-white"
                     }`}>
                       {s.done ? <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check</span> : s.step}
                     </div>
@@ -193,7 +193,7 @@ export default function DashboardPage(): React.ReactNode {
           <Link href={ROUTES.usage} className="group relative bg-slate-900 rounded-4xl p-6 md:p-8 flex flex-col justify-between text-white shadow-xl overflow-hidden min-h-48">
             <div className="relative z-10">
               <div className="flex justify-between items-start">
-                <span className="px-3 py-1 bg-blue-600 rounded-md text-[10px] font-bold tracking-widest uppercase">
+                <span className="px-3 py-1 bg-(--primary) rounded-md text-[10px] font-bold tracking-widest uppercase">
                   {usage?.tier || "free"} Plan
                 </span>
                 <span className="text-white/40 text-xs font-bold">

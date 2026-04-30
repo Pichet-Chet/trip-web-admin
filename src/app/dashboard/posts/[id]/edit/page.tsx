@@ -231,7 +231,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 value={h}
                 onChange={(e) => updateHighlight(idx, e.target.value)}
                 placeholder="เช่น ชมใบไม้เปลี่ยนสีที่เกียวโต"
-                className="flex-1 bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="flex-1 bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               />
               {highlights.length > 1 && (
                 <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors">
@@ -241,7 +241,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             </div>
           ))}
           {highlights.length < 8 && (
-            <button onClick={addHighlight} className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+            <button onClick={addHighlight} className="text-xs text-(--primary) hover:opacity-80 font-medium flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">add</span>
               เพิ่มไฮไลท์
             </button>
@@ -303,7 +303,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+            className="flex-1 py-3.5 rounded-xl bg-(--primary) text-white text-sm font-bold hover:opacity-95 transition-colors shadow-sm disabled:opacity-50"
           >
             {saving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
           </button>

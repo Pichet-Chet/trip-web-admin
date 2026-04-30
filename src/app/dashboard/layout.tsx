@@ -55,7 +55,7 @@ export default function DashboardLayout({
               </button>
               <div className="relative hidden sm:block">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-                <input className="bg-slate-50 border-none rounded-full py-2.5 pl-10 pr-5 text-sm w-64 focus:ring-2 focus:ring-blue-500/20 outline-none" placeholder="ค้นหา..." />
+                <input className="bg-slate-50 border-none rounded-full py-2.5 pl-10 pr-5 text-sm w-64 focus:ring-2 focus:ring-(--primary)/20 outline-none" placeholder="ค้นหา..." />
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -70,7 +70,7 @@ export default function DashboardLayout({
                     <div className="absolute right-0 top-12 z-50 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
                       <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                         <span className="font-bold text-slate-900 text-sm">การแจ้งเตือน</span>
-                        <span className="text-xs text-blue-600 font-semibold cursor-pointer">อ่านทั้งหมด</span>
+                        <span className="text-xs text-(--primary) font-semibold cursor-pointer">อ่านทั้งหมด</span>
                       </div>
                       <div className="divide-y divide-slate-50 max-h-72 overflow-y-auto">
                         {[
@@ -79,7 +79,7 @@ export default function DashboardLayout({
                           { text: "สมชาย รับทราบการเปลี่ยนแปลงทริปแล้ว", time: "2 ชั่วโมงที่แล้ว", unread: false },
                           { text: "แพลน Free ใกล้ถึงลิมิต (2/3 ทริป)", time: "เมื่อวาน", unread: false },
                         ].map((n, i) => (
-                          <div key={i} className={`px-4 py-3 ${n.unread ? "bg-blue-50/30" : ""}`}>
+                          <div key={i} className={`px-4 py-3 ${n.unread ? "bg-(--primary-container)/30" : ""}`}>
                             <p className="text-sm text-slate-700">{n.text}</p>
                             <p className="text-[11px] text-slate-400 mt-0.5">{n.time}</p>
                           </div>
@@ -99,7 +99,7 @@ export default function DashboardLayout({
                     <p className="text-sm font-bold text-slate-900 leading-none">{user ? `${user.firstName} ${user.lastName}` : "..."}</p>
                     <p className="text-[10px] text-slate-400">{user?.companyName || ""}</p>
                   </div>
-                  <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-9 h-9 rounded-full bg-(--primary) flex items-center justify-center text-white text-sm font-bold">
                     {user?.firstName?.charAt(0) || "?"}
                   </div>
                 </button>
@@ -132,7 +132,7 @@ export default function DashboardLayout({
                                 setSwitching(false);
                               }}
                               className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-colors ${
-                                c.id === user?.companyId ? "bg-blue-50" : "hover:bg-slate-50"
+                                c.id === user?.companyId ? "bg-(--primary-container)/40" : "hover:bg-slate-50"
                               }`}
                             >
                               {c.logoUrl ? (
@@ -145,7 +145,7 @@ export default function DashboardLayout({
                                 <p className="text-[10px] text-slate-400">{c.role}</p>
                               </div>
                               {c.id === user?.companyId && (
-                                <span className="material-symbols-outlined text-blue-600 text-sm">check</span>
+                                <span className="material-symbols-outlined text-(--primary) text-sm">check</span>
                               )}
                             </button>
                           ))}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormInput, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
+import { FormInput, FormTextarea, Modal, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
 import { getUser, logout, type UserInfo } from "@/lib/auth";
 
@@ -156,7 +156,7 @@ export default function SettingsPage(): React.ReactNode {
           <button
             onClick={handleChangePassword}
             disabled={pwSaving}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-6 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:opacity-95 transition-colors disabled:opacity-50"
           >
             {pwSaving ? "กำลังบันทึก..." : "เปลี่ยนรหัสผ่าน"}
           </button>
@@ -225,44 +225,15 @@ interface DeleteModalProps {
 
 function DeleteAccountModal({ onClose, onConfirm, password, setPassword, reason, setReason, error, deleting }: DeleteModalProps): React.ReactNode {
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 p-0 md:p-4" onClick={onClose}>
-      <div className="bg-white w-full max-w-md rounded-t-3xl md:rounded-2xl shadow-xl p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
-        <div>
-          <h3 className="text-lg font-bold text-red-600">ลบบัญชีถาวร?</h3>
-          <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-            ข้อมูลส่วนตัวจะถูก anonymize ทันที — กรุณายืนยันด้วยรหัสผ่าน
-          </p>
-        </div>
-
-        <FormInput
-          label="รหัสผ่าน"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">เหตุผล (ไม่บังคับ)</label>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="ช่วยให้เราพัฒนาบริการดีขึ้น"
-            rows={3}
-            maxLength={500}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none"
-          />
-        </div>
-
-        {error && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
-        <div className="flex gap-3 pt-2">
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      blocking={deleting}
+      title="ลบบัญชีถาวร?"
+      subtitle="ข้อมูลส่วนตัวจะถูก anonymize ทันที — กรุณายืนยันด้วยรหัสผ่าน"
+      footer={
+        <div className="flex gap-3">
           <button
             onClick={onClose}
             disabled={deleting}
@@ -278,7 +249,32 @@ function DeleteAccountModal({ onClose, onConfirm, password, setPassword, reason,
             {deleting ? "กำลังลบ..." : "ลบบัญชีถาวร"}
           </button>
         </div>
+      }
+    >
+      <div className="px-6 py-5 space-y-5">
+        <FormInput
+          label="รหัสผ่าน"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <FormTextarea
+          label="เหตุผล (ไม่บังคับ)"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="ช่วยให้เราพัฒนาบริการดีขึ้น"
+          rows={3}
+          maxLength={500}
+        />
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }
