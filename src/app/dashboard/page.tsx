@@ -128,11 +128,10 @@ export default function DashboardPage(): React.ReactNode {
           <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl" />
           <div className="absolute -left-10 -bottom-20 w-72 h-72 rounded-full bg-indigo-200/30 blur-3xl" />
           <div className="relative z-10 p-8 md:p-12 max-w-3xl">
-            <span className="inline-block px-3 py-1 bg-(--primary) rounded-md text-[10px] font-bold tracking-widest uppercase text-white mb-6">เริ่มต้นใช้งาน</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
-              สวัสดี {user?.firstName || ""}!
+              สวัสดี {user?.firstName || ""}
             </h2>
-            <p className="text-slate-500 mb-10 max-w-lg">สร้างแผนทริปแรกของคุณ แชร์ให้ลูกทริป แล้วระบบจะจัดการแจ้งเตือนให้อัตโนมัติ</p>
+            <p className="text-slate-500 mb-10 max-w-lg">เริ่มจากตั้งค่าโปรไฟล์ แล้วสร้างทริปแรก</p>
             <div className="space-y-3">
               {[
                 { step: 1, title: "ตั้งค่าโปรไฟล์", desc: "ใส่ชื่อ โลโก้ ช่องทางติดต่อ เพื่อแสดงบนหน้าทริป", href: ROUTES.profile, done: hasProfile },
@@ -171,8 +170,7 @@ export default function DashboardPage(): React.ReactNode {
           <div className="absolute -right-32 -top-32 w-96 h-96 rounded-full bg-white/10 blur-3xl group-hover:scale-110 transition-transform duration-700" />
           <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-blue-300/10 blur-3xl" />
           <div className="relative h-full flex flex-col justify-end p-6 md:p-12 text-(--on-primary)">
-            <span className="inline-block w-fit px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest mb-4 border border-white/20">เริ่มต้น</span>
-            <h2 className="text-3xl md:text-5xl font-extrabold leading-tight mb-6">สร้าง <br />ประสบการณ์ใหม่</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold leading-tight mb-6">สร้างทริปใหม่</h2>
             {quotaFull ? (
               <Link href={ROUTES.usage} className="w-fit bg-white text-red-600 px-6 md:px-8 py-3 md:py-4 rounded-full font-extrabold text-sm md:text-lg flex items-center gap-3 shadow-xl">
                 <span className="material-symbols-outlined">warning</span>
@@ -193,7 +191,7 @@ export default function DashboardPage(): React.ReactNode {
           <Link href={ROUTES.usage} className="group relative bg-slate-900 rounded-4xl p-6 md:p-8 flex flex-col justify-between text-white shadow-xl overflow-hidden min-h-48">
             <div className="relative z-10">
               <div className="flex justify-between items-start">
-                <span className="px-3 py-1 bg-(--primary) rounded-md text-[10px] font-bold tracking-widest uppercase">
+                <span className="text-xs font-bold uppercase tracking-wider text-white/80">
                   {usage?.tier || "free"} Plan
                 </span>
                 <span className="text-white/40 text-xs font-bold">
@@ -244,10 +242,7 @@ export default function DashboardPage(): React.ReactNode {
       {/* ═══ Trip Management ═══ */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div>
-            <h3 className="text-2xl md:text-3xl font-black text-(--on-surface) mb-2">ทริปของคุณ</h3>
-            <p className="text-(--on-surface-variant) text-sm md:text-base">จัดการและติดตามการสื่อสารกับลูกทริป</p>
-          </div>
+          <h3 className="text-2xl md:text-3xl font-black text-(--on-surface)">ทริปของคุณ</h3>
           {trips.length > 0 && (
             <FilterTabs
               tabs={[

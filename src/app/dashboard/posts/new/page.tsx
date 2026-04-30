@@ -96,8 +96,7 @@ export default function NewPostPage(): React.ReactNode {
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           กลับหน้าแพ็กเกจ
         </button>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">สร้างแพ็กเกจทัวร์ใหม่</h1>
-        <p className="text-slate-500 mt-2 text-sm">ลงข้อมูลทริปเพื่อเปิดรับสมัครลูกค้าผ่าน Marketplace</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">สร้างแพ็กเกจทัวร์</h1>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
@@ -106,7 +105,7 @@ export default function NewPostPage(): React.ReactNode {
           onChange={setCoverUrl}
           aspect="video"
           label="รูปปกแพ็กเกจ"
-          hint="แนะนำ: 1200x630px เพื่อแสดงผลสวยบน Marketplace"
+          hint="แนะนำขนาด 1200×630 px"
         />
 
         <FormInput

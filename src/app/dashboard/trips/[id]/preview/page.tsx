@@ -321,11 +321,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       {/* ═══ Content ═══ */}
       <div className="flex-1 overflow-y-auto p-4 lg:p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h2 className="text-2xl lg:text-3xl font-extrabold text-(--on-surface) tracking-tight mb-1">ดูตัวอย่างก่อนเผยแพร่</h2>
-            <p className="text-sm text-(--on-surface-variant)">ตรวจสอบทริปของคุณก่อนแชร์ให้ลูกทริป</p>
-          </div>
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-(--on-surface) tracking-tight mb-8">ดูตัวอย่างก่อนเผยแพร่</h2>
 
           {/* Staff Unpublish Reason Banner */}
           {isUnpublished && trip.staffUnpublishReason && (

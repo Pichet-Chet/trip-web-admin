@@ -162,10 +162,9 @@ export default function SupportTicketsPage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ตั๋วสนับสนุน</h1>
-          <p className="text-slate-400 mt-1 text-sm">
-            ติดตามสถานะและการตอบกลับจากทีมงาน
-            {data && data.totalCount > 0 && ` · ${data.totalCount} รายการ`}
-          </p>
+          {data && data.totalCount > 0 && (
+            <p className="text-slate-400 mt-1 text-sm">{data.totalCount} รายการ</p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {openCount > 0 && (
@@ -273,7 +272,7 @@ export default function SupportTicketsPage() {
           <EmptyState
             icon="support_agent"
             title="ยังไม่มีตั๋วสนับสนุน"
-            description={hasFilters ? "ลองเปลี่ยนหรือล้างตัวกรองเพื่อดูตั๋วอื่น" : "เปิด Ticket เพื่อแจ้งปัญหาหรือขอฟีเจอร์ใหม่ให้ทีมงาน"}
+            description={hasFilters ? "ลองเปลี่ยนหรือล้างตัวกรอง" : "ยังไม่มีตั๋ว"}
             actionLabel="เปิด Ticket ใหม่"
             actionHref="/dashboard/feedback"
           />

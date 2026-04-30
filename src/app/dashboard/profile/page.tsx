@@ -338,10 +338,7 @@ function TeamSection(): React.ReactNode {
   return (
     <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-        <div>
-          <h3 className="font-bold text-slate-900">ทีมงาน</h3>
-          <p className="text-xs text-slate-400 mt-0.5">เชิญทีมงานมาช่วยจัดการทริป</p>
-        </div>
+        <h3 className="font-bold text-slate-900">ทีมงาน</h3>
         <button onClick={() => setShowInvite(!showInvite)} className="text-sm font-semibold text-(--primary) hover:bg-(--primary-container)/40 px-3 py-1.5 rounded-lg transition-colors">
           {showInvite ? "ยกเลิก" : "+ เชิญ"}
         </button>
@@ -439,7 +436,7 @@ function TeamSection(): React.ReactNode {
       ) : (
         <div className="p-6 text-center text-sm text-slate-400">
           <span className="material-symbols-outlined text-2xl text-slate-200 block mb-2">group_add</span>
-          ยังไม่มีทีมงาน — เชิญทีมงานมาช่วยจัดการทริป
+          ยังไม่มีทีมงาน
         </div>
       )}
     </div>

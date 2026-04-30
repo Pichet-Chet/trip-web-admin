@@ -618,11 +618,7 @@ export default function NewTripPage(): React.ReactNode {
         {/* ═══ Step 0: Trip Scope Selector ═══ */}
         {!tripScope && (
           <section className="min-h-[70vh] flex flex-col justify-center">
-            <div className="text-center mb-10">
-              <span className="inline-block px-4 py-1.5 rounded-full bg-(--primary)/10 text-(--primary) text-[10px] font-black uppercase tracking-widest mb-6">เริ่มต้นสร้างทริป</span>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) tracking-tight mb-3">ทริปนี้เดินทางไปที่ไหน?</h2>
-              <p className="text-(--on-surface-variant) text-base">เลือกประเภทเพื่อให้ระบบแสดงฟอร์มที่เหมาะกับทริปของคุณ</p>
-            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) tracking-tight mb-10 text-center">ทริปนี้เดินทางไปที่ไหน?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
               {/* ── ในประเทศ ── */}
               <button
@@ -642,14 +638,8 @@ export default function NewTripPage(): React.ReactNode {
                 </svg>
                 <div className="absolute inset-0 bg-linear-to-t from-emerald-900/70 via-transparent to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-left">
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🚐 รถตู้</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🚌 รถบัส</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🚆 รถไฟ</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">⛴️ เรือ</span>
-                  </div>
                   <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">ในประเทศ</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">ทริปภายในประเทศไทย — เชียงใหม่, กระบี่, ภูเก็ต, เกาะต่างๆ</p>
+                  <p className="text-white/70 text-sm leading-relaxed">ทริปภายในประเทศไทย</p>
                   <div className="mt-4 w-fit bg-white text-emerald-800 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 group-hover:bg-emerald-50 transition-colors shadow-lg">
                     <span className="material-symbols-outlined text-lg">arrow_forward</span>
                     เลือก
@@ -675,14 +665,8 @@ export default function NewTripPage(): React.ReactNode {
                 </svg>
                 <div className="absolute inset-0 bg-linear-to-t from-blue-900/70 via-transparent to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-left">
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">✈️ เครื่องบิน</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🛂 Immigration</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🧳 PNR</span>
-                    <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/10">🌏 Multi-lang</span>
-                  </div>
                   <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">ต่างประเทศ</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">ทริปต่างประเทศ — ญี่ปุ่น, เกาหลี, ยุโรป พร้อมข้อมูลเที่ยวบิน & ตม.</p>
+                  <p className="text-white/70 text-sm leading-relaxed">รวมข้อมูลเที่ยวบินและตรวจคนเข้าเมือง</p>
                   <div className="mt-4 w-fit bg-white text-(--primary) px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 group-hover:bg-(--primary-container)/40 transition-colors shadow-lg">
                     <span className="material-symbols-outlined text-lg">arrow_forward</span>
                     เลือก

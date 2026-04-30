@@ -186,7 +186,6 @@ function UpgradeContent(): React.ReactNode {
           กลับ
         </Link>
         <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">อัปเกรดแพลน</h1>
-        <p className="text-on-surface-variant mt-2 text-base md:text-lg">ปลดล็อกฟีเจอร์ระดับมืออาชีพ — ขยายธุรกิจทัวร์ของคุณ</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
@@ -293,18 +292,6 @@ function UpgradeContent(): React.ReactNode {
 
             {/* Payment Section */}
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-on-surface">ชำระเงินปลอดภัย</h3>
-                <div className="flex gap-1">
-                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded">VISA</span>
-                  <span className="px-2 py-0.5 bg-orange-50 text-orange-700 text-[10px] font-bold rounded">MC</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                ระบบจะนำคุณไปหน้าชำระเงินของ Stripe — ข้อมูลบัตรถูกเก็บอย่างปลอดภัยโดย Stripe เท่านั้น
-              </p>
-
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3">
                   {error}
@@ -329,17 +316,10 @@ function UpgradeContent(): React.ReactNode {
                 )}
               </button>
 
-              {/* Trust Badges */}
-              <div className="flex items-center justify-center gap-4 pt-2 text-xs text-outline">
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">lock</span>
-                  SSL 256-bit
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">verified_user</span>
-                  Stripe Verified
-                </span>
-              </div>
+              <p className="text-[11px] text-on-surface-variant text-center flex items-center justify-center gap-1">
+                <span className="material-symbols-outlined text-sm">lock</span>
+                ชำระเงินปลอดภัยผ่าน Stripe · รองรับ Visa / Mastercard / PromptPay
+              </p>
             </div>
           </div>
 

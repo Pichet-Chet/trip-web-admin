@@ -193,32 +193,16 @@ export default function MyTripsPage(): React.ReactNode {
                         <span className="material-symbols-outlined text-4xl text-slate-300">landscape</span>
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 flex gap-1.5">
-                      <span className={`text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${
-                        isArchived ? "bg-slate-400"
-                        : isPendingReview ? "bg-orange-500"
-                        : isDraft ? "bg-amber-500"
-                        : isEnded ? "bg-slate-500"
-                        : "bg-emerald-500"
-                      }`}>
-                        {isArchived ? "จบแล้ว" : isPendingReview ? "รอตรวจสอบ" : isDraft ? "ฉบับร่าง" : isEnded ? "สิ้นสุด" : "เผยแพร่"}
-                      </span>
-                      <span className={`text-[9px] font-bold px-2 py-1 rounded-md shadow-sm ${
-                        trip.scope === "international" ? "bg-purple-500 text-white" : "bg-white/90 text-slate-700"
-                      }`}>
-                        {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}
-                      </span>
-                      {/* H3.3: Quota source badge — shows which entitlement was used to create this trip */}
-                      {trip.quotaSource && QUOTA_SOURCE_LABEL[trip.quotaSource] && (
-                        <span
-                          className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-md border ${QUOTA_SOURCE_LABEL[trip.quotaSource].cls}`}
-                          title={`สร้างด้วยเครดิต: ${QUOTA_SOURCE_LABEL[trip.quotaSource].text}`}
-                        >
-                          <span className="material-symbols-outlined text-[10px]">{QUOTA_SOURCE_LABEL[trip.quotaSource].icon}</span>
-                          {QUOTA_SOURCE_LABEL[trip.quotaSource].text}
-                        </span>
-                      )}
-                    </div>
+                    {/* Single status badge — scope shown in body, quota source moved to body footer */}
+                    <span className={`absolute top-3 left-3 text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm ${
+                      isArchived ? "bg-slate-400"
+                      : isPendingReview ? "bg-orange-500"
+                      : isDraft ? "bg-amber-500"
+                      : isEnded ? "bg-slate-500"
+                      : "bg-emerald-500"
+                    }`}>
+                      {isArchived ? "จบแล้ว" : isPendingReview ? "รอตรวจสอบ" : isDraft ? "ฉบับร่าง" : isEnded ? "สิ้นสุด" : "เผยแพร่"}
+                    </span>
                   </div>
 
                   {/* Body */}
@@ -227,7 +211,7 @@ export default function MyTripsPage(): React.ReactNode {
                       <h3 className="font-bold text-[15px] text-slate-900 leading-snug line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h3>
                     </Link>
                     <p className="text-[12px] text-slate-400 mt-1">
-                      {trip.destination} · {trip.travelersCount} คน
+                      {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"} · {trip.destination} · {trip.travelersCount} คน
                     </p>
                     {trip.followerCount > 0 && (
                       <p className="text-[11px] text-slate-400 mt-1">{trip.followerCount} ผู้ติดตาม</p>
@@ -275,7 +259,7 @@ export default function MyTripsPage(): React.ReactNode {
         {trips.length === 0 && (
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-slate-200 mb-4 block">luggage</span>
-            <p className="text-slate-400 mb-6">ยังไม่มีทริป — สร้างทริปแรกกันเลย!</p>
+            <p className="text-slate-400 mb-6">ยังไม่มีทริป</p>
             <Link href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
             </Link>

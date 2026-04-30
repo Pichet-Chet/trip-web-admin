@@ -88,7 +88,6 @@ export default function PostsPage(): React.ReactNode {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">แพ็กเกจทัวร์</h1>
-          <p className="text-slate-500 mt-1 text-sm">ลงแพ็กเกจทัวร์เพื่อเปิดรับสมัครลูกค้าผ่าน Marketplace</p>
         </div>
         <Link href="/dashboard/posts/new" className="px-5 py-3 bg-(--primary) text-white rounded-xl font-bold text-sm hover:opacity-95 transition-colors shadow-sm flex items-center gap-2 w-fit">
           <span className="material-symbols-outlined text-lg">add</span>
