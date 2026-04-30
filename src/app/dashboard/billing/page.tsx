@@ -269,7 +269,7 @@ function BillingContent(): React.ReactNode {
   const totalCount = paymentPage?.totalCount ?? 0;
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
 
       <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การชำระเงิน</h1>
 
@@ -308,9 +308,9 @@ function BillingContent(): React.ReactNode {
       )}
 
       {/* ═══ Plan Hero + Stat — matches /dashboard/usage layout ═══ */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Plan + Subscription mgmt */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-(--surface-container-high) shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-(--surface-container-high) shadow-sm p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">แพลนปัจจุบัน</p>
@@ -342,7 +342,7 @@ function BillingContent(): React.ReactNode {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-6">
             {isSub ? (
               <>
                 <button
@@ -385,7 +385,7 @@ function BillingContent(): React.ReactNode {
         </div>
 
         {/* Total Revenue Stat Card — matches usage gauge card style */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl border border-(--surface-container-high) shadow-sm flex flex-col justify-center text-center space-y-4">
+        <div className="bg-white p-6 rounded-2xl border border-(--surface-container-high) shadow-sm flex flex-col justify-center text-center space-y-3">
           <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
             <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
           </div>

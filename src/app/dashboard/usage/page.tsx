@@ -95,14 +95,14 @@ export default function UsagePage(): React.ReactNode {
   const circumference = 364.4;
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
 
       <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การใช้งาน</h1>
 
       {/* ═══ Hero — softer rounded-3xl cards matching /dashboard ═══ */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Account Status */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 md:p-8 flex flex-col justify-between min-h-60 hover:shadow-md transition-shadow">
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-(--outline-variant)/50 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
           <div>
             <p className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase mb-2">
               {TIER_LABEL[data.tier] ?? data.tier}
@@ -116,7 +116,7 @@ export default function UsagePage(): React.ReactNode {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-6">
             {isSub ? (
               <Link
                 href="/dashboard/billing"
@@ -139,7 +139,7 @@ export default function UsagePage(): React.ReactNode {
         </div>
 
         {/* Gauge */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl border border-(--outline-variant)/50 shadow-sm flex flex-col justify-center items-center text-center space-y-4 hover:shadow-md transition-shadow">
+        <div className="bg-white p-6 rounded-3xl border border-(--outline-variant)/50 shadow-sm flex flex-col justify-center items-center text-center space-y-3 hover:shadow-md transition-shadow">
           {isSub ? (
             <>
               <div className="w-32 h-32 flex items-center justify-center rounded-full bg-primary/10">
@@ -185,7 +185,7 @@ export default function UsagePage(): React.ReactNode {
           { label: "เครดิตที่ซื้อ", value: data.creditsTotal },
           { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining },
         ].map((s) => (
-          <div key={s.label} className="px-5 py-5 md:px-6 md:py-6 first:rounded-l-3xl last:rounded-r-3xl">
+          <div key={s.label} className="p-5 first:rounded-l-3xl last:rounded-r-3xl">
             <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{s.label}</p>
             <p className="text-3xl md:text-4xl font-black text-on-surface mt-1.5">{s.value}</p>
           </div>
