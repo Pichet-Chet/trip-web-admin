@@ -198,21 +198,21 @@ export default function UsagePage(): React.ReactNode {
             <h3 className="text-sm font-bold text-on-surface">เครดิตแยกตามแหล่งซื้อ</h3>
             <span className="text-[11px] text-on-surface-variant" title="ระบบใช้เครดิตจากรอบเก่าก่อน (FIFO) — ไม่มีวันหมดอายุ">FIFO · ไม่มีหมดอายุ</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <ul className="divide-y divide-(--outline-variant)/30">
             {Object.entries(data.creditsRemainingBySource).map(([source, count]) => {
               const label = source === "per_trip" ? "ซื้อต่อทริป"
                 : source === "pack_5" ? "ซื้อแพ็ค 5"
                 : source;
-              const color = source === "pack_5" ? "bg-violet-50 text-violet-700 border-violet-200"
-                : "bg-sky-50 text-sky-700 border-sky-200";
               return (
-                <div key={source} className={`rounded-xl border ${color} p-3`}>
-                  <p className="text-xs font-semibold opacity-80">{label}</p>
-                  <p className="text-2xl font-black mt-1">{count}<span className="text-xs font-medium ml-1 opacity-70">ทริป</span></p>
-                </div>
+                <li key={source} className="flex items-baseline justify-between py-3 first:pt-0 last:pb-0">
+                  <span className="text-sm text-on-surface-variant">{label}</span>
+                  <span className="text-lg font-bold text-on-surface tabular-nums">
+                    {count}<span className="text-xs font-medium text-on-surface-variant ml-1">ทริป</span>
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </section>
       )}
 
