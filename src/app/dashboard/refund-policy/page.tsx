@@ -55,7 +55,7 @@ const sections: { id: string; title: string; body: React.ReactNode }[] = [
       <>
         <p>ในกรณีพิเศษเช่น ระบบล่มที่ทำให้ใช้บริการไม่ได้ การชำระเงินผิดพลาดทางเทคนิค หรือ charge ซ้ำซ้อน เจ้าหน้าที่ระดับ <strong>Staff Admin</strong> สามารถพิจารณาคืนเงินนอกเหนือนโยบายปกติ</p>
         <p className="mt-2">การ override ทุกครั้งจะถูกบันทึก audit log ถาวรพร้อมเหตุผลละเอียด ≥ 30 ตัวอักษร เพื่อความโปร่งใส</p>
-        <p className="mt-2 text-sm text-slate-600">ติดต่อขอ Force Majeure ได้ผ่านระบบ Ticket ที่ <Link href="/dashboard/support" className="text-rose-600 font-bold hover:underline">/dashboard/support</Link></p>
+        <p className="mt-2 text-sm text-slate-600">ติดต่อขอ Force Majeure ได้ผ่านระบบ Ticket ที่ <Link href="/dashboard/support" className="text-(--primary) font-bold hover:underline">/dashboard/support</Link></p>
       </>
     ),
   },
@@ -64,7 +64,7 @@ const sections: { id: string; title: string; body: React.ReactNode }[] = [
     title: "ขั้นตอนการขอคืนเงิน",
     body: (
       <ol className="space-y-2 list-decimal pl-5">
-        <li>ไปที่ <Link href="/dashboard/billing" className="text-rose-600 font-bold hover:underline">/dashboard/billing</Link> เลือกรายการที่ต้องการคืนเงิน</li>
+        <li>ไปที่ <Link href="/dashboard/billing" className="text-(--primary) font-bold hover:underline">/dashboard/billing</Link> เลือกรายการที่ต้องการคืนเงิน</li>
         <li>กดปุ่ม &quot;ขอเงินคืน&quot; → ระบบจะแสดงสถานะคำขอ (eligible / partial / blocked) ทันที</li>
         <li>ระบุเหตุผลละเอียด (≥ 10 ตัวอักษร) → ส่งคำขอ</li>
         <li>เจ้าหน้าที่จะตรวจสอบภายใน 1-3 วันทำการ และส่งอีเมลแจ้งผล</li>

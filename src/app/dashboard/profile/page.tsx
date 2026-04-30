@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FormInput, SectionHeader, ImageUpload, useToast } from "@/components/shared";
+import { FormInput, FormTextarea, SectionHeader, ImageUpload, ToggleSwitch, useToast } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 
@@ -36,7 +36,6 @@ export default function ProfilePage(): React.ReactNode {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
-  const [showInvite, setShowInvite] = useState(false);
   const [form, setForm] = useState({
     name: "",
     accountType: "company" as AccountType,
@@ -129,10 +128,10 @@ export default function ProfilePage(): React.ReactNode {
                     key={t.value}
                     onClick={() => setForm((p) => ({ ...p, accountType: t.value }))}
                     className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      form.accountType === t.value ? "border-blue-600 bg-blue-50/30" : "border-slate-200 hover:border-slate-300"
+                      form.accountType === t.value ? "border-(--primary) bg-(--primary-container)/30" : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <p className={`text-sm font-bold ${form.accountType === t.value ? "text-blue-600" : "text-slate-900"}`}>{t.label}</p>
+                    <p className={`text-sm font-bold ${form.accountType === t.value ? "text-(--primary)" : "text-slate-900"}`}>{t.label}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
                   </button>
                 ))}
@@ -192,7 +191,7 @@ export default function ProfilePage(): React.ReactNode {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full h-14 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-700 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 bg-(--primary) text-white rounded-xl font-bold text-sm shadow-lg shadow-(--primary)/20 hover:opacity-95 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>{saving ? "กำลังบันทึก..." : "บันทึก"}</span>
                 {!saving && <span className="material-symbols-outlined text-lg">check</span>}
@@ -211,12 +210,11 @@ export default function ProfilePage(): React.ReactNode {
               <h3 className="font-bold text-slate-900">Portfolio สาธารณะ</h3>
               <p className="text-xs text-slate-400 mt-0.5">หน้าแสดงผลงานทริปทั้งหมดของคุณ</p>
             </div>
-            <button
-              onClick={() => setForm((p) => ({ ...p, portfolioEnabled: !p.portfolioEnabled }))}
-              className={`relative w-12 h-7 rounded-full transition-colors ${form.portfolioEnabled ? "bg-blue-600" : "bg-slate-200"}`}
-            >
-              <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform ${form.portfolioEnabled ? "left-5.5" : "left-0.5"}`} />
-            </button>
+            <ToggleSwitch
+              checked={form.portfolioEnabled}
+              onChange={(next) => setForm((p) => ({ ...p, portfolioEnabled: next }))}
+              ariaLabel="เปิด/ปิด Portfolio สาธารณะ"
+            />
           </div>
           {form.portfolioEnabled && (
             <div className="p-6 space-y-4">
@@ -242,13 +240,13 @@ export default function ProfilePage(): React.ReactNode {
         </div>
 
         {/* Usage Link */}
-        <a href="/dashboard/usage" className="mt-6 block bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-blue-200 transition-colors group">
+        <a href="/dashboard/usage" className="mt-6 block bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-(--primary)/30 transition-colors group">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900">การใช้งาน & แพลน</h3>
               <p className="text-xs text-slate-400 mt-0.5">ดูโควต้า ลิมิต และอัปเกรดแพลน</p>
             </div>
-            <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all">arrow_forward</span>
+            <span className="material-symbols-outlined text-slate-300 group-hover:text-(--primary) group-hover:translate-x-1 transition-all">arrow_forward</span>
           </div>
         </a>
       </div>
@@ -348,7 +346,7 @@ function TeamSection(): React.ReactNode {
           <h3 className="font-bold text-slate-900">ทีมงาน</h3>
           <p className="text-xs text-slate-400 mt-0.5">เชิญทีมงานมาช่วยจัดการทริป</p>
         </div>
-        <button onClick={() => setShowInvite(!showInvite)} className="text-sm font-semibold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+        <button onClick={() => setShowInvite(!showInvite)} className="text-sm font-semibold text-(--primary) hover:bg-(--primary-container)/40 px-3 py-1.5 rounded-lg transition-colors">
           {showInvite ? "ยกเลิก" : "+ เชิญ"}
         </button>
       </div>
@@ -370,7 +368,7 @@ function TeamSection(): React.ReactNode {
             <button
               onClick={handleInvite}
               disabled={inviting}
-              className="px-5 py-4 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="px-5 py-4 bg-(--primary) text-white rounded-xl text-sm font-bold hover:opacity-95 transition-colors disabled:opacity-50 whitespace-nowrap"
             >
               {inviting ? "กำลังส่ง..." : "ส่งคำเชิญ"}
             </button>
@@ -427,7 +425,7 @@ function TeamSection(): React.ReactNode {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${m.role === "Owner" ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"}`}>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${m.role === "Owner" ? "bg-(--primary-container)/40 text-(--primary)" : "bg-slate-100 text-slate-500"}`}>
                   {m.role}
                 </span>
                 {m.role !== "Owner" && (

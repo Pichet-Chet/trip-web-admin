@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { SectionHeader } from "@/components/shared";
+import { SectionHeader, StatCard } from "@/components/shared";
 
 interface UsageData {
   tier: string;
@@ -201,23 +201,23 @@ export default function UsagePage(): React.ReactNode {
         </div>
       </section>
 
-      {/* ═══ Stats Row — pastel icon tiles, softer feel ═══ */}
+      {/* ═══ Stats Row — shared StatCard variant=pastel ═══ */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public", bg: "from-emerald-100 to-emerald-50", color: "text-emerald-600" },
-          { label: "ร่าง", value: data.draftCount, icon: "draft", bg: "from-slate-100 to-slate-50", color: "text-slate-500" },
-          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll", bg: "from-violet-100 to-violet-50", color: "text-violet-600" },
-          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings", bg: "from-blue-100 to-blue-50", color: "text-blue-600" },
+          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public", gradient: "from-emerald-100 to-emerald-50", color: "text-emerald-600" },
+          { label: "ร่าง", value: data.draftCount, icon: "draft", gradient: "from-slate-100 to-slate-50", color: "text-slate-500" },
+          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll", gradient: "from-violet-100 to-violet-50", color: "text-violet-600" },
+          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings", gradient: "from-blue-100 to-blue-50", color: "text-blue-600" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-3xl border border-(--outline-variant)/50 p-5 md:p-6 flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${s.bg} flex items-center justify-center flex-shrink-0`}>
-              <span className={`material-symbols-outlined ${s.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">{s.label}</p>
-              <p className="text-2xl md:text-3xl font-black text-on-surface mt-0.5">{s.value}</p>
-            </div>
-          </div>
+          <StatCard
+            key={s.label}
+            variant="pastel"
+            icon={s.icon}
+            iconGradient={s.gradient}
+            iconColor={s.color}
+            title={s.label}
+            value={s.value}
+          />
         ))}
       </section>
 

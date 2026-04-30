@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { useToast } from "@/components/shared";
+import { ToggleSwitch, useToast } from "@/components/shared";
 
 interface BillingProfile {
   legalName: string;
@@ -104,12 +104,11 @@ export default function BillingProfilePage(): React.ReactNode {
               <p className="text-xs text-on-surface-variant mt-1">เปิดเมื่อบริษัทคุณจด VAT และต้องการ TIN/สาขาแสดงในเอกสารเพื่อยื่นเครดิตภาษีซื้อ</p>
             </div>
           </div>
-          <button
-            onClick={() => setWants(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${wants ? "bg-(--primary)" : "bg-slate-300"}`}
-          >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${wants ? "translate-x-5" : "translate-x-0.5"}`} />
-          </button>
+          <ToggleSwitch
+            checked={wants}
+            onChange={setWants}
+            ariaLabel="เปิด/ปิด ขอใบกำกับภาษี"
+          />
         </div>
 
         {/* Form */}
