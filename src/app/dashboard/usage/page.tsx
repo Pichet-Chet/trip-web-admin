@@ -177,23 +177,18 @@ export default function UsagePage(): React.ReactNode {
         </div>
       </section>
 
-      {/* ═══ Stats Row — shared StatCard variant=pastel ═══ */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Stats — data-first, dense */}
+      <section className="grid grid-cols-2 md:grid-cols-4 bg-white rounded-3xl border border-(--outline-variant)/50 divide-x divide-(--outline-variant)/30 overflow-hidden">
         {[
-          { label: "กำลังใช้งาน", value: data.publishedCount, icon: "public", gradient: "from-emerald-100 to-emerald-50", color: "text-emerald-600" },
-          { label: "ร่าง", value: data.draftCount, icon: "draft", gradient: "from-slate-100 to-slate-50", color: "text-slate-500" },
-          { label: "เครดิตที่ซื้อ", value: data.creditsTotal, icon: "toll", gradient: "from-violet-100 to-violet-50", color: "text-violet-600" },
-          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining, icon: "savings", gradient: "from-blue-100 to-blue-50", color: "text-blue-600" },
+          { label: "กำลังใช้งาน", value: data.publishedCount },
+          { label: "ร่าง", value: data.draftCount },
+          { label: "เครดิตที่ซื้อ", value: data.creditsTotal },
+          { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining },
         ].map((s) => (
-          <StatCard
-            key={s.label}
-            variant="pastel"
-            icon={s.icon}
-            iconGradient={s.gradient}
-            iconColor={s.color}
-            title={s.label}
-            value={s.value}
-          />
+          <div key={s.label} className="px-5 py-5 md:px-6 md:py-6 first:rounded-l-3xl last:rounded-r-3xl">
+            <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{s.label}</p>
+            <p className="text-3xl md:text-4xl font-black text-on-surface mt-1.5">{s.value}</p>
+          </div>
         ))}
       </section>
 
@@ -221,9 +216,10 @@ export default function UsagePage(): React.ReactNode {
         </section>
       )}
 
-      {/* ═══ Plans — same design language as /dashboard/upgrade ═══ */}
+      {/* Plans — only show to operators who could benefit (not on subscription) */}
+      {!isSub && (
       <section className="space-y-6">
-        <SectionHeader title="เพิ่มความสามารถ" subtitle="เลือกแพลนที่เหมาะกับคุณ" />
+        <SectionHeader title="แพลน" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {/* ── Free ──────────────────────────────────────────────── */}
           <div className={`relative bg-white rounded-3xl border ${data.tier === "free" ? "border-(--outline)" : "border-(--outline-variant)/50"} p-6 flex flex-col hover:shadow-md transition-shadow`}>
@@ -344,25 +340,20 @@ export default function UsagePage(): React.ReactNode {
           </div>
         </div>
 
-        {/* Subscription upsell — full-width below */}
         {data.tier !== "subscription" && (
           <Link
             href="/dashboard/upgrade?plan=subscription"
-            className="block bg-gradient-to-br from-(--primary-container) to-(--primary-container)/40 rounded-3xl p-5 md:p-6 hover:shadow-md transition-all group"
+            className="flex items-center justify-between gap-3 px-5 py-3 rounded-2xl border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:bg-(--primary-container)/15 transition-colors group"
           >
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-white rounded-lg flex-shrink-0">
-                <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-on-surface">Subscription รายเดือน</h4>
-                <p className="text-xs text-on-surface-variant mt-0.5">ทริปไม่จำกัด • ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน • ยกเลิกได้ทุกเมื่อ</p>
-              </div>
-              <span className="material-symbols-outlined text-(--primary) group-hover:translate-x-1 transition-transform flex-shrink-0">arrow_forward</span>
-            </div>
+            <p className="text-sm">
+              <span className="font-bold text-on-surface">Subscription รายเดือน</span>
+              <span className="text-on-surface-variant"> · ทริปไม่จำกัด · ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน</span>
+            </p>
+            <span className="material-symbols-outlined text-(--primary) group-hover:translate-x-0.5 transition-transform flex-shrink-0 text-base">arrow_forward</span>
           </Link>
         )}
       </section>
+      )}
 
     </div>
   );

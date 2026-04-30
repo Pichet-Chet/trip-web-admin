@@ -59,12 +59,13 @@ const TIER_LABEL: Record<string, string> = {
   subscription: "Subscription",
 };
 
-const STATUS_STYLE: Record<string, string> = {
-  paid: "bg-green-50 text-green-700 border border-green-200",
-  pending: "bg-amber-50 text-amber-700 border border-amber-200",
-  failed: "bg-red-50 text-red-700 border border-red-200",
-  refunded: "bg-cyan-50 text-cyan-700 border border-cyan-200",
-  expired: "bg-slate-100 text-slate-600 border border-slate-200",
+// Tone-driven inline status colors (dot + text). No more background-pill noise.
+const STATUS_STYLE: Record<string, { dot: string; text: string }> = {
+  paid:     { dot: "bg-emerald-500", text: "text-emerald-700" },
+  pending:  { dot: "bg-amber-500",   text: "text-amber-700" },
+  failed:   { dot: "bg-red-500",     text: "text-red-700" },
+  refunded: { dot: "bg-cyan-500",    text: "text-cyan-700" },
+  expired:  { dot: "bg-slate-400",   text: "text-slate-500" },
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -515,9 +516,15 @@ function BillingContent(): React.ReactNode {
                         ฿{tx.amount.toFixed(2)}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${STATUS_STYLE[tx.status] ?? "bg-slate-100 text-slate-600 border border-slate-200"}`}>
-                          {STATUS_LABEL[tx.status] ?? tx.status}
-                        </span>
+                        {(() => {
+                          const s = STATUS_STYLE[tx.status] ?? { dot: "bg-slate-400", text: "text-slate-500" };
+                          return (
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${s.text}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                              {STATUS_LABEL[tx.status] ?? tx.status}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 text-right">
                         {tx.status === "paid" ? (
@@ -577,7 +584,7 @@ function BillingContent(): React.ReactNode {
       {/* ═══ Refund Requests History (Phase A + U) ═══ */}
       {refundRequests.length > 0 && (
         <section className="space-y-4">
-          <SectionHeader title="ประวัติคำขอคืนเงิน" subtitle="คำขอที่ส่งให้ทีมงานตรวจสอบ" />
+          <SectionHeader title="ประวัติคำขอคืนเงิน" />
           <div className="space-y-3">
             {refundRequests.map((r) => {
               const style = REFUND_STATUS[r.status];
@@ -587,11 +594,21 @@ function BillingContent(): React.ReactNode {
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${style.cls}`}>
-                          <span className="material-symbols-outlined text-[12px]">{style.icon}</span>
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
+                          r.status === "approved" ? "text-emerald-700"
+                            : r.status === "rejected" ? "text-rose-700"
+                            : r.status === "cancelled" ? "text-slate-500"
+                            : "text-amber-700"
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            r.status === "approved" ? "bg-emerald-500"
+                              : r.status === "rejected" ? "bg-rose-500"
+                              : r.status === "cancelled" ? "bg-slate-400"
+                              : "bg-amber-500"
+                          }`} />
                           {style.label}
                         </span>
-                        <span className="text-xs text-on-surface-variant">{formatDate(r.createdAt)}</span>
+                        <span className="text-xs text-on-surface-variant">· {formatDate(r.createdAt)}</span>
                       </div>
                       <p className="text-sm font-bold text-on-surface mt-1">
                         {PLAN_LABEL[r.planCode] ?? r.planCode}
