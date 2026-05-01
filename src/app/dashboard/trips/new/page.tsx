@@ -6,6 +6,10 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, SectionHeader, DashedAddButton, FooterActionBar, IconButton, ImageUpload, DatePicker, TimePicker } from "@/components/shared";
+import { TransportSection, type TransportSegment, makeSegment } from "./_components/transport-section";
+import { ScopeSelector, type TripScopeLocal } from "./_components/scope-selector";
+import { HotelCard } from "./_components/hotel-card";
+import { EmergencyContactCard, type EmergencyContactRow } from "./_components/emergency-contact-card";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
 import { tripBasicsSchema, hotelSchema, emergencyContactSchema } from "@/lib/validation/trip";
@@ -20,174 +24,7 @@ const DevAutoFill = process.env.NODE_ENV === "development"
 import { useToast } from "@/components/shared/toast";
 import type { Accommodation, TripPlan } from "@/types";
 
-type TransportType = "flight" | "van" | "bus" | "train" | "boat" | "car";
-
-type TransportSegment = {
-  /** Local-only key for React/list ops. */
-  id: string;
-  /** Server-assigned id. Absent until the row has been saved to DB. */
-  serverId?: string;
-  type: TransportType;
-  direction: "outbound" | "return";
-  from: string;
-  fromDetail: string; // terminal, สถานี, ท่าเรือ
-  to: string;
-  toDetail: string;
-  departureDate: string;
-  departureTime: string;
-  arrivalDate: string;
-  arrivalTime: string;
-  // Flight-specific
-  airline: string;
-  flightNumber: string;
-  bookingRef: string;
-  baggage: string;
-  // General
-  operator: string; // ชื่อบริษัทรถตู้, สายการบิน, etc.
-  vehicleInfo: string; // ทะเบียนรถ, ชื่อเรือ, etc.
-  meetingPoint: string;
-  note: string;
-};
-
-const transportOptions: { value: TransportType; label: string; icon: string }[] = [
-  { value: "flight", label: "เครื่องบิน", icon: "flight" },
-  { value: "van", label: "รถตู้", icon: "airport_shuttle" },
-  { value: "bus", label: "รถบัส", icon: "directions_bus" },
-  { value: "train", label: "รถไฟ", icon: "train" },
-  { value: "boat", label: "เรือ", icon: "directions_boat" },
-  { value: "car", label: "รถยนต์", icon: "directions_car" },
-];
-
-function makeSegment(direction: "outbound" | "return", type: TransportType = "flight"): TransportSegment {
-  return {
-    id: `seg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    type, direction, from: "", fromDetail: "", to: "", toDetail: "",
-    departureDate: "", departureTime: "", arrivalDate: "", arrivalTime: "",
-    airline: "", flightNumber: "", bookingRef: "", baggage: "",
-    operator: "", vehicleInfo: "", meetingPoint: "", note: "",
-  };
-}
-
 const emptyHotel: Accommodation = { name: "", address: "", phone: "", checkIn: "", checkOut: "", nights: 1 };
-
-function TransportSection({ label, icon, segments, onAdd, onRemove, onUpdate }: {
-  label: string; icon: string;
-  segments: TransportSegment[];
-  onAdd: () => void;
-  onRemove: (id: string) => void;
-  onUpdate: (id: string, patch: Partial<TransportSegment>) => void;
-}): React.ReactNode {
-  const isFlight = (t: TransportType): boolean => t === "flight";
-  const fromLabel = (t: TransportType): string =>
-    isFlight(t) ? "สนามบิน" : t === "train" ? "สถานี" : t === "boat" ? "ท่าเรือ" : "จุดขึ้นรถ";
-  const toLabel = (t: TransportType): string =>
-    isFlight(t) ? "สนามบิน" : t === "train" ? "สถานี" : t === "boat" ? "ท่าเรือ" : "จุดลงรถ";
-
-  return (
-    <div className="bg-white p-5 md:p-7 rounded-3xl border border-(--outline-variant)/30 shadow-sm space-y-4">
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-(--primary)">{icon}</span>
-        <h4 className="text-sm font-bold text-(--on-surface)">{label}</h4>
-      </div>
-
-      {segments.map((seg) => (
-        <div key={seg.id} className="space-y-4 py-4 border-t border-(--outline-variant)/20 first:border-0 first:pt-0">
-          {/* Transport type selector + remove */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex gap-1 p-0.5 bg-(--surface-container-low) rounded-xl overflow-x-auto scrollbar-hide">
-              {transportOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => onUpdate(seg.id, { type: opt.value })}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
-                    seg.type === opt.value
-                      ? "bg-white shadow-sm text-(--primary)"
-                      : "text-(--on-surface-variant) hover:text-(--on-surface)"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">{opt.icon}</span>
-                  <span className="hidden sm:inline">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-            {segments.length > 1 && (
-              <IconButton icon="close" variant="danger" size="sm" onClick={() => onRemove(seg.id)} />
-            )}
-          </div>
-
-          {/* Route: FROM → TO */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <FormInput label={`${fromLabel(seg.type)}ต้นทาง`} placeholder={isFlight(seg.type) ? "BKK" : "กรุงเทพ"} value={seg.from} onChange={(e) => onUpdate(seg.id, { from: e.target.value })} />
-              {isFlight(seg.type) && <div className="mt-2"><FormInput placeholder="Terminal (ถ้ามี)" value={seg.fromDetail} onChange={(e) => onUpdate(seg.id, { fromDetail: e.target.value })} /></div>}
-            </div>
-            <div className="pt-6 text-(--outline) shrink-0">
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </div>
-            <div className="flex-1">
-              <FormInput label={`${toLabel(seg.type)}ปลายทาง`} placeholder={isFlight(seg.type) ? "NRT" : "เชียงใหม่"} value={seg.to} onChange={(e) => onUpdate(seg.id, { to: e.target.value })} />
-              {isFlight(seg.type) && <div className="mt-2"><FormInput placeholder="Terminal (ถ้ามี)" value={seg.toDetail} onChange={(e) => onUpdate(seg.id, { toDetail: e.target.value })} /></div>}
-            </div>
-          </div>
-
-          {/* Operator info — different per type */}
-          {isFlight(seg.type) ? (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <FormInput label="สายการบิน" placeholder="Xiamen Air" icon="flight" value={seg.airline} onChange={(e) => onUpdate(seg.id, { airline: e.target.value })} />
-                <FormInput label="เที่ยวบิน" placeholder="MF834" icon="confirmation_number" value={seg.flightNumber} onChange={(e) => onUpdate(seg.id, { flightNumber: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <FormInput label="รหัสจอง (PNR)" placeholder="ABC123" icon="bookmark" value={seg.bookingRef} onChange={(e) => onUpdate(seg.id, { bookingRef: e.target.value })} />
-                <FormInput label="น้ำหนักกระเป๋า" placeholder="โหลด 20kg, ถือ 7kg" icon="luggage" value={seg.baggage} onChange={(e) => onUpdate(seg.id, { baggage: e.target.value })} />
-              </div>
-            </>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <FormInput label={seg.type === "train" ? "ขบวนรถไฟ" : seg.type === "boat" ? "ชื่อเรือ/บริษัท" : "บริษัท/ผู้ให้บริการ"} placeholder={seg.type === "van" ? "เช่น ABC Transport" : seg.type === "train" ? "เช่น ขบวน 9" : ""} icon={transportOptions.find((o) => o.value === seg.type)?.icon ?? "info"} value={seg.operator} onChange={(e) => onUpdate(seg.id, { operator: e.target.value })} />
-              <FormInput label={seg.type === "car" ? "ทะเบียนรถ" : "รหัสจอง/หมายเลข"} placeholder={seg.type === "car" ? "เช่น กก 1234" : "ถ้ามี"} icon="tag" value={seg.vehicleInfo} onChange={(e) => onUpdate(seg.id, { vehicleInfo: e.target.value })} />
-            </div>
-          )}
-
-          {/* Departure datetime */}
-          <div>
-            <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 mb-2">ออกเดินทาง</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <DatePicker placeholder="วันที่" value={seg.departureDate} onChange={(v) => onUpdate(seg.id, { departureDate: v })} />
-              </div>
-              <div className="relative">
-                <TimePicker placeholder="เวลา" value={seg.departureTime} onChange={(v) => onUpdate(seg.id, { departureTime: v })} />
-              </div>
-            </div>
-          </div>
-
-          {/* Arrival datetime */}
-          <div>
-            <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 mb-2">ถึงปลายทาง</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative">
-                <DatePicker placeholder="วันที่" value={seg.arrivalDate} onChange={(v) => onUpdate(seg.id, { arrivalDate: v })} />
-              </div>
-              <div className="relative">
-                <TimePicker placeholder="เวลา" value={seg.arrivalTime} onChange={(v) => onUpdate(seg.id, { arrivalTime: v })} />
-              </div>
-            </div>
-          </div>
-
-          {/* Meeting point + Note */}
-          <FormInput label="จุดนัดพบ" placeholder={isFlight(seg.type) ? "เจอกันที่ประตู 3 เวลา 15:00" : seg.type === "van" ? "เจอกันหน้าบริษัท เวลา 05:00" : "จุดนัดพบ"} icon="groups" value={seg.meetingPoint} onChange={(e) => onUpdate(seg.id, { meetingPoint: e.target.value })} />
-          <FormInput label="หมายเหตุ" placeholder={isFlight(seg.type) ? "เช่น Transit ต้องเอากระเป๋าออก" : "เช่น แวะพักระหว่างทาง"} icon="info" value={seg.note} onChange={(e) => onUpdate(seg.id, { note: e.target.value })} />
-        </div>
-      ))}
-
-      <DashedAddButton onClick={onAdd}>เพิ่มช่วงการเดินทาง</DashedAddButton>
-    </div>
-  );
-}
-
-type TripScopeLocal = "domestic" | "international" | null;
 
 type FieldErrors = Record<string, string>;
 
@@ -227,7 +64,7 @@ export default function NewTripPage(): React.ReactNode {
   // ─── Emergency contacts ───
   // serverId is the DB-assigned id (undefined for unsaved rows); needed
   // by the bulk-diff save endpoint to distinguish UPDATE from INSERT.
-  const [emergencyContacts, setEmergencyContacts] = useState<{ serverId?: string; name: string; phone: string; note: string }[]>([]);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContactRow[]>([]);
 
   // ─── Notes ───
   const [notes, setNotes] = useState("");
@@ -710,66 +547,7 @@ export default function NewTripPage(): React.ReactNode {
         )}
 
         {/* ═══ Step 0: Trip Scope Selector ═══ */}
-        {!tripScope && (
-          <section className="min-h-[70vh] flex flex-col justify-center">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) tracking-tight mb-10 text-center">ทริปนี้เดินทางไปที่ไหน?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-              {/* ── ในประเทศ ── */}
-              <button
-                type="button"
-                onClick={() => selectScope("domestic")}
-                className="group relative overflow-hidden rounded-4xl aspect-4/3 md:aspect-3/4 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
-              >
-                <div className="absolute inset-0 bg-linear-to-br from-emerald-500 via-emerald-700 to-teal-800" />
-                <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 70% 30%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
-                <svg className="absolute inset-0 w-full h-full opacity-15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <defs>
-                    <pattern id="domestic-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-                      <circle cx="2" cy="2" r="1" fill="white" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#domestic-dots)" />
-                </svg>
-                <div className="absolute inset-0 bg-linear-to-t from-emerald-900/70 via-transparent to-transparent" />
-                <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-left">
-                  <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">ในประเทศ</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">ทริปภายในประเทศไทย</p>
-                  <div className="mt-4 w-fit bg-white text-emerald-800 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 group-hover:bg-emerald-50 transition-colors shadow-lg">
-                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                    เลือก
-                  </div>
-                </div>
-              </button>
-
-              {/* ── ต่างประเทศ ── */}
-              <button
-                type="button"
-                onClick={() => selectScope("international")}
-                className="group relative overflow-hidden rounded-4xl aspect-4/3 md:aspect-3/4 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
-              >
-                <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-blue-700 to-indigo-900" />
-                <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
-                <svg className="absolute inset-0 w-full h-full opacity-15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <defs>
-                    <pattern id="intl-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-                      <circle cx="2" cy="2" r="1" fill="white" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#intl-dots)" />
-                </svg>
-                <div className="absolute inset-0 bg-linear-to-t from-blue-900/70 via-transparent to-transparent" />
-                <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-left">
-                  <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">ต่างประเทศ</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">รวมข้อมูลเที่ยวบินและตรวจคนเข้าเมือง</p>
-                  <div className="mt-4 w-fit bg-white text-(--primary) px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 group-hover:bg-(--primary-container)/40 transition-colors shadow-lg">
-                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                    เลือก
-                  </div>
-                </div>
-              </button>
-            </div>
-          </section>
-        )}
+        {!tripScope && <ScopeSelector onSelect={selectScope} />}
 
         {/* ═══ Main Form (shows after scope selected) ═══ */}
         {tripScope && (
@@ -877,52 +655,16 @@ export default function NewTripPage(): React.ReactNode {
               <SectionHeader title="Accommodation" icon="hotel" variant="icon" />
               <div className="space-y-4">
                 {hotels.map((hotel, i) => (
-                  <div key={i} className="bg-white p-5 md:p-7 rounded-3xl border border-(--outline-variant)/30 shadow-sm space-y-5 relative">
-                    {hotels.length > 1 && (
-                      <div className="absolute top-4 right-4">
-                        <IconButton icon="close" variant="danger" size="sm" onClick={() => setHotels(hotels.filter((_, j) => j !== i))} />
-                      </div>
-                    )}
-                    {/* Hotel badge */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-(--on-surface-variant) bg-(--surface-container-low) px-2.5 py-1 rounded-full">ที่พัก {i + 1}</span>
-                    </div>
-                    <FormInput label="ชื่อที่พัก" placeholder="e.g., The QUBE Hotel Chiba" value={hotel.name} onChange={(e) => updateHotel(i, { name: e.target.value })} />
-                    <FormInput label="ที่อยู่" placeholder="1-2-3 Chiba, Japan" icon="location_on" value={hotel.address} onChange={(e) => updateHotel(i, { address: e.target.value })} />
-                    <FormInput label="เบอร์โทร" placeholder="+81-43-XXX-XXXX" type="tel" icon="call" value={hotel.phone} onChange={(e) => updateHotel(i, { phone: e.target.value })} />
-
-                    {/* Check-in: วันที่ + เวลา */}
-                    <div>
-                      <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 mb-2">เช็คอิน</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="relative">
-                          <DatePicker placeholder="วันที่เข้า" min={startDate} max={endDate} value={hotel.checkIn?.split("T")[0] || ""} onChange={(v) => updateHotel(i, { checkIn: v })} />
-                        </div>
-                        <div className="relative">
-                          <TimePicker placeholder="เวลา" value={hotel.checkIn?.includes("T") ? hotel.checkIn.split("T")[1] : ""} onChange={(v) => { const dateVal = hotel.checkIn?.split("T")[0] || ""; updateHotel(i, { checkIn: dateVal ? `${dateVal}T${v}` : v }); }} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Check-out: วันที่ + เวลา */}
-                    <div>
-                      <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 mb-2">เช็คเอาท์</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="relative">
-                          <DatePicker placeholder="วันที่ออก" min={hotel.checkIn?.split("T")[0] || startDate} max={endDate} value={hotel.checkOut?.split("T")[0] || ""} onChange={(v) => updateHotel(i, { checkOut: v })} />
-                        </div>
-                        <div className="relative">
-                          <TimePicker placeholder="เวลา" value={hotel.checkOut?.includes("T") ? hotel.checkOut.split("T")[1] : ""} onChange={(v) => { const dateVal = hotel.checkOut?.split("T")[0] || ""; updateHotel(i, { checkOut: dateVal ? `${dateVal}T${v}` : v }); }} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Auto-calculated nights hint */}
-                    <div className="flex items-center gap-2 px-1 text-xs text-(--on-surface-variant)">
-                      <span className="material-symbols-outlined text-sm">info</span>
-                      <span>จำนวนคืนจะคำนวณอัตโนมัติจากวันเช็คอิน — เช็คเอาท์</span>
-                    </div>
-                  </div>
+                  <HotelCard
+                    key={i}
+                    hotel={hotel}
+                    index={i}
+                    showRemove={hotels.length > 1}
+                    startDate={startDate}
+                    endDate={endDate}
+                    onUpdate={(patch) => updateHotel(i, patch)}
+                    onRemove={() => setHotels(hotels.filter((_, j) => j !== i))}
+                  />
                 ))}
                 <DashedAddButton onClick={() => setHotels([...hotels, { ...emptyHotel }])}>
                   เพิ่มที่พัก
@@ -947,23 +689,13 @@ export default function NewTripPage(): React.ReactNode {
 
             <div className="space-y-3">
               {emergencyContacts.map((contact, i) => (
-                <div key={i} className="bg-white p-4 md:p-5 rounded-2xl border border-(--outline-variant)/30 shadow-sm">
-                  <div className="flex gap-3 items-start">
-                    <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 shrink-0 mt-0.5">
-                      <span className="material-symbols-outlined">emergency</span>
-                    </div>
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormInput label="ชื่อ / หน่วยงาน" placeholder="เช่น สถานทูตไทย โตเกียว" value={contact.name} onChange={(e) => updateContact(i, { name: e.target.value })} />
-                      <FormInput label="เบอร์โทร" placeholder="เช่น +81-3-2207-9100" type="tel" icon="call" value={contact.phone} onChange={(e) => updateContact(i, { phone: e.target.value })} />
-                    </div>
-                    {emergencyContacts.length > 1 && (
-                      <IconButton icon="close" variant="danger" size="sm" onClick={() => setEmergencyContacts(emergencyContacts.filter((_, j) => j !== i))} />
-                    )}
-                  </div>
-                  {contact.note && (
-                    <p className="text-[11px] text-amber-600 mt-2 ml-13 pl-0.5">{contact.note}</p>
-                  )}
-                </div>
+                <EmergencyContactCard
+                  key={i}
+                  contact={contact}
+                  showRemove={emergencyContacts.length > 1}
+                  onUpdate={(patch) => updateContact(i, patch)}
+                  onRemove={() => setEmergencyContacts(emergencyContacts.filter((_, j) => j !== i))}
+                />
               ))}
               <DashedAddButton onClick={() => setEmergencyContacts([...emergencyContacts, { name: "", phone: "", note: "" }])}>
                 เพิ่มเบอร์ฉุกเฉิน

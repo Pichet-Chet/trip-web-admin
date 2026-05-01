@@ -12,7 +12,9 @@ const DevAutoFill = process.env.NODE_ENV === "development"
   ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FormTextarea, IconButton, IconWrapper, StatsSummary, FooterActionBar, EmptyState, Skeleton, ConfirmDialog, ImageUpload, TimePicker, SelectPicker } from "@/components/shared";
+import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog } from "@/components/shared";
+import { ActivityEditorCard } from "./_components/activity-editor-card";
+import { DayContextPanel } from "./_components/day-context-panel";
 import { useToast } from "@/components/shared/toast";
 import type { TripDay, TripActivity } from "@/types";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -67,24 +69,6 @@ interface ActivityDetailApi {
   emoji: string | null;
   sortOrder: number;
 }
-
-/* ─── Activity Types ─── */
-const ACTIVITY_TYPES = [
-  { value: "attraction", label: "สถานที่ท่องเที่ยว", icon: "landscape" },
-  { value: "restaurant", label: "ร้านอาหาร", icon: "restaurant" },
-  { value: "hotel", label: "ที่พัก", icon: "hotel" },
-  { value: "transport", label: "การเดินทาง", icon: "directions_car" },
-  { value: "shopping", label: "ช้อปปิ้ง", icon: "shopping_bag" },
-  { value: "other", label: "อื่นๆ", icon: "category" },
-] as const;
-
-/* ─── Emoji Picker ─── */
-const EMOJI_OPTIONS = [
-  "📍", "✈️", "🏨", "🍜", "🍱", "🍽️", "☕",
-  "⛩️", "🏛️", "🛍️", "🛒", "🌅", "🏖️", "⛰️",
-  "🎡", "🎭", "🚌", "🚢", "🚂", "🏥", "📸",
-  "🎶", "🙏", "🐘", "🌊", "🌴", "🗺️", "🎒",
-];
 
 /* ─── Map API → local state ─── */
 function mapActivity(a: ActivityDetailApi, dayId: string): TripActivity {
@@ -188,9 +172,6 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const [confirmTitle, setConfirmTitle] = useState("");
   const [confirmDesc, setConfirmDesc] = useState("");
   const confirmActionRef = useRef<() => void>(() => {});
-
-  /* ─── Emoji Picker State ─── */
-  const [emojiPickerFor, setEmojiPickerFor] = useState<string | null>(null);
 
   const currentDay = days[activeDay] ?? null;
 
@@ -577,248 +558,38 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                   </div>
                 ) : (
                   currentDay.activities.map((act) => (
-                    <div key={act.id} className="group bg-white rounded-2xl border border-(--outline-variant)/30 hover:border-(--primary)/30 shadow-sm transition-all p-5 md:p-6">
-                      <div className="flex gap-3 items-start">
-                        {/* Emoji Selector */}
-                        <div className="mt-6 relative shrink-0">
-                          <button
-                            onClick={() => setEmojiPickerFor(emojiPickerFor === act.id ? null : act.id)}
-                            className="w-10 h-10 rounded-xl bg-(--surface-variant)/50 hover:bg-(--surface-variant) flex items-center justify-center text-xl transition-all"
-                            title="เลือก Emoji"
-                          >
-                            {act.emoji}
-                          </button>
-                          {emojiPickerFor === act.id && (
-                            <>
-                              <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setEmojiPickerFor(null)} />
-                              <div className="absolute left-0 top-12 z-40 bg-white rounded-xl shadow-xl border border-(--outline-variant)/30 p-3 grid grid-cols-7 gap-1 w-64">
-                                {EMOJI_OPTIONS.map((em) => (
-                                  <button
-                                    key={em}
-                                    onClick={() => {
-                                      updateActivityField(currentDay.id, act.id, "emoji", em);
-                                      setEmojiPickerFor(null);
-                                    }}
-                                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-(--surface-variant) transition-all ${act.emoji === em ? "bg-(--primary-container) ring-2 ring-(--primary)" : ""}`}
-                                  >
-                                    {em}
-                                  </button>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0 space-y-4">
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="col-span-1 relative">
-                              <TimePicker
-                                label="เวลา"
-                                value={act.time ?? ""}
-                                onChange={(v) => {
-                                  setDays((prev) =>
-                                    prev.map((d) =>
-                                      d.id === currentDay.id
-                                        ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, time: v } : a) }
-                                        : d
-                                    )
-                                  );
-                                }}
-                                onBlur={() => updateActivityField(currentDay.id, act.id, "time", act.time ?? "")}
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <FormInput
-                                label="ชื่อกิจกรรม"
-                                value={act.name}
-                                onChange={(e) =>
-                                  setDays((prev) =>
-                                    prev.map((d) =>
-                                      d.id === currentDay.id
-                                        ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, name: e.target.value } : a) }
-                                        : d
-                                    )
-                                  )
-                                }
-                                onBlur={() => updateActivityField(currentDay.id, act.id, "name", act.name)}
-                                placeholder="ชื่อสถานที่ / กิจกรรม"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="col-span-1 relative">
-                              <SelectPicker
-                                label="ประเภท"
-                                value={act.type}
-                                onChange={(v) => updateActivityField(currentDay.id, act.id, "type", v)}
-                                options={ACTIVITY_TYPES.map((t) => ({ value: t.value, label: t.label, icon: t.icon }))}
-                                searchable={false}
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <FormInput
-                                label="สถานที่ / Google Maps"
-                                placeholder="ชื่อสถานที่ หรือ link Google Maps"
-                                value={act.placeName ?? act.mapsLink ?? ""}
-                                onChange={(e) =>
-                                  setDays((prev) =>
-                                    prev.map((d) =>
-                                      d.id === currentDay.id
-                                        ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, placeName: e.target.value } : a) }
-                                        : d
-                                    )
-                                  )
-                                }
-                                onBlur={() => updateActivityField(currentDay.id, act.id, "placeName", act.placeName ?? "")}
-                                icon="location_on"
-                              />
-                            </div>
-                          </div>
-
-                          <FormTextarea
-                            label="หมายเหตุถึงลูกทัวร์"
-                            rows={2}
-                            value={act.description ?? ""}
-                            onChange={(e) =>
-                              setDays((prev) =>
-                                prev.map((d) =>
-                                  d.id === currentDay.id
-                                    ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, description: e.target.value } : a) }
-                                    : d
-                                )
-                              )
-                            }
-                            onBlur={() => updateActivityField(currentDay.id, act.id, "description", act.description ?? "")}
-                            placeholder="เช่น ใส่กางเกงขาสั้น, เตรียมเสื้อกันหนาว..."
-                          />
-                        </div>
-
-                        <div className="mt-6 shrink-0">
-                          <IconButton icon="delete" variant="danger" onClick={() => removeActivity(currentDay.id, act.id)} />
-                        </div>
-                      </div>
-                    </div>
+                    <ActivityEditorCard
+                      key={act.id}
+                      activity={act}
+                      onLocalChange={(patch) =>
+                        setDays((prev) =>
+                          prev.map((d) =>
+                            d.id === currentDay.id
+                              ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, ...patch } : a) }
+                              : d
+                          )
+                        )
+                      }
+                      onCommit={(field, value) => updateActivityField(currentDay.id, act.id, field as string, value)}
+                      onRemove={() => removeActivity(currentDay.id, act.id)}
+                    />
                   ))
                 )}
               </div>
             </div>
 
-            {/* Right: Context Panel */}
-            <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-36">
-              {/* Day Cover Image Upload */}
-              <ImageUpload
-                value={currentDay.coverImageUrl ?? ""}
-                onChange={(url) => handleDayCoverChange(currentDay.id, url)}
-                uploadUrl="/admin/upload"
-                folder="day-covers"
-                label="ภาพปกประจำวัน"
-                hint="แนะนำ 1920x1080 px"
-                aspect="video"
-              />
+            <DayContextPanel
+              coverImageUrl={currentDay.coverImageUrl}
+              tripStartDate={startDate}
+              activeDayIndex={activeDay}
+              accommodations={accommodations}
+              totalTripDays={totalTripDays}
+              daysCount={days.length}
+              totalActivities={days.reduce((s, d) => s + d.activities.length, 0)}
+              travelersCount={travelersCount}
+              onCoverChange={(url) => handleDayCoverChange(currentDay.id, url)}
+            />
 
-              {/* Accommodations Card — show hotels with check-in/check-out context */}
-              {(() => {
-                const dayDate = startDate ? new Date(new Date(startDate).getTime() + activeDay * 86400000) : null;
-                if (!dayDate) return null;
-
-                const dayStr = dayDate.toISOString().split("T")[0];
-
-                // Find check-outs on this day
-                const checkOuts = accommodations.filter((acc) => {
-                  const co = acc.checkOut?.split("T")[0];
-                  return co === dayStr;
-                });
-
-                // Find check-ins on this day
-                const checkIns = accommodations.filter((acc) => {
-                  const ci = acc.checkIn?.split("T")[0];
-                  return ci === dayStr;
-                });
-
-                // Find staying (checked in before, checks out after)
-                const staying = accommodations.filter((acc) => {
-                  const ci = acc.checkIn ? new Date(acc.checkIn.split("T")[0]) : null;
-                  const co = acc.checkOut ? new Date(acc.checkOut.split("T")[0]) : null;
-                  if (!ci) return false;
-                  return dayDate > ci && (!co || dayDate < co);
-                });
-
-                const hasAny = checkOuts.length > 0 || checkIns.length > 0 || staying.length > 0;
-                if (!hasAny) return null;
-
-                const timeStr = (dt: string | null) => {
-                  if (!dt || !dt.includes("T")) return "";
-                  return dt.split("T")[1]?.slice(0, 5) || "";
-                };
-
-                // Merge all into a single list with status
-                type AccomEntry = { acc: AccommodationApi; status: "check-in" | "check-out" | "staying" };
-                const entries: AccomEntry[] = [
-                  ...checkOuts.map((acc) => ({ acc, status: "check-out" as const })),
-                  ...checkIns.map((acc) => ({ acc, status: "check-in" as const })),
-                  ...staying.map((acc) => ({ acc, status: "staying" as const })),
-                ];
-
-                const statusConfig = {
-                  "check-in": { label: "เช็คอิน", icon: "login", timeFn: (a: AccommodationApi) => timeStr(a.checkIn) },
-                  "check-out": { label: "เช็คเอาท์", icon: "logout", timeFn: (a: AccommodationApi) => timeStr(a.checkOut) },
-                  "staying": { label: "พักต่อเนื่อง", icon: "bed", timeFn: () => "" },
-                };
-
-                return (
-                  <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <IconWrapper icon="hotel" size="sm" />
-                      <h4 className="text-sm font-bold text-(--on-surface)">ที่พักวันนี้</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {entries.map(({ acc, status }) => {
-                        const cfg = statusConfig[status];
-                        const time = cfg.timeFn(acc);
-                        return (
-                          <div key={`${status}-${acc.id}`} className="bg-(--surface-container-low) rounded-xl p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm text-(--on-surface) truncate">{acc.name}</p>
-                                {acc.address && <p className="text-xs text-(--on-surface-variant) mt-0.5 truncate">{acc.address}</p>}
-                                {acc.phone && <p className="text-xs text-(--on-surface-variant) truncate">{acc.phone}</p>}
-                              </div>
-                              <span className="material-symbols-outlined text-(--on-surface-variant) text-lg mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>{cfg.icon}</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-(--outline-variant)/20">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                                status === "check-in" ? "bg-(--primary-container) text-(--on-primary-container)"
-                                : status === "check-out" ? "bg-(--surface-variant) text-(--on-surface-variant)"
-                                : "bg-(--surface-variant) text-(--on-surface-variant)"
-                              }`}>
-                                <span className="material-symbols-outlined text-xs">{cfg.icon}</span>
-                                {cfg.label}
-                              </span>
-                              {time && (
-                                <span className="text-xs text-(--on-surface-variant) font-medium">
-                                  {time} น.
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Summary Stats */}
-              <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-(--on-surface-variant) mb-4">สรุปทริป</h4>
-                <StatsSummary stats={[
-                  { value: totalTripDays || days.length, label: "วัน" },
-                  { value: days.reduce((s, d) => s + d.activities.length, 0), label: "กิจกรรม" },
-                  { value: travelersCount, label: "ผู้เดินทาง" },
-                ]} />
-              </div>
-            </div>
           </div>
         )}
       </div>
