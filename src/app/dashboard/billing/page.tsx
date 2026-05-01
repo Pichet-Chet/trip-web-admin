@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { Banner, EmptyState, ErrorState, LoadingState, Modal, Pagination, SectionHeader, useToast } from "@/components/shared";
+import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, Pagination, SectionHeader, SelectPicker, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface PaymentItem {
@@ -543,17 +543,15 @@ function BillingContent(): React.ReactNode {
               </p>
             </Banner>
           )}
-          <div>
-            <label className="text-xs font-semibold text-(--on-surface-variant) block mb-1.5">เหตุผล (ไม่บังคับ)</label>
-            <textarea
-              value={cancelReason}
-              onChange={e => setCancelReason(e.target.value)}
-              maxLength={512}
-              rows={3}
-              placeholder="ช่วยบอกเราว่าทำไมคุณยกเลิก..."
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-slate-50 outline-none focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 focus:bg-white resize-none transition-all"
-            />
-          </div>
+          <FormTextarea
+            label="เหตุผล (ไม่บังคับ)"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            maxLength={512}
+            rows={3}
+            placeholder="ช่วยบอกเราว่าทำไมคุณยกเลิก..."
+            hint="ช่วยให้เราพัฒนาบริการได้ดีขึ้น"
+          />
           {cancelError && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3">
               {cancelError}
@@ -595,39 +593,33 @@ function BillingContent(): React.ReactNode {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-outline-variant p-3 md:p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">สถานะ</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setPage(1); }}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 outline-none"
-            >
-              <option value="default">สำเร็จ + คืนเงินแล้ว</option>
-              <option value="all">ทุกสถานะ</option>
-              <option value="paid">สำเร็จเท่านั้น</option>
-              <option value="refunded">คืนเงินแล้ว</option>
-              <option value="failed">ล้มเหลว</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">ตั้งแต่วันที่</label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">ถึงวันที่</label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => { setToDate(e.target.value); setPage(1); }}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 outline-none"
-            />
-          </div>
+        <div className="bg-white rounded-2xl border border-outline-variant p-4 md:p-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <SelectPicker
+            label="สถานะ"
+            icon="filter_list"
+            searchable={false}
+            value={statusFilter}
+            onChange={(v) => { setStatusFilter(v as typeof statusFilter); setPage(1); }}
+            options={[
+              { value: "default", label: "สำเร็จ + คืนเงินแล้ว" },
+              { value: "all", label: "ทุกสถานะ" },
+              { value: "paid", label: "สำเร็จเท่านั้น" },
+              { value: "refunded", label: "คืนเงินแล้ว" },
+              { value: "failed", label: "ล้มเหลว" },
+            ]}
+          />
+          <DatePicker
+            label="ตั้งแต่วันที่"
+            value={fromDate}
+            onChange={(v) => { setFromDate(v); setPage(1); }}
+            max={toDate || undefined}
+          />
+          <DatePicker
+            label="ถึงวันที่"
+            value={toDate}
+            onChange={(v) => { setToDate(v); setPage(1); }}
+            min={fromDate || undefined}
+          />
         </div>
 
         <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden">
@@ -1070,18 +1062,16 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
 
         {!blocked && (
           <>
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">เหตุผลที่ต้องการเงินคืน <span className="text-red-500">*</span></label>
-              <textarea
-                value={reason}
-                onChange={e => setReason(e.target.value)}
-                maxLength={2048}
-                rows={4}
-                placeholder="เช่น ชำระซ้ำซ้อนโดยไม่ได้ตั้งใจ / สมัครผิดแพคเกจ / ระบบเก็บเงินผิด..."
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 resize-none"
-              />
-              <p className="text-xs text-slate-400 mt-1">{reason.length}/2048</p>
-            </div>
+            <FormTextarea
+              label="เหตุผลที่ต้องการเงินคืน"
+              required
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={2048}
+              rows={4}
+              placeholder="เช่น ชำระซ้ำซ้อนโดยไม่ได้ตั้งใจ / สมัครผิดแพคเกจ / ระบบเก็บเงินผิด..."
+              hint={`${reason.length}/2048`}
+            />
 
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
               <input
