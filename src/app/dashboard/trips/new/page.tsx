@@ -13,6 +13,7 @@ import { EmergencyContactCard, type EmergencyContactRow } from "./_components/em
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
 import { tripBasicsSchema, hotelSchema, emergencyContactSchema } from "@/lib/validation/trip";
+import { lookupEmergencyPrefill } from "@/lib/emergency-contacts";
 import dynamic from "next/dynamic";
 
 // DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
@@ -108,6 +109,37 @@ export default function NewTripPage(): React.ReactNode {
   });
   const isDirty = tripScope !== null && savedSnapshot !== "" && currentSnapshot !== savedSnapshot;
   useUnsavedChanges(isDirty);
+
+  // ─── Emergency contacts: country-aware prefill ───
+  // For international trips, when the destination resolves to a country
+  // we have data for AND the operator hasn't filled any phone yet, auto-
+  // prefill embassy / police / medical numbers. Once any phone is set
+  // we leave them alone — overwriting hand-entered data would be hostile
+  // even if the user edits the destination later.
+  useEffect(() => {
+    if (tripScope !== "international") return;
+    const allPhonesEmpty = emergencyContacts.every((c) => !c.phone.trim());
+    if (!allPhonesEmpty) return;
+    const prefill = lookupEmergencyPrefill(destination);
+    if (!prefill) return;
+
+    setEmergencyContacts((prev) => {
+      // Only replace if at least one entry would actually change — avoids
+      // an infinite render loop when the same data is recomputed on
+      // unrelated state changes.
+      const next = [
+        { name: prefill.embassy.name, phone: prefill.embassy.phone, note: "" },
+        { name: prefill.police.name, phone: prefill.police.phone, note: "" },
+        { name: prefill.medical.name, phone: prefill.medical.phone, note: "" },
+      ];
+      const same = prev.length === next.length
+        && prev.every((p, i) => p.name === next[i].name && p.phone === next[i].phone);
+      return same ? prev : next.map((n, i) => ({ ...n, serverId: prev[i]?.serverId }));
+    });
+    // intentionally not depending on emergencyContacts — that would loop;
+    // the early-return above handles re-evaluation safety.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripScope, destination]);
 
   // ─── Load draft ───
   useEffect(() => {
@@ -730,11 +762,21 @@ export default function NewTripPage(): React.ReactNode {
           <section className="space-y-6">
             <SectionHeader title="เบอร์ฉุกเฉิน" icon="emergency" variant="icon" subtitle="ข้อมูลสำหรับลูกทริปเมื่อเกิดเหตุฉุกเฉิน และใช้ยื่น ตม." />
 
-            {tripScope === "international" && (
-              <Banner variant="warning" icon="tips_and_updates" title="เบอร์ฉุกเฉินจะถูก pre-fill ตามประเทศปลายทาง">
-                กรุณาตรวจสอบและแก้ไขให้ถูกต้องตามจุดหมายจริง
-              </Banner>
-            )}
+            {tripScope === "international" && (() => {
+              const matched = lookupEmergencyPrefill(destination);
+              if (matched) {
+                return (
+                  <Banner variant="success" icon="check_circle" title="เบอร์ฉุกเฉินถูก pre-fill ตามประเทศปลายทางแล้ว">
+                    กรุณาตรวจสอบและแก้ไขให้ตรงกับเมืองและสถานทูตที่ใกล้ที่สุดจริง ๆ
+                  </Banner>
+                );
+              }
+              return (
+                <Banner variant="warning" icon="tips_and_updates" title="พิมพ์ชื่อประเทศในจุดหมายปลายทางเพื่อ pre-fill เบอร์ฉุกเฉิน">
+                  รองรับ Japan, Korea, Singapore, Taiwan, Vietnam, Malaysia, Indonesia, Bali, China, Hong Kong, Australia (รวมชื่อภาษาไทย)
+                </Banner>
+              );
+            })()}
 
             <div className="space-y-3">
               {emergencyContacts.map((contact, i) => (
