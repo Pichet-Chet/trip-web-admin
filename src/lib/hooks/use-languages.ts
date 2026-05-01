@@ -8,6 +8,9 @@ export interface LanguageOption {
   code: string;
   nameEn: string;
   nameNative: string;
+  /** Unicode flag emoji (e.g. "🇹🇭"). May be null if the master row
+      doesn't carry one — picker should treat it as optional. */
+  flag: string | null;
 }
 
 // Module-scope cache. The list rarely changes during a session — fetch
@@ -18,8 +21,8 @@ let cache: LanguageOption[] | null = null;
 let inflight: Promise<LanguageOption[]> | null = null;
 
 const FALLBACK: LanguageOption[] = [
-  { code: "th", nameEn: "Thai", nameNative: "ไทย" },
-  { code: "en", nameEn: "English", nameNative: "English" },
+  { code: "th", nameEn: "Thai", nameNative: "ไทย", flag: "🇹🇭" },
+  { code: "en", nameEn: "English", nameNative: "English", flag: "🇬🇧" },
 ];
 
 /**
@@ -35,7 +38,7 @@ export function useLanguages(): { languages: LanguageOption[]; loading: boolean 
     if (cache) return;
     if (!inflight) {
       inflight = api
-        .get<{ code: string; nameEn: string; nameNative: string }[]>("/admin/languages")
+        .get<{ code: string; nameEn: string; nameNative: string; flag: string | null }[]>("/admin/languages")
         .then((rows) => {
           cache = rows;
           return rows;

@@ -128,10 +128,13 @@ export default function NewTripPage(): React.ReactNode {
   // to th/en silently if /admin/languages fails — language is rarely
   // the blocking field.
   const { languages: availableLanguages } = useLanguages();
-  const languageOptions = availableLanguages.map((l) => ({
-    value: l.code,
-    label: l.nameNative === l.nameEn ? l.nameNative : `${l.nameNative} · ${l.nameEn}`,
-  }));
+  const languageOptions = availableLanguages.map((l) => {
+    const name = l.nameNative === l.nameEn ? l.nameNative : `${l.nameNative} · ${l.nameEn}`;
+    return {
+      value: l.code,
+      label: l.flag ? `${l.flag}  ${name}` : name,
+    };
+  });
 
   // Field-level helper: set a form value AND clear any inline error
   // displayed for that key. Wrapping the pattern keeps the JSX terse.
