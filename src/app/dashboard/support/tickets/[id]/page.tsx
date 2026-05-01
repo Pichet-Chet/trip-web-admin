@@ -700,13 +700,13 @@ export default function AdminTicketDetailPage() {
                 </div>
               )}
 
-              <div className="border border-slate-200 rounded-2xl bg-white shadow-sm focus-within:ring-2 focus-within:ring-(--primary)/20 transition-all">
-                <div className="flex items-end p-2 gap-2">
+              <div className="border border-slate-300 rounded-2xl bg-white shadow-sm focus-within:border-(--primary) focus-within:ring-2 focus-within:ring-(--primary)/20 transition-all">
+                <div className="flex items-end p-1.5 gap-1.5">
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading || attachments.length >= MAX_ATTACHMENTS}
-                    className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-(--primary) hover:bg-(--primary)/5 transition-colors disabled:opacity-40"
+                    className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-(--primary) hover:bg-(--primary)/8 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                     title={attachments.length >= MAX_ATTACHMENTS ? `แนบได้สูงสุด ${MAX_ATTACHMENTS} ไฟล์` : "แนบรูปภาพ"}
                   >
                     {uploading
@@ -725,26 +725,44 @@ export default function AdminTicketDetailPage() {
                   <textarea
                     value={message}
                     onChange={(e) => { setMessage(e.target.value); if (error) { setError(""); setFailedPayload(null); } }}
+                    onInput={(e) => {
+                      // Auto-grow up to ~6 lines (~144px), then scroll.
+                      const el = e.currentTarget;
+                      el.style.height = "auto";
+                      el.style.height = `${Math.min(el.scrollHeight, 144)}px`;
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
                     }}
-                    placeholder="พิมพ์ข้อความถึงทีมงาน... (Enter เพื่อส่ง)"
-                    rows={2}
-                    className="flex-1 resize-none py-2 text-sm outline-none bg-transparent border-none focus:ring-0"
+                    placeholder="พิมพ์ข้อความถึงทีมงาน..."
+                    rows={1}
+                    className="flex-1 resize-none py-2.5 px-1 text-sm leading-relaxed outline-none bg-transparent border-none focus:ring-0 min-h-[40px] max-h-36"
                   />
-                  <button
-                    onClick={handleSend}
-                    disabled={(!message.trim() && attachments.length === 0) || sending || uploading}
-                    className="bg-(--primary) text-white w-10 h-10 rounded-xl flex items-center justify-center hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shrink-0"
-                    aria-label="ส่งข้อความ"
-                  >
-                    <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>send</span>
-                  </button>
+                  {(() => {
+                    const canSend = (message.trim().length > 0 || attachments.length > 0) && !sending && !uploading;
+                    return (
+                      <button
+                        onClick={handleSend}
+                        disabled={!canSend}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 shrink-0 ${
+                          canSend
+                            ? "bg-(--primary) text-white shadow-md shadow-(--primary)/30 hover:brightness-110"
+                            : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                        }`}
+                        aria-label="ส่งข้อความ"
+                      >
+                        <span className="material-symbols-outlined text-lg leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>send</span>
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-1.5">
-                <p className="text-xs text-slate-400">Shift+Enter ขึ้นบรรทัดใหม่</p>
-                <p className={`text-xs tabular-nums ${message.length > 4000 ? "text-red-500" : "text-slate-300"}`}>{message.length}/4096</p>
+              <div className="flex items-center justify-between mt-1.5 px-1">
+                <p className="text-[11px] text-slate-400">
+                  <kbd className="px-1 py-0.5 rounded bg-slate-100 text-slate-500 font-mono text-[10px]">Enter</kbd> ส่ง ·{" "}
+                  <kbd className="px-1 py-0.5 rounded bg-slate-100 text-slate-500 font-mono text-[10px]">Shift+Enter</kbd> ขึ้นบรรทัดใหม่
+                </p>
+                <p className={`text-[11px] tabular-nums ${message.length > 4000 ? "text-red-500 font-semibold" : "text-slate-300"}`}>{message.length}/4096</p>
               </div>
             </>
           ) : (
