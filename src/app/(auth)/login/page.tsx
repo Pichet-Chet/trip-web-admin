@@ -212,6 +212,11 @@ export default function LoginPage(): React.ReactNode {
                   ยกเลิก
                 </button>
               </div>
+              <div className="text-center pt-2 border-t border-slate-100">
+                <Link href="/forgot-2fa" className="text-xs text-slate-500 hover:text-(--primary) hover:underline">
+                  ลืมรหัส 2FA + รหัสสำรอง?
+                </Link>
+              </div>
             </form>
           ) : (
           <form className="space-y-6" onSubmit={handleSubmit} noValidate>
