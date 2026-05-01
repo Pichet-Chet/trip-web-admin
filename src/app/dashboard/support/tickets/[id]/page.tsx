@@ -417,7 +417,7 @@ export default function AdminTicketDetailPage() {
   const shortId = ticket.id.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex flex-col min-h-[calc(100dvh-4rem)] bg-slate-50">
 
       {lightboxIndex !== null && allAttachments.length > 0 && (
         <Lightbox
@@ -444,7 +444,7 @@ export default function AdminTicketDetailPage() {
 
       {/* Poll failure banner */}
       {pollFailCount >= 2 && (
-        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-100 text-xs text-amber-700">
+        <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-100 text-xs text-amber-700">
           <span className="material-symbols-outlined text-sm">wifi_off</span>
           ไม่สามารถอัปเดตอัตโนมัติได้ —{" "}
           <button onClick={() => { setPollFailCount(0); load(true); }} className="underline font-semibold">
@@ -453,8 +453,8 @@ export default function AdminTicketDetailPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="shrink-0 bg-white border-b border-slate-200 px-4 md:px-6 py-4">
+      {/* Header — sticky below the dashboard's 4rem header */}
+      <div className="sticky top-16 z-20 bg-white border-b border-slate-200 px-4 md:px-6 py-4">
         <div className="flex items-start justify-between gap-4 max-w-2xl mx-auto">
           <div className="flex items-start gap-3 min-w-0">
             <button
@@ -542,8 +542,9 @@ export default function AdminTicketDetailPage() {
         </div>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 bg-slate-50">
+      {/* Chat area — flows naturally; window scroll handles overflow so we
+          don't get a nested scrollbar on top of the page scroll. */}
+      <div className="flex-1 px-4 py-5">
         <div className="max-w-2xl mx-auto space-y-4">
 
           <div className="flex items-center gap-3">
@@ -654,12 +655,15 @@ export default function AdminTicketDetailPage() {
             </div>
           )}
 
-          <div ref={chatEndRef} />
+          {/* scroll-mb leaves headroom above the sticky composer so
+              auto-scroll-to-latest doesn't land hidden behind it. */}
+          <div ref={chatEndRef} className="scroll-mb-40 h-px" />
         </div>
       </div>
 
-      {/* Reply box or closed notice */}
-      <div className="shrink-0 bg-white border-t border-slate-200 px-4 py-3">
+      {/* Reply box or closed notice — sticks to viewport bottom so the
+          composer is always reachable while the user scrolls history. */}
+      <div className="sticky bottom-0 z-20 bg-white border-t border-slate-200 px-4 py-3">
         <div className="max-w-2xl mx-auto">
           {canReply ? (
             <>
