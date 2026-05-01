@@ -18,10 +18,11 @@ const FALLBACK_TITLE: Record<string, string> = {
   privacy: "นโยบายความเป็นส่วนตัว",
   terms: "เงื่อนไขการใช้งาน",
   refund_policy: "นโยบายการคืนเงิน",
+  cookie_policy: "นโยบายคุกกี้",
 };
 
 interface Props {
-  slug: "privacy" | "terms" | "refund_policy";
+  slug: "privacy" | "terms" | "refund_policy" | "cookie_policy";
 }
 
 export function LegalDocPage({ slug }: Props): React.ReactNode {

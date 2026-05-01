@@ -9,8 +9,7 @@ import { useToast } from "@/components/shared/toast";
 import { AgreementModal } from "@/components/shared/agreement-modal";
 import { register } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
-import { TermsContent } from "@/components/shared/terms-content";
-import { PrivacyContent } from "@/components/shared/privacy-content";
+import { RemoteLegalContent } from "@/components/shared/remote-legal-content";
 
 type Errors = Record<string, string>;
 
@@ -337,7 +336,7 @@ export default function RegisterPage(): React.ReactNode {
       }}
       title="เงื่อนไขการใช้งาน"
     >
-      <TermsContent />
+      <RemoteLegalContent slug="terms" />
     </AgreementModal>
 
     <AgreementModal
@@ -352,7 +351,7 @@ export default function RegisterPage(): React.ReactNode {
       }}
       title="นโยบายความเป็นส่วนตัว"
     >
-      <PrivacyContent />
+      <RemoteLegalContent slug="privacy" />
     </AgreementModal>
     </>
   );

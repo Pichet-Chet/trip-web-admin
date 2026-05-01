@@ -5,6 +5,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/shared";
 import { ConfirmProvider } from "@/lib/hooks/use-confirm";
 import { AuthGuard } from "@/components/shared/auth-guard";
+import { LegalReacceptGuard } from "@/components/legal-reaccept-guard";
+import { CookieBanner } from "@/components/cookie-banner";
 import { getUser, logout, switchCompany, getCompanies, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared/toast";
 
@@ -43,6 +45,8 @@ export default function DashboardLayout({
       <ToastProvider>
       <ConfirmProvider>
       <AuthGuard>
+      <LegalReacceptGuard />
+      <CookieBanner />
       <ImpersonationBanner />
       <div className="min-h-screen bg-(--surface) text-(--on-surface)">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />

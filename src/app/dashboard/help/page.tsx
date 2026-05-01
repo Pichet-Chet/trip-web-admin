@@ -118,18 +118,28 @@ export default function HelpPage(): React.ReactNode {
         </div>
       </a>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <a href="/dashboard/terms" className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between hover:border-slate-300 transition-colors group">
           <div>
             <h3 className="font-bold text-slate-900 text-sm">เงื่อนไขการใช้งาน</h3>
-            <p className="text-xs text-slate-400 mt-0.5">ข้อตกลงและเงื่อนไขในการใช้ระบบ</p>
           </div>
           <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all">arrow_forward</span>
         </a>
         <a href="/dashboard/privacy" className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between hover:border-slate-300 transition-colors group">
           <div>
             <h3 className="font-bold text-slate-900 text-sm">นโยบายความเป็นส่วนตัว</h3>
-            <p className="text-xs text-slate-400 mt-0.5">ข้อมูลที่เราเก็บและวิธีการใช้งาน</p>
+          </div>
+          <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all">arrow_forward</span>
+        </a>
+        <a href="/dashboard/refund-policy" className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between hover:border-slate-300 transition-colors group">
+          <div>
+            <h3 className="font-bold text-slate-900 text-sm">นโยบายการคืนเงิน</h3>
+          </div>
+          <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all">arrow_forward</span>
+        </a>
+        <a href="/dashboard/cookie-policy" className="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between hover:border-slate-300 transition-colors group">
+          <div>
+            <h3 className="font-bold text-slate-900 text-sm">นโยบายคุกกี้</h3>
           </div>
           <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all">arrow_forward</span>
         </a>
