@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, ConfirmDialog } from "@/components/shared";
+import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, SelectPicker, ConfirmDialog } from "@/components/shared";
+import { useLanguages } from "@/lib/hooks/use-languages";
 import { TransportSection, type TransportSegment, type TransportType, makeSegment } from "./_components/transport-section";
 import { type TripScopeLocal } from "./_components/scope-selector";
 import { HotelCard } from "./_components/hotel-card";
@@ -122,6 +123,15 @@ export default function NewTripPage(): React.ReactNode {
 
   // Pending scope swap — confirm before resetting segments/contacts.
   const [pendingScope, setPendingScope] = useState<"domestic" | "international" | null>(null);
+
+  // Master languages list for the primary-language picker. Falls back
+  // to th/en silently if /admin/languages fails — language is rarely
+  // the blocking field.
+  const { languages: availableLanguages } = useLanguages();
+  const languageOptions = availableLanguages.map((l) => ({
+    value: l.code,
+    label: l.nameNative === l.nameEn ? l.nameNative : `${l.nameNative} · ${l.nameEn}`,
+  }));
 
   // Field-level helper: set a form value AND clear any inline error
   // displayed for that key. Wrapping the pattern keeps the JSX terse.
@@ -686,14 +696,12 @@ export default function NewTripPage(): React.ReactNode {
                 <FormInput label="ชื่อทริป" placeholder="เช่น ทริปเชียงใหม่ 3 วัน 2 คืน" required value={title} onChange={(e) => updateField("title", e.target.value)} error={fieldErrors.title} />
               </div>
               <div className="md:col-span-1 lg:col-span-4">
-                <SegmentedControl
+                <SelectPicker
                   label="ภาษาหลัก"
                   value={language}
                   onChange={(v) => updateField("language", v)}
-                  options={[
-                    { value: "th", label: "ไทย" },
-                    { value: "en", label: "English" },
-                  ]}
+                  options={languageOptions}
+                  searchable={languageOptions.length > 6}
                 />
               </div>
               <div className="md:col-span-1 lg:col-span-6">
