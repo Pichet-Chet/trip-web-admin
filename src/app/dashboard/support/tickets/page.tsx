@@ -348,7 +348,7 @@ export default function SupportTicketsPage() {
                     t.hasUnread ? "bg-(--primary-container)/25 hover:bg-(--primary-container)/40" : "hover:bg-slate-50"
                   }`}
                 >
-                  {/* Top row: status dot · subject (large bold) · date */}
+                  {/* Top row: status dot · subject (large bold) · replies + date (right cluster) */}
                   <div className="flex items-baseline gap-3">
                     <span
                       className={`w-2.5 h-2.5 rounded-full shrink-0 self-center ${statusDot}`}
@@ -358,12 +358,21 @@ export default function SupportTicketsPage() {
                     <p className={`flex-1 truncate text-base leading-snug ${t.hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
                       {t.subject}
                     </p>
-                    <span className="text-xs text-slate-400 font-medium shrink-0 tabular-nums">
-                      {formatRelativeDate(t.updatedAt)}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400 font-medium">
+                      {t.replyCount > 0 && (
+                        <>
+                          <span className="inline-flex items-center gap-1" title={`${t.replyCount} ตอบกลับ`}>
+                            <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
+                            <span className="tabular-nums">{t.replyCount}</span>
+                          </span>
+                          <span className="text-slate-300">·</span>
+                        </>
+                      )}
+                      <span className="tabular-nums">{formatRelativeDate(t.updatedAt)}</span>
+                    </div>
                   </div>
 
-                  {/* Meta row: aligned to subject (pl from the dot column) */}
+                  {/* Meta row: type label (with icon) · priority flag (only High) */}
                   <div className="mt-1 ml-[22px] flex items-center gap-x-3 gap-y-1 text-xs flex-wrap">
                     <span className="inline-flex items-center gap-1 text-slate-500">
                       <span className={`material-symbols-outlined text-sm leading-none ${typeMeta.tone.split(" ").find((c) => c.startsWith("text-"))}`} style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -371,8 +380,6 @@ export default function SupportTicketsPage() {
                       </span>
                       {TYPE_LABEL[t.type] ?? t.type}
                     </span>
-                    <span className="text-slate-300">·</span>
-                    <span className="text-slate-500">{statusLabel}</span>
                     {t.priority === "High" && (
                       <>
                         <span className="text-slate-300">·</span>
@@ -382,15 +389,7 @@ export default function SupportTicketsPage() {
                         </span>
                       </>
                     )}
-                    {t.replyCount > 0 && (
-                      <>
-                        <span className="text-slate-300">·</span>
-                        <span className="inline-flex items-center gap-1 text-slate-500">
-                          <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
-                          <span className="tabular-nums">{t.replyCount} ตอบกลับ</span>
-                        </span>
-                      </>
-                    )}
+                    <span className="sr-only">สถานะ: {statusLabel}</span>
                   </div>
                 </button>
               </li>
