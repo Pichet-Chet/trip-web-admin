@@ -60,18 +60,39 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   Closed:   { label: "ปิดแล้ว",     tone: "slate",    cls: "bg-slate-100 text-slate-500" },
 };
 
-const PRIORITY_CONFIG: Record<string, StatusConfig> = {
-  High:   { label: "เร่งด่วน",    tone: "rose",  cls: "bg-rose-50 text-rose-700" },
-  Medium: { label: "ปานกลาง",     tone: "amber", cls: "bg-amber-50 text-amber-700" },
-  Low:    { label: "ไม่เร่งด่วน", tone: "slate", cls: "bg-slate-100 text-slate-600" },
-};
-
 const TYPE_LABEL: Record<string, string> = {
   Bug: "แจ้งปัญหา",
   FeatureRequest: "เสนอฟีเจอร์",
   Question: "คำถาม",
   Other: "อื่นๆ",
 };
+
+const TYPE_ICON: Record<string, { icon: string; tone: string }> = {
+  Bug:            { icon: "bug_report",  tone: "text-rose-600    bg-rose-50" },
+  FeatureRequest: { icon: "lightbulb",   tone: "text-amber-600   bg-amber-50" },
+  Question:       { icon: "help",        tone: "text-blue-600    bg-blue-50" },
+  Other:          { icon: "label",       tone: "text-slate-500   bg-slate-100" },
+};
+
+/** Compact relative date for ticket rows. < 24h shows "X ชม.", < 7d shows "Y วัน",
+ *  < this year shows "1 พ.ค.", older shows "1 พ.ค. 67". */
+function formatRelativeDate(iso: string): string {
+  const now = new Date();
+  const then = new Date(iso);
+  const diffMs = now.getTime() - then.getTime();
+  const min = Math.floor(diffMs / 60_000);
+  if (min < 1) return "เมื่อสักครู่";
+  if (min < 60) return `${min} นาที`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} ชม.`;
+  const day = Math.floor(hr / 24);
+  if (day === 1) return "เมื่อวาน";
+  if (day < 7) return `${day} วัน`;
+  if (then.getFullYear() === now.getFullYear()) {
+    return then.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+  }
+  return then.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" });
+}
 
 const TYPE_OPTIONS = [
   { value: "", label: "ทุกประเภท" },
@@ -302,45 +323,57 @@ export default function SupportTicketsPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <ul className="divide-y divide-slate-100">
-            {data.items.map((t) => (
-              <li key={t.id}>
+            {data.items.map((t) => {
+              const typeMeta = TYPE_ICON[t.type] ?? TYPE_ICON.Other;
+              return (
+              <li key={t.id} className="relative">
+                {/* Left accent bar — drawn outside the button so it can hug the
+                    very edge of the card without messing up button padding. */}
+                {t.hasUnread && (
+                  <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-(--primary) rounded-r" />
+                )}
                 <button
                   onClick={() => router.push(`/dashboard/support/tickets/${t.id}`)}
-                  className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50/60 transition-colors text-left ${
-                    t.hasUnread ? "bg-(--primary-container)/15" : ""
+                  title={t.subject}
+                  className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left ${
+                    t.hasUnread ? "bg-(--primary-container)/30" : ""
                   }`}
                 >
-                  <div className="relative w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-slate-400 text-xl">confirmation_number</span>
-                    {t.hasUnread && (
-                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-(--primary) rounded-full border-2 border-white" aria-label="ยังไม่อ่าน" />
-                    )}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${typeMeta.tone}`}>
+                    <span className="material-symbols-outlined text-xl leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>{typeMeta.icon}</span>
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    {/* Top row: subject + status pill (left) ↔ relative date (right) */}
+                    <div className="flex items-center gap-2">
                       <p className={`text-sm truncate ${t.hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>{t.subject}</p>
                       <StatusBadge status={t.status} config={STATUS_CONFIG} variant="pill" />
-                    </div>
-                    <div className="flex items-center gap-x-3 gap-y-1 mt-1.5 flex-wrap text-xs">
-                      <span className="text-slate-500">{TYPE_LABEL[t.type] ?? t.type}</span>
-                      <StatusBadge status={t.priority} config={PRIORITY_CONFIG} variant="pill" />
-                      {t.replyCount > 0 && (
-                        <span className="inline-flex items-center gap-1 text-slate-400">
-                          <span className="material-symbols-outlined text-sm leading-none">chat_bubble</span>
-                          {t.replyCount}
-                        </span>
-                      )}
-                      <span className="text-slate-400 ml-auto">
-                        {new Date(t.updatedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
+                      <span className="ml-auto text-xs text-slate-400 font-medium shrink-0 tabular-nums">
+                        {formatRelativeDate(t.updatedAt)}
                       </span>
                     </div>
-                  </div>
 
-                  <span className="material-symbols-outlined text-slate-300 shrink-0">chevron_right</span>
+                    {/* Bottom row: type · replies · (only High priority gets a flag) */}
+                    <div className="flex items-center gap-x-3 mt-1 text-xs">
+                      <span className="text-slate-500">{TYPE_LABEL[t.type] ?? t.type}</span>
+                      {t.priority === "High" && (
+                        <span className="inline-flex items-center gap-1 text-rose-600 font-semibold" title="สำคัญสูง">
+                          <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
+                          เร่งด่วน
+                        </span>
+                      )}
+                      {t.replyCount > 0 && (
+                        <span className="inline-flex items-center gap-1 text-slate-500">
+                          <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
+                          <span className="tabular-nums">{t.replyCount}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </button>
               </li>
-            ))}
+              );
+            })}
           </ul>
 
           {totalPages > 1 && data && (
