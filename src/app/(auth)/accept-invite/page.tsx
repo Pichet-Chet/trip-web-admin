@@ -6,8 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 function AcceptInviteContent(): React.ReactNode {
+  usePageTitle("ยอมรับคำเชิญเข้าทีม");
   const params = useSearchParams();
   const token = params.get("token");
   const [form, setForm] = useState({ firstName: "", lastName: "", password: "", confirmPassword: "" });

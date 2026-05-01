@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FormInput, FormTextarea } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
 const MAX_ATTACHMENTS = 5;
@@ -40,7 +41,7 @@ export default function FeedbackPage(): React.ReactNode {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { document.title = "เปิด Ticket ใหม่ | ระบบจัดการ"; }, []);
+  usePageTitle("เปิด Ticket ใหม่");
 
   const [type, setType]         = useState<FeedbackType | null>(null);
   const [priority, setPriority] = useState("Medium");

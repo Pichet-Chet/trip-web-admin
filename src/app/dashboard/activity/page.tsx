@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState, FilterTabs, Pagination } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface ActivityItem {
   id: string;
@@ -50,7 +51,7 @@ export default function ActivityPage(): React.ReactNode {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  useEffect(() => { document.title = "ประวัติการใช้งาน | Trip Admin"; }, []);
+  usePageTitle("ประวัติการใช้งาน");
 
   const buildParams = useCallback((includePagination: boolean) => {
     const params = new URLSearchParams();

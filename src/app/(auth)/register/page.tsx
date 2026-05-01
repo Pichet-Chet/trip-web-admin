@@ -8,6 +8,7 @@ import { FormInput, AuthHero } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 import { AgreementModal } from "@/components/shared/agreement-modal";
 import { register } from "@/lib/auth";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { ApiError } from "@/lib/api";
 import { RemoteLegalContent } from "@/components/shared/remote-legal-content";
 
@@ -48,6 +49,7 @@ function validate(form: {
 }
 
 export default function RegisterPage(): React.ReactNode {
+  usePageTitle("สมัครสมาชิก");
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);

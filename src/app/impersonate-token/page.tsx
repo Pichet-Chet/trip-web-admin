@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setAccessToken } from "@/lib/auth";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 /**
  * Phase N2.1 — token receiver for staff-issued impersonation tokens.
@@ -12,6 +13,7 @@ import { setAccessToken } from "@/lib/auth";
  * redirects to the dashboard.
  */
 export default function ImpersonateTokenPage(): React.ReactNode {
+  usePageTitle("Staff Impersonation");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 

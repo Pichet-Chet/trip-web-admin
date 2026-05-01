@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 function SuspendedContent(): React.ReactNode {
+  usePageTitle("บัญชีถูกระงับ");
   const params = useSearchParams();
   const reason = params.get("reason");
 

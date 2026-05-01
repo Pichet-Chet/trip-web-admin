@@ -8,10 +8,12 @@ import { FormInput, AuthHero } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 import { login, verifyTwoFactor } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type Errors = Record<string, string>;
 
 export default function LoginPage(): React.ReactNode {
+  usePageTitle("เข้าสู่ระบบ");
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);

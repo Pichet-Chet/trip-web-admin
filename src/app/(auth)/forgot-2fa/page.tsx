@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { FormInput } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 export default function Forgot2FaPage(): React.ReactNode {
+  usePageTitle("กู้คืน 2FA");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);

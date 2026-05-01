@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/shared/toast";
 import { Skeleton, ConfirmDialog, EmptyState, Pagination } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 /* ─── Types ─── */
 interface MediaItem {
@@ -39,6 +40,7 @@ function formatDate(dateStr: string): string {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
 
 export default function MediaPage(): React.ReactNode {
+  usePageTitle("คลังภาพ");
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 

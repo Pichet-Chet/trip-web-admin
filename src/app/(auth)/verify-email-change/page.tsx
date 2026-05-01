@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface VerifyResponse {
   oldEmail: string;
@@ -12,6 +13,7 @@ interface VerifyResponse {
 }
 
 function VerifyContent(): React.ReactNode {
+  usePageTitle("ยืนยันอีเมลใหม่");
   const params = useSearchParams();
   const token = params.get("token");
 

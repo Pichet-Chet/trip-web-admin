@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { FormInput, FormTextarea, LoadingState, SectionHeader, ImageUpload, ToggleSwitch, useToast } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type AccountType = "company" | "freelance" | "personal";
 
@@ -32,6 +33,7 @@ const accountTypes: { value: AccountType; label: string; desc: string }[] = [
 ];
 
 export default function ProfilePage(): React.ReactNode {
+  usePageTitle("ข้อมูลบริษัท");
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

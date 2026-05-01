@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { Modal } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
 const POLL_INTERVAL = 15_000;
@@ -169,10 +170,7 @@ export default function AdminTicketDetailPage() {
     };
   }, [load]);
 
-  useEffect(() => {
-    document.title = ticket ? `${ticket.subject} | ตั๋วสนับสนุน` : "ตั๋วสนับสนุน";
-  }, [ticket?.subject]);
-  useEffect(() => () => { document.title = "ตั๋วสนับสนุน"; }, []);
+  usePageTitle(ticket ? `${ticket.subject} · Support Ticket` : "Support Ticket");
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -13,6 +13,7 @@ import {
   useToast,
 } from "@/components/shared";
 import { ROUTES } from "@/constants/routes";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 import type { FollowChannel } from "@/types";
 
 const toFollowChannel = (raw: string): FollowChannel =>
@@ -82,6 +83,7 @@ const formatThaiDate = (iso: string) =>
 
 export default function ManagePage({ params }: { params: Promise<{ id: string }> }): React.ReactNode {
   const { id: tripId } = use(params);
+  usePageTitle("จัดการทริป");
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);

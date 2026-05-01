@@ -7,6 +7,7 @@ import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ConfirmDialog, useToast, EmptyState } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type FilterTab = "all" | "draft" | "pending_review" | "published" | "unpublished" | "archived";
 
@@ -43,6 +44,7 @@ function formatDateRange(start: string | null, end: string | null): string {
 }
 
 export default function MyTripsPage(): React.ReactNode {
+  usePageTitle("ทริปของฉัน");
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>("all");

@@ -15,8 +15,8 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata = {
   title: {
-    default: "Admin Dashboard",
-    template: "%s | Admin Dashboard",
+    default: "Trip Admin",
+    template: "%s | Trip Admin",
   },
   description: "Trip Communication Platform — Admin Dashboard",
 } satisfies Metadata;

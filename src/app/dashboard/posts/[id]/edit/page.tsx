@@ -12,6 +12,7 @@ import {
   useToast,
 } from "@/components/shared";
 import type { PostStatus } from "@/types";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface PostResponse {
   id: string;
@@ -38,6 +39,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<PostResponse | null>(null);
   const [saving, setSaving] = useState(false);
+  usePageTitle(post ? `แก้ไข: ${post.title}` : "แก้ไขโพสต์");
   const [error, setError] = useState("");
 
   const [coverUrl, setCoverUrl] = useState<string | null>(null);

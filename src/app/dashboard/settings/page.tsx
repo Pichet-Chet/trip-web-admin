@@ -9,8 +9,10 @@ import { TwoFactorSection } from "@/components/two-factor-section";
 import { EmailChangeSection } from "@/components/email-change-section";
 import { api, ApiError } from "@/lib/api";
 import { getUser, logout, type UserInfo } from "@/lib/auth";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 export default function SettingsPage(): React.ReactNode {
+  usePageTitle("ตั้งค่าบัญชี");
   const router = useRouter();
   const { toast } = useToast();
 

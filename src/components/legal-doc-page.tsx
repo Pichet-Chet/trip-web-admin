@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface LegalDocResponse {
   id: string;
@@ -30,6 +31,8 @@ export function LegalDocPage({ slug }: Props): React.ReactNode {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  usePageTitle(doc?.title ?? FALLBACK_TITLE[slug]);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -38,7 +41,6 @@ export function LegalDocPage({ slug }: Props): React.ReactNode {
         const res = await api.get<LegalDocResponse>(`/legal/${slug}/current`);
         if (!mounted) return;
         setDoc(res);
-        document.title = `${res.title} | Trip Admin`;
       } catch (err) {
         if (!mounted) return;
         setError(err instanceof ApiError ? err.message : "โหลดเอกสารไม่สำเร็จ");

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { Banner, EmptyState, ErrorState, LoadingState, Modal, Pagination, SectionHeader, useToast } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface PaymentItem {
   id: string;
@@ -110,6 +111,7 @@ interface PaymentHistoryPage {
 }
 
 function BillingContent(): React.ReactNode {
+  usePageTitle("การเรียกเก็บเงิน");
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [paymentPage, setPaymentPage] = useState<PaymentHistoryPage | null>(null);

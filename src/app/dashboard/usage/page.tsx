@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState, SectionHeader } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface UsageData {
   tier: string;
@@ -59,6 +60,7 @@ function priceFor(catalog: PlanCatalogItem[] | null, code: string): number {
 }
 
 export default function UsagePage(): React.ReactNode {
+  usePageTitle("การใช้งาน");
   const [data, setData] = useState<UsageData | null>(null);
   const [catalog, setCatalog] = useState<PlanCatalogItem[] | null>(null);
   const [loading, setLoading] = useState(true);

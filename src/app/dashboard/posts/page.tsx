@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { FilterTabs, EmptyState, ConfirmDialog, PageSkeleton, useToast } from "@/components/shared";
 import type { PostStatus } from "@/types";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type FilterTab = "all" | PostStatus;
 
@@ -38,6 +39,7 @@ function formatPrice(n: number): string {
 }
 
 export default function PostsPage(): React.ReactNode {
+  usePageTitle("Marketplace");
   const { toast } = useToast();
   const [posts, setPosts] = useState<PostResponse[]>([]);
   const [loading, setLoading] = useState(true);

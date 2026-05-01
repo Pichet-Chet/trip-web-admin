@@ -5,8 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { FormInput } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 function RecoverContent(): React.ReactNode {
+  usePageTitle("กู้คืน 2FA");
   const params = useSearchParams();
   const token = params.get("token");
   const [password, setPassword] = useState("");

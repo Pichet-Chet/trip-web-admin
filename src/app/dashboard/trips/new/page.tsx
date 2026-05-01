@@ -6,6 +6,7 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, SectionHeader, DashedAddButton, FooterActionBar, IconButton, ImageUpload, DatePicker, TimePicker } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 import dynamic from "next/dynamic";
 
 // DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
@@ -186,6 +187,7 @@ type TripScopeLocal = "domestic" | "international" | null;
 type FieldErrors = Record<string, string>;
 
 export default function NewTripPage(): React.ReactNode {
+  usePageTitle("สร้างทริปใหม่");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();

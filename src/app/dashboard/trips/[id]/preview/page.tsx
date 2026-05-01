@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 
@@ -135,6 +136,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const { toast } = useToast();
 
   const [trip, setTrip] = useState<TripDetail | null>(null);
+  usePageTitle(trip ? `ดูตัวอย่าง: ${trip.title}` : "ดูตัวอย่างทริป");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);

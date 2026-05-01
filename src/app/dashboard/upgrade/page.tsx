@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type PlanCode = "per_trip" | "pack_5" | "subscription";
 
@@ -81,6 +82,7 @@ interface CheckoutResponse {
 }
 
 function UpgradeContent(): React.ReactNode {
+  usePageTitle("อัปเกรดแพ็กเกจ");
   const searchParams = useSearchParams();
   const raw = searchParams.get("plan");
   const validCodes: PlanCode[] = ["per_trip", "pack_5", "subscription"];

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState, Pagination, useToast } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface NotificationItem {
   id: string;
@@ -52,7 +53,7 @@ export default function NotificationsPage(): React.ReactNode {
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
 
-  useEffect(() => { document.title = "การแจ้งเตือน | Trip Admin"; }, []);
+  usePageTitle("การแจ้งเตือน");
 
   const load = useCallback(async () => {
     setLoading(true);

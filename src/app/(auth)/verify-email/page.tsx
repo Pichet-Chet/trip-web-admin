@@ -7,8 +7,10 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/shared/toast";
 import { AuthHero } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 function VerifyEmailContent(): React.ReactNode {
+  usePageTitle("ยืนยันอีเมล");
   const params = useSearchParams();
   const { toast } = useToast();
   const token = params.get("token");

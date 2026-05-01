@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState, useToast } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface ExportPayload {
   generatedAt: string;
@@ -52,7 +53,7 @@ export default function MyDataPage(): React.ReactNode {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { document.title = "ข้อมูลของฉัน | Trip Admin"; }, []);
+  usePageTitle("ข้อมูลของฉัน");
 
   const load = useCallback(async () => {
     setLoading(true);

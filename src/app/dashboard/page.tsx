@@ -6,6 +6,7 @@ import { ROUTES } from "@/constants/routes";
 import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog } from "@/components/shared";
 import { api } from "@/lib/api";
 import { getUser, type UserInfo } from "@/lib/auth";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type FilterTab = "all" | "draft" | "published" | "active";
 
@@ -38,6 +39,7 @@ interface Usage {
 }
 
 export default function DashboardPage(): React.ReactNode {
+  usePageTitle("Dashboard");
   const [user, setUser] = useState<UserInfo | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);

@@ -5,8 +5,10 @@ import { useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 export default function ForgotPasswordPage(): React.ReactNode {
+  usePageTitle("ลืมรหัสผ่าน");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

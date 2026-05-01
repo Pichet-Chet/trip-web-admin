@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FilterTabs, EmptyState } from "@/components/shared";
 import { api } from "@/lib/api";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface TicketItem {
   id: string;
@@ -75,13 +76,8 @@ export default function SupportTicketsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  useEffect(() => {
-    const count = summary?.unread ?? 0;
-    document.title = count > 0 ? `(${count}) ตั๋วสนับสนุน | Admin Portal` : "ตั๋วสนับสนุน | Admin Portal";
-  }, [summary?.unread]);
-
-  // Reset title only on unmount
-  useEffect(() => () => { document.title = "Admin Portal"; }, []);
+  const unreadCount = summary?.unread ?? 0;
+  usePageTitle(unreadCount > 0 ? `(${unreadCount}) Support Tickets` : "Support Tickets");
 
   const load = useCallback(async (silent = false) => {
     if (!silent) { setLoading(true); setLoadError(false); }

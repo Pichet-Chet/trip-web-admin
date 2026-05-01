@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { FormInput, FormTextarea, LoadingState, ToggleSwitch, useToast } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface BillingProfile {
   legalName: string;
@@ -15,6 +16,7 @@ interface BillingProfile {
 }
 
 export default function BillingProfilePage(): React.ReactNode {
+  usePageTitle("ข้อมูลผู้เสียภาษี");
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

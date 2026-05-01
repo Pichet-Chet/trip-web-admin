@@ -15,6 +15,7 @@ import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, FormTextarea, IconButton, IconWrapper, StatsSummary, FooterActionBar, EmptyState, Skeleton, ConfirmDialog, ImageUpload, TimePicker, SelectPicker } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 import type { TripDay, TripActivity } from "@/types";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 /* ─── API response types ─── */
 interface TripDetailApi {
@@ -157,8 +158,10 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
   /* ─── State ─── */
   const [loading, setLoading] = useState(true);
+  // Title hook moved to bottom of state declarations — uses tripTitle.
   const [saving, setSaving] = useState(false);
   const [tripTitle, setTripTitle] = useState("");
+  usePageTitle(tripTitle ? `แก้ไข: ${tripTitle}` : "แก้ไขทริป");
   const [tripStatus, setTripStatus] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");

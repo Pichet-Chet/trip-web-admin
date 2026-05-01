@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { FormInput, FormTextarea, ImageUpload, useToast } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface CreatePostRequest {
   title: string;
@@ -19,6 +20,7 @@ interface CreatePostRequest {
 }
 
 export default function NewPostPage(): React.ReactNode {
+  usePageTitle("โพสต์ใหม่");
   const router = useRouter();
   const { toast } = useToast();
 

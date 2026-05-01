@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState } from "@/components/shared";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface FaqGroup {
   code: string;
@@ -18,6 +19,7 @@ const contacts = [
 ];
 
 export default function HelpPage(): React.ReactNode {
+  usePageTitle("ศูนย์ช่วยเหลือ");
   const [groups, setGroups] = useState<FaqGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
