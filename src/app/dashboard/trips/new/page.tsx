@@ -64,15 +64,19 @@ const FORM_DEFAULTS: TripFormValues = {
   language: "th",
   coverUrl: null,
   notes: "",
-  // Domestic defaults: 2 van segments + 2 universal Thai emergency
-  // numbers. Same data the old selectScope("domestic") populated.
+  // Domestic defaults: 2 van segments. Emergency contacts start empty —
+  // pre-filling 1155 / 1669 looked like data the operator hadn't asked
+  // for. The "เพิ่มเบอร์มาตรฐานไทย" quick-action below covers the case
+  // where the operator does want them.
   segments: [makeSegment("outbound", "van"), makeSegment("return", "van")],
   hotels: [{ ...emptyHotel }],
-  emergencyContacts: [
-    { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
-    { name: "แพทย์ฉุกเฉิน", phone: "1669", note: "" },
-  ],
+  emergencyContacts: [],
 };
+
+const THAI_STANDARD_CONTACTS: EmergencyContactRow[] = [
+  { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
+  { name: "แพทย์ฉุกเฉิน (สพฉ.)", phone: "1669", note: "" },
+];
 
 export default function NewTripPage(): React.ReactNode {
   usePageTitle("สร้างทริปใหม่");
@@ -285,13 +289,10 @@ export default function NewTripPage(): React.ReactNode {
     if (scope === "domestic") {
       segmentsField.replace([makeSegment("outbound", "van"), makeSegment("return", "van")]);
       setValue("language", "th", { shouldDirty: true });
-      // Two universal Thai numbers — same regardless of province, real
-      // phones (not placeholders), so seeding them saves the operator
-      // typing on every domestic trip.
-      contactsField.replace([
-        { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
-        { name: "แพทย์ฉุกเฉิน", phone: "1669", note: "" },
-      ]);
+      // Empty start — operator adds the universal numbers via the
+      // quick-action below if they want them. Same UX rationale as
+      // international: don't fill data the operator didn't ask for.
+      contactsField.replace([]);
     } else if (scope === "international") {
       segmentsField.replace([makeSegment("outbound", "flight"), makeSegment("return", "flight")]);
       // Start empty for international — the country-prefill effect fills
@@ -813,9 +814,27 @@ export default function NewTripPage(): React.ReactNode {
                   onRemove={() => contactsField.remove(i)}
                 />
               ))}
-              <DashedAddButton onClick={() => contactsField.append({ name: "", phone: "", note: "" })}>
-                เพิ่มเบอร์ฉุกเฉิน
-              </DashedAddButton>
+              <div className="flex flex-wrap gap-2">
+                <DashedAddButton onClick={() => contactsField.append({ name: "", phone: "", note: "" })}>
+                  เพิ่มเบอร์ฉุกเฉิน
+                </DashedAddButton>
+                {/* Quick-add for the two numbers Thai operators usually
+                    want. Skips entries that are already in the list so
+                    a double-click doesn't duplicate them. */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const existingPhones = new Set(getValues("emergencyContacts").map((c) => c.phone.trim()));
+                    for (const std of THAI_STANDARD_CONTACTS) {
+                      if (!existingPhones.has(std.phone)) contactsField.append(std);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl border border-(--outline-variant)/40 bg-white text-(--on-surface) text-sm font-semibold hover:bg-(--surface-container-low) transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">add</span>
+                  เบอร์ฉุกเฉินมาตรฐานไทย (1155, 1669)
+                </button>
+              </div>
             </div>
           </section>
 
