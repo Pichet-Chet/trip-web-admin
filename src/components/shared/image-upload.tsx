@@ -110,40 +110,66 @@ export function ImageUpload({
           ) : value ? (
             <>
               <img src={value} alt={label ?? "Upload"} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-all flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors"
-                >
-                  อัปโหลดใหม่
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLibrary(true)}
-                  className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors"
-                >
-                  คลังสื่อ
-                </button>
-              </div>
+              {isSquare ? (
+                /* Square / avatar — icon-only round buttons so text doesn't
+                   wrap into a "two-circle" blob in tight containers. */
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-(--on-surface) shadow-sm hover:bg-white transition-colors"
+                    title="อัปโหลดใหม่"
+                    aria-label="อัปโหลดใหม่"
+                  >
+                    <span className="material-symbols-outlined text-lg leading-none">photo_camera</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLibrary(true)}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-(--on-surface) shadow-sm hover:bg-white transition-colors"
+                    title="เลือกจากคลังสื่อ"
+                    aria-label="เลือกจากคลังสื่อ"
+                  >
+                    <span className="material-symbols-outlined text-lg leading-none">photo_library</span>
+                  </button>
+                </div>
+              ) : (
+                /* Wide / cover — full-text pills, plenty of horizontal room. */
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-all flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors whitespace-nowrap"
+                  >
+                    อัปโหลดใหม่
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLibrary(true)}
+                    className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors whitespace-nowrap"
+                  >
+                    คลังสื่อ
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center space-y-3 z-10 p-4">
               <span className="material-symbols-outlined text-3xl text-(--outline-variant)">add_photo_alternate</span>
               {label && <p className="text-sm font-semibold text-(--on-surface-variant)">{label}</p>}
               {hint && <p className="text-xs text-(--on-surface-variant)">{hint}</p>}
-              <div className="flex gap-2">
+              <div className={`flex gap-2 ${isSquare ? "flex-col w-full max-w-[160px]" : ""}`}>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="px-4 py-2 rounded-xl bg-(--primary) text-(--on-primary) text-xs font-bold hover:opacity-90 transition-opacity"
+                  className="px-4 py-2 rounded-xl bg-(--primary) text-(--on-primary) text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
                 >
                   อัปโหลด
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowLibrary(true)}
-                  className="px-4 py-2 rounded-xl bg-(--surface-variant) text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-variant)/80 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-(--surface-variant) text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-variant)/80 transition-colors whitespace-nowrap"
                 >
                   คลังสื่อ
                 </button>
