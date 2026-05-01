@@ -797,20 +797,28 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                   <h2 className="text-xl md:text-2xl font-extrabold text-(--on-surface) tracking-tight truncate">
                     {currentDay.title?.trim() || `Day ${activeDay + 1}`}
                   </h2>
-                  <p className="text-xs text-(--on-surface-variant) mt-0.5">ตารางกิจกรรม · Day {activeDay + 1}</p>
+                  <p className="text-xs text-(--on-surface-variant) mt-0.5">
+                    {currentDay.isFreeDay ? `วันอิสระ · Day ${activeDay + 1}` : `ตารางกิจกรรม · Day ${activeDay + 1}`}
+                  </p>
                 </div>
-                <button
-                  onClick={addActivity}
-                  disabled={addingActivity}
-                  className="shrink-0 flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {addingActivity ? (
-                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <span className="material-symbols-outlined text-lg">add_circle</span>
-                  )}
-                  {addingActivity ? "กำลังเพิ่ม..." : "เพิ่มกิจกรรม"}
-                </button>
+                {/* Add-activity button hidden on free days — having both
+                    "วันอิสระ" and an active "เพิ่มกิจกรรม" affordance was
+                    contradictory; if the operator wants to schedule
+                    activities they untick the free-day toggle first. */}
+                {!currentDay.isFreeDay && (
+                  <button
+                    onClick={addActivity}
+                    disabled={addingActivity}
+                    className="shrink-0 flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {addingActivity ? (
+                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <span className="material-symbols-outlined text-lg">add_circle</span>
+                    )}
+                    {addingActivity ? "กำลังเพิ่ม..." : "เพิ่มกิจกรรม"}
+                  </button>
+                )}
               </div>
 
               {/* Day Title Input — clearly labelled as a description, not
@@ -832,11 +840,11 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                 />
               </div>
 
-              {/* Free-day toggle — for days the operator intentionally
-                  leaves open (customer-led leisure). The publish-gate
-                  skips empty-day checks for these days. Activities can
-                  still be added (e.g. suggested optional pickup) — the
-                  flag is purely a semantic marker. */}
+              {/* Free-day toggle — flips the day into a "no schedule"
+                  state. Existing activities are preserved in the DB but
+                  hidden from the editor; toggling off brings them back.
+                  We don't auto-delete on toggle to avoid surprising the
+                  operator. */}
               <label className="flex items-start gap-3 mb-4 p-4 bg-white rounded-2xl border border-(--outline-variant)/30 cursor-pointer hover:border-(--primary)/30 transition-colors">
                 <input
                   type="checkbox"
@@ -850,24 +858,29 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                     วันอิสระ (Free Day)
                   </p>
                   <p className="text-xs text-(--on-surface-variant) mt-0.5">
-                    ลูกทัวร์เลือกกิจกรรมเอง — ไม่ต้องกรอกตารางกิจกรรมก็เผยแพร่ได้
+                    ลูกทัวร์เลือกกิจกรรมเอง — ไม่ต้องกรอกตารางกิจกรรม
                   </p>
                 </div>
               </label>
 
-              {/* Activity Cards */}
+              {/* Activity Cards — hidden entirely on a free day. */}
+              {currentDay.isFreeDay ? (
+                <div className="bg-white rounded-2xl border border-(--outline-variant)/30">
+                  <EmptyState
+                    icon="beach_access"
+                    title="วันอิสระ"
+                    description={
+                      currentDay.activities.length > 0
+                        ? `บันทึกกิจกรรม ${currentDay.activities.length} รายการไว้ — ปิด "วันอิสระ" เพื่อแสดงและแก้ไข`
+                        : "ลูกทัวร์เลือกกิจกรรมเองในวันนี้"
+                    }
+                  />
+                </div>
+              ) : (
               <div className="space-y-4">
                 {currentDay.activities.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-(--outline-variant)/30">
-                    {currentDay.isFreeDay ? (
-                      <EmptyState
-                        icon="beach_access"
-                        title="วันอิสระ"
-                        description="ลูกทัวร์เลือกกิจกรรมเอง — เพิ่มกิจกรรมแนะนำได้ถ้าต้องการ"
-                      />
-                    ) : (
-                      <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="เพิ่มกิจกรรมสำหรับวันนี้" />
-                    )}
+                    <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="เพิ่มกิจกรรมสำหรับวันนี้" />
                   </div>
                 ) : (
                   currentDay.activities.map((act) => (
@@ -889,6 +902,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                   ))
                 )}
               </div>
+              )}
             </div>
 
             <DayContextPanel
