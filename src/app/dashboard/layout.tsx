@@ -7,6 +7,7 @@ import { ConfirmProvider } from "@/lib/hooks/use-confirm";
 import { AuthGuard } from "@/components/shared/auth-guard";
 import { LegalReacceptGuard } from "@/components/legal-reaccept-guard";
 import { CookieBanner } from "@/components/cookie-banner";
+import { NotificationBell } from "@/components/notification-bell";
 import { getUser, logout, switchCompany, getCompanies, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared/toast";
 
@@ -59,36 +60,10 @@ export default function DashboardLayout({
               </button>
             </div>
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <button onClick={() => { setNotiOpen(!notiOpen); setProfileOpen(false); }} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors relative">
-                  <span className="material-symbols-outlined text-xl">notifications</span>
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-                </button>
-                {notiOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setNotiOpen(false)} />
-                    <div className="absolute right-0 top-12 z-50 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-                      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                        <span className="font-bold text-slate-900 text-sm">การแจ้งเตือน</span>
-                        <span className="text-xs text-(--primary) font-semibold cursor-pointer">อ่านทั้งหมด</span>
-                      </div>
-                      <div className="divide-y divide-slate-50 max-h-72 overflow-y-auto">
-                        {[
-                          { text: "Anna ขอเข้าร่วมทริป Tokyo Winter Trip", time: "5 นาทีที่แล้ว", unread: true },
-                          { text: "เอก ขอเข้าร่วมทริป Tokyo Winter Trip", time: "1 ชั่วโมงที่แล้ว", unread: true },
-                          { text: "สมชาย รับทราบการเปลี่ยนแปลงทริปแล้ว", time: "2 ชั่วโมงที่แล้ว", unread: false },
-                          { text: "แพลน Free ใกล้ถึงลิมิต (2/3 ทริป)", time: "เมื่อวาน", unread: false },
-                        ].map((n, i) => (
-                          <div key={i} className={`px-4 py-3 ${n.unread ? "bg-(--primary-container)/30" : ""}`}>
-                            <p className="text-sm text-slate-700">{n.text}</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">{n.time}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+              <NotificationBell
+                open={notiOpen}
+                onOpenChange={(o) => { setNotiOpen(o); if (o) setProfileOpen(false); }}
+              />
               <div className="h-6 w-px bg-slate-200" />
               <div className="relative">
                 <button
