@@ -143,6 +143,7 @@ describe("checkPublishReadiness", () => {
     totalActivities: 8,
     daysCount: 4,
     daysWithoutActivity: 0,
+    freeDaysCount: 0,
     hasOutboundTransport: true,
     hasReturnTransport: true,
   };
@@ -159,6 +160,33 @@ describe("checkPublishReadiness", () => {
   it("flags zero activities even when days exist", () => {
     const issues = checkPublishReadiness({ ...baseCtx, totalActivities: 0, daysWithoutActivity: 4 });
     expect(issues.some((i) => i.code === "activities")).toBe(true);
+  });
+
+  it("does NOT flag zero activities when every day is a free day", () => {
+    // 4 free days, no activities → operator-intentional empty trip,
+    // valid to publish.
+    const issues = checkPublishReadiness({
+      ...baseCtx,
+      totalActivities: 0,
+      daysWithoutActivity: 0,
+      freeDaysCount: 4,
+    });
+    expect(issues.find((i) => i.code === "activities")).toBeUndefined();
+    expect(issues.find((i) => i.code === "empty-day")).toBeUndefined();
+  });
+
+  it("flags non-free empty days even when some days are free", () => {
+    // 2 of 4 days are free, 2 are non-free with no activities — should
+    // still flag the 2 non-free as missing.
+    const issues = checkPublishReadiness({
+      ...baseCtx,
+      totalActivities: 6, // some activity exists on free days? no: free days don't need activities, but we want totalActivities > 0 to bypass the activities-zero check
+      daysWithoutActivity: 2,
+      freeDaysCount: 2,
+    });
+    const empty = issues.find((i) => i.code === "empty-day");
+    expect(empty).toBeDefined();
+    expect(empty?.message).toMatch(/2 วัน/);
   });
 
   it("flags partial empty days", () => {
@@ -204,6 +232,7 @@ describe("checkPublishReadiness", () => {
       totalActivities: 0,
       daysCount: 0,
       daysWithoutActivity: 0,
+      freeDaysCount: 0,
     });
     for (const issue of issues) {
       expect(["basics", "activities", "preview"]).toContain(issue.fixStep);

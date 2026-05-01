@@ -75,6 +75,8 @@ export type TripDay = {
   subtitle: string | null;
   coverImageUrl: string | null;
   date: string | null;
+  /** Operator-marked "free day" — itinerary intentionally left open. */
+  isFreeDay: boolean;
   sortOrder: number;
   activities: TripActivity[];
 };

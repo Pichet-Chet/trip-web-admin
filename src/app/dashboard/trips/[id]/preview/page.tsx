@@ -49,6 +49,7 @@ interface DayDetail {
   subtitle: string | null;
   coverImageUrl: string | null;
   date: string | null;
+  isFreeDay: boolean;
   sortOrder: number;
   activities: ActivityDetail[];
 }
@@ -265,7 +266,10 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
         totalDays,
         totalActivities,
         daysCount: trip.days.length,
-        daysWithoutActivity: trip.days.filter((d) => d.activities.length === 0).length,
+        // Free days are intentional empty — exclude them from the
+        // empty-day count so the publish-gate doesn't block on them.
+        daysWithoutActivity: trip.days.filter((d) => d.activities.length === 0 && !d.isFreeDay).length,
+        freeDaysCount: trip.days.filter((d) => d.isFreeDay).length,
         hasOutboundTransport: trip.airlineInfo.some(
           (a) => a.type === "departure" && (a.airline || a.departureAirport),
         ),

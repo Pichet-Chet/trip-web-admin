@@ -51,6 +51,7 @@ interface DayDetailApi {
   subtitle: string | null;
   coverImageUrl: string | null;
   date: string | null;
+  isFreeDay: boolean;
   sortOrder: number;
   activities: ActivityDetailApi[];
 }
@@ -98,6 +99,7 @@ function mapDay(d: DayDetailApi, tripId: string): TripDay {
     subtitle: d.subtitle,
     coverImageUrl: d.coverImageUrl,
     date: d.date,
+    isFreeDay: !!d.isFreeDay,
     sortOrder: d.sortOrder,
     activities: d.activities
       .map((a) => mapActivity(a, d.id))
@@ -331,6 +333,21 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     try {
       await api.put(`/admin/trips/${id}/days/${dayId}`, { [field]: value === "" ? "" : value });
       setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, [field]: value === "" ? null : value } : d));
+      endAutoSave(true);
+    } catch {
+      endAutoSave(false);
+      toast("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      await rollbackOnFailure();
+    }
+  }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
+
+  const toggleFreeDay = useCallback(async (dayId: string, next: boolean) => {
+    // Optimistic flip — single boolean, easy to revert via refetch on
+    // failure. Reuses the day-update endpoint with isFreeDay in body.
+    setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, isFreeDay: next } : d));
+    beginAutoSave();
+    try {
+      await api.put(`/admin/trips/${id}/days/${dayId}`, { isFreeDay: next });
       endAutoSave(true);
     } catch {
       endAutoSave(false);
@@ -679,24 +696,35 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Day {i + 1}</span>
-                    {isEmpty
+                    {day.isFreeDay
                       ? (
-                        // Amber dot for "needs attention" — at-a-glance
-                        // hint that the day has no activities yet.
+                        // Palm icon — intentional empty (free day), not
+                        // "needs attention". Distinct from the amber dot
+                        // so the operator can tell at a glance.
                         <span
-                          className="w-1.5 h-1.5 rounded-full bg-amber-400"
-                          aria-label="ยังไม่มีกิจกรรม"
-                        />
+                          className="material-symbols-outlined text-sm text-(--on-surface-variant)"
+                          aria-label="วันอิสระ"
+                          title="วันอิสระ"
+                        >beach_access</span>
                       )
-                      : (
-                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
-                          selected
-                            ? "bg-(--primary-container) text-(--on-primary-container)"
-                            : "bg-(--surface-variant) text-(--on-surface-variant)"
-                        }`}>
-                          {activityCount}
-                        </span>
-                      )}
+                      : isEmpty
+                        ? (
+                          // Amber dot for "needs attention" — at-a-glance
+                          // hint that the day has no activities yet.
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-amber-400"
+                            aria-label="ยังไม่มีกิจกรรม"
+                          />
+                        )
+                        : (
+                          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+                            selected
+                              ? "bg-(--primary-container) text-(--on-primary-container)"
+                              : "bg-(--surface-variant) text-(--on-surface-variant)"
+                          }`}>
+                            {activityCount}
+                          </span>
+                        )}
                   </div>
                   {shortDate && <span className="text-[10px] font-medium opacity-60">{shortDate}</span>}
                 </button>
@@ -804,11 +832,42 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                 />
               </div>
 
+              {/* Free-day toggle — for days the operator intentionally
+                  leaves open (customer-led leisure). The publish-gate
+                  skips empty-day checks for these days. Activities can
+                  still be added (e.g. suggested optional pickup) — the
+                  flag is purely a semantic marker. */}
+              <label className="flex items-start gap-3 mb-4 p-4 bg-white rounded-2xl border border-(--outline-variant)/30 cursor-pointer hover:border-(--primary)/30 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={currentDay.isFreeDay}
+                  onChange={(e) => toggleFreeDay(currentDay.id, e.target.checked)}
+                  className="w-5 h-5 mt-0.5 rounded accent-(--primary) cursor-pointer"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-(--on-surface) flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">beach_access</span>
+                    วันอิสระ (Free Day)
+                  </p>
+                  <p className="text-xs text-(--on-surface-variant) mt-0.5">
+                    ลูกทัวร์เลือกกิจกรรมเอง — ไม่ต้องกรอกตารางกิจกรรมก็เผยแพร่ได้
+                  </p>
+                </div>
+              </label>
+
               {/* Activity Cards */}
               <div className="space-y-4">
                 {currentDay.activities.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-(--outline-variant)/30">
-                    <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="เพิ่มกิจกรรมสำหรับวันนี้" />
+                    {currentDay.isFreeDay ? (
+                      <EmptyState
+                        icon="beach_access"
+                        title="วันอิสระ"
+                        description="ลูกทัวร์เลือกกิจกรรมเอง — เพิ่มกิจกรรมแนะนำได้ถ้าต้องการ"
+                      />
+                    ) : (
+                      <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="เพิ่มกิจกรรมสำหรับวันนี้" />
+                    )}
                   </div>
                 ) : (
                   currentDay.activities.map((act) => (
@@ -841,7 +900,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               totalTripDays={totalTripDays}
               daysCount={days.length}
               totalActivities={days.reduce((s, d) => s + d.activities.length, 0)}
-              emptyDaysCount={days.filter((d) => d.activities.length === 0).length}
+              emptyDaysCount={days.filter((d) => d.activities.length === 0 && !d.isFreeDay).length}
               travelersCount={travelersCount}
               onCoverChange={(url) => handleDayCoverChange(currentDay.id, url)}
             />

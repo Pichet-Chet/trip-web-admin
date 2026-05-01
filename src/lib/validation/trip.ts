@@ -105,8 +105,14 @@ export interface PublishContext {
   endDate: string;
   totalDays: number;
   totalActivities: number;
+  /** Days with zero activities AND not flagged as free days. Free days
+      are operator-intentional empty so they don't count as "missing". */
   daysWithoutActivity: number;
   daysCount: number;
+  /** Days the operator explicitly marked as "free day" — open for the
+      customer to fill on their own. When every day is a free day, the
+      "ยังไม่มีกิจกรรมเลย" check is skipped (an all-free trip is valid). */
+  freeDaysCount: number;
   hasOutboundTransport: boolean;
   hasReturnTransport: boolean;
 }
@@ -146,7 +152,10 @@ export function checkPublishReadiness(ctx: PublishContext): PublishIssue[] {
   if (ctx.daysCount === 0) {
     issues.push({ code: "days", message: "ยังไม่มีรายการวัน", fixStep: "activities" });
   }
-  if (ctx.totalActivities === 0) {
+  // All-free-day trips are valid with zero activities — skip this check
+  // when every existing day is flagged as a free day.
+  const allDaysFree = ctx.daysCount > 0 && ctx.freeDaysCount === ctx.daysCount;
+  if (ctx.totalActivities === 0 && !allDaysFree) {
     issues.push({ code: "activities", message: "ยังไม่มีกิจกรรมเลย", fixStep: "activities" });
   }
   if (ctx.daysWithoutActivity > 0 && ctx.daysCount > 0 && ctx.totalActivities > 0) {
