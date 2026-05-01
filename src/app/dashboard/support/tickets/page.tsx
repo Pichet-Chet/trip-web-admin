@@ -54,10 +54,10 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 ];
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-  Open:     { label: "เปิด",         tone: "primary",  cls: "bg-(--primary-container)/40 text-(--primary)" },
-  Pending:  { label: "รอดำเนินการ", tone: "amber",    cls: "bg-amber-50 text-amber-700" },
-  Resolved: { label: "แก้ไขแล้ว",   tone: "emerald",  cls: "bg-emerald-50 text-emerald-700" },
-  Closed:   { label: "ปิดแล้ว",     tone: "slate",    cls: "bg-slate-100 text-slate-500" },
+  Open:     { label: "เปิด",         tone: "primary",  cls: "bg-(--primary-container) text-(--on-primary-container) ring-1 ring-(--primary)/20" },
+  Pending:  { label: "รอดำเนินการ", tone: "amber",    cls: "bg-amber-100 text-amber-800 ring-1 ring-amber-200" },
+  Resolved: { label: "แก้ไขแล้ว",   tone: "emerald",  cls: "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200" },
+  Closed:   { label: "ปิดแล้ว",     tone: "slate",    cls: "bg-slate-200 text-slate-700 ring-1 ring-slate-300" },
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -335,7 +335,7 @@ export default function SupportTicketsPage() {
                 <button
                   onClick={() => router.push(`/dashboard/support/tickets/${t.id}`)}
                   title={t.subject}
-                  className={`w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left ${
+                  className={`w-full flex items-center gap-4 px-5 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--primary)/40 ${
                     t.hasUnread ? "bg-(--primary-container)/30" : ""
                   }`}
                 >
@@ -344,16 +344,13 @@ export default function SupportTicketsPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    {/* Top row: subject + status pill (left) ↔ relative date (right) */}
+                    {/* Top row: subject + status pill */}
                     <div className="flex items-center gap-2">
                       <p className={`text-sm truncate ${t.hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>{t.subject}</p>
                       <StatusBadge status={t.status} config={STATUS_CONFIG} variant="pill" />
-                      <span className="ml-auto text-xs text-slate-400 font-medium shrink-0 tabular-nums">
-                        {formatRelativeDate(t.updatedAt)}
-                      </span>
                     </div>
 
-                    {/* Bottom row: type · replies · (only High priority gets a flag) */}
+                    {/* Bottom row: type · priority(High) · replies | date */}
                     <div className="flex items-center gap-x-3 mt-1 text-xs">
                       <span className="text-slate-500">{TYPE_LABEL[t.type] ?? t.type}</span>
                       {t.priority === "High" && (
@@ -368,6 +365,9 @@ export default function SupportTicketsPage() {
                           <span className="tabular-nums">{t.replyCount}</span>
                         </span>
                       )}
+                      <span className="ml-auto text-slate-400 font-medium shrink-0 tabular-nums">
+                        {formatRelativeDate(t.updatedAt)}
+                      </span>
                     </div>
                   </div>
                 </button>

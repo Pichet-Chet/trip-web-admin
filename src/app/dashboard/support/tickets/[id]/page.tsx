@@ -39,16 +39,16 @@ interface AttachmentItem {
 }
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-  Open:     { label: "เปิด",         tone: "primary",  cls: "bg-(--primary-container)/40 text-(--primary)" },
-  Pending:  { label: "รอดำเนินการ", tone: "amber",    cls: "bg-amber-50 text-amber-700" },
-  Resolved: { label: "แก้ไขแล้ว",   tone: "emerald",  cls: "bg-emerald-50 text-emerald-700" },
-  Closed:   { label: "ปิดแล้ว",     tone: "slate",    cls: "bg-slate-100 text-slate-500" },
+  Open:     { label: "เปิด",         tone: "primary",  cls: "bg-(--primary-container) text-(--on-primary-container) ring-1 ring-(--primary)/20" },
+  Pending:  { label: "รอดำเนินการ", tone: "amber",    cls: "bg-amber-100 text-amber-800 ring-1 ring-amber-200" },
+  Resolved: { label: "แก้ไขแล้ว",   tone: "emerald",  cls: "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200" },
+  Closed:   { label: "ปิดแล้ว",     tone: "slate",    cls: "bg-slate-200 text-slate-700 ring-1 ring-slate-300" },
 };
 
 const PRIORITY_CONFIG: Record<string, StatusConfig> = {
-  High:   { label: "สำคัญสูง",  tone: "rose",  cls: "bg-rose-50 text-rose-700" },
-  Medium: { label: "ปานกลาง",   tone: "amber", cls: "bg-amber-50 text-amber-700" },
-  Low:    { label: "ต่ำ",        tone: "slate", cls: "bg-slate-100 text-slate-600" },
+  High:   { label: "สำคัญสูง",  tone: "rose",  cls: "bg-rose-100 text-rose-800 ring-1 ring-rose-200" },
+  Medium: { label: "ปานกลาง",   tone: "amber", cls: "bg-amber-100 text-amber-800 ring-1 ring-amber-200" },
+  Low:    { label: "ต่ำ",        tone: "slate", cls: "bg-slate-100 text-slate-600 ring-1 ring-slate-200" },
 };
 
 const TYPE_LABEL: Record<string, string> = {
