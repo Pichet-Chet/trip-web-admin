@@ -159,10 +159,43 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const [accommodations, setAccommodations] = useState<AccommodationApi[]>([]);
   const [addingActivity, setAddingActivity] = useState(false);
 
+  /* ─── Auto-save status ───
+   * Per-field commits (blur on activity / day fields, cover image
+   * upload, etc.) flip this so the operator can see whether their
+   * latest edit is still in flight, just landed, or failed. "saved"
+   * auto-decays back to "idle" via setTimeout to keep the indicator
+   * unobtrusive once it's done its job.
+   */
+  type SaveStatus = "idle" | "saving" | "saved" | "error";
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const inFlightRef = useRef(0);
+  const savedFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const beginAutoSave = useCallback((): void => {
+    inFlightRef.current += 1;
+    setSaveStatus("saving");
+    if (savedFadeRef.current) {
+      clearTimeout(savedFadeRef.current);
+      savedFadeRef.current = null;
+    }
+  }, []);
+  const endAutoSave = useCallback((ok: boolean): void => {
+    inFlightRef.current = Math.max(0, inFlightRef.current - 1);
+    if (inFlightRef.current > 0) return; // still other saves running
+    if (!ok) {
+      setSaveStatus("error");
+      return;
+    }
+    setSaveStatus("saved");
+    savedFadeRef.current = setTimeout(() => {
+      setSaveStatus("idle");
+      savedFadeRef.current = null;
+    }, 2000);
+  }, []);
+
   // Warn before tab close while an explicit save (handleSaveDraft /
-  // handleNext) is in flight. Per-field auto-saves on blur complete
-  // synchronously enough that they don't need separate guarding.
-  useUnsavedChanges(saving);
+  // handleNext) is in flight, OR while any per-field auto-save hasn't
+  // landed yet — closing during the saving window would lose the edit.
+  useUnsavedChanges(saving || saveStatus === "saving");
 
   /* ─── Derived: total days from trip dates ─── */
   const totalTripDays = startDate && endDate
@@ -231,14 +264,17 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
   /* ─── Day Update ─── */
   const updateDayField = useCallback(async (dayId: string, field: string, value: string) => {
+    beginAutoSave();
     try {
       await api.put(`/admin/trips/${id}/days/${dayId}`, { [field]: value === "" ? "" : value });
       setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, [field]: value === "" ? null : value } : d));
+      endAutoSave(true);
     } catch {
+      endAutoSave(false);
       toast("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
       await rollbackOnFailure();
     }
-  }, [id, toast, rollbackOnFailure]);
+  }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
 
   /* ─── Activity CRUD ─── */
   const addActivity = useCallback(async () => {
@@ -289,24 +325,30 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
           : d
       )
     );
+    beginAutoSave();
     try {
       await api.put(`/admin/days/${dayId}/activities/${actId}`, { [field]: value === "" ? "" : value });
+      endAutoSave(true);
     } catch {
+      endAutoSave(false);
       toast("ไม่สามารถบันทึกกิจกรรมได้ กำลังโหลดข้อมูลล่าสุด...", "error");
       await rollbackOnFailure();
     }
-  }, [toast, rollbackOnFailure]);
+  }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
 
   /* ─── Day Cover Image ─── */
   const handleDayCoverChange = useCallback(async (dayId: string, url: string | null) => {
     setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, coverImageUrl: url } : d));
+    beginAutoSave();
     try {
       await api.put(`/admin/trips/${id}/days/${dayId}`, { coverImageUrl: url ?? "" });
+      endAutoSave(true);
     } catch {
+      endAutoSave(false);
       toast("ไม่สามารถบันทึกภาพปกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
       await rollbackOnFailure();
     }
-  }, [id, toast, rollbackOnFailure]);
+  }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
 
   /* ─── Save Draft (parallel) ─── */
   const handleSaveDraft = useCallback(async () => {
@@ -500,6 +542,8 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               const dayDate = startDate ? new Date(new Date(startDate).getTime() + i * 86400000) : null;
               const shortDate = dayDate ? dayDate.toLocaleDateString("th-TH", { day: "numeric", month: "short" }) : "";
               const selected = activeDay === i;
+              const activityCount = day.activities.length;
+              const isEmpty = activityCount === 0;
               return (
                 <button
                   key={day.id}
@@ -515,17 +559,74 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                       : "text-(--on-surface-variant) hover:bg-white/50"
                   }`}
                 >
-                  <span>Day {i + 1}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span>Day {i + 1}</span>
+                    {isEmpty
+                      ? (
+                        // Amber dot for "needs attention" — at-a-glance
+                        // hint that the day has no activities yet.
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-amber-400"
+                          aria-label="ยังไม่มีกิจกรรม"
+                        />
+                      )
+                      : (
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+                          selected
+                            ? "bg-(--primary-container) text-(--on-primary-container)"
+                            : "bg-(--surface-variant) text-(--on-surface-variant)"
+                        }`}>
+                          {activityCount}
+                        </span>
+                      )}
+                  </div>
                   {shortDate && <span className="text-[10px] font-medium opacity-60">{shortDate}</span>}
                 </button>
               );
             })}
           </div>
-          {currentDay && startDate && (
-            <span className="text-sm font-semibold text-(--on-surface-variant)">
-              {new Date(new Date(startDate).getTime() + activeDay * 86400000).toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {/* Auto-save indicator — appears next to the day's full-date
+                label so it's visible without scrolling to the action bar.
+                Idle state renders nothing to keep the chrome quiet. */}
+            {saveStatus !== "idle" && (
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                  saveStatus === "saving"
+                    ? "bg-(--surface-variant) text-(--on-surface-variant)"
+                    : saveStatus === "saved"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-rose-50 text-rose-700"
+                }`}
+                role="status"
+                aria-live="polite"
+              >
+                {saveStatus === "saving" && (
+                  <>
+                    <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    กำลังบันทึก…
+                  </>
+                )}
+                {saveStatus === "saved" && (
+                  <>
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    บันทึกอัตโนมัติแล้ว
+                  </>
+                )}
+                {saveStatus === "error" && (
+                  <>
+                    <span className="material-symbols-outlined text-sm">error</span>
+                    บันทึกไม่สำเร็จ
+                  </>
+                )}
+              </span>
+            )}
+            {currentDay && startDate && (
+              <span className="text-sm font-semibold text-(--on-surface-variant)">
+                {new Date(new Date(startDate).getTime() + activeDay * 86400000).toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Empty state when no days */}
@@ -540,14 +641,22 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Left: Itinerary List */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-extrabold text-(--on-surface) tracking-tight">
-                  Day {activeDay + 1} — ตารางกิจกรรม
-                </h2>
+              <div className="flex items-start justify-between mb-4 gap-3">
+                <div className="min-w-0">
+                  {/* Header shows the day's actual title when it has one
+                      (less repetition with the tab strip above), falling
+                      back to "Day N" only when the operator hasn't set a
+                      title yet. Subtitle keeps the section clearly the
+                      activity editor. */}
+                  <h2 className="text-xl md:text-2xl font-extrabold text-(--on-surface) tracking-tight truncate">
+                    {currentDay.title?.trim() || `Day ${activeDay + 1}`}
+                  </h2>
+                  <p className="text-xs text-(--on-surface-variant) mt-0.5">ตารางกิจกรรม · Day {activeDay + 1}</p>
+                </div>
                 <button
                   onClick={addActivity}
                   disabled={addingActivity}
-                  className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addingActivity ? (
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -558,10 +667,13 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                 </button>
               </div>
 
-              {/* Day Title Input */}
+              {/* Day Title Input — clearly labelled as a description, not
+                  a system day number, with an example placeholder so the
+                  operator knows what's expected. */}
               <div className="mb-4">
                 <FormInput
-                  label="ชื่อวัน"
+                  label="หัวข้อวันนี้"
+                  hint={`เว้นว่างได้ — จะแสดงเป็น "Day ${activeDay + 1}"`}
                   value={currentDay.title ?? ""}
                   onChange={(e) =>
                     setDays((prev) =>
@@ -569,7 +681,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                     )
                   }
                   onBlur={() => updateDayField(currentDay.id, "title", currentDay.title ?? "")}
-                  placeholder={`Day ${currentDay.dayNumber}`}
+                  placeholder="เช่น เดินทางถึงโตเกียว / เที่ยวชมเมืองเก่า"
                   icon="edit_calendar"
                 />
               </div>
