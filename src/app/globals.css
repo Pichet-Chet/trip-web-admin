@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
+@plugin "@tailwindcss/typography";
 
 @layer theme {
   :root {
