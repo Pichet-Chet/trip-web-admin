@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormInput, FormTextarea, Modal, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
 import { NotificationPreferencesSection } from "@/components/notification-preferences-section";
+import { SecuritySection } from "@/components/security-section";
 import { api, ApiError } from "@/lib/api";
 import { getUser, logout, type UserInfo } from "@/lib/auth";
 
@@ -163,6 +164,8 @@ export default function SettingsPage(): React.ReactNode {
           </button>
         </div>
       </div>
+
+      <SecuritySection />
 
       <NotificationPreferencesSection />
 
