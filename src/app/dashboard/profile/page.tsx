@@ -214,32 +214,104 @@ export default function ProfilePage(): React.ReactNode {
         </div>
       </div>
 
-      {/* Plan summary chip */}
-      {usage && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 md:p-5 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-(--primary-container) flex items-center justify-center">
-              <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>card_membership</span>
+      {/* Identity strip — account type + plan + quota in one place */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Account type — visible + editable inline */}
+          <div className="flex items-center justify-between gap-3 md:border-r md:border-slate-100 md:pr-5">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                form.accountType === "company" ? "bg-blue-50 text-blue-600"
+                  : form.accountType === "freelance" ? "bg-violet-50 text-violet-600"
+                  : "bg-rose-50 text-rose-600"
+              }`}>
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{currentAccountType.icon}</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">ประเภทบัญชี</p>
+                <p className="text-base font-bold text-slate-900">{currentAccountType.label}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">แพลนปัจจุบัน</p>
-              <p className="text-base font-bold text-slate-900">{TIER_LABEL[usage.tier ?? "free"] ?? usage.tier ?? "Free"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-xs text-slate-500">ใช้ไป</p>
-              <p className="text-base font-bold text-slate-900 tabular-nums">{usage.tripQuotaUsed}<span className="text-slate-400 font-medium"> / {usage.hasActiveSubscription ? "∞" : usage.tripQuotaLimit}</span></p>
-            </div>
-            <Link
-              href="/dashboard/usage"
-              className="text-xs font-semibold text-(--primary) hover:underline whitespace-nowrap"
+            <button
+              type="button"
+              onClick={() => setShowAccountType((v) => !v)}
+              className="text-xs font-semibold text-(--primary) hover:underline whitespace-nowrap shrink-0"
             >
-              ดูรายละเอียด →
-            </Link>
+              {showAccountType ? "ปิด" : "เปลี่ยน"}
+            </button>
           </div>
+
+          {/* Plan + quota */}
+          {usage ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-(--primary-container) flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>card_membership</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">แพลน · ใช้ทริป</p>
+                  <p className="text-base font-bold text-slate-900">
+                    {TIER_LABEL[usage.tier ?? "free"] ?? usage.tier ?? "Free"}
+                    <span className="ml-2 text-slate-400 font-medium tabular-nums">{usage.tripQuotaUsed}/{usage.hasActiveSubscription ? "∞" : usage.tripQuotaLimit}</span>
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/usage"
+                className="text-xs font-semibold text-(--primary) hover:underline whitespace-nowrap shrink-0"
+              >
+                รายละเอียด →
+              </Link>
+            </div>
+          ) : (
+            <div />
+          )}
         </div>
-      )}
+
+        {/* Account type selector — expanded inline */}
+        {showAccountType && (
+          <div className="border-t border-slate-100 p-4 md:p-5 bg-slate-50/50">
+            <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+              ⚠️ การเปลี่ยนประเภทบัญชีจะเปลี่ยนข้อมูลที่ระบบขอ (เช่น ใบอนุญาต ททท., ทีมงาน) — กดบันทึกเพื่อยืนยัน
+            </p>
+            <div role="radiogroup" aria-label="ประเภทบัญชี" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {accountTypes.map((t, idx) => {
+                const selected = form.accountType === t.value;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => setForm((p) => ({ ...p, accountType: t.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                        const next = accountTypes[(idx + 1) % accountTypes.length];
+                        setForm((p) => ({ ...p, accountType: next.value }));
+                      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const prev = accountTypes[(idx - 1 + accountTypes.length) % accountTypes.length];
+                        setForm((p) => ({ ...p, accountType: prev.value }));
+                      }
+                    }}
+                    className={`text-left p-3 rounded-xl border-2 transition-all bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)/30 ${
+                      selected ? "border-(--primary) bg-(--primary-container)/30" : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`material-symbols-outlined text-base leading-none ${selected ? "text-(--primary)" : "text-slate-400"}`}>{t.icon}</span>
+                      <p className={`text-sm font-bold ${selected ? "text-(--primary)" : "text-slate-900"}`}>{t.label}</p>
+                    </div>
+                    <p className="text-xs text-slate-500">{t.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Main form card */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -287,57 +359,6 @@ export default function ProfilePage(): React.ReactNode {
             </div>
           </section>
 
-          {/* Account type — collapsed by default since rarely changed */}
-          <section className="space-y-3">
-            <button
-              type="button"
-              onClick={() => setShowAccountType((v) => !v)}
-              className="w-full flex items-center justify-between gap-3 text-left group"
-            >
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">ประเภทบัญชี</p>
-                <p className="text-sm font-semibold text-slate-700 mt-0.5">{currentAccountType.label}</p>
-              </div>
-              <span className={`material-symbols-outlined text-slate-400 transition-transform ${showAccountType ? "rotate-180" : ""}`}>expand_more</span>
-            </button>
-            {showAccountType && (
-              <div role="radiogroup" aria-label="ประเภทบัญชี" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {accountTypes.map((t, idx) => {
-                  const selected = form.accountType === t.value;
-                  return (
-                    <button
-                      key={t.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      tabIndex={selected ? 0 : -1}
-                      onClick={() => setForm((p) => ({ ...p, accountType: t.value }))}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-                          e.preventDefault();
-                          const next = accountTypes[(idx + 1) % accountTypes.length];
-                          setForm((p) => ({ ...p, accountType: next.value }));
-                        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                          e.preventDefault();
-                          const prev = accountTypes[(idx - 1 + accountTypes.length) % accountTypes.length];
-                          setForm((p) => ({ ...p, accountType: prev.value }));
-                        }
-                      }}
-                      className={`text-left p-4 rounded-xl border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)/30 ${
-                        selected ? "border-(--primary) bg-(--primary-container)/30" : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`material-symbols-outlined text-lg ${selected ? "text-(--primary)" : "text-slate-400"}`}>{t.icon}</span>
-                        <p className={`text-sm font-bold ${selected ? "text-(--primary)" : "text-slate-900"}`}>{t.label}</p>
-                      </div>
-                      <p className="text-xs text-slate-400">{t.desc}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </section>
         </div>
       </div>
 
