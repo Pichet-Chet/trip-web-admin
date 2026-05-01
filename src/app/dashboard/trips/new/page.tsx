@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
@@ -29,18 +30,98 @@ const emptyHotel: Accommodation = { name: "", address: "", phone: "", checkIn: "
 
 type FieldErrors = Record<string, string>;
 
+// All form fields owned by react-hook-form. UI/derived state (loading,
+// apiError, draftId, etc.) stays in useState because it's not part of
+// what the operator types.
+interface TripFormValues {
+  scope: TripScopeLocal;
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  // String because <input type=number> binds as string; the basics
+  // schema coerces on validate.
+  travelersCount: string;
+  language: string;
+  coverUrl: string | null;
+  notes: string;
+  segments: TransportSegment[];
+  hotels: Accommodation[];
+  emergencyContacts: EmergencyContactRow[];
+}
+
+const FORM_DEFAULTS: TripFormValues = {
+  scope: null,
+  title: "",
+  destination: "",
+  startDate: "",
+  endDate: "",
+  travelersCount: "",
+  language: "th",
+  coverUrl: null,
+  notes: "",
+  segments: [],
+  hotels: [{ ...emptyHotel }],
+  emergencyContacts: [],
+};
+
 export default function NewTripPage(): React.ReactNode {
   usePageTitle("สร้างทริปใหม่");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  // ─── Draft state ───
+  // ─── Draft state (URL/UI, not part of the form) ───
   const [draftId, setDraftId] = useState<string | null>(searchParams.get("id"));
   const [savingDraft, setSavingDraft] = useState(false);
+  const [tripStatus, setTripStatus] = useState("");
+  const [dateChangeCount, setDateChangeCount] = useState(0);
+  const [maxDateChanges, setMaxDateChanges] = useState(99);
+  const [loading, setLoading] = useState(false);
+  const [loadingDraft, setLoadingDraft] = useState(!!draftId);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  // ─── Trip scope ───
-  const [tripScope, setTripScope] = useState<TripScopeLocal>(null);
+  // ─── Form (react-hook-form) ───
+  // One useForm owns every field the operator can edit. useFieldArray
+  // gives us insert/remove/replace primitives for the three repeating
+  // sections so we don't hand-roll array splicing. Snapshot-based dirty
+  // tracking is replaced by formState.isDirty — RHF flips it on the
+  // first edit and we reset() after each successful save to clear it.
+  const form = useForm<TripFormValues>({ defaultValues: FORM_DEFAULTS, mode: "onSubmit" });
+  const { control, watch, setValue, getValues, reset, formState } = form;
+  const segmentsField = useFieldArray({ control, name: "segments" });
+  const hotelsField = useFieldArray({ control, name: "hotels" });
+  const contactsField = useFieldArray({ control, name: "emergencyContacts" });
+
+  // Watched values used by conditional rendering / effects below. RHF
+  // re-renders the page when any of these change because we read them
+  // here at the top level.
+  const tripScope = watch("scope");
+  const title = watch("title");
+  const destination = watch("destination");
+  const startDate = watch("startDate");
+  const endDate = watch("endDate");
+  const travelersCount = watch("travelersCount");
+  const language = watch("language");
+  const coverUrl = watch("coverUrl");
+  const notes = watch("notes");
+  const segments = watch("segments");
+  const hotels = watch("hotels");
+  const emergencyContacts = watch("emergencyContacts");
+
+  useUnsavedChanges(formState.isDirty);
+
+  // Field-level helper: set a form value AND clear any inline error
+  // displayed for that key. Wrapping the pattern keeps the JSX terse.
+  // The cast on `value` lets us keep a clean public signature — RHF's
+  // own generic surfaces a deeply nested PathValue type that doesn't
+  // narrow through `TripFormValues[K]`.
+  const updateField = <K extends keyof TripFormValues>(name: K, value: TripFormValues[K]): void => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue(name, value as any, { shouldDirty: true });
+    setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
   // Push a history entry when the user advances from scope picker → form
   // so the browser Back button reliably returns to the scope picker
@@ -59,56 +140,11 @@ export default function NewTripPage(): React.ReactNode {
       // haven't saved a draft yet, drop the scope so the picker shows.
       if (draftId) return;
       const params = new URLSearchParams(window.location.search);
-      if (params.get("step") !== "basics") setTripScope(null);
+      if (params.get("step") !== "basics") setValue("scope", null);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [draftId]);
-
-  // ─── Trip status (for date lock) ───
-  const [tripStatus, setTripStatus] = useState("");
-  const [dateChangeCount, setDateChangeCount] = useState(0);
-  const [maxDateChanges, setMaxDateChanges] = useState(99);
-
-  // ─── Basic info ───
-  const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [travelersCount, setTravelersCount] = useState("");
-  const [language, setLanguage] = useState("th");
-  const [coverUrl, setCoverUrl] = useState<string | null>(null);
-
-  // ─── Transport ───
-  const [segments, setSegments] = useState<TransportSegment[]>([]);
-
-  // ─── Accommodation ───
-  const [hotels, setHotels] = useState<Accommodation[]>([{ ...emptyHotel }]);
-
-  // ─── Emergency contacts ───
-  // serverId is the DB-assigned id (undefined for unsaved rows); needed
-  // by the bulk-diff save endpoint to distinguish UPDATE from INSERT.
-  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContactRow[]>([]);
-
-  // ─── Notes ───
-  const [notes, setNotes] = useState("");
-
-  // ─── UI state ───
-  const [loading, setLoading] = useState(false);
-  const [loadingDraft, setLoadingDraft] = useState(!!draftId);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-
-  // ─── Unsaved-changes tracking ───
-  // savedSnapshot mirrors the last persisted form state; dirty = current
-  // state differs. Saves snapshot on load + after a successful save.
-  const [savedSnapshot, setSavedSnapshot] = useState<string>("");
-  const currentSnapshot = JSON.stringify({
-    tripScope, title, destination, startDate, endDate, travelersCount,
-    language, coverUrl, segments, hotels, emergencyContacts, notes,
-  });
-  const isDirty = tripScope !== null && savedSnapshot !== "" && currentSnapshot !== savedSnapshot;
-  useUnsavedChanges(isDirty);
+  }, [draftId, setValue]);
 
   // ─── Emergency contacts: country-aware prefill ───
   // For international trips, when the destination resolves to a country
@@ -118,28 +154,26 @@ export default function NewTripPage(): React.ReactNode {
   // even if the user edits the destination later.
   useEffect(() => {
     if (tripScope !== "international") return;
-    const allPhonesEmpty = emergencyContacts.every((c) => !c.phone.trim());
+    const current = getValues("emergencyContacts");
+    const allPhonesEmpty = current.every((c) => !c.phone.trim());
     if (!allPhonesEmpty) return;
     const prefill = lookupEmergencyPrefill(destination);
     if (!prefill) return;
 
-    setEmergencyContacts((prev) => {
-      // Only replace if at least one entry would actually change — avoids
-      // an infinite render loop when the same data is recomputed on
-      // unrelated state changes.
-      const next = [
-        { name: prefill.embassy.name, phone: prefill.embassy.phone, note: "" },
-        { name: prefill.police.name, phone: prefill.police.phone, note: "" },
-        { name: prefill.medical.name, phone: prefill.medical.phone, note: "" },
-      ];
-      const same = prev.length === next.length
-        && prev.every((p, i) => p.name === next[i].name && p.phone === next[i].phone);
-      return same ? prev : next.map((n, i) => ({ ...n, serverId: prev[i]?.serverId }));
-    });
-    // intentionally not depending on emergencyContacts — that would loop;
-    // the early-return above handles re-evaluation safety.
+    const next: EmergencyContactRow[] = [
+      { name: prefill.embassy.name, phone: prefill.embassy.phone, note: "", serverId: current[0]?.serverId },
+      { name: prefill.police.name, phone: prefill.police.phone, note: "", serverId: current[1]?.serverId },
+      { name: prefill.medical.name, phone: prefill.medical.phone, note: "", serverId: current[2]?.serverId },
+    ];
+    // Skip the replace when the data is identical — prevents an infinite
+    // loop when the effect re-runs from unrelated re-renders.
+    const same = current.length === next.length
+      && current.every((p, i) => p.name === next[i].name && p.phone === next[i].phone);
+    if (!same) contactsField.replace(next);
+    // contactsField is stable across renders — the early return above is
+    // what guards against a rerun loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tripScope, destination]);
+  }, [tripScope, destination, getValues]);
 
   // ─── Load draft ───
   useEffect(() => {
@@ -176,7 +210,6 @@ export default function NewTripPage(): React.ReactNode {
     (async () => {
       try {
         const trip = await api.get<TripDraftDto>(`/admin/trips/${draftId}`);
-        setTripScope((trip.scope || "domestic") as TripScopeLocal);
         setTripStatus(trip.status || "");
         setDateChangeCount(trip.dateChangeCount || 0);
 
@@ -186,89 +219,79 @@ export default function NewTripPage(): React.ReactNode {
           if (typeof usage.maxDateChanges === "number") setMaxDateChanges(usage.maxDateChanges);
         } catch { /* use default */ }
 
-        setTitle(trip.title || "");
-        setDestination(trip.destination || "");
-        setStartDate(trip.startDate || "");
-        setEndDate(trip.endDate || "");
-        setTravelersCount(String(trip.travelersCount || ""));
-        setLanguage(trip.language?.toLowerCase() || "th");
-        setCoverUrl(trip.coverImageUrl || null);
-        setNotes(trip.importantNotes || "");
+        // Children loaded in parallel — they're independent.
+        const [airlines, accoms, contacts] = await Promise.all([
+          api.get<AirlineDto[]>(`/admin/trips/${draftId}/airlines`),
+          api.get<AccommodationDto[]>(`/admin/trips/${draftId}/accommodations`),
+          api.get<EmergencyContactDto[]>(`/admin/trips/${draftId}/emergency-contacts`),
+        ]);
 
-        // Load airlines/transport (preserve server id for bulk-diff save)
-        const airlines = await api.get<AirlineDto[]>(`/admin/trips/${draftId}/airlines`);
-        if (airlines.length > 0) {
-          setSegments(airlines.map((a) => ({
-            ...makeSegment(a.type === "return" ? "return" : "outbound", (a.transportType || "flight") as TransportType),
-            serverId: a.id,
-            from: a.departureAirport || "", fromDetail: a.departureDetail || "",
-            to: a.arrivalAirport || "", toDetail: a.arrivalDetail || "",
-            departureDate: a.departureDate || "", departureTime: a.departureTime || "",
-            arrivalDate: a.arrivalDate || "", arrivalTime: a.arrivalTime || "",
-            airline: a.airline || "", flightNumber: a.flightNumber || "",
-            operator: a.operator || "", vehicleInfo: a.vehicleInfo || "",
-            bookingRef: a.bookingRef || "", baggage: a.baggage || "",
-            meetingPoint: a.meetingPoint || "", note: a.note || "",
-          })));
-        }
-
-        // Load accommodations
-        const accoms = await api.get<AccommodationDto[]>(`/admin/trips/${draftId}/accommodations`);
-        if (accoms.length > 0) {
-          setHotels(accoms.map((h) => ({
-            id: h.id,
-            name: h.name || "", address: h.address || "", phone: h.phone || "",
-            checkIn: h.checkIn || "", checkOut: h.checkOut || "", nights: h.nights || 1,
-          })));
-        }
-
-        // Load emergency contacts
-        const contacts = await api.get<EmergencyContactDto[]>(`/admin/trips/${draftId}/emergency-contacts`);
-        if (contacts.length > 0) {
-          setEmergencyContacts(contacts.map((c) => ({
-            serverId: c.id,
-            name: c.name || "", phone: c.phone || "", note: "",
-          })));
-        }
+        // One reset() seeds the entire form and clears isDirty in a single
+        // commit, avoiding the flicker from per-field setValue calls.
+        reset({
+          scope: (trip.scope || "domestic") as TripScopeLocal,
+          title: trip.title || "",
+          destination: trip.destination || "",
+          startDate: trip.startDate || "",
+          endDate: trip.endDate || "",
+          travelersCount: String(trip.travelersCount || ""),
+          language: trip.language?.toLowerCase() || "th",
+          coverUrl: trip.coverImageUrl || null,
+          notes: trip.importantNotes || "",
+          segments: airlines.length > 0
+            ? airlines.map((a) => ({
+                ...makeSegment(a.type === "return" ? "return" : "outbound", (a.transportType || "flight") as TransportType),
+                serverId: a.id,
+                from: a.departureAirport || "", fromDetail: a.departureDetail || "",
+                to: a.arrivalAirport || "", toDetail: a.arrivalDetail || "",
+                departureDate: a.departureDate || "", departureTime: a.departureTime || "",
+                arrivalDate: a.arrivalDate || "", arrivalTime: a.arrivalTime || "",
+                airline: a.airline || "", flightNumber: a.flightNumber || "",
+                operator: a.operator || "", vehicleInfo: a.vehicleInfo || "",
+                bookingRef: a.bookingRef || "", baggage: a.baggage || "",
+                meetingPoint: a.meetingPoint || "", note: a.note || "",
+              }))
+            : [],
+          hotels: accoms.length > 0
+            ? accoms.map((h) => ({
+                id: h.id,
+                name: h.name || "", address: h.address || "", phone: h.phone || "",
+                checkIn: h.checkIn || "", checkOut: h.checkOut || "", nights: h.nights || 1,
+              }))
+            : [{ ...emptyHotel }],
+          emergencyContacts: contacts.length > 0
+            ? contacts.map((c) => ({
+                serverId: c.id,
+                name: c.name || "", phone: c.phone || "", note: "",
+              }))
+            : [],
+        });
       } catch {
         setApiError("ไม่สามารถโหลดข้อมูล draft ได้");
       } finally {
         setLoadingDraft(false);
       }
     })();
-  }, [draftId]);
+  }, [draftId, reset]);
 
-  // Snapshot the loaded form (or empty form for fresh trips) once
-  // loading settles, so dirty-tracking has a baseline to compare against.
-  useEffect(() => {
-    if (loadingDraft) return;
-    setSavedSnapshot(JSON.stringify({
-      tripScope, title, destination, startDate, endDate, travelersCount,
-      language, coverUrl, segments, hotels, emergencyContacts, notes,
-    }));
-    // Run only when loading completes — subsequent updates flow through
-    // saveTrip's success path.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingDraft]);
-
-  function selectScope(scope: TripScopeLocal): void {
-    setTripScope(scope);
+  const selectScope = useCallback((scope: TripScopeLocal): void => {
+    setValue("scope", scope, { shouldDirty: true });
     if (scope === "domestic") {
-      setSegments([makeSegment("outbound", "van"), makeSegment("return", "van")]);
-      setLanguage("th");
-      setEmergencyContacts([
+      segmentsField.replace([makeSegment("outbound", "van"), makeSegment("return", "van")]);
+      setValue("language", "th", { shouldDirty: true });
+      contactsField.replace([
         { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
         { name: "แพทย์ฉุกเฉิน", phone: "1669", note: "" },
       ]);
-    } else {
-      setSegments([makeSegment("outbound", "flight"), makeSegment("return", "flight")]);
-      setEmergencyContacts([
+    } else if (scope === "international") {
+      segmentsField.replace([makeSegment("outbound", "flight"), makeSegment("return", "flight")]);
+      contactsField.replace([
         { name: "สถานทูตไทย", phone: "", note: "กรอกเบอร์ตามประเทศปลายทาง" },
         { name: "ตำรวจท้องถิ่น", phone: "", note: "" },
         { name: "แพทย์ฉุกเฉิน", phone: "", note: "" },
       ]);
     }
-  }
+  }, [setValue, segmentsField, contactsField]);
 
   // ─── Dev Auto Fill ───
   function autoFill() {
@@ -280,31 +303,25 @@ export default function NewTripPage(): React.ReactNode {
     const domesticDests = ["เชียงใหม่", "ภูเก็ต", "กระบี่", "เกาะสมุย", "เขาใหญ่", "หัวหิน"];
     const internationalDests = ["Japan, Tokyo", "Korea, Seoul", "Singapore", "Bali, Indonesia"];
     const dest = isDomestic ? rand(domesticDests) : rand(internationalDests);
-
-    setTitle(isDomestic ? `ทริป${dest} ${new Date().getFullYear() + 543}` : `${dest.split(",")[0]} Trip ${new Date().getFullYear()}`);
-    setDestination(dest);
-    setTravelersCount(String(Math.floor(Math.random() * 25) + 5));
-    setLanguage(isDomestic ? "th" : rand(["en", "ja", "th"]));
-
-    // Dates
     const start = new Date();
     start.setDate(start.getDate() + Math.floor(Math.random() * 60) + 14);
     const nights = Math.floor(Math.random() * 5) + 3;
     const end = new Date(start);
     end.setDate(end.getDate() + nights);
-    setStartDate(fmt(start));
-    setEndDate(fmt(end));
 
-    // Cover image — left empty in dev auto-fill (operator uploads real image
-    // via media library; placeholder URLs would fail with 404 on Unsplash CDN
-    // changes anyway).
-    setCoverUrl(null);
+    setValue("title", isDomestic ? `ทริป${dest} ${new Date().getFullYear() + 543}` : `${dest.split(",")[0]} Trip ${new Date().getFullYear()}`, { shouldDirty: true });
+    setValue("destination", dest, { shouldDirty: true });
+    setValue("travelersCount", String(Math.floor(Math.random() * 25) + 5), { shouldDirty: true });
+    setValue("language", isDomestic ? "th" : rand(["en", "ja", "th"]), { shouldDirty: true });
+    setValue("startDate", fmt(start), { shouldDirty: true });
+    setValue("endDate", fmt(end), { shouldDirty: true });
+    setValue("coverUrl", null, { shouldDirty: true });
 
     // Transport — ทุก field
     if (!isDomestic) {
       const airlineName = rand(["Thai Airways", "AirAsia X", "EVA Air", "Japan Airlines"]);
       const destCode = rand(["NRT", "ICN", "SIN", "DPS"]);
-      setSegments([
+      segmentsField.replace([
         {
           ...makeSegment("outbound", "flight"),
           airline: airlineName, flightNumber: `TG${Math.floor(Math.random() * 900) + 100}`,
@@ -324,7 +341,7 @@ export default function NewTripPage(): React.ReactNode {
       ]);
     } else {
       const vanOp = rand(["รถตู้สมชาย ทัวร์", "เที่ยวทั่วไทย", "ไทยทราเวล"]);
-      setSegments([
+      segmentsField.replace([
         {
           ...makeSegment("outbound", "van"),
           from: "กรุงเทพฯ", fromDetail: "ปั๊ม ปตท. พหลโยธิน", to: dest, toDetail: "โรงแรม",
@@ -348,7 +365,7 @@ export default function NewTripPage(): React.ReactNode {
     const hotelNames = isDomestic
       ? ["โรงแรมเชียงใหม่แกรนด์วิว", "The Sea House Krabi", "Pullman Phuket", "บ้านปลายหาด รีสอร์ท"]
       : ["Park Hyatt Tokyo", "Lotte Hotel Seoul", "Marina Bay Sands", "Four Seasons Bali"];
-    setHotels([{
+    hotelsField.replace([{
       name: rand(hotelNames),
       address: isDomestic ? `${Math.floor(Math.random() * 200) + 1} ถ.${rand(["เจริญเมือง", "ช้างคลาน", "นิมมาน", "ราชดำเนิน"])} ` : "3-7-1-2 Nishi Shinjuku, Tokyo",
       phone: isDomestic ? `0${Math.floor(Math.random() * 9) + 2}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}` : `+81-3-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
@@ -359,7 +376,7 @@ export default function NewTripPage(): React.ReactNode {
 
     // Emergency contacts
     if (isDomestic) {
-      setEmergencyContacts([
+      contactsField.replace([
         { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
         { name: "แพทย์ฉุกเฉิน (สพฉ.)", phone: "1669", note: "" },
         { name: "สายด่วนกรมควบคุมโรค", phone: "1422", note: "" },
@@ -373,7 +390,7 @@ export default function NewTripPage(): React.ReactNode {
       };
       const country = dest.split(",")[0].trim();
       const embassy = embassies[country] || { name: `สถานทูตไทย ณ ${country}`, phone: "+66-2-203-5000" };
-      setEmergencyContacts([
+      contactsField.replace([
         { name: embassy.name, phone: embassy.phone, note: "" },
         { name: `ตำรวจท้องถิ่น ${country}`, phone: country === "Japan" ? "110" : country === "Korea" ? "112" : "911", note: "" },
         { name: `แพทย์ฉุกเฉิน ${country}`, phone: country === "Japan" ? "119" : country === "Korea" ? "119" : "995", note: "" },
@@ -381,40 +398,52 @@ export default function NewTripPage(): React.ReactNode {
     }
 
     // Notes
-    setNotes(isDomestic
+    setValue("notes", isDomestic
       ? `สิ่งที่ต้องเตรียม:\n• ครีมกันแดด\n• ยากันยุง\n• เสื้อผ้าสบายๆ\n\nนัดหมาย:\n• จุดรับ-ส่ง: ปั๊ม ปตท. ถนนพหลโยธิน กม.12\n• เวลา 05:30 น.`
-      : `สิ่งที่ต้องเตรียม:\n• พาสปอร์ต (อายุเหลือ 6 เดือนขึ้นไป)\n• ประกันการเดินทาง\n• เงินสด ¥30,000 ต่อคน\n• เสื้อกันหนาว (อุณหภูมิ 5-10°C)\n\nนัดหมาย:\n• สนามบินสุวรรณภูมิ ชั้น 4 เคาน์เตอร์ D\n• 3 ชม. ก่อนเวลาบิน`
-    );
+      : `สิ่งที่ต้องเตรียม:\n• พาสปอร์ต (อายุเหลือ 6 เดือนขึ้นไป)\n• ประกันการเดินทาง\n• เงินสด ¥30,000 ต่อคน\n• เสื้อกันหนาว (อุณหภูมิ 5-10°C)\n\nนัดหมาย:\n• สนามบินสุวรรณภูมิ ชั้น 4 เคาน์เตอร์ D\n• 3 ชม. ก่อนเวลาบิน`,
+      { shouldDirty: true });
   }
 
+  // Outbound/return projection used by the JSX. Recomputed each render
+  // off the watched array — cheap, no need to memo.
   const outbound = segments.filter((s) => s.direction === "outbound");
   const returnSegs = segments.filter((s) => s.direction === "return");
 
   function addSegment(direction: "outbound" | "return"): void {
-    setSegments([...segments, makeSegment(direction, "flight")]);
+    segmentsField.append(makeSegment(direction, "flight"));
   }
   function removeSegment(id: string): void {
-    setSegments(segments.filter((s) => s.id !== id));
+    const idx = getValues("segments").findIndex((s) => s.id === id);
+    if (idx >= 0) segmentsField.remove(idx);
   }
   function updateSegment(id: string, patch: Partial<TransportSegment>): void {
-    setSegments(segments.map((s) => s.id === id ? { ...s, ...patch } : s));
+    const idx = getValues("segments").findIndex((s) => s.id === id);
+    if (idx < 0) return;
+    const current = getValues(`segments.${idx}`);
+    segmentsField.update(idx, { ...current, ...patch });
   }
 
   function updateHotel(index: number, patch: Partial<Accommodation>): void {
-    setHotels(hotels.map((h, i) => i === index ? { ...h, ...patch } : h));
+    const current = getValues(`hotels.${index}`);
+    hotelsField.update(index, { ...current, ...patch });
   }
 
-  function updateContact(index: number, patch: Partial<{ name: string; phone: string; note: string }>): void {
-    setEmergencyContacts(emergencyContacts.map((c, i) => i === index ? { ...c, ...patch } : c));
+  function updateContact(index: number, patch: Partial<EmergencyContactRow>): void {
+    const current = getValues(`emergencyContacts.${index}`);
+    contactsField.update(index, { ...current, ...patch });
   }
 
   // ─── Validation ───
+  // Reads from form state via getValues() so it stays in sync without
+  // depending on stale closure captures of every individual watch.
   function validate(): boolean {
+    const v = getValues();
     const errors: FieldErrors = {};
 
     // Basics — Zod schema. First error per path wins.
     const basics = tripBasicsSchema.safeParse({
-      title, destination, startDate, endDate, travelersCount, notes,
+      title: v.title, destination: v.destination, startDate: v.startDate,
+      endDate: v.endDate, travelersCount: v.travelersCount, notes: v.notes,
     });
     if (!basics.success) {
       for (const issue of basics.error.issues) {
@@ -425,8 +454,8 @@ export default function NewTripPage(): React.ReactNode {
 
     // Hotels: validate every non-empty row. First failing row blocks save
     // and surfaces a single banner-level error.
-    for (let i = 0; i < hotels.length; i++) {
-      const h = hotels[i];
+    for (let i = 0; i < v.hotels.length; i++) {
+      const h = v.hotels[i];
       if (!h.name.trim()) continue;
       const r = hotelSchema.safeParse(h);
       if (!r.success) {
@@ -436,8 +465,8 @@ export default function NewTripPage(): React.ReactNode {
     }
 
     // Emergency contacts: same pattern.
-    for (let i = 0; i < emergencyContacts.length; i++) {
-      const c = emergencyContacts[i];
+    for (let i = 0; i < v.emergencyContacts.length; i++) {
+      const c = v.emergencyContacts[i];
       if (!c.name.trim()) continue;
       const r = emergencyContactSchema.safeParse(c);
       if (!r.success) {
@@ -467,18 +496,19 @@ export default function NewTripPage(): React.ReactNode {
 
     try {
       let tripId = draftId;
+      const v = getValues();
 
       // Step 1: Create or Update trip
       const tripPayload = {
-        scope: tripScope,
-        title: title.trim() || "Untitled Trip",
-        destination: destination.trim() || "TBD",
-        startDate: startDate || new Date().toISOString().split("T")[0],
-        endDate: endDate || new Date().toISOString().split("T")[0],
-        travelersCount: Number(travelersCount) || 1,
-        language,
-        coverImageUrl: coverUrl,
-        importantNotes: notes.trim() || undefined,
+        scope: v.scope,
+        title: v.title.trim() || "Untitled Trip",
+        destination: v.destination.trim() || "TBD",
+        startDate: v.startDate || new Date().toISOString().split("T")[0],
+        endDate: v.endDate || new Date().toISOString().split("T")[0],
+        travelersCount: Number(v.travelersCount) || 1,
+        language: v.language,
+        coverImageUrl: v.coverUrl,
+        importantNotes: v.notes.trim() || undefined,
       };
 
       if (tripId) {
@@ -496,12 +526,12 @@ export default function NewTripPage(): React.ReactNode {
       // incoming list against DB (UPDATE matched ids, INSERT null ids,
       // DELETE missing ids) inside one transaction per collection. We
       // run all 3 in parallel — they touch independent tables.
-      const filteredHotels = hotels.filter((h) => h.name.trim());
-      const filteredContacts = emergencyContacts.filter((c) => c.name.trim());
+      const filteredHotels = v.hotels.filter((h) => h.name.trim());
+      const filteredContacts = v.emergencyContacts.filter((c) => c.name.trim());
 
       const [airlinesRes, hotelsRes, contactsRes] = await Promise.all([
         api.put<Array<{ id: string }>>(`/admin/trips/${tripId}/airlines/bulk`, {
-          items: segments.map((seg) => ({
+          items: v.segments.map((seg) => ({
             id: seg.serverId ?? null,
             transportType: seg.type,
             type: seg.direction === "outbound" ? "departure" : "return",
@@ -536,34 +566,29 @@ export default function NewTripPage(): React.ReactNode {
         }),
       ]);
 
-      // Adopt server-assigned ids back into local state so subsequent
-      // saves UPDATE in place instead of re-INSERTing.
-      setSegments((prev) => prev.map((seg, i) => ({ ...seg, serverId: airlinesRes[i]?.id ?? seg.serverId })));
-      // Map hotel ids back through the filtered list — local state may
-      // contain blank rows that were dropped from the payload.
-      setHotels((prev) => {
-        let savedIdx = 0;
-        return prev.map((h) => {
-          if (!h.name.trim()) return h;
-          const id = hotelsRes[savedIdx++]?.id;
-          return id ? { ...h, id } : h;
-        });
+      // Adopt server-assigned ids back into the form so subsequent saves
+      // UPDATE in place instead of re-INSERTing. We reset() with the
+      // freshly-saved values so formState.isDirty flips back to false —
+      // RHF's natural way to mark "current state matches DB".
+      const nextSegments = v.segments.map((seg, i) => ({ ...seg, serverId: airlinesRes[i]?.id ?? seg.serverId }));
+      let savedHotelIdx = 0;
+      const nextHotels = v.hotels.map((h) => {
+        if (!h.name.trim()) return h;
+        const id = hotelsRes[savedHotelIdx++]?.id;
+        return id ? { ...h, id } : h;
       });
-      setEmergencyContacts((prev) => {
-        let savedIdx = 0;
-        return prev.map((c) => {
-          if (!c.name.trim()) return c;
-          const id = contactsRes[savedIdx++]?.id;
-          return id ? { ...c, serverId: id } : c;
-        });
+      let savedContactIdx = 0;
+      const nextContacts = v.emergencyContacts.map((c) => {
+        if (!c.name.trim()) return c;
+        const id = contactsRes[savedContactIdx++]?.id;
+        return id ? { ...c, serverId: id } : c;
       });
-
-      // Refresh dirty-tracking baseline so we don't warn on the way out
-      // when the user has just saved.
-      setSavedSnapshot(JSON.stringify({
-        tripScope, title, destination, startDate, endDate, travelersCount,
-        language, coverUrl, segments, hotels, emergencyContacts, notes,
-      }));
+      reset({
+        ...v,
+        segments: nextSegments,
+        hotels: nextHotels,
+        emergencyContacts: nextContacts,
+      }, { keepDirty: false });
 
       if (redirectToEdit) {
         router.push(ROUTES.tripEdit(tripId!));
@@ -606,7 +631,7 @@ export default function NewTripPage(): React.ReactNode {
           // Use browser back when no draft yet so we pop the ?step=basics
           // entry we pushed and the scope picker reappears naturally. With
           // a saved draft, the URL is anchored by ?id= so just clear state.
-          onBack={() => (draftId ? setTripScope(null) : window.history.back())}
+          onBack={() => (draftId ? setValue("scope", null) : window.history.back())}
           onSaveDraft={handleSaveDraft}
           savingDraft={savingDraft}
           saveDraftLabel={draftId ? "อัพเดทร่าง" : "บันทึกร่าง"}
@@ -638,7 +663,7 @@ export default function NewTripPage(): React.ReactNode {
             </span>
             <button
               type="button"
-              onClick={() => (draftId ? setTripScope(null) : window.history.back())}
+              onClick={() => (draftId ? setValue("scope", null) : window.history.back())}
               className="text-xs text-(--on-surface-variant) hover:text-(--primary) underline"
             >
               เปลี่ยน
@@ -653,7 +678,7 @@ export default function NewTripPage(): React.ReactNode {
             </div>
             <ImageUpload
               value={coverUrl}
-              onChange={setCoverUrl}
+              onChange={(url) => updateField("coverUrl", url)}
               folder="covers"
               aspect="wide"
               label="อัปโหลดหรือลากรูปภาพปกมาวาง"
@@ -669,13 +694,13 @@ export default function NewTripPage(): React.ReactNode {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-4 sm:gap-x-6 md:gap-x-8 gap-y-6 md:gap-y-10 bg-white p-6 md:p-10 rounded-3xl border border-(--outline-variant)/30 shadow-sm">
               <div className="md:col-span-2 lg:col-span-8">
-                <FormInput label="ชื่อทริป" placeholder="เช่น ทริปเชียงใหม่ 3 วัน 2 คืน" required value={title} onChange={(e) => { setTitle(e.target.value); setFieldErrors((prev) => ({ ...prev, title: "" })); }} error={fieldErrors.title} />
+                <FormInput label="ชื่อทริป" placeholder="เช่น ทริปเชียงใหม่ 3 วัน 2 คืน" required value={title} onChange={(e) => updateField("title", e.target.value)} error={fieldErrors.title} />
               </div>
               <div className="md:col-span-1 lg:col-span-4">
                 <SegmentedControl
                   label="ภาษาหลัก"
                   value={language}
-                  onChange={setLanguage}
+                  onChange={(v) => updateField("language", v)}
                   options={[
                     { value: "th", label: "ไทย" },
                     { value: "en", label: "English" },
@@ -683,7 +708,7 @@ export default function NewTripPage(): React.ReactNode {
                 />
               </div>
               <div className="md:col-span-1 lg:col-span-6">
-                <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => { setDestination(e.target.value); setFieldErrors((prev) => ({ ...prev, destination: "" })); }} error={fieldErrors.destination} />
+                <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => updateField("destination", e.target.value)} error={fieldErrors.destination} />
               </div>
               {(() => {
                 const isPublished = tripStatus === "Published" || tripStatus === "Unpublished";
@@ -693,17 +718,17 @@ export default function NewTripPage(): React.ReactNode {
                 return (
                   <>
                     <div className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}>
-                      <DatePicker label={`วันเดินทาง${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required value={startDate} onChange={(v) => { setStartDate(v); setFieldErrors((prev) => ({ ...prev, startDate: "" })); }} error={fieldErrors.startDate} />
+                      <DatePicker label={`วันเดินทาง${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required value={startDate} onChange={(v) => updateField("startDate", v)} error={fieldErrors.startDate} />
                     </div>
                     <div className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}>
-                      <DatePicker label={`วันกลับ${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required min={startDate} value={endDate} onChange={(v) => { setEndDate(v); setFieldErrors((prev) => ({ ...prev, endDate: "" })); }} error={fieldErrors.endDate} />
+                      <DatePicker label={`วันกลับ${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required min={startDate} value={endDate} onChange={(v) => updateField("endDate", v)} error={fieldErrors.endDate} />
                       {dateHint && <p className="text-[10px] text-(--on-surface-variant) mt-1 px-1">{dateHint}</p>}
                     </div>
                   </>
                 );
               })()}
               <div className="md:col-span-2 lg:col-span-4">
-                <FormInput label="จำนวนผู้เดินทาง" placeholder="จำนวนคน" type="number" icon="group" required value={travelersCount} onChange={(e) => { setTravelersCount(e.target.value); setFieldErrors((prev) => ({ ...prev, travelersCount: "" })); }} error={fieldErrors.travelersCount} />
+                <FormInput label="จำนวนผู้เดินทาง" placeholder="จำนวนคน" type="number" icon="group" required value={travelersCount} onChange={(e) => updateField("travelersCount", e.target.value)} error={fieldErrors.travelersCount} />
               </div>
             </div>
           </section>
@@ -748,10 +773,10 @@ export default function NewTripPage(): React.ReactNode {
                     startDate={startDate}
                     endDate={endDate}
                     onUpdate={(patch) => updateHotel(i, patch)}
-                    onRemove={() => setHotels(hotels.filter((_, j) => j !== i))}
+                    onRemove={() => hotelsField.remove(i)}
                   />
                 ))}
-                <DashedAddButton onClick={() => setHotels([...hotels, { ...emptyHotel }])}>
+                <DashedAddButton onClick={() => hotelsField.append({ ...emptyHotel })}>
                   เพิ่มที่พัก
                 </DashedAddButton>
               </div>
@@ -785,10 +810,10 @@ export default function NewTripPage(): React.ReactNode {
                   contact={contact}
                   showRemove={emergencyContacts.length > 1}
                   onUpdate={(patch) => updateContact(i, patch)}
-                  onRemove={() => setEmergencyContacts(emergencyContacts.filter((_, j) => j !== i))}
+                  onRemove={() => contactsField.remove(i)}
                 />
               ))}
-              <DashedAddButton onClick={() => setEmergencyContacts([...emergencyContacts, { name: "", phone: "", note: "" }])}>
+              <DashedAddButton onClick={() => contactsField.append({ name: "", phone: "", note: "" })}>
                 เพิ่มเบอร์ฉุกเฉิน
               </DashedAddButton>
             </div>
@@ -802,7 +827,7 @@ export default function NewTripPage(): React.ReactNode {
               <FormTextarea
                 placeholder={"เช่น\n• เตรียมเสื้อกันหนาว อุณหภูมิ 5-10°C\n• เงินสด ¥30,000 ต่อคน\n• พาสปอร์ตต้องมีอายุเหลือ 6 เดือนขึ้นไป\n• นัดรวมพลที่สนามบิน 3 ชม. ก่อนบิน"}
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => updateField("notes", e.target.value)}
                 rows={6}
               />
               <div className="flex items-start gap-2 text-xs text-(--on-surface-variant)">
