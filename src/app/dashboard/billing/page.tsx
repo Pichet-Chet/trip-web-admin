@@ -22,6 +22,12 @@ interface UsageData {
   hasActiveSubscription: boolean;
   subscriptionExpiresAt: string | null;
   subscriptionStatus: string | null;
+  tripQuotaUsed: number;
+  tripQuotaLimit: number;
+  remainingTrips: number;
+  creditsTotal: number;
+  creditsUsed: number;
+  creditsRemaining: number;
 }
 
 interface MyRefundRequest {
@@ -166,6 +172,17 @@ function BillingContent(): React.ReactNode {
     } catch { /* ignore — refund flow optional */ }
   }, []);
 
+  async function cancelRefundRequest(id: string) {
+    if (!confirm("ยกเลิกคำขอคืนเงินนี้?")) return;
+    try {
+      await api.post(`/admin/refund-requests/${id}/cancel`, {});
+      toast("ยกเลิกคำขอเรียบร้อย", "success");
+      await loadRefunds();
+    } catch (e: unknown) {
+      toast(e instanceof ApiError ? e.message : "ยกเลิกไม่สำเร็จ", "error");
+    }
+  }
+
   useEffect(() => { loadRefunds(); }, [loadRefunds]);
 
   useEffect(() => {
@@ -174,18 +191,35 @@ function BillingContent(): React.ReactNode {
       .catch(() => setBillingProfile("missing"));
   }, []);
 
-  function refundStatusFor(paymentId: string): "pending" | "rejected" | null {
+  function refundFor(paymentId: string): MyRefundRequest | null {
     // approved → backend marks payment.status="refunded" so we don't reach here
     // cancelled → operator can submit again
-    const open = refundRequests.find(r => r.paymentId === paymentId && (r.status === "pending" || r.status === "rejected"));
-    if (!open) return null;
-    return open.status === "pending" ? "pending" : "rejected";
+    return refundRequests.find(r => r.paymentId === paymentId && (r.status === "pending" || r.status === "rejected")) ?? null;
   }
+
+  const [rejectedDetail, setRejectedDetail] = useState<MyRefundRequest | null>(null);
+
+  // Payment filters
+  const [statusFilter, setStatusFilter] = useState<"default" | "all" | "paid" | "refunded" | "failed">("default");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const buildPaymentQuery = useCallback((includePagination: boolean) => {
+    const params = new URLSearchParams();
+    if (includePagination) {
+      params.set("page", String(page));
+      params.set("pageSize", "20");
+    }
+    if (statusFilter !== "default") params.set("status", statusFilter);
+    if (fromDate) params.set("from", new Date(fromDate).toISOString());
+    if (toDate) params.set("to", new Date(toDate + "T23:59:59").toISOString());
+    return params.toString();
+  }, [page, statusFilter, fromDate, toDate]);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.get<PaymentHistoryPage>(`/admin/billing/payments?page=${page}&pageSize=20`),
+      api.get<PaymentHistoryPage>(`/admin/billing/payments?${buildPaymentQuery(true)}`),
       api.get<UsageData>("/admin/usage"),
     ])
       .then(([p, u]) => {
@@ -198,7 +232,32 @@ function BillingContent(): React.ReactNode {
       })
       .catch((e: ApiError) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [page, searchParams]);
+  }, [buildPaymentQuery, searchParams]);
+
+  function exportCsv() {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+    const url = `${baseUrl}/admin/billing/payments/export.csv?${buildPaymentQuery(false)}`;
+    fetch(url, {
+      credentials: "include",
+      headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token") ?? ""}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("download failed");
+        return res.blob();
+      })
+      .then((blob) => {
+        const dlUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = dlUrl;
+        a.download = `payments-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(dlUrl);
+        toast("ดาวน์โหลด CSV เรียบร้อย", "success");
+      })
+      .catch(() => toast("ดาวน์โหลด CSV ไม่สำเร็จ", "error"));
+  }
 
   // Stripe webhook can land 1-10s after redirect — refetch usage twice at
   // 3s and 8s when ?success=1 so the Account Status card reflects the new
@@ -250,6 +309,9 @@ function BillingContent(): React.ReactNode {
       setCancelSuccess(`ยกเลิกเรียบร้อย — ใช้งานได้ถึง ${formatDate(result.accessUntil)}`);
       setCancelOpen(false);
       setCancelReason("");
+      // Refetch usage so the Plan card reflects 'cancelling' status immediately —
+      // user shouldn't have to refresh to see the change.
+      api.get<UsageData>("/admin/usage").then(setUsage).catch(() => {});
     } catch (e: unknown) {
       setCancelError(e instanceof ApiError ? e.message : "ไม่สามารถยกเลิกได้ กรุณาลองใหม่");
     } finally {
@@ -330,16 +392,18 @@ function BillingContent(): React.ReactNode {
               {usage ? (TIER_LABEL[usage.tier] ?? usage.tier) : "—"} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">Plan</span>
             </h2>
             <p className="text-on-surface-variant mt-2 text-sm md:text-base">
-              ยอดสะสม <strong className="text-on-surface">฿{totalRevenue.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</strong> · {totalCount} รายการ
-              {isSub && usage?.subscriptionExpiresAt && (
+              {isSub && usage?.subscriptionExpiresAt ? (
                 <>
-                  {" · "}
                   {isPastDue ? "ต้องอัปเดตบัตรก่อน "
                     : isCancelling ? "ใช้งานได้ถึง "
                     : isPending ? "ครบกำหนด "
                     : "ต่ออายุ "}
-                  {formatDate(usage.subscriptionExpiresAt)}
+                  <strong className="text-on-surface">{formatDate(usage.subscriptionExpiresAt)}</strong>
                 </>
+              ) : usage?.tier === "free" ? (
+                <>เหลือทริปฟรี <strong className="text-on-surface">{usage.remainingTrips}/{usage.tripQuotaLimit}</strong></>
+              ) : (
+                <>ใช้งานแบบ Pay-as-you-go</>
               )}
             </p>
           </div>
@@ -386,18 +450,53 @@ function BillingContent(): React.ReactNode {
           </div>
         </div>
 
-        {/* Total Revenue Stat Card — matches usage gauge card style */}
+        {/* Right card — context-aware: subscription billing date / credits balance / total spent */}
         <div className="bg-white p-6 rounded-2xl border border-(--surface-container-high) shadow-sm flex flex-col justify-center text-center space-y-3">
-          <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
-            <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-widest font-bold text-outline">ยอดชำระรวม</p>
-            <p className="text-3xl md:text-4xl font-black text-on-surface mt-2">
-              ฿{totalRevenue.toLocaleString("th-TH", { maximumFractionDigits: 0 })}
-            </p>
-            <p className="text-xs text-on-surface-variant mt-1">{totalCount} รายการสำเร็จ</p>
-          </div>
+          {isSub && usage?.subscriptionExpiresAt ? (
+            <>
+              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
+                <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>event</span>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest font-bold text-outline">
+                  {isCancelling ? "หมดอายุ" : isPastDue ? "ครบกำหนดชำระ" : "ต่ออายุครั้งถัดไป"}
+                </p>
+                <p className="text-2xl md:text-3xl font-black text-on-surface mt-2">
+                  {formatDate(usage.subscriptionExpiresAt)}
+                </p>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  {(() => {
+                    const days = Math.ceil((new Date(usage.subscriptionExpiresAt).getTime() - Date.now()) / (24 * 3600 * 1000));
+                    return days <= 0 ? "หมดอายุแล้ว" : `อีก ${days} วัน`;
+                  })()}
+                </p>
+              </div>
+            </>
+          ) : usage && usage.creditsRemaining > 0 ? (
+            <>
+              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-emerald-50">
+                <span className="material-symbols-outlined text-2xl text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>savings</span>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest font-bold text-outline">เครดิตคงเหลือ</p>
+                <p className="text-3xl md:text-4xl font-black text-on-surface mt-2">{usage.creditsRemaining}</p>
+                <p className="text-xs text-on-surface-variant mt-1">จาก {usage.creditsTotal} ทริปที่ซื้อ</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
+                <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest font-bold text-outline">ยอดชำระรวม</p>
+                <p className="text-3xl md:text-4xl font-black text-on-surface mt-2">
+                  ฿{totalRevenue.toLocaleString("th-TH", { maximumFractionDigits: 0 })}
+                </p>
+                <p className="text-xs text-on-surface-variant mt-1">{totalCount} รายการสำเร็จ</p>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -463,7 +562,9 @@ function BillingContent(): React.ReactNode {
         </div>
       </Modal>
 
-      {billingProfile === "missing" && (
+      {/* Suppress informational banner when an urgent banner (past_due) is active —
+          past_due requires user action; billing-profile is just a recommendation. */}
+      {billingProfile === "missing" && !isPastDue && (
         <Banner
           variant="info"
           icon="description"
@@ -481,17 +582,71 @@ function BillingContent(): React.ReactNode {
 
       {/* ═══ Payment Table ═══ */}
       <section className="space-y-4">
-        <SectionHeader title="รายการชำระเงิน" subtitle="ประวัติการชำระเงินทั้งหมดของบัญชีคุณ" />
+        <div className="flex items-end justify-between gap-3 flex-wrap">
+          <SectionHeader title="รายการชำระเงิน" subtitle="ประวัติการชำระเงินทั้งหมดของบัญชีคุณ" />
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={!paymentPage || paymentPage.totalCount === 0}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-base">download</span>
+            ดาวน์โหลด CSV
+          </button>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-outline-variant p-3 md:p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">สถานะ</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setPage(1); }}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 outline-none"
+            >
+              <option value="default">สำเร็จ + คืนเงินแล้ว</option>
+              <option value="all">ทุกสถานะ</option>
+              <option value="paid">สำเร็จเท่านั้น</option>
+              <option value="refunded">คืนเงินแล้ว</option>
+              <option value="failed">ล้มเหลว</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">ตั้งแต่วันที่</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">ถึงวันที่</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => { setToDate(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 outline-none"
+            />
+          </div>
+        </div>
 
         <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden">
           {payments.length === 0 ? (
-            <EmptyState
-              icon="receipt_long"
-              title="ยังไม่มีประวัติการชำระเงิน"
-              description="เมื่อคุณซื้อทริปหรือสมัคร Subscription รายการจะแสดงที่นี่"
-              actionLabel="อัปเกรดแพลน"
-              actionHref="/dashboard/upgrade"
-            />
+            (statusFilter !== "default" || fromDate || toDate) ? (
+              <EmptyState
+                icon="filter_alt_off"
+                title="ไม่พบรายการตามเงื่อนไขที่เลือก"
+                description="ลองเปลี่ยนสถานะหรือช่วงวันที่ดู"
+              />
+            ) : (
+              <EmptyState
+                icon="receipt_long"
+                title="ยังไม่มีประวัติการชำระเงิน"
+                description="เมื่อคุณซื้อทริปหรือสมัคร Subscription รายการจะแสดงที่นี่"
+                actionLabel="อัปเกรดแพลน"
+                actionHref="/dashboard/upgrade"
+              />
+            )
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -540,23 +695,39 @@ function BillingContent(): React.ReactNode {
                               <span className="material-symbols-outlined text-[16px] leading-none">receipt_long</span>
                               <span className="leading-none">ใบเสร็จ</span>
                             </button>
-                            {refundStatusFor(tx.id) === "pending" ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600" title="รอ staff review">
-                                <span className="material-symbols-outlined text-[16px] leading-none">hourglass_empty</span>
-                                <span className="leading-none">รอตรวจ</span>
-                              </span>
-                            ) : refundStatusFor(tx.id) === "rejected" ? (
-                              <span className="text-xs font-semibold text-slate-400" title="คำขอถูก reject">ปฏิเสธ</span>
-                            ) : (
-                              <button
-                                onClick={() => setRefundTarget(tx)}
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
-                                title="ขอเงินคืน (ผ่าน staff review)"
-                              >
-                                <span className="material-symbols-outlined text-[16px] leading-none">currency_exchange</span>
-                                <span className="leading-none">ขอคืนเงิน</span>
-                              </button>
-                            )}
+                            {(() => {
+                              const r = refundFor(tx.id);
+                              if (r?.status === "pending") {
+                                return (
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600" title="รอ staff review">
+                                    <span className="material-symbols-outlined text-[16px] leading-none">hourglass_empty</span>
+                                    <span className="leading-none">รอตรวจ</span>
+                                  </span>
+                                );
+                              }
+                              if (r?.status === "rejected") {
+                                return (
+                                  <button
+                                    onClick={() => setRejectedDetail(r)}
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                                    title="ดูเหตุผลที่ปฏิเสธ"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px] leading-none">info</span>
+                                    <span className="leading-none">ปฏิเสธ</span>
+                                  </button>
+                                );
+                              }
+                              return (
+                                <button
+                                  onClick={() => setRefundTarget(tx)}
+                                  className="inline-flex items-center gap-1 text-xs font-semibold text-(--primary) hover:underline cursor-pointer"
+                                  title="ขอเงินคืน (ผ่าน staff review)"
+                                >
+                                  <span className="material-symbols-outlined text-[16px] leading-none">currency_exchange</span>
+                                  <span className="leading-none">ขอคืนเงิน</span>
+                                </button>
+                              );
+                            })()}
                           </div>
                         ) : tx.status === "refunded" ? (
                           <span className="text-xs font-semibold text-emerald-700">คืนแล้ว</span>
@@ -626,6 +797,16 @@ function BillingContent(): React.ReactNode {
                         <p className="text-xs text-slate-500 mt-1 italic line-clamp-2"><strong>ทีมงาน:</strong> {r.resolutionNotes}</p>
                       )}
                     </div>
+                    {r.status === "pending" && (
+                      <button
+                        type="button"
+                        onClick={() => cancelRefundRequest(r.id)}
+                        className="shrink-0 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
+                        title="ยกเลิกคำขอ (เฉพาะที่ยังรอ review)"
+                      >
+                        ยกเลิกคำขอ
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -675,6 +856,57 @@ function BillingContent(): React.ReactNode {
           paymentId={previewInvoice.paymentId}
           onClose={() => setPreviewInvoice(null)}
         />
+      )}
+
+      {rejectedDetail && (
+        <Modal
+          open
+          onClose={() => setRejectedDetail(null)}
+          size="md"
+          title="คำขอถูกปฏิเสธ"
+          subtitle={
+            <>
+              {PLAN_LABEL[rejectedDetail.planCode] ?? rejectedDetail.planCode} · ฿{rejectedDetail.amount.toFixed(2)}
+            </>
+          }
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRejectedDetail(null)}
+                className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50"
+              >
+                ปิด
+              </button>
+              <Link
+                href="/dashboard/feedback?type=billing"
+                onClick={() => setRejectedDetail(null)}
+                className="flex-1 py-3 rounded-xl bg-(--primary) text-white text-sm font-bold hover:brightness-110 inline-flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">support_agent</span>
+                ติดต่อทีมงาน
+              </Link>
+            </div>
+          }
+        >
+          <div className="px-6 py-5 space-y-4">
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
+              <p className="text-xs font-bold text-rose-900 uppercase tracking-wider mb-1">เหตุผลจากทีมงาน</p>
+              <p className="text-sm text-rose-800 whitespace-pre-wrap">
+                {rejectedDetail.resolutionNotes ?? "ไม่ได้ระบุเหตุผล"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">เหตุผลที่คุณส่ง</p>
+              <p className="text-sm text-slate-600 whitespace-pre-wrap">{rejectedDetail.reason}</p>
+            </div>
+            <div className="text-xs text-slate-400 flex items-center justify-between border-t border-slate-100 pt-3">
+              <span>ส่งเมื่อ {formatDate(rejectedDetail.createdAt)}</span>
+              {rejectedDetail.resolvedAt && (
+                <span>ปฏิเสธเมื่อ {formatDate(rejectedDetail.resolvedAt)}</span>
+              )}
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
@@ -799,13 +1031,16 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
         )}
 
         {verdict && verdict.status === "partial" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1 text-xs">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5 text-xs">
             <p className="font-bold text-amber-900 inline-flex items-center gap-1">
               <span className="material-symbols-outlined text-base">pie_chart</span>
-              คืนแบบ Pro-rata
+              คืนตามสัดส่วนที่ใช้ไป
             </p>
             <p className="text-amber-800">
               ใช้เครดิตไป {verdict.creditsUsed}/{verdict.creditsTotal} → คืนได้ <strong>฿{verdict.refundableAmount.toFixed(2)}</strong> จาก ฿{verdict.totalAmount.toFixed(2)}
+            </p>
+            <p className="text-[11px] text-amber-700/90 leading-relaxed">
+              ระบบจะคืนเฉพาะส่วนของเครดิตที่ <strong>ยังไม่ได้ใช้</strong> เท่านั้น ส่วนที่ใช้ไปแล้วถือว่าใช้บริการเรียบร้อย
             </p>
             {verdict.daysRemaining !== null && (
               <p className="text-amber-700">เหลือเวลาขอคืนอีก {verdict.daysRemaining} วัน</p>
