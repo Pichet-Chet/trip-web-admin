@@ -205,18 +205,18 @@ export function DatePicker({ label, value, onChange, placeholder = "เลือ
           </div>
 
           {/* Day headers */}
-          <div className="grid grid-cols-7 mb-1">
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
             {DAYS_TH.map((d) => (
-              <div key={d} className="text-center text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-wider py-1">
+              <div key={d} className="text-center text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-wider">
                 {d}
               </div>
             ))}
           </div>
 
-          {/* Day cells */}
+          {/* Day cells — aspect-square so cell height = column width, no slack */}
           <div className="grid grid-cols-7 gap-0.5">
             {cells.map((day, i) => {
-              if (day === null) return <div key={`e-${i}`} className="w-9 h-9" />;
+              if (day === null) return <div key={`e-${i}`} className="aspect-square" />;
 
               const d = new Date(viewYear, viewMonth, day);
               const isToday = isSameDay(d, today);
@@ -229,7 +229,7 @@ export function DatePicker({ label, value, onChange, placeholder = "เลือ
                   type="button"
                   disabled={disabled}
                   onClick={() => handleSelect(day)}
-                  className={`w-9 h-9 rounded-xl text-xs font-semibold transition-all flex items-center justify-center ${
+                  className={`aspect-square rounded-lg text-xs font-semibold transition-all flex items-center justify-center ${
                     isSelected
                       ? "bg-(--primary) text-(--on-primary) shadow-md shadow-(--primary)/25"
                       : isToday
