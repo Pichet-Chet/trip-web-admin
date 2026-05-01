@@ -60,6 +60,14 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   Closed:   { label: "ปิดแล้ว",     tone: "slate",    cls: "bg-slate-200 text-slate-700 ring-1 ring-slate-300" },
 };
 
+// Status dot — used as the scannable colored pip on each card.
+const STATUS_DOT: Record<string, string> = {
+  Open:     "bg-(--primary)",
+  Pending:  "bg-amber-500",
+  Resolved: "bg-emerald-500",
+  Closed:   "bg-slate-400",
+};
+
 const TYPE_LABEL: Record<string, string> = {
   Bug: "แจ้งปัญหา",
   FeatureRequest: "เสนอฟีเจอร์",
@@ -200,8 +208,7 @@ export default function SupportTicketsPage() {
   const openCount = summary?.open ?? 0;
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
@@ -325,51 +332,65 @@ export default function SupportTicketsPage() {
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <ul className="divide-y divide-slate-100">
             {data.items.map((t) => {
+              const statusLabel = STATUS_CONFIG[t.status]?.label ?? t.status;
+              const statusDot = STATUS_DOT[t.status] ?? "bg-slate-400";
               const typeMeta = TYPE_ICON[t.type] ?? TYPE_ICON.Other;
               return (
-              <li key={t.id} className="relative">
-                {/* Left accent bar — drawn outside the button so it can hug the
-                    very edge of the card without messing up button padding. */}
+              <li key={t.id} className="relative group">
+                {/* Left accent bar for unread — hugs the card edge */}
                 {t.hasUnread && (
-                  <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-(--primary) rounded-r" />
+                  <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-(--primary)" />
                 )}
                 <button
                   onClick={() => router.push(`/dashboard/support/tickets/${t.id}`)}
                   title={t.subject}
-                  className={`w-full flex items-center gap-4 px-5 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--primary)/40 ${
-                    t.hasUnread ? "bg-(--primary-container)/30" : ""
+                  className={`w-full text-left px-5 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--primary)/40 ${
+                    t.hasUnread ? "bg-(--primary-container)/25 hover:bg-(--primary-container)/40" : "hover:bg-slate-50"
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${typeMeta.tone}`}>
-                    <span className="material-symbols-outlined text-xl leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>{typeMeta.icon}</span>
+                  {/* Top row: status dot · subject (large bold) · date */}
+                  <div className="flex items-baseline gap-3">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full shrink-0 self-center ${statusDot}`}
+                      title={statusLabel}
+                      aria-label={`สถานะ: ${statusLabel}`}
+                    />
+                    <p className={`flex-1 truncate text-base leading-snug ${t.hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
+                      {t.subject}
+                    </p>
+                    <span className="text-xs text-slate-400 font-medium shrink-0 tabular-nums">
+                      {formatRelativeDate(t.updatedAt)}
+                    </span>
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    {/* Top row: subject + status pill */}
-                    <div className="flex items-center gap-2">
-                      <p className={`text-sm truncate ${t.hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>{t.subject}</p>
-                      <StatusBadge status={t.status} config={STATUS_CONFIG} variant="pill" />
-                    </div>
-
-                    {/* Bottom row: type · priority(High) · replies | date */}
-                    <div className="flex items-center gap-x-3 mt-1 text-xs">
-                      <span className="text-slate-500">{TYPE_LABEL[t.type] ?? t.type}</span>
-                      {t.priority === "High" && (
+                  {/* Meta row: aligned to subject (pl from the dot column) */}
+                  <div className="mt-1 ml-[22px] flex items-center gap-x-3 gap-y-1 text-xs flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-slate-500">
+                      <span className={`material-symbols-outlined text-sm leading-none ${typeMeta.tone.split(" ").find((c) => c.startsWith("text-"))}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                        {typeMeta.icon}
+                      </span>
+                      {TYPE_LABEL[t.type] ?? t.type}
+                    </span>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-slate-500">{statusLabel}</span>
+                    {t.priority === "High" && (
+                      <>
+                        <span className="text-slate-300">·</span>
                         <span className="inline-flex items-center gap-1 text-rose-600 font-semibold" title="สำคัญสูง">
                           <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
                           เร่งด่วน
                         </span>
-                      )}
-                      {t.replyCount > 0 && (
+                      </>
+                    )}
+                    {t.replyCount > 0 && (
+                      <>
+                        <span className="text-slate-300">·</span>
                         <span className="inline-flex items-center gap-1 text-slate-500">
                           <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
-                          <span className="tabular-nums">{t.replyCount}</span>
+                          <span className="tabular-nums">{t.replyCount} ตอบกลับ</span>
                         </span>
-                      )}
-                      <span className="ml-auto text-slate-400 font-medium shrink-0 tabular-nums">
-                        {formatRelativeDate(t.updatedAt)}
-                      </span>
-                    </div>
+                      </>
+                    )}
                   </div>
                 </button>
               </li>
@@ -390,7 +411,6 @@ export default function SupportTicketsPage() {
           )}
         </div>
       )}
-      </div>
     </div>
   );
 }
