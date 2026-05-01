@@ -118,7 +118,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const { toast } = useToast();
 
   const [trip, setTrip] = useState<TripDetail | null>(null);
-  usePageTitle(trip ? `ดูตัวอย่าง: ${trip.title}` : "ดูตัวอย่างทริป");
+  usePageTitle(trip ? `ดูตัวอย่าง: ${trip.title}` : null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);

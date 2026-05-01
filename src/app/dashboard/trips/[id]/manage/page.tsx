@@ -42,6 +42,9 @@ interface ChangeLog {
   notiSent: boolean;
   notiSentAt: string | null;
   createdAt: string;
+  /** Server-provided count of followers who haven't acknowledged yet.
+      Optional so this UI degrades gracefully if the API doesn't include it. */
+  unreadCount?: number;
 }
 
 interface Receipt {
@@ -289,6 +292,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                           >
                             <span className="material-symbols-outlined text-sm">replay</span>
                             ส่งซ้ำให้ผู้ที่ยังไม่อ่าน
+                            {typeof log.unreadCount === "number" && log.unreadCount > 0 && ` (${log.unreadCount})`}
                           </button>
                         </>
                       )}
@@ -353,11 +357,16 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
         onClose={() => setConfirmAction(null)}
         onConfirm={() => confirmAction && handleSend(confirmAction.logId, confirmAction.mode)}
         title={confirmAction?.mode === "send" ? "ส่งการแจ้งเตือนหรือไม่?" : "ส่งซ้ำให้ผู้ที่ยังไม่อ่านหรือไม่?"}
-        description={
-          confirmAction?.mode === "send"
-            ? `จะส่งแจ้งเตือนถึงผู้ติดตาม ${followers.length} คน — ตรวจสอบให้แน่ใจว่าข้อมูลทริปอัปเดตเรียบร้อย`
-            : "ระบบจะส่งเฉพาะผู้ที่ยังไม่ได้กดยืนยันการอ่าน"
-        }
+        description={(() => {
+          if (!confirmAction) return "";
+          if (confirmAction.mode === "send") {
+            return `จะส่งแจ้งเตือนถึงผู้ติดตาม ${followers.length} คน — ตรวจสอบให้แน่ใจว่าข้อมูลทริปอัปเดตเรียบร้อย`;
+          }
+          const unread = changelogs.find((l) => l.id === confirmAction.logId)?.unreadCount;
+          return typeof unread === "number"
+            ? `ระบบจะส่งซ้ำเฉพาะผู้ที่ยังไม่ได้กดยืนยันการอ่าน (${unread} คน)`
+            : "ระบบจะส่งเฉพาะผู้ที่ยังไม่ได้กดยืนยันการอ่าน";
+        })()}
         confirmLabel={confirmAction?.mode === "send" ? "ส่ง" : "ส่งซ้ำ"}
       />
 

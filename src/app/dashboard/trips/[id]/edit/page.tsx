@@ -146,7 +146,9 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   // Title hook moved to bottom of state declarations — uses tripTitle.
   const [saving, setSaving] = useState(false);
   const [tripTitle, setTripTitle] = useState("");
-  usePageTitle(tripTitle ? `แก้ไข: ${tripTitle}` : "แก้ไขทริป");
+  // Skip the placeholder title while loading so the tab doesn't flash
+  // "แก้ไขทริป" → "แก้ไข: <title>" right after mount.
+  usePageTitle(tripTitle ? `แก้ไข: ${tripTitle}` : null);
   const [tripStatus, setTripStatus] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -477,16 +479,38 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
         {/* Day Tabs (fixed: matches travel dates) */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex gap-1.5 p-1 bg-(--surface-variant)/50 border border-(--outline-variant)/30 rounded-2xl overflow-x-auto scrollbar-hide">
+          <div
+            role="tablist"
+            aria-label="เลือกวันที่"
+            className="flex gap-1.5 p-1 bg-(--surface-variant)/50 border border-(--outline-variant)/30 rounded-2xl overflow-x-auto scrollbar-hide"
+            onKeyDown={(e) => {
+              // Arrow-key navigation per ARIA tablist pattern. Wraps at
+              // ends so users can keep pressing → past the last tab.
+              if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Home" && e.key !== "End") return;
+              e.preventDefault();
+              const next =
+                e.key === "Home" ? 0
+                : e.key === "End" ? days.length - 1
+                : e.key === "ArrowLeft" ? (activeDay - 1 + days.length) % days.length
+                : (activeDay + 1) % days.length;
+              setActiveDay(next);
+            }}
+          >
             {days.map((day, i) => {
               const dayDate = startDate ? new Date(new Date(startDate).getTime() + i * 86400000) : null;
               const shortDate = dayDate ? dayDate.toLocaleDateString("th-TH", { day: "numeric", month: "short" }) : "";
+              const selected = activeDay === i;
               return (
                 <button
                   key={day.id}
+                  role="tab"
+                  aria-selected={selected}
+                  // Roving tabindex: only the active tab is focusable via Tab,
+                  // arrow keys move focus between tabs (handled at parent).
+                  tabIndex={selected ? 0 : -1}
                   onClick={() => setActiveDay(i)}
-                  className={`px-4 py-2 rounded-lg font-bold flex flex-col items-center gap-0.5 whitespace-nowrap transition-all text-sm ${
-                    activeDay === i
+                  className={`px-4 py-2 rounded-lg font-bold flex flex-col items-center gap-0.5 whitespace-nowrap transition-all text-sm focus-visible:outline-2 focus-visible:outline-(--primary) focus-visible:outline-offset-2 ${
+                    selected
                       ? "bg-white text-(--on-surface) shadow-sm border border-(--outline-variant)/30"
                       : "text-(--on-surface-variant) hover:bg-white/50"
                   }`}

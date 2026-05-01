@@ -41,6 +41,29 @@ export default function NewTripPage(): React.ReactNode {
   // ─── Trip scope ───
   const [tripScope, setTripScope] = useState<TripScopeLocal>(null);
 
+  // Push a history entry when the user advances from scope picker → form
+  // so the browser Back button reliably returns to the scope picker
+  // (was: state-only, Back would skip past the picker entirely).
+  // Only relevant before a draft exists; once draftId is set, the URL is
+  // owned by the saved-draft path.
+  useEffect(() => {
+    if (!draftId && tripScope) {
+      window.history.pushState({ wizardStep: "basics" }, "", "/dashboard/trips/new?step=basics");
+    }
+  }, [tripScope, draftId]);
+
+  useEffect(() => {
+    const onPopState = (): void => {
+      // If the user popped back to a URL without ?step=basics and we
+      // haven't saved a draft yet, drop the scope so the picker shows.
+      if (draftId) return;
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("step") !== "basics") setTripScope(null);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [draftId]);
+
   // ─── Trip status (for date lock) ───
   const [tripStatus, setTripStatus] = useState("");
   const [dateChangeCount, setDateChangeCount] = useState(0);
@@ -548,7 +571,10 @@ export default function NewTripPage(): React.ReactNode {
           backHref="#"
           backLabel="ย้อนกลับ"
           backIcon="arrow_back"
-          onBack={() => setTripScope(null)}
+          // Use browser back when no draft yet so we pop the ?step=basics
+          // entry we pushed and the scope picker reappears naturally. With
+          // a saved draft, the URL is anchored by ?id= so just clear state.
+          onBack={() => (draftId ? setTripScope(null) : window.history.back())}
           onSaveDraft={handleSaveDraft}
           savingDraft={savingDraft}
           saveDraftLabel={draftId ? "อัพเดทร่าง" : "บันทึกร่าง"}
@@ -578,7 +604,13 @@ export default function NewTripPage(): React.ReactNode {
               <span className="material-symbols-outlined text-sm">{tripScope === "domestic" ? "holiday_village" : "flight_takeoff"}</span>
               {tripScope === "domestic" ? "ทริปในประเทศ" : "ทริปต่างประเทศ"}
             </span>
-            <button type="button" onClick={() => setTripScope(null)} className="text-xs text-(--on-surface-variant) hover:text-(--primary) underline">เปลี่ยน</button>
+            <button
+              type="button"
+              onClick={() => (draftId ? setTripScope(null) : window.history.back())}
+              className="text-xs text-(--on-surface-variant) hover:text-(--primary) underline"
+            >
+              เปลี่ยน
+            </button>
           </div>
 
           {/* ═══ Section 1: Cover Image ═══ */}
