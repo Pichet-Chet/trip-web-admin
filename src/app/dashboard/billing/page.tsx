@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, Pagination, SectionHeader, SelectPicker, useToast } from "@/components/shared";
+import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
+import type { StatusConfig } from "@/components/shared/status-badge";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface PaymentItem {
@@ -46,13 +47,6 @@ interface MyRefundRequest {
   approvedRefundAmount: number | null;
 }
 
-const REFUND_STATUS: Record<MyRefundRequest["status"], { label: string; cls: string; icon: string }> = {
-  pending:   { label: "รอตรวจ",      cls: "bg-amber-50 text-amber-700 border-amber-200",   icon: "hourglass_empty" },
-  approved:  { label: "อนุมัติ",       cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: "check_circle" },
-  rejected:  { label: "ปฏิเสธ",        cls: "bg-rose-50 text-rose-700 border-rose-200",       icon: "cancel" },
-  cancelled: { label: "ยกเลิกเอง",    cls: "bg-slate-100 text-slate-600 border-slate-200",   icon: "block" },
-};
-
 const PLAN_LABEL: Record<string, string> = {
   per_trip: "จ่ายต่อทริป",
   pack_5: "แพ็ค 5 ทริป",
@@ -66,21 +60,19 @@ const TIER_LABEL: Record<string, string> = {
   subscription: "Subscription",
 };
 
-// Tone-driven inline status colors (dot + text). No more background-pill noise.
-const STATUS_STYLE: Record<string, { dot: string; text: string }> = {
-  paid:     { dot: "bg-emerald-500", text: "text-emerald-700" },
-  pending:  { dot: "bg-amber-500",   text: "text-amber-700" },
-  failed:   { dot: "bg-red-500",     text: "text-red-700" },
-  refunded: { dot: "bg-cyan-500",    text: "text-cyan-700" },
-  expired:  { dot: "bg-slate-400",   text: "text-slate-500" },
+const PAYMENT_STATUS_CONFIG: Record<string, StatusConfig> = {
+  paid:     { label: "สำเร็จ",        tone: "emerald" },
+  pending:  { label: "รอดำเนินการ",   tone: "amber" },
+  failed:   { label: "ล้มเหลว",       tone: "rose" },
+  refunded: { label: "คืนเงินแล้ว",   tone: "cyan" },
+  expired:  { label: "หมดอายุ",       tone: "slate" },
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  paid: "สำเร็จ",
-  pending: "รอดำเนินการ",
-  failed: "ล้มเหลว",
-  refunded: "คืนเงินแล้ว",
-  expired: "หมดอายุ",
+const REFUND_REQUEST_CONFIG: Record<string, StatusConfig> = {
+  pending:   { label: "รอตรวจ",     tone: "amber" },
+  approved:  { label: "อนุมัติ",      tone: "emerald" },
+  rejected:  { label: "ปฏิเสธ",       tone: "rose" },
+  cancelled: { label: "ยกเลิกเอง",   tone: "slate" },
 };
 
 /**
@@ -451,53 +443,37 @@ function BillingContent(): React.ReactNode {
         </div>
 
         {/* Right card — context-aware: subscription billing date / credits balance / total spent */}
-        <div className="bg-white p-6 rounded-2xl border border-(--surface-container-high) shadow-sm flex flex-col justify-center text-center space-y-3">
-          {isSub && usage?.subscriptionExpiresAt ? (
-            <>
-              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
-                <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>event</span>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-widest font-bold text-outline">
-                  {isCancelling ? "หมดอายุ" : isPastDue ? "ครบกำหนดชำระ" : "ต่ออายุครั้งถัดไป"}
-                </p>
-                <p className="text-2xl md:text-3xl font-black text-on-surface mt-2">
-                  {formatDate(usage.subscriptionExpiresAt)}
-                </p>
-                <p className="text-xs text-on-surface-variant mt-1">
-                  {(() => {
-                    const days = Math.ceil((new Date(usage.subscriptionExpiresAt).getTime() - Date.now()) / (24 * 3600 * 1000));
-                    return days <= 0 ? "หมดอายุแล้ว" : `อีก ${days} วัน`;
-                  })()}
-                </p>
-              </div>
-            </>
-          ) : usage && usage.creditsRemaining > 0 ? (
-            <>
-              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-emerald-50">
-                <span className="material-symbols-outlined text-2xl text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>savings</span>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-widest font-bold text-outline">เครดิตคงเหลือ</p>
-                <p className="text-3xl md:text-4xl font-black text-on-surface mt-2">{usage.creditsRemaining}</p>
-                <p className="text-xs text-on-surface-variant mt-1">จาก {usage.creditsTotal} ทริปที่ซื้อ</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-(--primary-container)">
-                <span className="material-symbols-outlined text-2xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-widest font-bold text-outline">ยอดชำระรวม</p>
-                <p className="text-3xl md:text-4xl font-black text-on-surface mt-2">
-                  ฿{totalRevenue.toLocaleString("th-TH", { maximumFractionDigits: 0 })}
-                </p>
-                <p className="text-xs text-on-surface-variant mt-1">{totalCount} รายการสำเร็จ</p>
-              </div>
-            </>
-          )}
-        </div>
+        {isSub && usage?.subscriptionExpiresAt ? (
+          <StatCard
+            variant="hero"
+            tone="primary"
+            icon="event"
+            title={isCancelling ? "หมดอายุ" : isPastDue ? "ครบกำหนดชำระ" : "ต่ออายุครั้งถัดไป"}
+            value={formatDate(usage.subscriptionExpiresAt)}
+            subtitle={(() => {
+              const days = Math.ceil((new Date(usage.subscriptionExpiresAt).getTime() - Date.now()) / (24 * 3600 * 1000));
+              return days <= 0 ? "หมดอายุแล้ว" : `อีก ${days} วัน`;
+            })()}
+          />
+        ) : usage && usage.creditsRemaining > 0 ? (
+          <StatCard
+            variant="hero"
+            tone="emerald"
+            icon="savings"
+            title="เครดิตคงเหลือ"
+            value={usage.creditsRemaining}
+            subtitle={`จาก ${usage.creditsTotal} ทริปที่ซื้อ`}
+          />
+        ) : (
+          <StatCard
+            variant="hero"
+            tone="primary"
+            icon="payments"
+            title="ยอดชำระรวม"
+            value={`฿${totalRevenue.toLocaleString("th-TH", { maximumFractionDigits: 0 })}`}
+            subtitle={`${totalCount} รายการสำเร็จ`}
+          />
+        )}
       </section>
 
       {/* ═══ Cancel Modal — matches <ConfirmDialog> style + adds reason textarea ═══ */}
@@ -665,15 +641,7 @@ function BillingContent(): React.ReactNode {
                         ฿{tx.amount.toFixed(2)}
                       </td>
                       <td className="px-6 py-4">
-                        {(() => {
-                          const s = STATUS_STYLE[tx.status] ?? { dot: "bg-slate-400", text: "text-slate-500" };
-                          return (
-                            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${s.text}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                              {STATUS_LABEL[tx.status] ?? tx.status}
-                            </span>
-                          );
-                        })()}
+                        <StatusBadge status={tx.status} config={PAYMENT_STATUS_CONFIG} variant="dot" />
                       </td>
                       <td className="px-6 py-4 text-right">
                         {tx.status === "paid" ? (
@@ -752,27 +720,13 @@ function BillingContent(): React.ReactNode {
           <SectionHeader title="ประวัติคำขอคืนเงิน" />
           <div className="space-y-3">
             {refundRequests.map((r) => {
-              const style = REFUND_STATUS[r.status];
               const isPartial = r.approvedRefundAmount !== null && r.approvedRefundAmount < r.amount;
               return (
                 <div key={r.id} className="bg-white rounded-2xl border border-outline-variant p-4 md:p-5 hover:shadow-sm transition-shadow">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
-                          r.status === "approved" ? "text-emerald-700"
-                            : r.status === "rejected" ? "text-rose-700"
-                            : r.status === "cancelled" ? "text-slate-500"
-                            : "text-amber-700"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            r.status === "approved" ? "bg-emerald-500"
-                              : r.status === "rejected" ? "bg-rose-500"
-                              : r.status === "cancelled" ? "bg-slate-400"
-                              : "bg-amber-500"
-                          }`} />
-                          {style.label}
-                        </span>
+                        <StatusBadge status={r.status} config={REFUND_REQUEST_CONFIG} variant="dot" />
                         <span className="text-xs text-on-surface-variant">· {formatDate(r.createdAt)}</span>
                       </div>
                       <p className="text-sm font-bold text-on-surface mt-1">
