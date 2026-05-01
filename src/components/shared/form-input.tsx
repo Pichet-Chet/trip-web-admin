@@ -39,10 +39,11 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-(--outline) hover:text-(--on-surface) transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-(--outline) hover:text-(--on-surface) hover:bg-(--surface-container) rounded-full transition-colors"
+              aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
               tabIndex={-1}
             >
-              <span className="material-symbols-outlined text-xl">
+              <span className="material-symbols-outlined text-xl leading-none">
                 {showPassword ? "visibility_off" : "visibility"}
               </span>
             </button>

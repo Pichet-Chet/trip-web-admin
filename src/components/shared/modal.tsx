@@ -119,10 +119,10 @@ export function Modal({
       >
         {(title || headerActions || !hideCloseButton) && (
           <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-(--outline-variant)/40 flex-shrink-0">
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 pt-0.5">
               {title && <h3 id="modal-title" className="text-lg font-bold text-(--on-surface) truncate">{title}</h3>}
               {subtitle && (
-                <div className="text-sm text-(--on-surface-variant) mt-1">{subtitle}</div>
+                <div className="text-sm text-(--on-surface-variant) mt-1 leading-relaxed">{subtitle}</div>
               )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -131,10 +131,10 @@ export function Modal({
                 <button
                   onClick={onClose}
                   disabled={blocking}
-                  className="p-2 text-(--on-surface-variant) hover:bg-(--surface-container) rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-9 h-9 flex items-center justify-center text-(--on-surface-variant) hover:bg-(--surface-container) rounded-full transition-colors cursor-pointer disabled:opacity-50"
                   aria-label="ปิด"
                 >
-                  <span className="material-symbols-outlined">close</span>
+                  <span className="material-symbols-outlined text-xl leading-none">close</span>
                 </button>
               )}
             </div>
