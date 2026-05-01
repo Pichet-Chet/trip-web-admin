@@ -138,7 +138,7 @@ export function DatePicker({ label, value, onChange, placeholder = "เลือ
     : "";
 
   return (
-    <div className="flex flex-col gap-2" ref={containerRef}>
+    <div className="relative flex flex-col gap-2" ref={containerRef}>
       {label && (
         <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">
           {label}
