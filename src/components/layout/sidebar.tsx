@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
+import { getUser, type UserInfo } from "@/lib/auth";
 
 const navItems = [
   { label: "หน้าหลัก", href: ROUTES.dashboard, icon: "dashboard" },
@@ -20,6 +21,19 @@ const navItems = [
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }): React.ReactNode {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [user, setUser] = useState<UserInfo | null>(null);
+
+  // getUser() lives in module memory; poll briefly until the AuthGuard refresh
+  // hydrates it, then stop. Same pattern the dashboard layout uses.
+  useEffect(() => {
+    const initial = getUser();
+    if (initial) { setUser(initial); return; }
+    const interval = setInterval(() => {
+      const u = getUser();
+      if (u) { setUser(u); clearInterval(interval); }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchBadge = () => {
@@ -95,15 +109,22 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
           {/* Profile */}
           <div className="px-4 lg:px-6 mt-auto">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-(--surface-container-lowest) shadow-sm border border-(--outline-variant)/20 overflow-hidden">
-              <div className="w-10 h-10 min-w-10 rounded-full bg-(--primary-container) flex items-center justify-center text-sm font-bold text-(--on-primary-container)">
-                ส
+            <Link
+              href={ROUTES.profile}
+              className="flex items-center gap-3 p-3 rounded-xl bg-(--surface-container-lowest) shadow-sm border border-(--outline-variant)/20 overflow-hidden hover:border-(--primary)/30 hover:bg-white transition-colors"
+            >
+              <div className="w-10 h-10 min-w-10 rounded-full bg-(--primary-container) flex items-center justify-center text-sm font-bold text-(--on-primary-container) shrink-0">
+                {user?.firstName?.charAt(0) || "?"}
               </div>
-              <div className="md:hidden lg:block">
-                <p className="text-sm font-bold text-(--on-surface) truncate">สมชาย ใจดี</p>
-                <p className="text-[10px] text-(--on-surface-variant)">Amazing Tour Co.</p>
+              <div className="md:hidden lg:block min-w-0">
+                <p className="text-sm font-bold text-(--on-surface) truncate">
+                  {user ? `${user.firstName} ${user.lastName}`.trim() : "—"}
+                </p>
+                <p className="text-[10px] text-(--on-surface-variant) truncate">
+                  {user?.companyName || ""}
+                </p>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </aside>
