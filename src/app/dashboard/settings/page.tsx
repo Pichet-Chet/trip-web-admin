@@ -6,6 +6,7 @@ import { FormInput, FormTextarea, Modal, SectionHeader, ConfirmDialog, useToast 
 import { NotificationPreferencesSection } from "@/components/notification-preferences-section";
 import { SecuritySection } from "@/components/security-section";
 import { TwoFactorSection } from "@/components/two-factor-section";
+import { EmailChangeSection } from "@/components/email-change-section";
 import { api, ApiError } from "@/lib/api";
 import { getUser, logout, type UserInfo } from "@/lib/auth";
 
@@ -113,17 +114,7 @@ export default function SettingsPage(): React.ReactNode {
         <p className="text-slate-500 mt-2 text-sm">จัดการบัญชี รหัสผ่าน และสิทธิ์ข้อมูลส่วนบุคคล (PDPA)</p>
       </div>
 
-      {/* Email (read-only for now — change-email flow not implemented) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
-        <SectionHeader title="อีเมล" variant="bar" />
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-sm font-semibold text-slate-900">{user?.email ?? "—"}</p>
-            <p className="text-xs text-slate-400 mt-0.5">อีเมลที่ใช้เข้าสู่ระบบ</p>
-          </div>
-          <span className="text-xs text-slate-400">การเปลี่ยนอีเมลจะเปิดให้ใช้เร็วๆ นี้</span>
-        </div>
-      </div>
+      <EmailChangeSection />
 
       {/* Password */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
