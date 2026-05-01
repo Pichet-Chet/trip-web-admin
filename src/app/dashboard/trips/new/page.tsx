@@ -7,6 +7,8 @@ import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, SectionHeader, DashedAddButton, FooterActionBar, IconButton, ImageUpload, DatePicker, TimePicker } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
+import { tripBasicsSchema, hotelSchema, emergencyContactSchema } from "@/lib/validation/trip";
 import dynamic from "next/dynamic";
 
 // DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
@@ -21,7 +23,10 @@ import type { Accommodation, TripPlan } from "@/types";
 type TransportType = "flight" | "van" | "bus" | "train" | "boat" | "car";
 
 type TransportSegment = {
+  /** Local-only key for React/list ops. */
   id: string;
+  /** Server-assigned id. Absent until the row has been saved to DB. */
+  serverId?: string;
   type: TransportType;
   direction: "outbound" | "return";
   from: string;
@@ -220,7 +225,9 @@ export default function NewTripPage(): React.ReactNode {
   const [hotels, setHotels] = useState<Accommodation[]>([{ ...emptyHotel }]);
 
   // ─── Emergency contacts ───
-  const [emergencyContacts, setEmergencyContacts] = useState<{ name: string; phone: string; note: string }[]>([]);
+  // serverId is the DB-assigned id (undefined for unsaved rows); needed
+  // by the bulk-diff save endpoint to distinguish UPDATE from INSERT.
+  const [emergencyContacts, setEmergencyContacts] = useState<{ serverId?: string; name: string; phone: string; note: string }[]>([]);
 
   // ─── Notes ───
   const [notes, setNotes] = useState("");
@@ -230,6 +237,17 @@ export default function NewTripPage(): React.ReactNode {
   const [loadingDraft, setLoadingDraft] = useState(!!draftId);
   const [apiError, setApiError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  // ─── Unsaved-changes tracking ───
+  // savedSnapshot mirrors the last persisted form state; dirty = current
+  // state differs. Saves snapshot on load + after a successful save.
+  const [savedSnapshot, setSavedSnapshot] = useState<string>("");
+  const currentSnapshot = JSON.stringify({
+    tripScope, title, destination, startDate, endDate, travelersCount,
+    language, coverUrl, segments, hotels, emergencyContacts, notes,
+  });
+  const isDirty = tripScope !== null && savedSnapshot !== "" && currentSnapshot !== savedSnapshot;
+  useUnsavedChanges(isDirty);
 
   // ─── Load draft ───
   useEffect(() => {
@@ -256,11 +274,12 @@ export default function NewTripPage(): React.ReactNode {
         setCoverUrl(trip.coverImageUrl || null);
         setNotes(trip.importantNotes || "");
 
-        // Load airlines/transport
+        // Load airlines/transport (preserve server id for bulk-diff save)
         const airlines = await api.get<any[]>(`/admin/trips/${draftId}/airlines`);
         if (airlines.length > 0) {
           setSegments(airlines.map((a: any) => ({
             ...makeSegment(a.type === "return" ? "return" : "outbound", a.transportType || "flight"),
+            serverId: a.id,
             from: a.departureAirport || "", fromDetail: a.departureDetail || "",
             to: a.arrivalAirport || "", toDetail: a.arrivalDetail || "",
             departureDate: a.departureDate || "", departureTime: a.departureTime || "",
@@ -276,6 +295,7 @@ export default function NewTripPage(): React.ReactNode {
         const accoms = await api.get<any[]>(`/admin/trips/${draftId}/accommodations`);
         if (accoms.length > 0) {
           setHotels(accoms.map((h: any) => ({
+            id: h.id,
             name: h.name || "", address: h.address || "", phone: h.phone || "",
             checkIn: h.checkIn || "", checkOut: h.checkOut || "", nights: h.nights || 1,
           })));
@@ -285,6 +305,7 @@ export default function NewTripPage(): React.ReactNode {
         const contacts = await api.get<any[]>(`/admin/trips/${draftId}/emergency-contacts`);
         if (contacts.length > 0) {
           setEmergencyContacts(contacts.map((c: any) => ({
+            serverId: c.id,
             name: c.name || "", phone: c.phone || "", note: "",
           })));
         }
@@ -295,6 +316,19 @@ export default function NewTripPage(): React.ReactNode {
       }
     })();
   }, [draftId]);
+
+  // Snapshot the loaded form (or empty form for fresh trips) once
+  // loading settles, so dirty-tracking has a baseline to compare against.
+  useEffect(() => {
+    if (loadingDraft) return;
+    setSavedSnapshot(JSON.stringify({
+      tripScope, title, destination, startDate, endDate, travelersCount,
+      language, coverUrl, segments, hotels, emergencyContacts, notes,
+    }));
+    // Run only when loading completes — subsequent updates flow through
+    // saveTrip's success path.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingDraft]);
 
   function selectScope(scope: TripScopeLocal): void {
     setTripScope(scope);
@@ -457,14 +491,43 @@ export default function NewTripPage(): React.ReactNode {
   function validate(): boolean {
     const errors: FieldErrors = {};
 
-    if (!title.trim()) errors.title = "กรุณากรอกชื่อทริป";
-    if (!destination.trim()) errors.destination = "กรุณากรอกจุดหมายปลายทาง";
-    if (!startDate) errors.startDate = "กรุณาเลือกวันเดินทาง";
-    if (!endDate) errors.endDate = "กรุณาเลือกวันกลับ";
-    if (startDate && endDate && endDate < startDate) errors.endDate = "วันกลับต้องไม่ก่อนวันเดินทาง";
-    if (!travelersCount || Number(travelersCount) < 1) errors.travelersCount = "กรุณากรอกจำนวนผู้เดินทาง";
+    // Basics — Zod schema. First error per path wins.
+    const basics = tripBasicsSchema.safeParse({
+      title, destination, startDate, endDate, travelersCount, notes,
+    });
+    if (!basics.success) {
+      for (const issue of basics.error.issues) {
+        const key = issue.path[0]?.toString();
+        if (key && !errors[key]) errors[key] = issue.message;
+      }
+    }
+
+    // Hotels: validate every non-empty row. First failing row blocks save
+    // and surfaces a single banner-level error.
+    for (let i = 0; i < hotels.length; i++) {
+      const h = hotels[i];
+      if (!h.name.trim()) continue;
+      const r = hotelSchema.safeParse(h);
+      if (!r.success) {
+        errors._hotels = `ที่พัก #${i + 1}: ${r.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง"}`;
+        break;
+      }
+    }
+
+    // Emergency contacts: same pattern.
+    for (let i = 0; i < emergencyContacts.length; i++) {
+      const c = emergencyContacts[i];
+      if (!c.name.trim()) continue;
+      const r = emergencyContactSchema.safeParse(c);
+      if (!r.success) {
+        errors._contacts = `เบอร์ฉุกเฉิน #${i + 1}: ${r.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง"}`;
+        break;
+      }
+    }
 
     setFieldErrors(errors);
+    if (errors._hotels) toast(errors._hotels, "error");
+    if (errors._contacts) toast(errors._contacts, "error");
     return Object.keys(errors).length === 0;
   }
 
@@ -507,65 +570,78 @@ export default function NewTripPage(): React.ReactNode {
         window.history.replaceState(null, "", `/dashboard/trips/new?id=${tripId}`);
       }
 
-      // Step 2: ลบ children เดิม แล้วสร้างใหม่ (simple approach สำหรับ draft)
-      if (draftId) {
-        // ลบ airlines เดิม
-        const oldAirlines = await api.get<any[]>(`/admin/trips/${tripId}/airlines`);
-        for (const a of oldAirlines) await api.delete(`/admin/trips/${tripId}/airlines/${a.id}`);
-        // ลบ accommodations เดิม
-        const oldAccoms = await api.get<any[]>(`/admin/trips/${tripId}/accommodations`);
-        for (const a of oldAccoms) await api.delete(`/admin/trips/${tripId}/accommodations/${a.id}`);
-        // ลบ emergency contacts เดิม
-        const oldContacts = await api.get<any[]>(`/admin/trips/${tripId}/emergency-contacts`);
-        for (const c of oldContacts) await api.delete(`/admin/trips/${tripId}/emergency-contacts/${c.id}`);
-      }
+      // Step 2-4: Bulk-diff each child collection. The server diffs the
+      // incoming list against DB (UPDATE matched ids, INSERT null ids,
+      // DELETE missing ids) inside one transaction per collection. We
+      // run all 3 in parallel — they touch independent tables.
+      const filteredHotels = hotels.filter((h) => h.name.trim());
+      const filteredContacts = emergencyContacts.filter((c) => c.name.trim());
 
-      // Step 3: Add airline/transport segments
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i];
-        await api.post(`/admin/trips/${tripId}/airlines`, {
-          transportType: seg.type,
-          type: seg.direction === "outbound" ? "departure" : "return",
-          departureAirport: seg.from, departureDetail: seg.fromDetail,
-          arrivalAirport: seg.to, arrivalDetail: seg.toDetail,
-          departureDate: seg.departureDate, departureTime: seg.departureTime,
-          arrivalDate: seg.arrivalDate, arrivalTime: seg.arrivalTime,
-          airline: seg.airline, flightNumber: seg.flightNumber,
-          operator: seg.operator, vehicleInfo: seg.vehicleInfo,
-          bookingRef: seg.bookingRef, baggage: seg.baggage,
-          meetingPoint: seg.meetingPoint, note: seg.note,
-          sortOrder: i,
-        });
-      }
-
-      // Step 4: Add accommodations
-      for (let i = 0; i < hotels.length; i++) {
-        const hotel = hotels[i];
-        if (hotel.name.trim()) {
-          await api.post(`/admin/trips/${tripId}/accommodations`, {
-            name: hotel.name.trim(),
-            address: hotel.address,
-            phone: hotel.phone,
-            checkIn: hotel.checkIn,
-            checkOut: hotel.checkOut,
-            nights: hotel.nights,
-            sortOrder: i,
-          });
-        }
-      }
-
-      // Step 5: Add emergency contacts
-      for (let i = 0; i < emergencyContacts.length; i++) {
-        const contact = emergencyContacts[i];
-        if (contact.name.trim()) {
-          await api.post(`/admin/trips/${tripId}/emergency-contacts`, {
-            name: contact.name.trim(),
-            phone: contact.phone,
+      const [airlinesRes, hotelsRes, contactsRes] = await Promise.all([
+        api.put<Array<{ id: string }>>(`/admin/trips/${tripId}/airlines/bulk`, {
+          items: segments.map((seg) => ({
+            id: seg.serverId ?? null,
+            transportType: seg.type,
+            type: seg.direction === "outbound" ? "departure" : "return",
+            departureAirport: seg.from, departureDetail: seg.fromDetail,
+            arrivalAirport: seg.to, arrivalDetail: seg.toDetail,
+            departureDate: seg.departureDate, departureTime: seg.departureTime,
+            arrivalDate: seg.arrivalDate, arrivalTime: seg.arrivalTime,
+            airline: seg.airline, flightNumber: seg.flightNumber,
+            operator: seg.operator, vehicleInfo: seg.vehicleInfo,
+            bookingRef: seg.bookingRef, baggage: seg.baggage,
+            meetingPoint: seg.meetingPoint, note: seg.note,
+          })),
+        }),
+        api.put<Array<{ id: string }>>(`/admin/trips/${tripId}/accommodations/bulk`, {
+          items: filteredHotels.map((h) => ({
+            id: h.id ?? null,
+            name: h.name.trim(),
+            address: h.address,
+            phone: h.phone,
+            checkIn: h.checkIn,
+            checkOut: h.checkOut,
+            nights: h.nights,
+          })),
+        }),
+        api.put<Array<{ id: string }>>(`/admin/trips/${tripId}/emergency-contacts/bulk`, {
+          items: filteredContacts.map((c) => ({
+            id: c.serverId ?? null,
+            name: c.name.trim(),
+            phone: c.phone,
             icon: "emergency",
-            sortOrder: i,
-          });
-        }
-      }
+          })),
+        }),
+      ]);
+
+      // Adopt server-assigned ids back into local state so subsequent
+      // saves UPDATE in place instead of re-INSERTing.
+      setSegments((prev) => prev.map((seg, i) => ({ ...seg, serverId: airlinesRes[i]?.id ?? seg.serverId })));
+      // Map hotel ids back through the filtered list — local state may
+      // contain blank rows that were dropped from the payload.
+      setHotels((prev) => {
+        let savedIdx = 0;
+        return prev.map((h) => {
+          if (!h.name.trim()) return h;
+          const id = hotelsRes[savedIdx++]?.id;
+          return id ? { ...h, id } : h;
+        });
+      });
+      setEmergencyContacts((prev) => {
+        let savedIdx = 0;
+        return prev.map((c) => {
+          if (!c.name.trim()) return c;
+          const id = contactsRes[savedIdx++]?.id;
+          return id ? { ...c, serverId: id } : c;
+        });
+      });
+
+      // Refresh dirty-tracking baseline so we don't warn on the way out
+      // when the user has just saved.
+      setSavedSnapshot(JSON.stringify({
+        tripScope, title, destination, startDate, endDate, travelersCount,
+        language, coverUrl, segments, hotels, emergencyContacts, notes,
+      }));
 
       if (redirectToEdit) {
         router.push(ROUTES.tripEdit(tripId!));
@@ -617,6 +693,22 @@ export default function NewTripPage(): React.ReactNode {
       )}
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
+        {/* Top-level API error (visible on scope selector + form). The
+            in-form copy below stays for submit errors that happen after
+            scope is picked. */}
+        {!tripScope && apiError && (
+          <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+            <span className="material-symbols-outlined text-red-600 text-lg mt-0.5">error</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-800">เกิดข้อผิดพลาด</p>
+              <p className="text-sm text-red-600 mt-0.5">{apiError}</p>
+            </div>
+            <button type="button" onClick={() => setApiError(null)} className="text-red-400 hover:text-red-600 transition-colors">
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+        )}
+
         {/* ═══ Step 0: Trip Scope Selector ═══ */}
         {!tripScope && (
           <section className="min-h-[70vh] flex flex-col justify-center">

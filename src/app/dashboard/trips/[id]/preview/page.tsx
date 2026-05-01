@@ -9,6 +9,7 @@ import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
+import { checkPublishReadiness, type PublishIssue } from "@/lib/validation/trip";
 
 /* ─── API types ─── */
 interface TripDetail {
@@ -266,13 +267,28 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   }, [tripUrl, trip?.slug, id, toast]);
 
   /* ─── Validation check ─── */
-  const issues: string[] = [];
-  if (trip) {
-    if (!trip.title.trim()) issues.push("ยังไม่มีชื่อทริป");
-    if (!trip.destination.trim()) issues.push("ยังไม่มีจุดหมายปลายทาง");
-    if (totalActivities === 0) issues.push("ยังไม่มีกิจกรรมเลย");
-    if (trip.days.length === 0) issues.push("ยังไม่มีรายการวัน");
-  }
+  // Single source of truth (lib/validation/trip.ts) shared with the
+  // wizard form so the rules can't drift between create and publish.
+  const issues: PublishIssue[] = trip
+    ? checkPublishReadiness({
+        title: trip.title,
+        destination: trip.destination,
+        coverImageUrl: trip.coverImageUrl,
+        scope: trip.scope,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        totalDays,
+        totalActivities,
+        daysCount: trip.days.length,
+        daysWithoutActivity: trip.days.filter((d) => d.activities.length === 0).length,
+        hasOutboundTransport: trip.airlineInfo.some(
+          (a) => a.type === "departure" && (a.airline || a.departureAirport),
+        ),
+        hasReturnTransport: trip.airlineInfo.some(
+          (a) => a.type === "return" && (a.airline || a.departureAirport),
+        ),
+      })
+    : [];
 
   /* ─── Loading ─── */
   if (loading) {
@@ -339,20 +355,35 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
             </div>
           )}
 
-          {/* Validation Issues */}
+          {/* Validation Issues — each row links to the step that owns
+              the missing data so the user doesn't have to guess. */}
           {issues.length > 0 && (
             <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
               <div className="flex items-start gap-3">
                 <span className="material-symbols-outlined text-amber-500 text-xl mt-0.5">warning</span>
-                <div>
+                <div className="flex-1">
                   <p className="font-bold text-sm text-amber-800">ยังไม่พร้อมเผยแพร่</p>
                   <ul className="mt-2 space-y-1">
-                    {issues.map((issue) => (
-                      <li key={issue} className="text-xs text-amber-700 flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full bg-amber-400" />
-                        {issue}
-                      </li>
-                    ))}
+                    {issues.map((issue) => {
+                      const href =
+                        issue.fixStep === "basics"
+                          ? `/dashboard/trips/new?id=${id}`
+                          : issue.fixStep === "activities"
+                            ? ROUTES.tripEdit(id)
+                            : null;
+                      return (
+                        <li key={issue.code} className="text-xs flex items-center gap-2">
+                          <span className="w-1 h-1 rounded-full bg-amber-400" />
+                          {href ? (
+                            <Link href={href} className="text-amber-700 hover:text-amber-900 underline decoration-amber-300 hover:decoration-amber-500 underline-offset-2">
+                              {issue.message}
+                            </Link>
+                          ) : (
+                            <span className="text-amber-700">{issue.message}</span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </div>

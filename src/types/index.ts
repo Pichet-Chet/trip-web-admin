@@ -108,6 +108,8 @@ export type AirlineInfo = {
 };
 
 export type Accommodation = {
+  /** Server-assigned id. Absent for rows created locally before first save. */
+  id?: string;
   name: string;
   address: string;
   phone: string;

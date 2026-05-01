@@ -16,6 +16,7 @@ import { FormInput, FormTextarea, IconButton, IconWrapper, StatsSummary, FooterA
 import { useToast } from "@/components/shared/toast";
 import type { TripDay, TripActivity } from "@/types";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
 
 /* ─── API response types ─── */
 interface TripDetailApi {
@@ -170,6 +171,12 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const [days, setDays] = useState<TripDay[]>([]);
   const [activeDay, setActiveDay] = useState(0);
   const [accommodations, setAccommodations] = useState<AccommodationApi[]>([]);
+  const [addingActivity, setAddingActivity] = useState(false);
+
+  // Warn before tab close while an explicit save (handleSaveDraft /
+  // handleNext) is in flight. Per-field auto-saves on blur complete
+  // synchronously enough that they don't need separate guarding.
+  useUnsavedChanges(saving);
 
   /* ─── Derived: total days from trip dates ─── */
   const totalTripDays = startDate && endDate
@@ -194,45 +201,50 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     setConfirmOpen(true);
   }
 
-  /* ─── Load trip detail ─── */
+  /* ─── Trip loader (used for initial load + rollback after save failures) ─── */
+  const loadTrip = useCallback(async (): Promise<void> => {
+    const tripData = await api.get<TripDetailApi>(`/admin/trips/${id}`);
+
+    setTripTitle(tripData.title);
+    setTripStatus(tripData.status);
+    setStartDate(tripData.startDate);
+    setEndDate(tripData.endDate);
+    setTravelersCount(tripData.travelersCount);
+    setFollowerCount(tripData.followerCount);
+    setAccommodations(tripData.accommodations ?? []);
+
+    const allDays = (tripData.days ?? [])
+      .map((d) => mapDay(d, id))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    const tripTotalDays = tripData.startDate && tripData.endDate
+      ? Math.max(1, Math.floor((new Date(tripData.endDate).getTime() - new Date(tripData.startDate).getTime()) / 86400000) + 1)
+      : allDays.length;
+    setDays(allDays.slice(0, tripTotalDays));
+  }, [id]);
+
+  /* On any auto-save failure, refetch trip to guarantee local state matches
+     DB. Safer than partial rollback — saves can race when the user blurs
+     several fields quickly. Best-effort: if refetch fails, we keep stale
+     local state but the user already saw a save-failure toast. */
+  const rollbackOnFailure = useCallback(async (): Promise<void> => {
+    try { await loadTrip(); } catch { /* best-effort */ }
+  }, [loadTrip]);
+
+  /* ─── Initial load ─── */
   useEffect(() => {
     let cancelled = false;
-
-    async function load(): Promise<void> {
+    (async () => {
       try {
-        const tripData = await api.get<TripDetailApi>(`/admin/trips/${id}`);
-        if (cancelled) return;
-
-        setTripTitle(tripData.title);
-        setTripStatus(tripData.status);
-        setStartDate(tripData.startDate);
-        setEndDate(tripData.endDate);
-        setTravelersCount(tripData.travelersCount);
-        setFollowerCount(tripData.followerCount);
-        setAccommodations(tripData.accommodations ?? []);
-
-        const allDays = (tripData.days ?? [])
-          .map((d) => mapDay(d, id))
-          .sort((a, b) => a.sortOrder - b.sortOrder);
-
-        // Only show days within the trip date range
-        const tripTotalDays = tripData.startDate && tripData.endDate
-          ? Math.max(1, Math.floor((new Date(tripData.endDate).getTime() - new Date(tripData.startDate).getTime()) / 86400000) + 1)
-          : allDays.length;
-        setDays(allDays.slice(0, tripTotalDays));
+        await loadTrip();
       } catch (err) {
-        if (!cancelled) {
-          const msg = err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้";
-          toast(msg, "error");
-        }
+        if (!cancelled) toast(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้", "error");
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
-
-    load();
+    })();
     return () => { cancelled = true; };
-  }, [id, toast]);
+  }, [loadTrip, toast]);
 
   /* ─── Day Update ─── */
   const updateDayField = useCallback(async (dayId: string, field: string, value: string) => {
@@ -240,13 +252,15 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       await api.put(`/admin/trips/${id}/days/${dayId}`, { [field]: value === "" ? "" : value });
       setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, [field]: value === "" ? null : value } : d));
     } catch {
-      toast("ไม่สามารถบันทึกได้", "error");
+      toast("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      await rollbackOnFailure();
     }
-  }, [id, toast]);
+  }, [id, toast, rollbackOnFailure]);
 
   /* ─── Activity CRUD ─── */
   const addActivity = useCallback(async () => {
-    if (!currentDay) return;
+    if (!currentDay || addingActivity) return;
+    setAddingActivity(true);
     try {
       const res = await api.post<ActivityDetailApi>(`/admin/days/${currentDay.id}/activities`, {
         name: "กิจกรรมใหม่",
@@ -261,8 +275,11 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       );
     } catch {
       toast("ไม่สามารถเพิ่มกิจกรรมได้", "error");
+      await rollbackOnFailure();
+    } finally {
+      setAddingActivity(false);
     }
-  }, [currentDay, toast]);
+  }, [currentDay, addingActivity, toast, rollbackOnFailure]);
 
   const removeActivity = useCallback(async (dayId: string, actId: string) => {
     openConfirm("ลบกิจกรรม", "คุณต้องการลบกิจกรรมนี้ใช่หรือไม่?", async () => {
@@ -276,9 +293,10 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
         toast("ลบกิจกรรมสำเร็จ");
       } catch {
         toast("ไม่สามารถลบกิจกรรมได้", "error");
+        await rollbackOnFailure();
       }
     });
-  }, [toast]);
+  }, [toast, rollbackOnFailure]);
 
   const updateActivityField = useCallback(async (dayId: string, actId: string, field: string, value: string | null) => {
     setDays((prev) =>
@@ -291,17 +309,21 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     try {
       await api.put(`/admin/days/${dayId}/activities/${actId}`, { [field]: value === "" ? "" : value });
     } catch {
-      toast("ไม่สามารถบันทึกกิจกรรมได้", "error");
+      toast("ไม่สามารถบันทึกกิจกรรมได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      await rollbackOnFailure();
     }
-  }, [toast]);
+  }, [toast, rollbackOnFailure]);
 
   /* ─── Day Cover Image ─── */
-  const handleDayCoverChange = useCallback((dayId: string, url: string | null) => {
+  const handleDayCoverChange = useCallback(async (dayId: string, url: string | null) => {
     setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, coverImageUrl: url } : d));
-    api.put(`/admin/trips/${id}/days/${dayId}`, { coverImageUrl: url ?? "" }).catch(() => {
-      toast("ไม่สามารถบันทึกภาพปกได้", "error");
-    });
-  }, [id, toast]);
+    try {
+      await api.put(`/admin/trips/${id}/days/${dayId}`, { coverImageUrl: url ?? "" });
+    } catch {
+      toast("ไม่สามารถบันทึกภาพปกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      await rollbackOnFailure();
+    }
+  }, [id, toast, rollbackOnFailure]);
 
   /* ─── Save Draft (parallel) ─── */
   const handleSaveDraft = useCallback(async () => {
@@ -519,10 +541,15 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                 </h2>
                 <button
                   onClick={addActivity}
-                  className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all"
+                  disabled={addingActivity}
+                  className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span className="material-symbols-outlined text-lg">add_circle</span>
-                  เพิ่มกิจกรรม
+                  {addingActivity ? (
+                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <span className="material-symbols-outlined text-lg">add_circle</span>
+                  )}
+                  {addingActivity ? "กำลังเพิ่ม..." : "เพิ่มกิจกรรม"}
                 </button>
               </div>
 
