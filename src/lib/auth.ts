@@ -5,7 +5,15 @@ import { api } from "./api";
 export interface AuthResponse {
   accessToken: string;
   expiresAt: string;
-  user: UserInfo;
+  user: UserInfo | null;
+  requires2Fa?: boolean;
+  challengeToken?: string;
+}
+
+export interface TwoFactorVerifyPayload {
+  challengeToken: string;
+  code: string;
+  isBackupCode?: boolean;
 }
 
 export interface UserInfo {
@@ -66,6 +74,13 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
 
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
   const data = await api.post<AuthResponse>("/admin/auth/login", payload);
+  // 2FA gate: don't initialize session memory until /2fa-verify completes.
+  if (!data.requires2Fa) setMemory(data);
+  return data;
+}
+
+export async function verifyTwoFactor(payload: TwoFactorVerifyPayload): Promise<AuthResponse> {
+  const data = await api.post<AuthResponse>("/admin/auth/2fa-verify", payload);
   setMemory(data);
   return data;
 }
@@ -160,6 +175,7 @@ export async function getValidToken(): Promise<string | null> {
 // === Internal ===
 
 function setMemory(data: AuthResponse) {
+  if (!data.user || !data.accessToken) return;
   accessToken = data.accessToken;
   currentUser = data.user;
   tokenExpiresAt = new Date(data.expiresAt).getTime();

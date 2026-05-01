@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
-import { login } from "@/lib/auth";
+import { login, verifyTwoFactor } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 
 type Errors = Record<string, string>;
@@ -27,6 +27,9 @@ export default function LoginPage(): React.ReactNode {
   const [blocked, setBlocked] = useState(false);
   const [blockCountdown, setBlockCountdown] = useState(0);
   const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [twoFaCode, setTwoFaCode] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
 
   // Block countdown timer
   useEffect(() => {
@@ -34,6 +37,36 @@ export default function LoginPage(): React.ReactNode {
     const t = setTimeout(() => setBlockCountdown(blockCountdown - 1), 1000);
     return () => clearTimeout(t);
   }, [blockCountdown]);
+
+  async function handleTwoFa(e: React.FormEvent) {
+    e.preventDefault();
+    setApiError("");
+    if (!challengeToken) return;
+    if (!twoFaCode.trim()) {
+      setApiError("กรุณาป้อนรหัส");
+      return;
+    }
+    setLoading(true);
+    try {
+      await verifyTwoFactor({
+        challengeToken,
+        code: twoFaCode.trim(),
+        isBackupCode: useBackupCode,
+      });
+      router.push(ROUTES.dashboard);
+    } catch (err) {
+      setApiError(err instanceof ApiError ? err.message : "รหัสไม่ถูกต้อง");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function cancelTwoFa() {
+    setChallengeToken(null);
+    setTwoFaCode("");
+    setUseBackupCode(false);
+    setApiError("");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,9 +80,13 @@ export default function LoginPage(): React.ReactNode {
 
     setLoading(true);
     try {
-      await login({ email, password, rememberMe });
+      const res = await login({ email, password, rememberMe });
       localStorage.setItem("last_email", email);
       localStorage.setItem("remember_me", String(rememberMe));
+      if (res.requires2Fa && res.challengeToken) {
+        setChallengeToken(res.challengeToken);
+        return;
+      }
       router.push(ROUTES.dashboard);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่";
@@ -127,6 +164,53 @@ export default function LoginPage(): React.ReactNode {
             <div className="grow border-t border-(--outline-variant) opacity-30" />
           </div>
 
+          {challengeToken ? (
+            <form className="space-y-6" onSubmit={handleTwoFa} noValidate>
+              <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <span className="material-symbols-outlined text-blue-600 mt-0.5 shrink-0">verified_user</span>
+                <div>
+                  <p className="text-sm font-bold text-blue-900">ยืนยันตัวตน 2 ขั้นตอน</p>
+                  <p className="text-xs text-blue-800 mt-0.5">
+                    {useBackupCode
+                      ? "ป้อนรหัสสำรอง 1 ใน 8 รหัสที่บันทึกไว้"
+                      : "ป้อนรหัส 6 หลักจากแอป Authenticator"}
+                  </p>
+                </div>
+              </div>
+              <FormInput
+                label={useBackupCode ? "รหัสสำรอง (XXXX-XXXX)" : "รหัส 6 หลัก"}
+                placeholder={useBackupCode ? "ABCD-1234" : "123456"}
+                type="text"
+                icon="key"
+                value={twoFaCode}
+                onChange={(e) => setTwoFaCode(useBackupCode
+                  ? e.target.value.toUpperCase()
+                  : e.target.value.replace(/\D/g, "").slice(0, 6))}
+                required
+              />
+              {apiError && (
+                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <span className="material-symbols-outlined text-red-500 mt-0.5 shrink-0">error</span>
+                  <p className="text-sm text-red-700">{apiError}</p>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={loading || !twoFaCode}
+                className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg hover:opacity-95 transition-all active:scale-[0.98] duration-200 text-center disabled:opacity-50"
+              >
+                {loading ? "กำลังตรวจสอบ..." : "ยืนยัน"}
+              </button>
+              <div className="flex items-center justify-between text-xs text-(--on-surface-variant)">
+                <button type="button" onClick={() => { setUseBackupCode(!useBackupCode); setTwoFaCode(""); setApiError(""); }} className="text-(--primary) hover:underline font-semibold">
+                  {useBackupCode ? "← ใช้รหัสจากแอป Authenticator" : "ใช้รหัสสำรองแทน"}
+                </button>
+                <button type="button" onClick={cancelTwoFa} className="hover:underline">
+                  ยกเลิก
+                </button>
+              </div>
+            </form>
+          ) : (
           <form className="space-y-6" onSubmit={handleSubmit} noValidate>
             <FormInput label="อีเมล" placeholder="admin@example.com" type="email" icon="mail" value={email} onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((p) => { const n = {...p}; delete n.email; return n; }); }} error={errors.email} required />
             <div>
@@ -173,6 +257,7 @@ export default function LoginPage(): React.ReactNode {
               {loading ? "กำลังเข้าสู่ระบบ..." : blocked ? "กรุณารอ..." : "เข้าสู่ระบบ"}
             </button>
           </form>
+          )}
 
           <div className="mt-12 text-center">
             <p className="text-(--on-surface-variant)">
