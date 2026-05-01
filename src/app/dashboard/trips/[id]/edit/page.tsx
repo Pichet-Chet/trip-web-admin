@@ -300,58 +300,70 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     }
   }, [currentDay, addingActivity, toast, rollbackOnFailure]);
 
-  /* Activity deletion uses a deferred-delete + undo toast pattern in
-     place of the old confirm-modal. Click the trash → the activity
-     disappears from the UI immediately, a toast offers "ยกเลิก" for
-     5 seconds, and only after that window does the actual DELETE
-     fire. Hitting undo cancels the pending DELETE and restores the
-     row in place — no fresh insert, original id preserved. */
-  const removeActivity = useCallback((dayId: string, actId: string) => {
-    let cancelled = false;
-    let removedActivity: TripActivity | null = null;
-    let removedIndex = -1;
-    setDays((prev) => prev.map((d) => {
-      if (d.id !== dayId) return d;
-      removedIndex = d.activities.findIndex((a) => a.id === actId);
-      removedActivity = removedIndex >= 0 ? d.activities[removedIndex] : null;
-      return { ...d, activities: d.activities.filter((a) => a.id !== actId) };
-    }));
+  /* Activity delete: fire DELETE immediately so a browser refresh
+     before the toast expires reflects the operator's intent. Undo
+     re-creates the row via POST — the server id changes, but every
+     field is restored verbatim and the row goes back at its original
+     index. The trade-off (new id on undo) is acceptable for a
+     UI-level undo since the deleted activity hadn't been referenced
+     elsewhere yet. */
+  const removeActivity = useCallback(async (dayId: string, actId: string) => {
+    // Snapshot before optimistic remove so undo has the data to
+    // re-create.
+    const sourceDay = days.find((d) => d.id === dayId);
+    const removedIndex = sourceDay?.activities.findIndex((a) => a.id === actId) ?? -1;
+    const removedActivity = removedIndex >= 0 ? sourceDay!.activities[removedIndex] : null;
     if (!removedActivity) return;
 
-    const restore = (): void => {
-      const act = removedActivity;
-      const idx = removedIndex;
-      if (!act) return;
-      setDays((prev) => prev.map((d) => {
-        if (d.id !== dayId) return d;
-        const next = [...d.activities];
-        next.splice(Math.max(0, Math.min(idx, next.length)), 0, act);
-        return { ...d, activities: next };
-      }));
-    };
+    setDays((prev) => prev.map((d) =>
+      d.id === dayId ? { ...d, activities: d.activities.filter((a) => a.id !== actId) } : d
+    ));
+
+    try {
+      await api.delete(`/admin/days/${dayId}/activities/${actId}`);
+    } catch {
+      toast("ไม่สามารถลบกิจกรรมได้", "error");
+      await rollbackOnFailure();
+      return;
+    }
 
     toast("ลบกิจกรรมแล้ว", "info", {
       durationMs: 5000,
       action: {
         label: "ยกเลิก",
-        onClick: (dismiss) => {
-          cancelled = true;
-          restore();
+        onClick: async (dismiss) => {
           dismiss();
+          // Re-create with all fields from the deleted snapshot. Server
+          // assigns a fresh id; we splice the new row back in at the
+          // original index so visual order is preserved.
+          try {
+            const created = await api.post<ActivityDetailApi>(
+              `/admin/days/${dayId}/activities`,
+              {
+                time: removedActivity.time,
+                name: removedActivity.name,
+                description: removedActivity.description,
+                type: removedActivity.type,
+                placeName: removedActivity.placeName,
+                mapsLink: removedActivity.mapsLink,
+                emoji: removedActivity.emoji,
+              },
+            );
+            const restored = mapActivity(created, dayId);
+            setDays((prev) => prev.map((d) => {
+              if (d.id !== dayId) return d;
+              const next = [...d.activities];
+              next.splice(Math.max(0, Math.min(removedIndex, next.length)), 0, restored);
+              return { ...d, activities: next };
+            }));
+          } catch {
+            toast("ไม่สามารถกู้คืนได้", "error");
+            await rollbackOnFailure();
+          }
         },
       },
     });
-
-    setTimeout(async () => {
-      if (cancelled) return;
-      try {
-        await api.delete(`/admin/days/${dayId}/activities/${actId}`);
-      } catch {
-        toast("ไม่สามารถลบกิจกรรมได้ — กู้คืนแล้ว", "error");
-        await rollbackOnFailure();
-      }
-    }, 5000);
-  }, [toast, rollbackOnFailure]);
+  }, [days, toast, rollbackOnFailure]);
 
   const updateActivityField = useCallback(async (dayId: string, actId: string, field: string, value: string | null) => {
     setDays((prev) =>
