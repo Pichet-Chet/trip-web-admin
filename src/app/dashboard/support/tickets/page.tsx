@@ -200,7 +200,8 @@ export default function SupportTicketsPage() {
   const openCount = summary?.open ?? 0;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <div className="p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
@@ -389,6 +390,7 @@ export default function SupportTicketsPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
