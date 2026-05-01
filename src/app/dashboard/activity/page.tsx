@@ -47,31 +47,97 @@ export default function ActivityPage(): React.ReactNode {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
   useEffect(() => { document.title = "ประวัติการใช้งาน | Trip Admin"; }, []);
+
+  const buildParams = useCallback((includePagination: boolean) => {
+    const params = new URLSearchParams();
+    if (includePagination) {
+      params.set("page", String(page));
+      params.set("pageSize", "20");
+    }
+    if (filter !== "all") params.set("action", filter);
+    if (from) params.set("from", new Date(from).toISOString());
+    if (to) params.set("to", new Date(to + "T23:59:59").toISOString());
+    return params;
+  }, [page, filter, from, to]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ page: String(page), pageSize: "20" });
-      if (filter !== "all") params.set("action", filter);
-      const res = await api.get<ActivityResponse>(`/admin/me/activity?${params}`);
+      const res = await api.get<ActivityResponse>(`/admin/me/activity?${buildParams(true)}`);
       setData(res);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
-  }, [page, filter]);
+  }, [buildParams]);
+
+  function exportCsv() {
+    const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api"}/admin/me/activity/export.csv?${buildParams(false)}`;
+    // Open in new tab — browser handles auth via cookie+token; for header-based
+    // bearer auth this doesn't work cleanly, so we fetch + download manually.
+    fetch(url, {
+      credentials: "include",
+      headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token") ?? ""}` },
+    })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const dlUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = dlUrl;
+        a.download = `activity-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(dlUrl);
+      })
+      .catch(() => alert("ดาวน์โหลดไม่สำเร็จ"));
+  }
 
   useEffect(() => { load(); }, [load]);
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ประวัติการใช้งาน</h1>
-        <p className="text-slate-500 mt-2 text-sm">บันทึกการกระทำสำคัญในบัญชีของคุณ — ใช้ตรวจสอบความผิดปกติและความปลอดภัย</p>
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ประวัติการใช้งาน</h1>
+          <p className="text-slate-500 mt-2 text-sm">บันทึกการกระทำสำคัญในบัญชีของคุณ — ใช้ตรวจสอบความผิดปกติและความปลอดภัย</p>
+        </div>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={!data || data.totalCount === 0}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-base">download</span>
+          ดาวน์โหลด CSV
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">ตั้งแต่วันที่</label>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => { setFrom(e.target.value); setPage(1); }}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">ถึงวันที่</label>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => { setTo(e.target.value); setPage(1); }}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
       </div>
 
       <FilterTabs

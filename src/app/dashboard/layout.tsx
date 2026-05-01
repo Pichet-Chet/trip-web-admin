@@ -8,6 +8,7 @@ import { AuthGuard } from "@/components/shared/auth-guard";
 import { LegalReacceptGuard } from "@/components/legal-reaccept-guard";
 import { CookieBanner } from "@/components/cookie-banner";
 import { NotificationBell } from "@/components/notification-bell";
+import { QuotaWarningBanner } from "@/components/quota-warning-banner";
 import { getUser, logout, switchCompany, getCompanies, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared/toast";
 
@@ -49,6 +50,7 @@ export default function DashboardLayout({
       <LegalReacceptGuard />
       <CookieBanner />
       <ImpersonationBanner />
+      <QuotaWarningBanner />
       <div className="min-h-screen bg-(--surface) text-(--on-surface)">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="ml-0 md:ml-20 lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
