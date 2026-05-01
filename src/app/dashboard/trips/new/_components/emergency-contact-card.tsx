@@ -29,13 +29,13 @@ export function EmergencyContactCard({
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormInput
             label="ชื่อ / หน่วยงาน"
-            placeholder="เช่น สถานทูตไทย โตเกียว"
+            placeholder="ชื่อหน่วยงาน"
             value={contact.name}
             onChange={(e) => onUpdate({ name: e.target.value })}
           />
           <FormInput
             label="เบอร์โทร"
-            placeholder="เช่น +81-3-2207-9100"
+            placeholder="เบอร์โทรฉุกเฉิน"
             type="tel"
             icon="call"
             value={contact.phone}

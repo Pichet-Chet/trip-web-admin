@@ -41,9 +41,9 @@ export function HotelCard({
           ที่พัก {index + 1}
         </span>
       </div>
-      <FormInput label="ชื่อที่พัก" placeholder="e.g., The QUBE Hotel Chiba" value={hotel.name} onChange={(e) => onUpdate({ name: e.target.value })} />
-      <FormInput label="ที่อยู่" placeholder="1-2-3 Chiba, Japan" icon="location_on" value={hotel.address} onChange={(e) => onUpdate({ address: e.target.value })} />
-      <FormInput label="เบอร์โทร" placeholder="+81-43-XXX-XXXX" type="tel" icon="call" value={hotel.phone} onChange={(e) => onUpdate({ phone: e.target.value })} />
+      <FormInput label="ชื่อที่พัก" placeholder="ชื่อโรงแรม / รีสอร์ท" value={hotel.name} onChange={(e) => onUpdate({ name: e.target.value })} />
+      <FormInput label="ที่อยู่" placeholder="ที่อยู่โรงแรม" icon="location_on" value={hotel.address} onChange={(e) => onUpdate({ address: e.target.value })} />
+      <FormInput label="เบอร์โทร" placeholder="เบอร์โทรโรงแรม" type="tel" icon="call" value={hotel.phone} onChange={(e) => onUpdate({ phone: e.target.value })} />
 
       {/* Check-in: วันที่ + เวลา */}
       <div>

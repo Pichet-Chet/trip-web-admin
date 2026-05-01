@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl } from "@/components/shared";
+import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, ConfirmDialog } from "@/components/shared";
 import { TransportSection, type TransportSegment, type TransportType, makeSegment } from "./_components/transport-section";
-import { ScopeSelector, type TripScopeLocal } from "./_components/scope-selector";
+import { type TripScopeLocal } from "./_components/scope-selector";
 import { HotelCard } from "./_components/hotel-card";
 import { EmergencyContactCard, type EmergencyContactRow } from "./_components/emergency-contact-card";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -51,7 +51,10 @@ interface TripFormValues {
 }
 
 const FORM_DEFAULTS: TripFormValues = {
-  scope: null,
+  // Default to domestic so the basics form is usable immediately. The
+  // scope toggle on the page lets the operator switch — there is no
+  // separate scope-picker step any more.
+  scope: "domestic",
   title: "",
   destination: "",
   startDate: "",
@@ -60,9 +63,14 @@ const FORM_DEFAULTS: TripFormValues = {
   language: "th",
   coverUrl: null,
   notes: "",
-  segments: [],
+  // Domestic defaults: 2 van segments + 2 universal Thai emergency
+  // numbers. Same data the old selectScope("domestic") populated.
+  segments: [makeSegment("outbound", "van"), makeSegment("return", "van")],
   hotels: [{ ...emptyHotel }],
-  emergencyContacts: [],
+  emergencyContacts: [
+    { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
+    { name: "แพทย์ฉุกเฉิน", phone: "1669", note: "" },
+  ],
 };
 
 export default function NewTripPage(): React.ReactNode {
@@ -112,6 +120,9 @@ export default function NewTripPage(): React.ReactNode {
 
   useUnsavedChanges(formState.isDirty);
 
+  // Pending scope swap — confirm before resetting segments/contacts.
+  const [pendingScope, setPendingScope] = useState<"domestic" | "international" | null>(null);
+
   // Field-level helper: set a form value AND clear any inline error
   // displayed for that key. Wrapping the pattern keeps the JSX terse.
   // The cast on `value` lets us keep a clean public signature — RHF's
@@ -123,28 +134,10 @@ export default function NewTripPage(): React.ReactNode {
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Push a history entry when the user advances from scope picker → form
-  // so the browser Back button reliably returns to the scope picker
-  // (was: state-only, Back would skip past the picker entirely).
-  // Only relevant before a draft exists; once draftId is set, the URL is
-  // owned by the saved-draft path.
-  useEffect(() => {
-    if (!draftId && tripScope) {
-      window.history.pushState({ wizardStep: "basics" }, "", "/dashboard/trips/new?step=basics");
-    }
-  }, [tripScope, draftId]);
-
-  useEffect(() => {
-    const onPopState = (): void => {
-      // If the user popped back to a URL without ?step=basics and we
-      // haven't saved a draft yet, drop the scope so the picker shows.
-      if (draftId) return;
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("step") !== "basics") setValue("scope", null);
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, [draftId, setValue]);
+  // (Scope picker step removed — basics renders immediately. Scope
+  // switch is handled via the segmented control below; pushState/
+  // popstate dance from the old "back to picker" UX is no longer
+  // needed.)
 
   // ─── Emergency contacts: country-aware prefill ───
   // For international trips, when the destination resolves to a country
@@ -279,17 +272,21 @@ export default function NewTripPage(): React.ReactNode {
     if (scope === "domestic") {
       segmentsField.replace([makeSegment("outbound", "van"), makeSegment("return", "van")]);
       setValue("language", "th", { shouldDirty: true });
+      // Two universal Thai numbers — same regardless of province, real
+      // phones (not placeholders), so seeding them saves the operator
+      // typing on every domestic trip.
       contactsField.replace([
         { name: "ตำรวจท่องเที่ยว", phone: "1155", note: "" },
         { name: "แพทย์ฉุกเฉิน", phone: "1669", note: "" },
       ]);
     } else if (scope === "international") {
       segmentsField.replace([makeSegment("outbound", "flight"), makeSegment("return", "flight")]);
-      contactsField.replace([
-        { name: "สถานทูตไทย", phone: "", note: "กรอกเบอร์ตามประเทศปลายทาง" },
-        { name: "ตำรวจท้องถิ่น", phone: "", note: "" },
-        { name: "แพทย์ฉุกเฉิน", phone: "", note: "" },
-      ]);
+      // Start empty for international — the country-prefill effect fills
+      // 3 real entries the moment the operator types a recognised
+      // destination, and showing 3 phoneless "สถานทูตไทย / ตำรวจ /
+      // แพทย์" placeholder cards before that just looks like work
+      // waiting to be done.
+      contactsField.replace([]);
     }
   }, [setValue, segmentsField, contactsField]);
 
@@ -621,53 +618,45 @@ export default function NewTripPage(): React.ReactNode {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <TripStepperHeader currentStep={tripScope ? 2 : 1} tripId="new" subtitle={tripScope ? "ข้อมูลทริป" : "เลือกประเภททริป"} />
+      <TripStepperHeader currentStep={1} tripId="new" subtitle="ข้อมูลทริป" />
 
-      {tripScope && (
-        <FooterActionBar
-          backHref="#"
-          backLabel="ย้อนกลับ"
-          backIcon="arrow_back"
-          // Use browser back when no draft yet so we pop the ?step=basics
-          // entry we pushed and the scope picker reappears naturally. With
-          // a saved draft, the URL is anchored by ?id= so just clear state.
-          onBack={() => (draftId ? setValue("scope", null) : window.history.back())}
-          onSaveDraft={handleSaveDraft}
-          savingDraft={savingDraft}
-          saveDraftLabel={draftId ? "อัพเดทร่าง" : "บันทึกร่าง"}
-          nextLabel={loading ? "กำลังบันทึก..." : "ถัดไป: เพิ่มกิจกรรม"}
-          onNext={handleSubmit}
-          loading={loading}
-          disabled={loading || savingDraft}
-        />
-      )}
+      <FooterActionBar
+        backHref={ROUTES.myTrips}
+        backLabel="ย้อนกลับ"
+        backIcon="arrow_back"
+        onSaveDraft={handleSaveDraft}
+        savingDraft={savingDraft}
+        saveDraftLabel={draftId ? "อัพเดทร่าง" : "บันทึกร่าง"}
+        nextLabel={loading ? "กำลังบันทึก..." : "ถัดไป: เพิ่มกิจกรรม"}
+        onNext={handleSubmit}
+        loading={loading}
+        disabled={loading || savingDraft}
+      />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
-        {!tripScope && apiError && (
+        {apiError && (
           <Banner variant="danger" title="เกิดข้อผิดพลาด" onDismiss={() => setApiError(null)} className="mb-6">
             {apiError}
           </Banner>
         )}
 
-        {/* ═══ Step 0: Trip Scope Selector ═══ */}
-        {!tripScope && <ScopeSelector onSelect={selectScope} />}
-
-        {/* ═══ Main Form (shows after scope selected) ═══ */}
-        {tripScope && (
         <form noValidate className="space-y-12 md:space-y-20" onSubmit={(e) => e.preventDefault()}>
-          {/* Scope badge + change */}
-          <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${tripScope === "domestic" ? "bg-green-100 text-green-700" : "bg-(--primary-container) text-(--primary)"}`}>
-              <span className="material-symbols-outlined text-sm">{tripScope === "domestic" ? "holiday_village" : "flight_takeoff"}</span>
-              {tripScope === "domestic" ? "ทริปในประเทศ" : "ทริปต่างประเทศ"}
-            </span>
-            <button
-              type="button"
-              onClick={() => (draftId ? setValue("scope", null) : window.history.back())}
-              className="text-xs text-(--on-surface-variant) hover:text-(--primary) underline"
-            >
-              เปลี่ยน
-            </button>
+          {/* Scope toggle — was a separate step in the old flow. Toggling
+              after data has been entered resets segments + emergency
+              contacts to the chosen scope's defaults; we confirm first. */}
+          <div className="max-w-md">
+            <SegmentedControl
+              label="ประเภททริป"
+              value={(tripScope ?? "domestic") as "domestic" | "international"}
+              onChange={(next) => {
+                if (next === tripScope) return;
+                setPendingScope(next);
+              }}
+              options={[
+                { value: "domestic", label: "ในประเทศ", icon: "holiday_village" },
+                { value: "international", label: "ต่างประเทศ", icon: "flight_takeoff" },
+              ]}
+            />
           </div>
 
           {/* ═══ Section 1: Cover Image ═══ */}
@@ -825,7 +814,7 @@ export default function NewTripPage(): React.ReactNode {
 
             <div className="bg-white p-5 md:p-7 rounded-2xl border border-(--outline-variant)/30 shadow-sm space-y-4">
               <FormTextarea
-                placeholder={"เช่น\n• เตรียมเสื้อกันหนาว อุณหภูมิ 5-10°C\n• เงินสด ¥30,000 ต่อคน\n• พาสปอร์ตต้องมีอายุเหลือ 6 เดือนขึ้นไป\n• นัดรวมพลที่สนามบิน 3 ชม. ก่อนบิน"}
+                placeholder={"ข้อมูลที่ลูกทริปต้องรู้ก่อนเดินทาง เช่น สิ่งที่ต้องเตรียม อุณหภูมิ การแลกเงิน เอกสาร เวลานัดพบ"}
                 value={notes}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={6}
@@ -843,10 +832,24 @@ export default function NewTripPage(): React.ReactNode {
             </Banner>
           )}
         </form>
-        )}
       </div>
 
-      {tripScope && DevAutoFill && <DevAutoFill onFill={autoFill} />}
+      {DevAutoFill && <DevAutoFill onFill={autoFill} />}
+
+      {/* Confirm before swapping scope — segments + emergency contacts
+          reset to the new scope's defaults via selectScope(). */}
+      <ConfirmDialog
+        open={pendingScope !== null}
+        onClose={() => setPendingScope(null)}
+        onConfirm={() => {
+          if (pendingScope) selectScope(pendingScope);
+          setPendingScope(null);
+        }}
+        title="เปลี่ยนประเภททริป?"
+        description="ข้อมูลการเดินทางและเบอร์ฉุกเฉินจะถูกรีเซ็ตตามประเภทใหม่ — แน่ใจหรือไม่?"
+        confirmLabel="เปลี่ยน"
+        variant="danger"
+      />
     </div>
   );
 }

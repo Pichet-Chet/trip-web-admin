@@ -104,14 +104,14 @@ export function TransportSection({
           {/* Route: FROM → TO */}
           <div className="flex items-center gap-2">
             <div className="flex-1">
-              <FormInput label={`${fromLabel(seg.type)}ต้นทาง`} placeholder={isFlight(seg.type) ? "BKK" : "กรุงเทพ"} value={seg.from} onChange={(e) => onUpdate(seg.id, { from: e.target.value })} />
+              <FormInput label={`${fromLabel(seg.type)}ต้นทาง`} placeholder={isFlight(seg.type) ? "รหัส 3 ตัว เช่น BKK" : "ชื่อจุดต้นทาง"} value={seg.from} onChange={(e) => onUpdate(seg.id, { from: e.target.value })} />
               {isFlight(seg.type) && <div className="mt-2"><FormInput placeholder="Terminal (ถ้ามี)" value={seg.fromDetail} onChange={(e) => onUpdate(seg.id, { fromDetail: e.target.value })} /></div>}
             </div>
             <div className="pt-6 text-(--outline) shrink-0">
               <span className="material-symbols-outlined">arrow_forward</span>
             </div>
             <div className="flex-1">
-              <FormInput label={`${toLabel(seg.type)}ปลายทาง`} placeholder={isFlight(seg.type) ? "NRT" : "เชียงใหม่"} value={seg.to} onChange={(e) => onUpdate(seg.id, { to: e.target.value })} />
+              <FormInput label={`${toLabel(seg.type)}ปลายทาง`} placeholder={isFlight(seg.type) ? "รหัส 3 ตัว เช่น NRT" : "ชื่อจุดปลายทาง"} value={seg.to} onChange={(e) => onUpdate(seg.id, { to: e.target.value })} />
               {isFlight(seg.type) && <div className="mt-2"><FormInput placeholder="Terminal (ถ้ามี)" value={seg.toDetail} onChange={(e) => onUpdate(seg.id, { toDetail: e.target.value })} /></div>}
             </div>
           </div>
@@ -120,18 +120,18 @@ export function TransportSection({
           {isFlight(seg.type) ? (
             <>
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="สายการบิน" placeholder="Xiamen Air" icon="flight" value={seg.airline} onChange={(e) => onUpdate(seg.id, { airline: e.target.value })} />
-                <FormInput label="เที่ยวบิน" placeholder="MF834" icon="confirmation_number" value={seg.flightNumber} onChange={(e) => onUpdate(seg.id, { flightNumber: e.target.value })} />
+                <FormInput label="สายการบิน" placeholder="ชื่อสายการบิน" icon="flight" value={seg.airline} onChange={(e) => onUpdate(seg.id, { airline: e.target.value })} />
+                <FormInput label="เที่ยวบิน" placeholder="เลขเที่ยวบิน" icon="confirmation_number" value={seg.flightNumber} onChange={(e) => onUpdate(seg.id, { flightNumber: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="รหัสจอง (PNR)" placeholder="ABC123" icon="bookmark" value={seg.bookingRef} onChange={(e) => onUpdate(seg.id, { bookingRef: e.target.value })} />
-                <FormInput label="น้ำหนักกระเป๋า" placeholder="โหลด 20kg, ถือ 7kg" icon="luggage" value={seg.baggage} onChange={(e) => onUpdate(seg.id, { baggage: e.target.value })} />
+                <FormInput label="รหัสจอง (PNR)" placeholder="รหัสจองจากสายการบิน" icon="bookmark" value={seg.bookingRef} onChange={(e) => onUpdate(seg.id, { bookingRef: e.target.value })} />
+                <FormInput label="น้ำหนักกระเป๋า" placeholder="โหลด / ถือขึ้นเครื่อง" icon="luggage" value={seg.baggage} onChange={(e) => onUpdate(seg.id, { baggage: e.target.value })} />
               </div>
             </>
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              <FormInput label={seg.type === "train" ? "ขบวนรถไฟ" : seg.type === "boat" ? "ชื่อเรือ/บริษัท" : "บริษัท/ผู้ให้บริการ"} placeholder={seg.type === "van" ? "เช่น ABC Transport" : seg.type === "train" ? "เช่น ขบวน 9" : ""} icon={transportOptions.find((o) => o.value === seg.type)?.icon ?? "info"} value={seg.operator} onChange={(e) => onUpdate(seg.id, { operator: e.target.value })} />
-              <FormInput label={seg.type === "car" ? "ทะเบียนรถ" : "รหัสจอง/หมายเลข"} placeholder={seg.type === "car" ? "เช่น กก 1234" : "ถ้ามี"} icon="tag" value={seg.vehicleInfo} onChange={(e) => onUpdate(seg.id, { vehicleInfo: e.target.value })} />
+              <FormInput label={seg.type === "train" ? "ขบวนรถไฟ" : seg.type === "boat" ? "ชื่อเรือ/บริษัท" : "บริษัท/ผู้ให้บริการ"} placeholder={seg.type === "van" ? "ชื่อบริษัทรถตู้" : seg.type === "train" ? "หมายเลขขบวน" : seg.type === "boat" ? "ชื่อเรือ" : "ชื่อผู้ให้บริการ"} icon={transportOptions.find((o) => o.value === seg.type)?.icon ?? "info"} value={seg.operator} onChange={(e) => onUpdate(seg.id, { operator: e.target.value })} />
+              <FormInput label={seg.type === "car" ? "ทะเบียนรถ" : "รหัสจอง/หมายเลข"} placeholder={seg.type === "car" ? "เลขทะเบียน" : "รหัสจอง (ถ้ามี)"} icon="tag" value={seg.vehicleInfo} onChange={(e) => onUpdate(seg.id, { vehicleInfo: e.target.value })} />
             </div>
           )}
 
@@ -162,8 +162,8 @@ export function TransportSection({
           </div>
 
           {/* Meeting point + Note */}
-          <FormInput label="จุดนัดพบ" placeholder={isFlight(seg.type) ? "เจอกันที่ประตู 3 เวลา 15:00" : seg.type === "van" ? "เจอกันหน้าบริษัท เวลา 05:00" : "จุดนัดพบ"} icon="groups" value={seg.meetingPoint} onChange={(e) => onUpdate(seg.id, { meetingPoint: e.target.value })} />
-          <FormInput label="หมายเหตุ" placeholder={isFlight(seg.type) ? "เช่น Transit ต้องเอากระเป๋าออก" : "เช่น แวะพักระหว่างทาง"} icon="info" value={seg.note} onChange={(e) => onUpdate(seg.id, { note: e.target.value })} />
+          <FormInput label="จุดนัดพบ" placeholder="สถานที่และเวลานัดพบ" icon="groups" value={seg.meetingPoint} onChange={(e) => onUpdate(seg.id, { meetingPoint: e.target.value })} />
+          <FormInput label="หมายเหตุ" placeholder="ข้อความเพิ่มเติม (ถ้ามี)" icon="info" value={seg.note} onChange={(e) => onUpdate(seg.id, { note: e.target.value })} />
         </div>
       ))}
 
