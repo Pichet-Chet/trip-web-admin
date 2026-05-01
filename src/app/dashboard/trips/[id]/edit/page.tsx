@@ -105,36 +105,99 @@ function mapDay(d: DayDetailApi, tripId: string): TripDay {
   };
 }
 
-/* ─── Auto-fill data ─── */
-const autoFillDays = [
+/* ─── Auto-fill (dev only) ───
+ * Generates a plausible itinerary for any number of days. Day 1 is
+ * arrival, the last day is departure, and the middle days rotate
+ * through varied sightseeing templates so a 7-day trip doesn't end up
+ * with the same content on day 2 and day 5. Activity `type` values
+ * follow the lowercase convention used by the chip strip
+ * (ACTIVITY_TYPES in activity-editor-card); a PascalCase mismatch with
+ * earlier seed data was hiding the chip selection on auto-filled rows.
+ */
+type AutoFillActivity = {
+  time: string;
+  name: string;
+  emoji: string;
+  type: string;
+  placeName: string;
+  mapsLink?: string;
+  description: string;
+};
+
+const FIRST_DAY: AutoFillActivity[] = [
+  { time: "08:00", name: "ออกเดินทางจากสนามบิน", emoji: "✈️", type: "transport", placeName: "สนามบินสุวรรณภูมิ", description: "นัดรวมพล 3 ชม. ก่อนเวลาบิน เคาน์เตอร์เช็คอิน Row D ชั้น 4" },
+  { time: "11:30", name: "เช็คอินโรงแรม", emoji: "🏨", type: "hotel", placeName: "โรงแรมที่พัก", description: "ฝากกระเป๋าไว้ที่ล็อบบี้ ถ้าห้องยังไม่พร้อม" },
+  { time: "12:30", name: "รับประทานอาหารกลางวัน", emoji: "🍜", type: "restaurant", placeName: "ร้านอาหารท้องถิ่น", description: "ร้านแนะนำ ใกล้โรงแรม เดินไป 5 นาที" },
+  { time: "15:00", name: "เดินเล่นตลาดเย็น", emoji: "🛍️", type: "shopping", placeName: "ตลาดกลางคืน", description: "เตรียมเงินสดไว้ ร้านส่วนใหญ่ไม่รับบัตร" },
+  { time: "19:00", name: "อาหารเย็น", emoji: "🍽️", type: "restaurant", placeName: "ร้านในเมือง", description: "เมนูแนะนำ: ของท้องถิ่น" },
+];
+
+const LAST_DAY: AutoFillActivity[] = [
+  { time: "07:00", name: "ชมพระอาทิตย์ขึ้น", emoji: "🌅", type: "attraction", placeName: "จุดชมวิว", description: "เตรียมเสื้อกันหนาว อากาศเย็นช่วงเช้า" },
+  { time: "09:00", name: "แวะคาเฟ่", emoji: "☕", type: "restaurant", placeName: "คาเฟ่วิวสวย", description: "มีขนมเค้กและเบเกอรี่ ค่าใช้จ่ายส่วนตัว" },
+  { time: "12:00", name: "เดินทางกลับสนามบิน", emoji: "✈️", type: "transport", placeName: "สนามบิน", description: "เช็คเอาท์ก่อน 11:00 น. รถรับหน้าล็อบบี้" },
+];
+
+// Middle-day templates — rotated by index so successive days look
+// different even on long trips. Each template aims for 4-5 activities
+// covering breakfast/lunch/dinner + sightseeing/shopping.
+const MIDDLE_TEMPLATES: { title: string; activities: AutoFillActivity[] }[] = [
   {
-    title: "วันแรก - เดินทางถึง",
+    title: "เที่ยวชมสถานที่สำคัญ",
     activities: [
-      { time: "08:00", name: "ออกเดินทางจากสนามบิน", emoji: "✈️", type: "Transport", placeName: "สนามบินสุวรรณภูมิ", description: "นัดรวมพล 3 ชม. ก่อนเวลาบิน เคาน์เตอร์เช็คอิน Row D ชั้น 4" },
-      { time: "11:30", name: "เช็คอินโรงแรม", emoji: "🏨", type: "Hotel", placeName: "โรงแรมที่พัก", description: "ฝากกระเป๋าไว้ที่ล็อบบี้ ถ้าห้องยังไม่พร้อม" },
-      { time: "12:30", name: "รับประทานอาหารกลางวัน", emoji: "🍜", type: "Restaurant", placeName: "ร้านอาหารท้องถิ่น", description: "ร้านแนะนำ ใกล้โรงแรม เดินไป 5 นาที" },
-      { time: "15:00", name: "เดินเล่นตลาดเย็น", emoji: "🛍️", type: "Shopping", placeName: "ตลาดกลางคืน", description: "เตรียมเงินสดไว้ ร้านส่วนใหญ่ไม่รับบัตร" },
+      { time: "08:00", name: "เยี่ยมชมวัดสำคัญ", emoji: "⛩️", type: "attraction", placeName: "วัดพระธาตุ", description: "สวมกางเกงขายาว ห้ามใส่รองเท้าเข้าโบสถ์" },
+      { time: "10:30", name: "ชมพิพิธภัณฑ์", emoji: "🏛️", type: "attraction", placeName: "พิพิธภัณฑ์แห่งชาติ", description: "ค่าเข้าชม 200 บาท/คน รวมในแพ็กเกจแล้ว" },
+      { time: "12:00", name: "รับประทานอาหารกลางวัน", emoji: "🍱", type: "restaurant", placeName: "ร้านอาหารแนะนำ", description: "เมนูแนะนำ: ข้าวซอย, ขนมจีนน้ำเงี้ยว" },
+      { time: "14:00", name: "ช้อปปิ้ง", emoji: "🛒", type: "shopping", placeName: "ห้างสรรพสินค้า", description: "มีจุดแลกเงิน และตู้ ATM ชั้น 1" },
+      { time: "18:00", name: "รับประทานอาหารเย็น", emoji: "🍽️", type: "restaurant", placeName: "ร้านอาหารริมน้ำ", description: "จองโต๊ะริมน้ำไว้แล้ว แจ้งชื่อกรุ๊ปได้เลย" },
     ],
   },
   {
-    title: "วันที่สอง - เที่ยวชมสถานที่",
+    title: "ธรรมชาติ + ตลาดท้องถิ่น",
     activities: [
-      { time: "08:00", name: "เยี่ยมชมวัดสำคัญ", emoji: "⛩️", type: "Attraction", placeName: "วัดพระธาตุ", description: "สวมกางเกงขายาว ห้ามใส่รองเท้าเข้าโบสถ์" },
-      { time: "10:30", name: "ชมพิพิธภัณฑ์", emoji: "🏛️", type: "Attraction", placeName: "พิพิธภัณฑ์แห่งชาติ", description: "ค่าเข้าชม 200 บาท/คน รวมในแพ็กเกจแล้ว" },
-      { time: "12:00", name: "รับประทานอาหารกลางวัน", emoji: "🍱", type: "Restaurant", placeName: "ร้านอาหารแนะนำ", description: "เมนูแนะนำ: ข้าวซอย, ขนมจีนน้ำเงี้ยว" },
-      { time: "14:00", name: "ช้อปปิ้ง", emoji: "🛒", type: "Shopping", placeName: "ห้างสรรพสินค้า", description: "มีจุดแลกเงิน และตู้ ATM ชั้น 1" },
-      { time: "18:00", name: "รับประทานอาหารเย็น", emoji: "🍽️", type: "Restaurant", placeName: "ร้านอาหารริมน้ำ", description: "จองโต๊ะริมน้ำไว้แล้ว แจ้งชื่อกรุ๊ปได้เลย" },
+      { time: "07:30", name: "อาหารเช้า", emoji: "☕", type: "restaurant", placeName: "โรงแรม", description: "บุฟเฟ่ต์เช้าที่ห้องอาหาร" },
+      { time: "09:00", name: "เดินป่าเล่นน้ำตก", emoji: "🌊", type: "attraction", placeName: "อุทยานแห่งชาติ", description: "ใส่รองเท้าผ้าใบ เตรียมยากันยุง" },
+      { time: "12:30", name: "อาหารกลางวัน", emoji: "🍜", type: "restaurant", placeName: "ร้านอาหารชาวเขา", description: "เมนูพื้นถิ่น เผ็ดร้อนระดับ 2" },
+      { time: "15:00", name: "ตลาดท้องถิ่น", emoji: "🛍️", type: "shopping", placeName: "ตลาดสด", description: "ของฝากแนะนำ ผ้าทอ + ของแห้ง" },
+      { time: "19:00", name: "อาหารเย็น", emoji: "🍱", type: "restaurant", placeName: "Street Food Hub", description: "ลองหลายร้าน หาที่ถูกปาก" },
     ],
   },
   {
-    title: "วันสุดท้าย - เดินทางกลับ",
+    title: "ทริปทะเล / ชายหาด",
     activities: [
-      { time: "07:00", name: "ชมพระอาทิตย์ขึ้น", emoji: "🌅", type: "Attraction", placeName: "จุดชมวิว", description: "เตรียมเสื้อกันหนาว อากาศเย็นช่วงเช้า" },
-      { time: "09:00", name: "แวะคาเฟ่", emoji: "☕", type: "Restaurant", placeName: "คาเฟ่วิวสวย", description: "มีขนมเค้กและเบเกอรี่ ค่าใช้จ่ายส่วนตัว" },
-      { time: "12:00", name: "เดินทางกลับสนามบิน", emoji: "✈️", type: "Transport", placeName: "สนามบิน", description: "เช็คเอาท์ก่อน 11:00 น. รถรับหน้าล็อบบี้" },
+      { time: "08:00", name: "เดินทางสู่ท่าเรือ", emoji: "🚌", type: "transport", placeName: "ท่าเรือ", description: "นั่งรถจากโรงแรม ~30 นาที" },
+      { time: "09:30", name: "นั่งเรือเที่ยวเกาะ", emoji: "🚢", type: "attraction", placeName: "เกาะใกล้เคียง", description: "เตรียมครีมกันแดด แว่นกันแดด" },
+      { time: "12:00", name: "อาหารกลางวันบนเกาะ", emoji: "🍽️", type: "restaurant", placeName: "ร้านอาหารทะเล", description: "อาหารทะเลสด ๆ ราคาในแพ็กเกจ" },
+      { time: "14:00", name: "ดำน้ำดูปะการัง", emoji: "🏖️", type: "attraction", placeName: "จุดดำน้ำ", description: "อุปกรณ์ดำน้ำมีให้ยืม" },
+      { time: "18:00", name: "อาหารเย็นริมหาด", emoji: "🌅", type: "restaurant", placeName: "ร้านริมหาด", description: "เห็นพระอาทิตย์ตก จองโต๊ะนอกแล้ว" },
+    ],
+  },
+  {
+    title: "City Tour + Cafe Hop",
+    activities: [
+      { time: "09:00", name: "อาหารเช้าคาเฟ่", emoji: "☕", type: "restaurant", placeName: "คาเฟ่ใจกลางเมือง", description: "ขนมปังและกาแฟพิเศษ" },
+      { time: "10:30", name: "ชมเมืองเก่า", emoji: "🏛️", type: "attraction", placeName: "ย่านเมืองเก่า", description: "ใส่รองเท้าเดินสบาย แดดร้อน เตรียมร่ม" },
+      { time: "13:00", name: "อาหารกลางวัน", emoji: "🍜", type: "restaurant", placeName: "ร้านในย่านเก่า", description: "ของพื้นถิ่นแนะนำ" },
+      { time: "15:30", name: "Cafe Hop", emoji: "🎶", type: "attraction", placeName: "ย่านคาเฟ่", description: "เลือก 2-3 ร้านยอดนิยม" },
+      { time: "19:00", name: "อาหารเย็นรูฟท็อป", emoji: "🍽️", type: "restaurant", placeName: "Rooftop Restaurant", description: "วิวเมืองยามค่ำ" },
     ],
   },
 ];
+
+function generateAutoFillDays(count: number): { title: string; activities: AutoFillActivity[] }[] {
+  if (count <= 0) return [];
+  if (count === 1) {
+    return [{ title: "ทริปไปกลับวันเดียว", activities: [...FIRST_DAY.slice(0, 3), ...LAST_DAY.slice(-1)] }];
+  }
+  const out: { title: string; activities: AutoFillActivity[] }[] = [];
+  out.push({ title: "วันแรก - เดินทางถึง", activities: FIRST_DAY });
+  for (let i = 1; i < count - 1; i++) {
+    const tpl = MIDDLE_TEMPLATES[(i - 1) % MIDDLE_TEMPLATES.length];
+    out.push({ title: `วันที่ ${i + 1} - ${tpl.title}`, activities: tpl.activities });
+  }
+  out.push({ title: "วันสุดท้าย - เดินทางกลับ", activities: LAST_DAY });
+  return out;
+}
 
 export default function TripEditPage({ params }: { params: Promise<{ id: string }> }): React.ReactNode {
   const { id } = use(params);
@@ -488,17 +551,23 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
     async function doAutoFill() {
       try {
+        // Generate templates that match the actual trip length so a 5-day
+        // trip gets 5 days of content (not capped at the previous 3).
+        const templates = generateAutoFillDays(days.length);
         const updatedDays = [...days];
 
-        for (let i = 0; i < Math.min(days.length, autoFillDays.length); i++) {
+        for (let i = 0; i < days.length; i++) {
           const day = days[i];
-          const template = autoFillDays[i];
+          const template = templates[i];
+          if (!template) continue;
 
           // Update day title
           await api.put(`/admin/trips/${id}/days/${day.id}`, { title: template.title });
           updatedDays[i] = { ...updatedDays[i], title: template.title };
 
-          // Add activities to existing day
+          // Add activities — send every field the editor reads from
+          // (placeName, mapsLink, description) so reload looks the same
+          // as freshly-typed data.
           const activities: TripActivity[] = [];
           for (const tplAct of template.activities) {
             const actRes = await api.post<ActivityDetailApi>(`/admin/days/${day.id}/activities`, {
@@ -508,6 +577,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               type: tplAct.type,
               emoji: tplAct.emoji,
               placeName: tplAct.placeName,
+              mapsLink: tplAct.mapsLink ?? "",
             });
             activities.push(mapActivity(actRes, day.id));
           }
@@ -781,7 +851,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       </div>
 
       {/* ═══ Dev Auto Fill ═══ */}
-      {DevAutoFill && <DevAutoFill onFill={handleAutoFill} label="Auto Fill 3 Days" />}
+      {DevAutoFill && <DevAutoFill onFill={handleAutoFill} label="กรอกข้อมูลตัวอย่าง" />}
 
       {/* ═══ Confirm Dialog ═══ */}
       <ConfirmDialog
