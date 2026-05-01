@@ -25,6 +25,8 @@ interface DayContextPanelProps {
   totalTripDays: number;
   daysCount: number;
   totalActivities: number;
+  /** Days with zero activities — drives the progress hint. */
+  emptyDaysCount: number;
   travelersCount: number;
   onCoverChange: (url: string | null) => void;
 }
@@ -36,7 +38,7 @@ const TIME_FROM_ISO = (dt: string | null): string => {
 
 export function DayContextPanel({
   coverImageUrl, tripStartDate, activeDayIndex, accommodations, tripId,
-  totalTripDays, daysCount, totalActivities, travelersCount, onCoverChange,
+  totalTripDays, daysCount, totalActivities, emptyDaysCount, travelersCount, onCoverChange,
 }: DayContextPanelProps): React.ReactNode {
   const dayDate = tripStartDate
     ? new Date(new Date(tripStartDate).getTime() + activeDayIndex * 86400000)
@@ -131,13 +133,34 @@ export function DayContextPanel({
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
-        <h4 className="text-xs font-bold uppercase tracking-widest text-(--on-surface-variant) mb-4">สรุปทริป</h4>
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm space-y-4">
+        <h4 className="text-xs font-bold uppercase tracking-widest text-(--on-surface-variant)">สรุปทริป</h4>
         <StatsSummary stats={[
           { value: totalTripDays || daysCount, label: "วัน" },
           { value: totalActivities, label: "กิจกรรม" },
           { value: travelersCount, label: "ผู้เดินทาง" },
         ]} />
+
+        {/* Progress hint — at-a-glance "how close to done" without the
+            operator clicking through each day. Hidden once everything's
+            filled to keep the panel quiet. */}
+        {daysCount > 0 && emptyDaysCount > 0 && (
+          <div className="flex items-start gap-2 pt-3 border-t border-(--outline-variant)/20">
+            <span className="material-symbols-outlined text-amber-500 text-base mt-0.5">pending_actions</span>
+            <div className="flex-1 text-xs">
+              <p className="font-bold text-amber-700">
+                ยังไม่มีกิจกรรม {emptyDaysCount} จาก {daysCount} วัน
+              </p>
+              <p className="text-(--on-surface-variant) mt-0.5">วันที่ว่างจะถูกแสดงด้วยจุดสีอำพันบนแท็บด้านบน</p>
+            </div>
+          </div>
+        )}
+        {daysCount > 0 && emptyDaysCount === 0 && totalActivities > 0 && (
+          <div className="flex items-start gap-2 pt-3 border-t border-(--outline-variant)/20">
+            <span className="material-symbols-outlined text-emerald-600 text-base mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <p className="flex-1 text-xs font-bold text-emerald-700">ทุกวันมีกิจกรรมครบแล้ว</p>
+          </div>
+        )}
       </div>
     </div>
   );

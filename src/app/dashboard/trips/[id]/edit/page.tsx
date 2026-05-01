@@ -300,21 +300,57 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     }
   }, [currentDay, addingActivity, toast, rollbackOnFailure]);
 
-  const removeActivity = useCallback(async (dayId: string, actId: string) => {
-    openConfirm("ลบกิจกรรม", "คุณต้องการลบกิจกรรมนี้ใช่หรือไม่?", async () => {
+  /* Activity deletion uses a deferred-delete + undo toast pattern in
+     place of the old confirm-modal. Click the trash → the activity
+     disappears from the UI immediately, a toast offers "ยกเลิก" for
+     5 seconds, and only after that window does the actual DELETE
+     fire. Hitting undo cancels the pending DELETE and restores the
+     row in place — no fresh insert, original id preserved. */
+  const removeActivity = useCallback((dayId: string, actId: string) => {
+    let cancelled = false;
+    let removedActivity: TripActivity | null = null;
+    let removedIndex = -1;
+    setDays((prev) => prev.map((d) => {
+      if (d.id !== dayId) return d;
+      removedIndex = d.activities.findIndex((a) => a.id === actId);
+      removedActivity = removedIndex >= 0 ? d.activities[removedIndex] : null;
+      return { ...d, activities: d.activities.filter((a) => a.id !== actId) };
+    }));
+    if (!removedActivity) return;
+
+    const restore = (): void => {
+      const act = removedActivity;
+      const idx = removedIndex;
+      if (!act) return;
+      setDays((prev) => prev.map((d) => {
+        if (d.id !== dayId) return d;
+        const next = [...d.activities];
+        next.splice(Math.max(0, Math.min(idx, next.length)), 0, act);
+        return { ...d, activities: next };
+      }));
+    };
+
+    toast("ลบกิจกรรมแล้ว", "info", {
+      durationMs: 5000,
+      action: {
+        label: "ยกเลิก",
+        onClick: (dismiss) => {
+          cancelled = true;
+          restore();
+          dismiss();
+        },
+      },
+    });
+
+    setTimeout(async () => {
+      if (cancelled) return;
       try {
         await api.delete(`/admin/days/${dayId}/activities/${actId}`);
-        setDays((prev) =>
-          prev.map((d) =>
-            d.id === dayId ? { ...d, activities: d.activities.filter((a) => a.id !== actId) } : d
-          )
-        );
-        toast("ลบกิจกรรมสำเร็จ");
       } catch {
-        toast("ไม่สามารถลบกิจกรรมได้", "error");
+        toast("ไม่สามารถลบกิจกรรมได้ — กู้คืนแล้ว", "error");
         await rollbackOnFailure();
       }
-    });
+    }, 5000);
   }, [toast, rollbackOnFailure]);
 
   const updateActivityField = useCallback(async (dayId: string, actId: string, field: string, value: string | null) => {
@@ -723,6 +759,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               totalTripDays={totalTripDays}
               daysCount={days.length}
               totalActivities={days.reduce((s, d) => s + d.activities.length, 0)}
+              emptyDaysCount={days.filter((d) => d.activities.length === 0).length}
               travelersCount={travelersCount}
               onCoverChange={(url) => handleDayCoverChange(currentDay.id, url)}
             />

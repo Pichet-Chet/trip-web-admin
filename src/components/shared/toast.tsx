@@ -4,14 +4,30 @@ import { createContext, useContext, useState, useCallback } from "react";
 
 type ToastType = "success" | "error" | "info";
 
+interface ToastAction {
+  label: string;
+  /** Receives a `dismiss` callback so the action can close the toast
+      synchronously after handling the click (typical for undo flows). */
+  onClick: (dismiss: () => void) => void;
+}
+
+interface ToastOptions {
+  /** Override the default 3 s lifetime — useful for undo prompts that
+      should linger long enough for the operator to react. */
+  durationMs?: number;
+  /** Optional inline action button (e.g. "ยกเลิก" for undo). */
+  action?: ToastAction;
+}
+
 interface Toast {
   id: number;
   message: string;
   type: ToastType;
+  action?: ToastAction;
 }
 
 interface ToastContextValue {
-  toast: (message: string, type?: ToastType) => void;
+  toast: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
 const ToastContext = createContext<ToastContextValue>({ toast: () => {} });
@@ -23,11 +39,15 @@ export function useToast(): ToastContextValue {
 export function ToastProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = useCallback((message: string, type: ToastType = "success") => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
+  const dismiss = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const toast = useCallback((message: string, type: ToastType = "success", options?: ToastOptions) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type, action: options?.action }]);
+    setTimeout(() => dismiss(id), options?.durationMs ?? 3000);
+  }, [dismiss]);
 
   const icon: Record<ToastType, string> = {
     success: "check_circle",
@@ -51,7 +71,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }): Reac
             className={`${style[t.type]} px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium pointer-events-auto animate-[slideUp_0.3s_ease-out]`}
           >
             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>{icon[t.type]}</span>
-            {t.message}
+            <span className="flex-1">{t.message}</span>
+            {t.action && (
+              <button
+                type="button"
+                onClick={() => t.action!.onClick(() => dismiss(t.id))}
+                className="ml-2 px-3 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold uppercase tracking-wide transition-colors"
+              >
+                {t.action.label}
+              </button>
+            )}
           </div>
         ))}
       </div>

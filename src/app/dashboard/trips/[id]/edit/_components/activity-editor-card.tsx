@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FormInput, FormTextarea, IconButton, TimePicker, SelectPicker } from "@/components/shared";
+import { FormInput, FormTextarea, IconButton, TimePicker } from "@/components/shared";
 import type { TripActivity } from "@/types";
 
 const ACTIVITY_TYPES = [
@@ -93,26 +93,72 @@ export function ActivityEditorCard({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-1 relative">
-              <SelectPicker
-                label="ประเภท"
-                value={activity.type}
-                onChange={(v) => onCommit("type", v)}
-                options={ACTIVITY_TYPES.map((t) => ({ value: t.value, label: t.label, icon: t.icon }))}
-                searchable={false}
-              />
+          {/* Activity type — chip strip with icons. 6 options + a fixed
+              set means a SelectPicker is over-engineered; chips show
+              every option at once and click is one tap rather than
+              click-then-click. */}
+          <div>
+            <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 block mb-2">ประเภท</label>
+            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="ประเภทกิจกรรม">
+              {ACTIVITY_TYPES.map((t) => {
+                const selected = activity.type === t.value;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => onCommit("type", t.value)}
+                    title={t.label}
+                    className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary) ${
+                      selected
+                        ? "bg-(--primary-container) text-(--on-primary-container) shadow-sm"
+                        : "bg-(--surface-variant)/50 text-(--on-surface-variant) hover:bg-(--surface-variant)"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base">{t.icon}</span>
+                    <span className="hidden sm:inline">{t.label}</span>
+                  </button>
+                );
+              })}
             </div>
-            <div className="col-span-2">
-              <FormInput
-                label="สถานที่ / Google Maps"
-                placeholder="ชื่อสถานที่ หรือ link Google Maps"
-                value={activity.placeName ?? activity.mapsLink ?? ""}
-                onChange={(e) => onLocalChange({ placeName: e.target.value })}
-                onBlur={() => onCommit("placeName", activity.placeName ?? "")}
-                icon="location_on"
-              />
-            </div>
+          </div>
+
+          {/* Location: split name + map URL.
+              The previous "ชื่อสถานที่ / Google Maps" combined field
+              quietly dropped the operator's mapsLink whenever they
+              typed a placeName, since the form persisted only one of
+              the two. Two clearly-labelled inputs avoid that loss; a
+              "วาง URL ลงในช่องชื่อ" affordance auto-routes a pasted
+              link into the right field so power users still get a
+              one-paste flow. */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 block">สถานที่</label>
+            <FormInput
+              placeholder="ชื่อสถานที่ / สถานที่ตั้ง"
+              value={activity.placeName ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                // Pasting a Google Maps URL into the name field? Route
+                // it to mapsLink instead so the name stays a name.
+                if (/^https?:\/\//i.test(v.trim())) {
+                  onLocalChange({ mapsLink: v.trim() });
+                  onCommit("mapsLink", v.trim());
+                  return;
+                }
+                onLocalChange({ placeName: v });
+              }}
+              onBlur={() => onCommit("placeName", activity.placeName ?? "")}
+              icon="location_on"
+            />
+            <FormInput
+              placeholder="Google Maps link (ถ้ามี)"
+              value={activity.mapsLink ?? ""}
+              onChange={(e) => onLocalChange({ mapsLink: e.target.value })}
+              onBlur={() => onCommit("mapsLink", activity.mapsLink ?? "")}
+              icon="map"
+              type="url"
+            />
           </div>
 
           <FormTextarea
