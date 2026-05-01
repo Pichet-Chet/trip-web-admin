@@ -193,7 +193,15 @@ export function SecuritySection(): React.ReactNode {
       </section>
 
       <section>
-        <SectionHeader title="ประวัติการเข้าสู่ระบบ" variant="bar" />
+        <div className="flex items-end justify-between gap-2">
+          <SectionHeader title="ประวัติการเข้าสู่ระบบ" variant="bar" />
+          <a
+            href="/dashboard/activity"
+            className="text-xs font-semibold text-(--primary) hover:underline mb-2 whitespace-nowrap"
+          >
+            ดูประวัติการใช้งานทั้งหมด →
+          </a>
+        </div>
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           {loadingH ? (
             <div className="p-5 space-y-2 animate-pulse">
