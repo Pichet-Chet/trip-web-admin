@@ -207,24 +207,48 @@ export function TwoFactorSection(): React.ReactNode {
         onClose={() => !busy && reset()}
         size="md"
         title="ตั้งค่า 2FA"
+        subtitle="สแกน QR ด้วยแอป Authenticator แล้วป้อนรหัส 6 หลักเพื่อยืนยัน"
+        blocking={busy}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              disabled={busy}
+              className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={verifySetup}
+              disabled={busy || code.length !== 6}
+              className="flex-1 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 disabled:opacity-50"
+            >
+              {busy ? "กำลังยืนยัน..." : "ยืนยัน"}
+            </button>
+          </div>
+        }
       >
         {setupData && qrDataUrl && (
-          <div className="space-y-4">
-            <p className="text-sm text-slate-700">
-              <strong>ขั้นที่ 1:</strong> สแกน QR code ด้วยแอป Authenticator
-            </p>
-            <div className="flex justify-center bg-white border border-slate-200 rounded-xl p-4">
-              <img src={qrDataUrl} alt="2FA QR" className="w-48 h-48" />
+          <div className="px-6 py-5 space-y-5">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col items-center gap-3">
+              <div className="bg-white p-3 rounded-xl border border-slate-200">
+                <img src={qrDataUrl} alt="2FA QR" className="block w-44 h-44" />
+              </div>
+              <p className="text-xs text-slate-500 text-center">เปิดแอป Authenticator แล้วเลือก "+" เพื่อสแกน</p>
             </div>
-            <details className="text-xs text-slate-500">
-              <summary className="cursor-pointer hover:text-slate-700">หรือป้อนรหัสด้วยมือ</summary>
-              <p className="mt-2 font-mono break-all bg-slate-50 p-2 rounded">{setupData.secret}</p>
+
+            <details className="text-xs text-slate-500 group">
+              <summary className="cursor-pointer hover:text-slate-700 select-none flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm group-open:rotate-90 transition-transform">chevron_right</span>
+                ป้อนรหัสด้วยมือ (กรณีสแกนไม่ได้)
+              </summary>
+              <p className="mt-2 ml-5 font-mono break-all bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-slate-700">{setupData.secret}</p>
             </details>
-            <p className="text-sm text-slate-700 mt-3">
-              <strong>ขั้นที่ 2:</strong> ป้อนรหัส 6 หลักจากแอปเพื่อยืนยัน
-            </p>
+
             <FormInput
-              label="รหัส 6 หลัก"
+              label="รหัส 6 หลักจากแอป"
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -232,26 +256,11 @@ export function TwoFactorSection(): React.ReactNode {
               autoFocus
             />
             {error && (
-              <p className="text-xs text-red-600">{error}</p>
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
             )}
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={reset}
-                disabled={busy}
-                className="px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                onClick={verifySetup}
-                disabled={busy || code.length !== 6}
-                className="px-4 py-2 rounded-lg bg-(--primary) text-white font-semibold disabled:opacity-50"
-              >
-                {busy ? "กำลังยืนยัน..." : "ยืนยัน"}
-              </button>
-            </div>
           </div>
         )}
       </Modal>
@@ -261,39 +270,42 @@ export function TwoFactorSection(): React.ReactNode {
         open={mode === "showCodes"}
         onClose={reset}
         size="md"
-        title="รหัสสำรอง"
+        title="รหัสสำรองของคุณ"
+        subtitle="ใช้แทน TOTP เมื่อมือถือไม่อยู่ — รหัสนี้แสดงเพียงครั้งเดียว"
         blocking
+        hideCloseButton
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={downloadCodes}
+              className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 inline-flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">download</span>
+              ดาวน์โหลด .txt
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="flex-1 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110"
+            >
+              เก็บไว้แล้ว
+            </button>
+          </div>
+        }
       >
         {backupCodes && (
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900">
-              <strong>สำคัญ:</strong> เก็บรหัสเหล่านี้ไว้ในที่ปลอดภัย —
-              แต่ละรหัสใช้ได้เพียง 1 ครั้ง ใช้แทน TOTP เมื่อมือถือไม่อยู่ <br />
-              <strong>รหัสนี้จะแสดงเพียงครั้งเดียว</strong> หากปิดหน้าต่างจะไม่สามารถดูได้อีก
+          <div className="px-6 py-5 space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
+              <strong>สำคัญ:</strong> เก็บรหัสเหล่านี้ในที่ปลอดภัย แต่ละรหัสใช้ได้ <strong>เพียง 1 ครั้ง</strong>
+              <br />หากปิดหน้าต่างจะไม่สามารถดูรหัสนี้ได้อีก
             </div>
-            <div className="grid grid-cols-2 gap-2 font-mono text-sm bg-slate-50 rounded-lg p-3">
+            <div className="grid grid-cols-2 gap-2">
               {backupCodes.map((c, i) => (
-                <div key={i} className="px-2 py-1 bg-white rounded text-slate-800 text-center tracking-wider">
+                <div key={i} className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg font-mono text-sm text-slate-800 text-center tracking-wider">
                   {c}
                 </div>
               ))}
-            </div>
-            <div className="flex justify-between gap-2 pt-2">
-              <button
-                type="button"
-                onClick={downloadCodes}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50"
-              >
-                <span className="material-symbols-outlined text-base align-middle mr-1">download</span>
-                ดาวน์โหลด .txt
-              </button>
-              <button
-                type="button"
-                onClick={reset}
-                className="px-4 py-2 rounded-lg bg-(--primary) text-white font-semibold"
-              >
-                เก็บไว้แล้ว — ปิด
-              </button>
             </div>
           </div>
         )}
@@ -305,10 +317,32 @@ export function TwoFactorSection(): React.ReactNode {
         onClose={() => !busy && reset()}
         size="sm"
         title="ปิดใช้งาน 2FA"
+        subtitle="ยืนยันด้วยรหัสผ่านและรหัส 2FA ปัจจุบัน"
+        blocking={busy}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              disabled={busy}
+              className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={disable2FA}
+              disabled={busy || !password || code.length !== 6}
+              className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 disabled:opacity-50"
+            >
+              {busy ? "..." : "ปิดใช้งาน"}
+            </button>
+          </div>
+        }
       >
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600">
-            การปิด 2FA จะลดความปลอดภัยของบัญชี — กรุณาป้อนรหัสผ่านและรหัส 2FA ปัจจุบันเพื่อยืนยัน
+        <div className="px-6 py-5 space-y-4">
+          <p className="text-sm text-slate-600 leading-relaxed">
+            การปิด 2FA จะลดความปลอดภัยของบัญชี
           </p>
           <FormInput label="รหัสผ่าน" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           <FormInput
@@ -317,18 +351,12 @@ export function TwoFactorSection(): React.ReactNode {
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
           />
-          {error && <p className="text-xs text-red-600">{error}</p>}
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={reset} disabled={busy} className="px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">ยกเลิก</button>
-            <button
-              type="button"
-              onClick={disable2FA}
-              disabled={busy || !password || code.length !== 6}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold disabled:opacity-50"
-            >
-              {busy ? "..." : "ปิดใช้งาน"}
-            </button>
-          </div>
+          {error && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
         </div>
       </Modal>
 
@@ -338,10 +366,32 @@ export function TwoFactorSection(): React.ReactNode {
         onClose={() => !busy && reset()}
         size="sm"
         title="สร้างรหัสสำรองใหม่"
+        subtitle="รหัสเก่าจะถูกยกเลิกทั้งหมด"
+        blocking={busy}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              disabled={busy}
+              className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={regenerate}
+              disabled={busy || code.length !== 6}
+              className="flex-1 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 disabled:opacity-50"
+            >
+              {busy ? "..." : "สร้างใหม่"}
+            </button>
+          </div>
+        }
       >
-        <div className="space-y-3">
+        <div className="px-6 py-5 space-y-4">
           <p className="text-sm text-slate-600">
-            รหัสเก่าจะถูกยกเลิกทั้งหมด — ป้อนรหัส 2FA ปัจจุบันเพื่อยืนยัน
+            ป้อนรหัส 2FA ปัจจุบันเพื่อยืนยัน
           </p>
           <FormInput
             label="รหัส 2FA (6 หลัก)"
@@ -350,18 +400,12 @@ export function TwoFactorSection(): React.ReactNode {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
             autoFocus
           />
-          {error && <p className="text-xs text-red-600">{error}</p>}
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={reset} disabled={busy} className="px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">ยกเลิก</button>
-            <button
-              type="button"
-              onClick={regenerate}
-              disabled={busy || code.length !== 6}
-              className="px-4 py-2 rounded-lg bg-(--primary) text-white font-semibold disabled:opacity-50"
-            >
-              {busy ? "..." : "สร้างใหม่"}
-            </button>
-          </div>
+          {error && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
         </div>
       </Modal>
     </section>

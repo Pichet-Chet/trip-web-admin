@@ -103,34 +103,17 @@ export function EmailChangeSection(): React.ReactNode {
       <Modal
         open={open}
         onClose={() => !busy && setOpen(false)}
-        size="sm"
+        size="md"
         title="เปลี่ยนอีเมล"
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600">
-            ระบบจะส่งลิงก์ยืนยันไปยังอีเมลใหม่ — เมื่อกดลิงก์แล้วถึงจะเปลี่ยนได้สำเร็จ
-            session ปัจจุบันทุกเครื่องจะถูก logout
-          </p>
-          <FormInput
-            label="อีเมลใหม่"
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            placeholder="new@example.com"
-          />
-          <FormInput
-            label="รหัสผ่านปัจจุบัน"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {error && <p className="text-xs text-red-600">{error}</p>}
-          <div className="flex justify-end gap-2 pt-1">
+        subtitle="ส่งลิงก์ยืนยันไปยังอีเมลใหม่ — session ทุกเครื่องจะ logout หลังเปลี่ยนสำเร็จ"
+        blocking={busy}
+        footer={
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setOpen(false)}
               disabled={busy}
-              className="px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100"
+              className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
             >
               ยกเลิก
             </button>
@@ -138,11 +121,35 @@ export function EmailChangeSection(): React.ReactNode {
               type="button"
               onClick={submit}
               disabled={busy || !newEmail || !password}
-              className="px-4 py-2 rounded-lg bg-(--primary) text-white font-semibold disabled:opacity-50"
+              className="flex-1 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 disabled:opacity-50"
             >
-              {busy ? "..." : "ส่งลิงก์ยืนยัน"}
+              {busy ? "กำลังส่ง..." : "ส่งลิงก์ยืนยัน"}
             </button>
           </div>
+        }
+      >
+        <div className="px-6 py-5 space-y-4">
+          <FormInput
+            label="อีเมลใหม่"
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="new@example.com"
+            autoFocus
+          />
+          <FormInput
+            label="รหัสผ่านปัจจุบัน"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+          {error && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
         </div>
       </Modal>
     </section>
