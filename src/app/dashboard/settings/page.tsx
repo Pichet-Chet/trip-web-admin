@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormInput, FormTextarea, Modal, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
+import { NotificationPreferencesSection } from "@/components/notification-preferences-section";
 import { api, ApiError } from "@/lib/api";
 import { getUser, logout, type UserInfo } from "@/lib/auth";
 
@@ -162,6 +163,8 @@ export default function SettingsPage(): React.ReactNode {
           </button>
         </div>
       </div>
+
+      <NotificationPreferencesSection />
 
       {/* Export Data — PDPA */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
