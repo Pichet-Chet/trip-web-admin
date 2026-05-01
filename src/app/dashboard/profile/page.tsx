@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FormInput, FormTextarea, LoadingState, SectionHeader, ImageUpload, ToggleSwitch, useToast } from "@/components/shared";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { FormInput, FormTextarea, ImageUpload, LoadingState, SectionHeader, ToggleSwitch, useToast } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -26,11 +27,56 @@ interface CompanyData {
   tripQuotaUsed: number;
 }
 
-const accountTypes: { value: AccountType; label: string; desc: string }[] = [
-  { value: "company", label: "บริษัททัวร์", desc: "มีใบอนุญาต ททท. และทีมงาน" },
-  { value: "freelance", label: "ไกด์ฟรีแลนซ์", desc: "ไกด์อิสระ รับจัดทริปเอง" },
-  { value: "personal", label: "ส่วนตัว", desc: "ทำแพลนทริปแชร์ให้เพื่อนๆ" },
+interface UsageSummary {
+  tier: string | null;
+  tripQuotaUsed: number;
+  tripQuotaLimit: number;
+  remainingTrips: number;
+  hasActiveSubscription: boolean;
+}
+
+interface FormState {
+  name: string;
+  accountType: AccountType;
+  logoUrl: string | null;
+  phone: string;
+  lineId: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  websiteUrl: string;
+  tatLicense: string;
+  portfolioEnabled: boolean;
+  portfolioSlug: string;
+  portfolioBio: string;
+}
+
+const accountTypes: { value: AccountType; label: string; desc: string; icon: string }[] = [
+  { value: "company",   label: "บริษัททัวร์",   desc: "มีใบอนุญาต ททท. และทีมงาน",  icon: "business" },
+  { value: "freelance", label: "ไกด์ฟรีแลนซ์", desc: "ไกด์อิสระ รับจัดทริปเอง",       icon: "person" },
+  { value: "personal",  label: "ส่วนตัว",       desc: "ทำแพลนทริปแชร์ให้เพื่อน",      icon: "favorite" },
 ];
+
+const TIER_LABEL: Record<string, string> = {
+  free: "Free",
+  per_trip: "จ่ายต่อทริป",
+  pack_5: "แพ็ค 5 ทริป",
+  subscription: "Subscription",
+};
+
+const EMPTY_FORM: FormState = {
+  name: "",
+  accountType: "company",
+  logoUrl: null,
+  phone: "",
+  lineId: "",
+  facebookUrl: "",
+  instagramUrl: "",
+  websiteUrl: "",
+  tatLicense: "",
+  portfolioEnabled: false,
+  portfolioSlug: "",
+  portfolioBio: "",
+};
 
 export default function ProfilePage(): React.ReactNode {
   usePageTitle("ข้อมูลบริษัท");
@@ -38,24 +84,17 @@ export default function ProfilePage(): React.ReactNode {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
-  const [form, setForm] = useState({
-    name: "",
-    accountType: "company" as AccountType,
-    logoUrl: null as string | null,
-    phone: "",
-    lineId: "",
-    facebookUrl: "",
-    instagramUrl: "",
-    websiteUrl: "",
-    tatLicense: "",
-    portfolioEnabled: false,
-    portfolioSlug: "",
-    portfolioBio: "",
-  });
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [original, setOriginal] = useState<FormState>(EMPTY_FORM);
+  const [usage, setUsage] = useState<UsageSummary | null>(null);
+  const [showAccountType, setShowAccountType] = useState(false);
 
   useEffect(() => {
-    api.get<CompanyData>("/admin/company").then((data) => {
-      setForm({
+    Promise.all([
+      api.get<CompanyData>("/admin/company"),
+      api.get<UsageSummary>("/admin/usage").catch(() => null),
+    ]).then(([data, u]) => {
+      const next: FormState = {
         name: data.name,
         accountType: (data.accountType?.toLowerCase() || "company") as AccountType,
         logoUrl: data.logoUrl,
@@ -68,15 +107,59 @@ export default function ProfilePage(): React.ReactNode {
         portfolioEnabled: data.portfolioEnabled,
         portfolioSlug: data.portfolioSlug || "",
         portfolioBio: data.portfolioBio || "",
-      });
+      };
+      setForm(next);
+      setOriginal(next);
+      if (u) setUsage(u);
       setLoading(false);
     });
   }, []);
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(original), [form, original]);
+  const isCompany = form.accountType === "company";
+  const isPersonal = form.accountType === "personal";
+
+  // Block accidental navigation while there are unsaved changes.
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  // Profile completeness — counts filled-in fields among the relevant set.
+  const completeness = useMemo(() => {
+    const checks: boolean[] = [
+      !!form.name,
+      !!form.logoUrl,
+      !!form.phone,
+      !!form.lineId,
+      !!(form.facebookUrl || form.instagramUrl || form.websiteUrl),
+    ];
+    if (!isPersonal) checks.push(!!form.tatLicense);
+    const done = checks.filter(Boolean).length;
+    return { done, total: checks.length, pct: Math.round((done / checks.length) * 100) };
+  }, [form, isPersonal]);
+
+  function validate(): string | null {
+    if (isCompany && !form.name.trim()) return "กรุณากรอกชื่อบริษัท";
+    if (form.portfolioEnabled) {
+      if (!form.portfolioSlug.trim()) return "เปิด Portfolio แล้ว — กรุณาตั้ง slug";
+      if (!/^[a-z0-9-]+$/i.test(form.portfolioSlug.trim())) return "Slug ต้องเป็นตัวอักษร a-z, 0-9, หรือ - เท่านั้น";
+      if (!form.portfolioBio.trim()) return "เปิด Portfolio แล้ว — กรุณากรอก Bio";
+    }
+    return null;
+  }
+
   async function handleSave() {
+    const err = validate();
+    if (err) { setSaveError(err); return; }
     setSaving(true);
     setSaveError("");
     try {
@@ -93,6 +176,7 @@ export default function ProfilePage(): React.ReactNode {
         portfolioSlug: form.portfolioSlug || undefined,
         portfolioBio: form.portfolioBio || undefined,
       });
+      setOriginal(form);
       toast("บันทึกสำเร็จ", "success");
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่");
@@ -101,154 +185,265 @@ export default function ProfilePage(): React.ReactNode {
     }
   }
 
-  const isCompany = form.accountType === "company";
-  const isPersonal = form.accountType === "personal";
+  function handleDiscard() {
+    setForm(original);
+    setSaveError("");
+  }
 
   if (loading) return <LoadingState />;
 
+  const currentAccountType = accountTypes.find((t) => t.value === form.accountType) ?? accountTypes[0];
+
   return (
-    <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8 flex flex-col items-center">
-      <div className="max-w-3xl w-full">
-        <div className="mb-8 md:mb-12 text-center">
-          <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">โปรไฟล์ของคุณ</h1>
-          <p className="text-slate-500 text-sm md:text-lg max-w-lg mx-auto leading-relaxed">ข้อมูลนี้จะแสดงบนหน้าทริปที่แชร์ให้ผู้ร่วมเดินทาง</p>
+    <div className="p-4 md:p-8 pb-24 space-y-6">
+      {/* Header */}
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ข้อมูลบริษัท</h1>
+          <p className="text-slate-500 mt-1 text-sm">ข้อมูลนี้แสดงบนหน้าทริปและลิงก์ที่แชร์ให้ผู้ร่วมเดินทาง</p>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 md:p-12 space-y-10 md:space-y-12">
-
-            {/* Account Type Selector */}
-            <section className="space-y-4">
-              <SectionHeader title="ประเภทบัญชี" variant="bar" />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {accountTypes.map((t) => (
-                  <button
-                    key={t.value}
-                    onClick={() => setForm((p) => ({ ...p, accountType: t.value }))}
-                    className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      form.accountType === t.value ? "border-(--primary) bg-(--primary-container)/30" : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <p className={`text-sm font-bold ${form.accountType === t.value ? "text-(--primary)" : "text-slate-900"}`}>{t.label}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            {/* Profile Image */}
-            <ImageUpload
-              value={form.logoUrl}
-              onChange={(url) => setForm((p) => ({ ...p, logoUrl: url }))}
-              uploadUrl={`${process.env.NEXT_PUBLIC_API_URL}/admin/company/logo`}
-              aspect="square"
-              label={isCompany ? "อัปโหลดโลโก้" : "อัปโหลดรูปโปรไฟล์"}
-              hint={isCompany ? "แนะนำ: 512x512px PNG หรือ SVG · ไม่เกิน 5MB" : "แนะนำ: รูปหน้าตรง 512x512px · ไม่เกิน 5MB"}
+        <div className="flex items-center gap-3 text-xs">
+          <span className="text-slate-500">ความสมบูรณ์</span>
+          <div className="w-32 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className={`h-full transition-all ${completeness.pct >= 80 ? "bg-emerald-500" : completeness.pct >= 50 ? "bg-amber-500" : "bg-rose-500"}`}
+              style={{ width: `${completeness.pct}%` }}
             />
+          </div>
+          <span className="font-bold text-slate-700 tabular-nums">{completeness.pct}%</span>
+        </div>
+      </div>
 
-            {/* Info Section */}
-            <section className="space-y-6">
-              <SectionHeader
-                title={isCompany ? "ข้อมูลบริษัท" : form.accountType === "freelance" ? "ข้อมูลไกด์" : "ข้อมูลส่วนตัว"}
-                variant="bar"
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-                {isCompany && (
-                  <div className="col-span-1 md:col-span-2">
-                    <FormInput label="ชื่อบริษัท" placeholder="เช่น Amazing Tour Co., Ltd." value={form.name} onChange={set("name")} required />
-                  </div>
-                )}
-                {!isPersonal && (
-                  <FormInput label="เลขใบอนุญาต ททท." placeholder="11/XXXXX (ไม่บังคับ)" value={form.tatLicense} onChange={set("tatLicense")} />
-                )}
-              </div>
-            </section>
+      {/* Plan summary chip */}
+      {usage && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 md:p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-(--primary-container) flex items-center justify-center">
+              <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>card_membership</span>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">แพลนปัจจุบัน</p>
+              <p className="text-base font-bold text-slate-900">{TIER_LABEL[usage.tier ?? "free"] ?? usage.tier ?? "Free"}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-xs text-slate-500">ใช้ไป</p>
+              <p className="text-base font-bold text-slate-900 tabular-nums">{usage.tripQuotaUsed}<span className="text-slate-400 font-medium"> / {usage.hasActiveSubscription ? "∞" : usage.tripQuotaLimit}</span></p>
+            </div>
+            <Link
+              href="/dashboard/usage"
+              className="text-xs font-semibold text-(--primary) hover:underline whitespace-nowrap"
+            >
+              ดูรายละเอียด →
+            </Link>
+          </div>
+        </div>
+      )}
 
-            {/* Contact Channels */}
-            <section className="space-y-6">
-              <SectionHeader title="ช่องทางติดต่อ" subtitle="แสดงบนหน้าทริปให้ลูกทริปติดต่อกลับ" variant="bar" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-                <FormInput label="เบอร์โทรศัพท์" placeholder="+66 81 234 5678" type="tel" icon="call" value={form.phone} onChange={set("phone")} />
-                <FormInput label="LINE ID" placeholder="@yourlineid" icon="chat" value={form.lineId} onChange={set("lineId")} />
-                <FormInput label="Facebook Page" placeholder="https://fb.com/yourpage" icon="thumb_up" value={form.facebookUrl} onChange={set("facebookUrl")} />
-                <FormInput label="Instagram" placeholder="https://instagram.com/yourbrand" icon="camera" value={form.instagramUrl} onChange={set("instagramUrl")} />
-                <div className="col-span-1 md:col-span-2">
-                  <FormInput label="เว็บไซต์" placeholder="https://yourwebsite.com" icon="language" value={form.websiteUrl} onChange={set("websiteUrl")} />
-                </div>
-              </div>
-            </section>
+      {/* Main form card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6 md:p-8 space-y-8">
 
-            {/* Save */}
-            <div className="pt-8 border-t border-slate-100 space-y-4">
-              {saveError && (
-                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <span className="material-symbols-outlined text-red-500 mt-0.5 shrink-0">error</span>
-                  <p className="text-sm text-red-700">{saveError}</p>
+          {/* Profile image */}
+          <ImageUpload
+            value={form.logoUrl}
+            onChange={(url) => setForm((p) => ({ ...p, logoUrl: url }))}
+            uploadUrl={`${process.env.NEXT_PUBLIC_API_URL}/admin/company/logo`}
+            aspect="square"
+            label={isCompany ? "อัปโหลดโลโก้" : "อัปโหลดรูปโปรไฟล์"}
+            hint={isCompany ? "แนะนำ: 512x512px PNG หรือ SVG · ไม่เกิน 5MB" : "แนะนำ: รูปหน้าตรง 512x512px · ไม่เกิน 5MB"}
+          />
+
+          {/* Info Section */}
+          <section className="space-y-5">
+            <SectionHeader
+              title={isCompany ? "ข้อมูลบริษัท" : isPersonal ? "ข้อมูลส่วนตัว" : "ข้อมูลไกด์"}
+              variant="bar"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isCompany && (
+                <div className="md:col-span-2">
+                  <FormInput label="ชื่อบริษัท" placeholder="เช่น Amazing Tour Co., Ltd." value={form.name} onChange={set("name")} required />
                 </div>
               )}
+              {!isPersonal && (
+                <FormInput label="เลขใบอนุญาต ททท." placeholder="11/XXXXX (ไม่บังคับ)" value={form.tatLicense} onChange={set("tatLicense")} />
+              )}
+            </div>
+          </section>
+
+          {/* Contact Channels */}
+          <section className="space-y-5">
+            <SectionHeader title="ช่องทางติดต่อ" subtitle="แสดงบนหน้าทริปให้ลูกทริปติดต่อกลับ" variant="bar" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput label="เบอร์โทรศัพท์" placeholder="+66 81 234 5678" type="tel" icon="call" value={form.phone} onChange={set("phone")} />
+              <FormInput label="LINE ID" placeholder="@yourlineid" icon="forum" value={form.lineId} onChange={set("lineId")} />
+              <FormInput label="Facebook Page" placeholder="https://fb.com/yourpage" icon="public" value={form.facebookUrl} onChange={set("facebookUrl")} />
+              <FormInput label="Instagram" placeholder="https://instagram.com/yourbrand" icon="public" value={form.instagramUrl} onChange={set("instagramUrl")} />
+              <div className="md:col-span-2">
+                <FormInput label="เว็บไซต์" placeholder="https://yourwebsite.com" icon="language" value={form.websiteUrl} onChange={set("websiteUrl")} />
+              </div>
+            </div>
+          </section>
+
+          {/* Account type — collapsed by default since rarely changed */}
+          <section className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setShowAccountType((v) => !v)}
+              className="w-full flex items-center justify-between gap-3 text-left group"
+            >
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">ประเภทบัญชี</p>
+                <p className="text-sm font-semibold text-slate-700 mt-0.5">{currentAccountType.label}</p>
+              </div>
+              <span className={`material-symbols-outlined text-slate-400 transition-transform ${showAccountType ? "rotate-180" : ""}`}>expand_more</span>
+            </button>
+            {showAccountType && (
+              <div role="radiogroup" aria-label="ประเภทบัญชี" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {accountTypes.map((t, idx) => {
+                  const selected = form.accountType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      tabIndex={selected ? 0 : -1}
+                      onClick={() => setForm((p) => ({ ...p, accountType: t.value }))}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                          e.preventDefault();
+                          const next = accountTypes[(idx + 1) % accountTypes.length];
+                          setForm((p) => ({ ...p, accountType: next.value }));
+                        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                          e.preventDefault();
+                          const prev = accountTypes[(idx - 1 + accountTypes.length) % accountTypes.length];
+                          setForm((p) => ({ ...p, accountType: prev.value }));
+                        }
+                      }}
+                      className={`text-left p-4 rounded-xl border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)/30 ${
+                        selected ? "border-(--primary) bg-(--primary-container)/30" : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`material-symbols-outlined text-lg ${selected ? "text-(--primary)" : "text-slate-400"}`}>{t.icon}</span>
+                        <p className={`text-sm font-bold ${selected ? "text-(--primary)" : "text-slate-900"}`}>{t.label}</p>
+                      </div>
+                      <p className="text-xs text-slate-400">{t.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+
+      {/* Team Section */}
+      {!isPersonal && <TeamSection />}
+
+      {/* Portfolio */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-bold text-slate-900">Portfolio สาธารณะ</h3>
+            <p className="text-xs text-slate-400 mt-0.5">หน้าแสดงผลงานทริปทั้งหมดของคุณ</p>
+          </div>
+          <ToggleSwitch
+            checked={form.portfolioEnabled}
+            onChange={(next) => setForm((p) => ({ ...p, portfolioEnabled: next }))}
+            ariaLabel="เปิด/ปิด Portfolio สาธารณะ"
+          />
+        </div>
+        {form.portfolioEnabled && (
+          <div className="p-6 space-y-4">
+            <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <span className="text-sm text-slate-500 truncate flex-1 font-mono">tripapp.co/g/{form.portfolioSlug || "your-slug"}</span>
               <button
+                type="button"
+                onClick={() => { navigator.clipboard.writeText(`tripapp.co/g/${form.portfolioSlug}`); toast("คัดลอกลิงก์แล้ว"); }}
+                disabled={!form.portfolioSlug}
+                className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                คัดลอก
+              </button>
+            </div>
+            <FormInput
+              label="Slug"
+              required
+              value={form.portfolioSlug}
+              onChange={set("portfolioSlug")}
+              placeholder="your-company-name"
+              hint="ตัวอักษร a-z, 0-9, หรือ - เท่านั้น"
+            />
+            <FormTextarea
+              label="Bio"
+              required
+              value={form.portfolioBio}
+              onChange={(e) => setForm((p) => ({ ...p, portfolioBio: e.target.value }))}
+              placeholder="เล่าสั้นๆ เกี่ยวกับตัวคุณหรือบริษัท"
+              rows={3}
+              maxLength={1024}
+              hint={`${form.portfolioBio.length}/1024`}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Sticky save bar */}
+      {isDirty && (
+        <div className="fixed bottom-0 left-0 right-0 md:left-20 lg:left-64 z-40 bg-white border-t border-slate-200 shadow-lg">
+          <div className="px-4 md:px-8 py-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-sm text-amber-700">
+              <span className="material-symbols-outlined text-lg leading-none">edit_note</span>
+              <span className="font-semibold">มีการแก้ไขที่ยังไม่บันทึก</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDiscard}
+                disabled={saving}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full h-14 bg-(--primary) text-white rounded-xl font-bold text-sm shadow-lg shadow-(--primary)/20 hover:opacity-95 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold inline-flex items-center gap-2 transition-all ${
+                  saving
+                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    : "bg-(--primary) text-white shadow-md shadow-(--primary)/25 hover:brightness-110 active:scale-95"
+                }`}
               >
-                <span>{saving ? "กำลังบันทึก..." : "บันทึก"}</span>
-                {!saving && <span className="material-symbols-outlined text-lg">check</span>}
+                {saving ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-500 rounded-full animate-spin" />
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-base leading-none">check</span>
+                    บันทึก
+                  </>
+                )}
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Team Section */}
-        {!isPersonal && <TeamSection />}
-
-        {/* Portfolio */}
-        <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-slate-900">Portfolio สาธารณะ</h3>
-              <p className="text-xs text-slate-400 mt-0.5">หน้าแสดงผลงานทริปทั้งหมดของคุณ</p>
-            </div>
-            <ToggleSwitch
-              checked={form.portfolioEnabled}
-              onChange={(next) => setForm((p) => ({ ...p, portfolioEnabled: next }))}
-              ariaLabel="เปิด/ปิด Portfolio สาธารณะ"
-            />
-          </div>
-          {form.portfolioEnabled && (
-            <div className="p-6 space-y-4">
-              <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-sm text-slate-500 truncate flex-1">tripapp.co/g/{form.portfolioSlug || "your-slug"}</span>
-                <button onClick={() => { navigator.clipboard.writeText(`tripapp.co/g/${form.portfolioSlug}`); toast("คัดลอกลิงก์แล้ว"); }} className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">คัดลอก</button>
-              </div>
-              <FormInput label="Slug" value={form.portfolioSlug} onChange={set("portfolioSlug")} placeholder="your-company-name" />
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">Bio</label>
-                <textarea
-                  value={form.portfolioBio}
-                  onChange={(e) => setForm((p) => ({ ...p, portfolioBio: e.target.value }))}
-                  placeholder="เล่าสั้นๆ เกี่ยวกับตัวคุณหรือบริษัท"
-                  rows={3}
-                  maxLength={1024}
-                  className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) transition-all text-(--on-surface) font-medium placeholder:text-(--outline)/40 outline-none resize-none text-sm"
-                />
-                <p className="text-[11px] text-slate-400 px-1 text-right">{form.portfolioBio.length}/1024</p>
+          {saveError && (
+            <div className="px-4 md:px-8 pb-3 -mt-1">
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <span className="material-symbols-outlined text-red-500 text-base mt-0.5 shrink-0">error</span>
+                <p className="text-sm text-red-700">{saveError}</p>
               </div>
             </div>
           )}
         </div>
-
-        {/* Usage Link */}
-        <a href="/dashboard/usage" className="mt-6 block bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-(--primary)/30 transition-colors group">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-slate-900">การใช้งาน & แพลน</h3>
-              <p className="text-xs text-slate-400 mt-0.5">ดูโควต้า ลิมิต และอัปเกรดแพลน</p>
-            </div>
-            <span className="material-symbols-outlined text-slate-300 group-hover:text-(--primary) group-hover:translate-x-1 transition-all">arrow_forward</span>
-          </div>
-        </a>
-      </div>
-    </main>
+      )}
+    </div>
   );
 }
 
@@ -271,6 +466,15 @@ interface PendingInvite {
   expiresAt: string;
 }
 
+function formatExpiresIn(iso: string): string {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "หมดอายุแล้ว";
+  const day = Math.floor(ms / (24 * 3600 * 1000));
+  if (day >= 1) return `หมดอายุใน ${day} วัน`;
+  const hr = Math.floor(ms / (3600 * 1000));
+  return `หมดอายุใน ${hr} ชม.`;
+}
+
 function TeamSection(): React.ReactNode {
   const { toast } = useToast();
   const { confirm } = useConfirm();
@@ -282,20 +486,14 @@ function TeamSection(): React.ReactNode {
   const [invite, setInvite] = useState({ email: "", role: "Editor" });
 
   useEffect(() => {
-    api.get<TeamMember[]>("/admin/company/team").then(setMembers);
-    api.get<PendingInvite[]>("/admin/company/team/invites").then(setPendingInvites);
+    api.get<TeamMember[]>("/admin/company/team").then(setMembers).catch(() => {});
+    api.get<PendingInvite[]>("/admin/company/team/invites").then(setPendingInvites).catch(() => {});
   }, []);
 
   async function handleInvite() {
     setInviteError("");
-    if (!invite.email) {
-      setInviteError("กรุณากรอกอีเมล");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invite.email)) {
-      setInviteError("รูปแบบอีเมลไม่ถูกต้อง");
-      return;
-    }
+    if (!invite.email) { setInviteError("กรุณากรอกอีเมล"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invite.email)) { setInviteError("รูปแบบอีเมลไม่ถูกต้อง"); return; }
     setInviting(true);
     try {
       const inv = await api.post<PendingInvite>("/admin/company/team/invite", invite);
@@ -338,35 +536,56 @@ function TeamSection(): React.ReactNode {
   }
 
   return (
-    <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-        <h3 className="font-bold text-slate-900">ทีมงาน</h3>
-        <button onClick={() => setShowInvite(!showInvite)} className="text-sm font-semibold text-(--primary) hover:bg-(--primary-container)/40 px-3 py-1.5 rounded-lg transition-colors">
-          {showInvite ? "ยกเลิก" : "+ เชิญ"}
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="font-bold text-slate-900">ทีมงาน</h3>
+          <p className="text-xs text-slate-400 mt-0.5">เชิญสมาชิกเพื่อแบ่งปันการจัดการทริป</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowInvite(!showInvite)}
+          className="text-sm font-semibold text-(--primary) hover:bg-(--primary-container)/40 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+        >
+          <span className="material-symbols-outlined text-base leading-none">{showInvite ? "close" : "person_add"}</span>
+          {showInvite ? "ยกเลิก" : "เชิญ"}
         </button>
       </div>
 
       {showInvite && (
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <FormInput placeholder="อีเมลที่ต้องการเชิญ" type="email" icon="mail" value={invite.email} onChange={(e) => setInvite((p) => ({ ...p, email: e.target.value }))} />
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-7">
+              <FormInput
+                placeholder="อีเมลที่ต้องการเชิญ"
+                type="email"
+                icon="mail"
+                value={invite.email}
+                onChange={(e) => setInvite((p) => ({ ...p, email: e.target.value }))}
+              />
             </div>
-            <select
-              value={invite.role}
-              onChange={(e) => setInvite((p) => ({ ...p, role: e.target.value }))}
-              className="px-4 py-4 bg-white border border-slate-200 rounded-xl text-sm outline-none"
-            >
-              <option value="Editor">Editor</option>
-              <option value="Owner">Owner</option>
-            </select>
-            <button
-              onClick={handleInvite}
-              disabled={inviting}
-              className="px-5 py-4 bg-(--primary) text-white rounded-xl text-sm font-bold hover:opacity-95 transition-colors disabled:opacity-50 whitespace-nowrap"
-            >
-              {inviting ? "กำลังส่ง..." : "ส่งคำเชิญ"}
-            </button>
+            <div className="sm:col-span-3">
+              <select
+                value={invite.role}
+                onChange={(e) => setInvite((p) => ({ ...p, role: e.target.value }))}
+                className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 px-4 text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) transition-all"
+              >
+                <option value="Editor">Editor</option>
+                <option value="Owner">Owner</option>
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <button
+                type="button"
+                onClick={handleInvite}
+                disabled={inviting}
+                className="w-full h-full px-4 py-4 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 transition-colors disabled:opacity-50 whitespace-nowrap inline-flex items-center justify-center gap-1"
+              >
+                {inviting ? (
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : "ส่ง"}
+              </button>
+            </div>
           </div>
           {inviteError && (
             <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
@@ -374,7 +593,12 @@ function TeamSection(): React.ReactNode {
               <p className="text-xs text-red-700">{inviteError}</p>
             </div>
           )}
-          <p className="text-[11px] text-slate-400">ระบบจะส่ง link เชิญไปทางอีเมล · ผู้รับเชิญต้องตั้ง password เอง</p>
+          <div className="text-[11px] text-slate-500 leading-relaxed bg-blue-50 border border-blue-100 rounded-xl p-3">
+            <p className="font-semibold text-slate-700 mb-1">บทบาท:</p>
+            <p><strong className="text-slate-700">Editor</strong> — สร้าง/แก้ไขทริปและตอบ ticket แต่จัดการบัญชี/ทีมไม่ได้</p>
+            <p><strong className="text-slate-700">Owner</strong> — สิทธิ์เต็ม เชิญ/ลบสมาชิก เปลี่ยนแพ็กเกจได้</p>
+            <p className="mt-1 text-slate-400">ระบบจะส่งลิงก์เชิญทางอีเมล · ผู้รับตั้งรหัสผ่านเอง</p>
+          </div>
         </div>
       )}
 
@@ -385,19 +609,22 @@ function TeamSection(): React.ReactNode {
             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">รอตอบรับ ({pendingInvites.length})</p>
           </div>
           {pendingInvites.map((inv) => (
-            <div key={inv.id} className="px-6 py-3 flex items-center justify-between border-t border-slate-50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-amber-600 text-sm">schedule</span>
+            <div key={inv.id} className="px-6 py-3 flex items-center justify-between gap-3 border-t border-slate-50">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-amber-600 text-sm leading-none">schedule</span>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-700">{inv.email}</p>
-                  <p className="text-[10px] text-slate-400">{inv.role} · {inv.status === "expired" ? "หมดอายุ" : "รอตอบรับ"}</p>
+                <div className="min-w-0">
+                  <p className="text-sm text-slate-700 truncate">{inv.email}</p>
+                  <p className="text-[10px] text-slate-400">
+                    {inv.role} · {inv.status === "expired" ? "หมดอายุ" : formatExpiresIn(inv.expiresAt)}
+                  </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => handleCancelInvite(inv.id)}
-                className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                className="text-xs text-slate-400 hover:text-red-500 transition-colors shrink-0"
               >
                 ยกเลิก
               </button>
@@ -407,34 +634,36 @@ function TeamSection(): React.ReactNode {
       )}
 
       {members.length > 0 ? (
-        <div className="divide-y divide-slate-50">
+        <ul className="divide-y divide-slate-100">
           {members.map((m) => (
-            <div key={m.id} className="px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500">
+            <li key={m.id} className="px-6 py-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0">
                   {m.firstName.charAt(0)}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{m.firstName} {m.lastName}</p>
-                  <p className="text-xs text-slate-400">{m.email}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{m.firstName} {m.lastName}</p>
+                  <p className="text-xs text-slate-400 truncate">{m.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${m.role === "Owner" ? "bg-(--primary-container)/40 text-(--primary)" : "bg-slate-100 text-slate-500"}`}>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${m.role === "Owner" ? "bg-(--primary-container) text-(--on-primary-container) ring-1 ring-(--primary)/20" : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"}`}>
                   {m.role}
                 </span>
                 {m.role !== "Owner" && (
                   <button
+                    type="button"
                     onClick={() => handleRemove(m.id, `${m.firstName} ${m.lastName}`)}
-                    className="p-1 rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+                    aria-label={`ลบ ${m.firstName} ${m.lastName}`}
                   >
-                    <span className="material-symbols-outlined text-lg">close</span>
+                    <span className="material-symbols-outlined text-lg leading-none">close</span>
                   </button>
                 )}
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
         <div className="p-6 text-center text-sm text-slate-400">
           <span className="material-symbols-outlined text-2xl text-slate-200 block mb-2">group_add</span>
