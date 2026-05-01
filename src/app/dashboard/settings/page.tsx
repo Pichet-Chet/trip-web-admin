@@ -171,19 +171,28 @@ export default function SettingsPage(): React.ReactNode {
 
       {/* Export Data — PDPA */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
-        <SectionHeader title="ส่งออกข้อมูล (PDPA)" variant="bar" />
+        <SectionHeader title="ข้อมูลของฉัน (PDPA)" variant="bar" />
         <p className="text-sm text-slate-500">
-          ดาวน์โหลดข้อมูลทั้งหมดของคุณเป็นไฟล์ JSON — บัญชี, บริษัท, ทริป, แพ็กเกจ, ประวัติชำระเงิน
-          ตามสิทธิ์ที่บัญญัติใน PDPA / GDPR
+          ดูสรุปข้อมูลทั้งหมดที่ TripApp เก็บเกี่ยวกับคุณ พร้อมตัวเลือกดาวน์โหลด JSON —
+          ตามสิทธิ์ที่บัญญัติใน PDPA / GDPR (มาตรา 30)
         </p>
-        <button
-          onClick={handleExport}
-          disabled={exporting}
-          className="px-6 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-base">download</span>
-          {exporting ? "กำลังเตรียมไฟล์..." : "ส่งออกข้อมูลทั้งหมด"}
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <a
+            href="/dashboard/my-data"
+            className="px-6 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 inline-flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">description</span>
+            ดูข้อมูลของฉัน
+          </a>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="px-6 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">download</span>
+            {exporting ? "กำลังเตรียมไฟล์..." : "ดาวน์โหลด JSON ทันที"}
+          </button>
+        </div>
       </div>
 
       {/* Danger Zone */}
