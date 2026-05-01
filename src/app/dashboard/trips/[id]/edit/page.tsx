@@ -583,6 +583,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               tripStartDate={startDate}
               activeDayIndex={activeDay}
               accommodations={accommodations}
+              tripId={id}
               totalTripDays={totalTripDays}
               daysCount={days.length}
               totalActivities={days.reduce((s, d) => s + d.activities.length, 0)}

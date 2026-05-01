@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import {
   SectionHeader,
@@ -86,10 +87,25 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
   usePageTitle("จัดการทริป");
   const { toast } = useToast();
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [loading, setLoading] = useState(true);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [changelogs, setChangelogs] = useState<ChangeLog[]>([]);
-  const [activeTab, setActiveTab] = useState<"followers" | "changelog">("changelog");
+
+  // Tab state lives in the URL so the page is shareable and survives
+  // refresh. Falls back to "changelog" — the more important view since
+  // unsent notifications need attention.
+  const tabParam = searchParams.get("tab");
+  const activeTab: "followers" | "changelog" = tabParam === "followers" ? "followers" : "changelog";
+  const setActiveTab = (tab: "followers" | "changelog"): void => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "changelog") params.delete("tab");
+    else params.set("tab", tab);
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+  };
 
   const [sending, setSending] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ logId: string; mode: "send" | "resend" } | null>(null);
@@ -159,27 +175,27 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
         <div className="mb-6 flex items-center gap-3">
           <Link
             href={ROUTES.tripPreview(tripId)}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-(--surface-variant) transition-colors"
             aria-label="กลับ"
           >
-            <span className="material-symbols-outlined text-slate-600">arrow_back</span>
+            <span className="material-symbols-outlined text-(--on-surface-variant)">arrow_back</span>
           </Link>
           <div className="flex-1">
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">จัดการผู้ติดตาม &amp; การแจ้งเตือน</h1>
-            <p className="text-xs md:text-sm text-slate-500 mt-0.5">
+            <h1 className="text-xl md:text-2xl font-bold text-(--on-surface)">จัดการผู้ติดตาม &amp; การแจ้งเตือน</h1>
+            <p className="text-xs md:text-sm text-(--on-surface-variant) mt-0.5">
               {followers.length} ผู้ติดตาม · {pendingCount > 0 ? `${pendingCount} การเปลี่ยนแปลงรอแจ้งเตือน` : "ไม่มีการเปลี่ยนแปลงรอแจ้งเตือน"}
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-slate-200">
+        <div className="flex gap-2 mb-6 border-b border-(--outline-variant)/30">
           <button
             onClick={() => setActiveTab("changelog")}
             className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "changelog"
                 ? "border-(--primary) text-(--primary)"
-                : "border-transparent text-slate-500 hover:text-slate-700"
+                : "border-transparent text-(--on-surface-variant) hover:text-(--on-surface)"
             }`}
           >
             ประวัติการเปลี่ยนแปลง
@@ -194,11 +210,11 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "followers"
                 ? "border-(--primary) text-(--primary)"
-                : "border-transparent text-slate-500 hover:text-slate-700"
+                : "border-transparent text-(--on-surface-variant) hover:text-(--on-surface)"
             }`}
           >
             ผู้ติดตาม
-            <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600">
+            <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-(--surface-variant) text-(--on-surface-variant)">
               {followers.length}
             </span>
           </button>
@@ -217,12 +233,12 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
               changelogs.map((log) => (
                 <article
                   key={log.id}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+                  className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-sm overflow-hidden"
                 >
                   <div className="p-5 md:p-6">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <p className="text-xs text-slate-400">{formatThaiDateTime(log.createdAt)}</p>
+                        <p className="text-xs text-(--outline)">{formatThaiDateTime(log.createdAt)}</p>
                         {log.notiSent ? (
                           <p className="text-[11px] text-emerald-600 mt-0.5 inline-flex items-center gap-1">
                             <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -239,14 +255,14 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
 
                     <ul className="space-y-1.5 mb-4">
                       {log.changes.map((c) => (
-                        <li key={c.id} className="flex items-start gap-2 text-sm text-slate-700">
+                        <li key={c.id} className="flex items-start gap-2 text-sm text-(--on-surface)">
                           <span className="material-symbols-outlined text-(--primary) text-base mt-0.5 shrink-0">edit</span>
                           <span>{c.description}</span>
                         </li>
                       ))}
                     </ul>
 
-                    <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-2 pt-3 border-t border-(--outline-variant)/20">
                       {!log.notiSent ? (
                         <button
                           onClick={() => setConfirmAction({ logId: log.id, mode: "send" })}
@@ -261,7 +277,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                         <>
                           <button
                             onClick={() => openReceipts(log)}
-                            className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-200 transition-colors inline-flex items-center gap-2"
+                            className="px-4 py-2 bg-(--surface-variant) text-(--on-surface) text-sm font-bold rounded-lg hover:bg-(--surface-variant)/80 transition-colors inline-flex items-center gap-2"
                           >
                             <span className="material-symbols-outlined text-sm">visibility</span>
                             ดูสถานะการอ่าน
@@ -279,7 +295,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                     </div>
 
                     {!log.notiSent && followers.length === 0 && (
-                      <p className="text-[11px] text-slate-400 mt-2">
+                      <p className="text-[11px] text-(--outline) mt-2">
                         ยังไม่มีผู้ติดตามให้แจ้งเตือน
                       </p>
                     )}
@@ -292,8 +308,8 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
 
         {/* Followers tab */}
         {activeTab === "followers" && (
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-100">
+          <section className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-(--outline-variant)/20">
               <SectionHeader
                 title="รายชื่อผู้ติดตาม"
                 subtitle="ผู้ที่กดติดตามทริปนี้และจะได้รับการแจ้งเตือนเมื่อมีการเปลี่ยนแปลง"
@@ -310,16 +326,16 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                 />
               </div>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-(--outline-variant)/20">
                 {followers.map((f) => (
                   <li key={f.id} className="px-5 py-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-(--surface-variant) flex items-center justify-center text-sm font-bold text-(--on-surface-variant) shrink-0">
                         {f.displayName.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{f.displayName}</p>
-                        <p className="text-[11px] text-slate-400">เริ่มติดตามเมื่อ {formatThaiDate(f.followedAt)}</p>
+                        <p className="text-sm font-semibold text-(--on-surface) truncate">{f.displayName}</p>
+                        <p className="text-[11px] text-(--outline)">เริ่มติดตามเมื่อ {formatThaiDate(f.followedAt)}</p>
                       </div>
                     </div>
                     <ChannelBadge channel={toFollowChannel(f.channel)} />
@@ -353,13 +369,13 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
         subtitle={receiptOpen ? formatThaiDateTime(receiptOpen.createdAt) : undefined}
       >
         {receiptLoading ? (
-          <div className="p-12 text-center text-slate-400 animate-pulse">กำลังโหลด...</div>
+          <div className="p-12 text-center text-(--outline) animate-pulse">กำลังโหลด...</div>
         ) : receiptData ? (
           <>
-            <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50">
+            <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-(--outline-variant)/20 bg-(--surface-container-low)">
               <div>
-                <p className="text-[10px] text-slate-400 uppercase">ทั้งหมด</p>
-                <p className="text-2xl font-bold text-slate-900">{receiptData.totalFollowers}</p>
+                <p className="text-[10px] text-(--outline) uppercase">ทั้งหมด</p>
+                <p className="text-2xl font-bold text-(--on-surface)">{receiptData.totalFollowers}</p>
               </div>
               <div>
                 <p className="text-[10px] text-emerald-600 uppercase">อ่านแล้ว</p>
@@ -370,16 +386,16 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                 <p className="text-2xl font-bold text-amber-600">{receiptData.unreadCount}</p>
               </div>
             </div>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-(--outline-variant)/20">
               {receiptData.receipts.map((r) => (
                 <li key={r.followerId} className="px-5 py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-(--surface-variant) flex items-center justify-center text-xs font-bold text-(--on-surface-variant) shrink-0">
                       {r.displayName.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 truncate">{r.displayName}</p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-sm font-semibold text-(--on-surface) truncate">{r.displayName}</p>
+                      <p className="text-[11px] text-(--outline)">
                         {channelLabel(r.channel)}
                         {r.acknowledged && r.acknowledgedAt && ` · อ่านเมื่อ ${formatThaiDateTime(r.acknowledgedAt)}`}
                       </p>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ImageUpload, IconWrapper, StatsSummary } from "@/components/shared";
 
 export interface AccommodationLite {
@@ -19,6 +20,8 @@ interface DayContextPanelProps {
   tripStartDate: string;
   activeDayIndex: number;
   accommodations: AccommodationLite[];
+  /** Trip id — link "edit accommodations" jumps back to the basics step. */
+  tripId: string;
   totalTripDays: number;
   daysCount: number;
   totalActivities: number;
@@ -32,7 +35,7 @@ const TIME_FROM_ISO = (dt: string | null): string => {
 };
 
 export function DayContextPanel({
-  coverImageUrl, tripStartDate, activeDayIndex, accommodations,
+  coverImageUrl, tripStartDate, activeDayIndex, accommodations, tripId,
   totalTripDays, daysCount, totalActivities, travelersCount, onCoverChange,
 }: DayContextPanelProps): React.ReactNode {
   const dayDate = tripStartDate
@@ -79,9 +82,18 @@ export function DayContextPanel({
 
       {entries.length > 0 && (
         <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <IconWrapper icon="hotel" size="sm" />
-            <h4 className="text-sm font-bold text-(--on-surface)">ที่พักวันนี้</h4>
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <IconWrapper icon="hotel" size="sm" />
+              <h4 className="text-sm font-bold text-(--on-surface)">ที่พักวันนี้</h4>
+            </div>
+            <Link
+              href={`/dashboard/trips/new?id=${tripId}`}
+              className="text-[11px] font-bold text-(--primary) hover:underline shrink-0"
+              title="แก้ไขข้อมูลที่พัก (กลับสู่ขั้นตอนข้อมูลทริป)"
+            >
+              แก้ไข
+            </Link>
           </div>
           <div className="space-y-3">
             {entries.map(({ acc, status }) => {

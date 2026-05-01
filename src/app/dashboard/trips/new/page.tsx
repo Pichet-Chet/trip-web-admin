@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, SectionHeader, DashedAddButton, FooterActionBar, IconButton, ImageUpload, DatePicker, TimePicker } from "@/components/shared";
-import { TransportSection, type TransportSegment, makeSegment } from "./_components/transport-section";
+import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl } from "@/components/shared";
+import { TransportSection, type TransportSegment, type TransportType, makeSegment } from "./_components/transport-section";
 import { ScopeSelector, type TripScopeLocal } from "./_components/scope-selector";
 import { HotelCard } from "./_components/hotel-card";
 import { EmergencyContactCard, type EmergencyContactRow } from "./_components/emergency-contact-card";
@@ -89,9 +89,38 @@ export default function NewTripPage(): React.ReactNode {
   // ─── Load draft ───
   useEffect(() => {
     if (!draftId) return;
+
+    // Local DTOs mirror the BE shape (TripChildController + TripService)
+    // — kept narrow to what this page reads, not exhaustive.
+    type TripDraftDto = {
+      scope?: string; status?: string; dateChangeCount?: number;
+      title?: string; destination?: string;
+      startDate?: string; endDate?: string;
+      travelersCount?: number; language?: string;
+      coverImageUrl?: string | null; importantNotes?: string | null;
+    };
+    type AirlineDto = {
+      id: string; type: string; transportType: string;
+      departureAirport?: string; departureDetail?: string;
+      arrivalAirport?: string; arrivalDetail?: string;
+      departureDate?: string; departureTime?: string;
+      arrivalDate?: string; arrivalTime?: string;
+      airline?: string; flightNumber?: string;
+      operator?: string; vehicleInfo?: string;
+      bookingRef?: string; baggage?: string;
+      meetingPoint?: string; note?: string;
+    };
+    type AccommodationDto = {
+      id: string; name?: string; address?: string; phone?: string;
+      checkIn?: string; checkOut?: string; nights?: number;
+    };
+    type EmergencyContactDto = {
+      id: string; name?: string; phone?: string;
+    };
+
     (async () => {
       try {
-        const trip = await api.get<any>(`/admin/trips/${draftId}`);
+        const trip = await api.get<TripDraftDto>(`/admin/trips/${draftId}`);
         setTripScope((trip.scope || "domestic") as TripScopeLocal);
         setTripStatus(trip.status || "");
         setDateChangeCount(trip.dateChangeCount || 0);
@@ -112,10 +141,10 @@ export default function NewTripPage(): React.ReactNode {
         setNotes(trip.importantNotes || "");
 
         // Load airlines/transport (preserve server id for bulk-diff save)
-        const airlines = await api.get<any[]>(`/admin/trips/${draftId}/airlines`);
+        const airlines = await api.get<AirlineDto[]>(`/admin/trips/${draftId}/airlines`);
         if (airlines.length > 0) {
-          setSegments(airlines.map((a: any) => ({
-            ...makeSegment(a.type === "return" ? "return" : "outbound", a.transportType || "flight"),
+          setSegments(airlines.map((a) => ({
+            ...makeSegment(a.type === "return" ? "return" : "outbound", (a.transportType || "flight") as TransportType),
             serverId: a.id,
             from: a.departureAirport || "", fromDetail: a.departureDetail || "",
             to: a.arrivalAirport || "", toDetail: a.arrivalDetail || "",
@@ -129,9 +158,9 @@ export default function NewTripPage(): React.ReactNode {
         }
 
         // Load accommodations
-        const accoms = await api.get<any[]>(`/admin/trips/${draftId}/accommodations`);
+        const accoms = await api.get<AccommodationDto[]>(`/admin/trips/${draftId}/accommodations`);
         if (accoms.length > 0) {
-          setHotels(accoms.map((h: any) => ({
+          setHotels(accoms.map((h) => ({
             id: h.id,
             name: h.name || "", address: h.address || "", phone: h.phone || "",
             checkIn: h.checkIn || "", checkOut: h.checkOut || "", nights: h.nights || 1,
@@ -139,9 +168,9 @@ export default function NewTripPage(): React.ReactNode {
         }
 
         // Load emergency contacts
-        const contacts = await api.get<any[]>(`/admin/trips/${draftId}/emergency-contacts`);
+        const contacts = await api.get<EmergencyContactDto[]>(`/admin/trips/${draftId}/emergency-contacts`);
         if (contacts.length > 0) {
-          setEmergencyContacts(contacts.map((c: any) => ({
+          setEmergencyContacts(contacts.map((c) => ({
             serverId: c.id,
             name: c.name || "", phone: c.phone || "", note: "",
           })));
@@ -403,8 +432,9 @@ export default function NewTripPage(): React.ReactNode {
         const trip = await api.post<TripPlan>("/admin/trips", tripPayload);
         tripId = trip.id;
         setDraftId(tripId);
-        // เปลี่ยน URL ให้มี id (ไม่ reload)
-        window.history.replaceState(null, "", `/dashboard/trips/new?id=${tripId}`);
+        // Persist the new id in the URL without scrolling. Lets refresh
+        // restore the draft and survives back/forward navigation.
+        router.replace(`/dashboard/trips/new?id=${tripId}`, { scroll: false });
       }
 
       // Step 2-4: Bulk-diff each child collection. The server diffs the
@@ -530,20 +560,10 @@ export default function NewTripPage(): React.ReactNode {
       )}
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
-        {/* Top-level API error (visible on scope selector + form). The
-            in-form copy below stays for submit errors that happen after
-            scope is picked. */}
         {!tripScope && apiError && (
-          <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-            <span className="material-symbols-outlined text-red-600 text-lg mt-0.5">error</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-red-800">เกิดข้อผิดพลาด</p>
-              <p className="text-sm text-red-600 mt-0.5">{apiError}</p>
-            </div>
-            <button type="button" onClick={() => setApiError(null)} className="text-red-400 hover:text-red-600 transition-colors">
-              <span className="material-symbols-outlined text-lg">close</span>
-            </button>
-          </div>
+          <Banner variant="danger" title="เกิดข้อผิดพลาด" onDismiss={() => setApiError(null)} className="mb-6">
+            {apiError}
+          </Banner>
         )}
 
         {/* ═══ Step 0: Trip Scope Selector ═══ */}
@@ -587,15 +607,16 @@ export default function NewTripPage(): React.ReactNode {
               <div className="md:col-span-2 lg:col-span-8">
                 <FormInput label="ชื่อทริป" placeholder="เช่น ทริปเชียงใหม่ 3 วัน 2 คืน" required value={title} onChange={(e) => { setTitle(e.target.value); setFieldErrors((prev) => ({ ...prev, title: "" })); }} error={fieldErrors.title} />
               </div>
-              <div className="md:col-span-1 lg:col-span-4 flex flex-col gap-2">
-                <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">ภาษาหลัก</label>
-                <div className="flex bg-(--surface-container-low) rounded-xl p-1 h-14">
-                  {[{ v: "th", l: "ไทย" }, { v: "en", l: "English" }].map((lang) => (
-                    <button key={lang.v} type="button" onClick={() => setLanguage(lang.v)} className={`flex-1 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors ${language === lang.v ? "bg-white shadow-sm text-(--primary)" : "text-(--on-surface-variant) hover:text-(--on-surface)"}`}>
-                      {lang.l}
-                    </button>
-                  ))}
-                </div>
+              <div className="md:col-span-1 lg:col-span-4">
+                <SegmentedControl
+                  label="ภาษาหลัก"
+                  value={language}
+                  onChange={setLanguage}
+                  options={[
+                    { value: "th", label: "ไทย" },
+                    { value: "en", label: "English" },
+                  ]}
+                />
               </div>
               <div className="md:col-span-1 lg:col-span-6">
                 <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => { setDestination(e.target.value); setFieldErrors((prev) => ({ ...prev, destination: "" })); }} error={fieldErrors.destination} />
@@ -678,13 +699,9 @@ export default function NewTripPage(): React.ReactNode {
             <SectionHeader title="เบอร์ฉุกเฉิน" icon="emergency" variant="icon" subtitle="ข้อมูลสำหรับลูกทริปเมื่อเกิดเหตุฉุกเฉิน และใช้ยื่น ตม." />
 
             {tripScope === "international" && (
-              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <span className="material-symbols-outlined text-amber-600 text-lg mt-0.5">tips_and_updates</span>
-                <div className="text-sm text-amber-800">
-                  <p className="font-semibold">เบอร์ฉุกเฉินจะถูก pre-fill ตามประเทศปลายทาง</p>
-                  <p className="text-xs text-amber-600 mt-0.5">กรุณาตรวจสอบและแก้ไขให้ถูกต้องตามจุดหมายจริง</p>
-                </div>
-              </div>
+              <Banner variant="warning" icon="tips_and_updates" title="เบอร์ฉุกเฉินจะถูก pre-fill ตามประเทศปลายทาง">
+                กรุณาตรวจสอบและแก้ไขให้ถูกต้องตามจุดหมายจริง
+              </Banner>
             )}
 
             <div className="space-y-3">
@@ -708,8 +725,7 @@ export default function NewTripPage(): React.ReactNode {
             <SectionHeader title="หมายเหตุสำคัญ" icon="sticky_note_2" variant="icon" subtitle="ข้อมูลที่ลูกทริปต้องรู้ก่อนเดินทาง" />
 
             <div className="bg-white p-5 md:p-7 rounded-2xl border border-(--outline-variant)/30 shadow-sm space-y-4">
-              <textarea
-                className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 px-6 focus:bg-white focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) transition-all text-(--on-surface) font-medium placeholder:text-(--outline)/40 outline-none resize-none min-h-32"
+              <FormTextarea
                 placeholder={"เช่น\n• เตรียมเสื้อกันหนาว อุณหภูมิ 5-10°C\n• เงินสด ¥30,000 ต่อคน\n• พาสปอร์ตต้องมีอายุเหลือ 6 เดือนขึ้นไป\n• นัดรวมพลที่สนามบิน 3 ชม. ก่อนบิน"}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -722,18 +738,10 @@ export default function NewTripPage(): React.ReactNode {
             </div>
           </section>
 
-          {/* ═══ API Error Alert ═══ */}
           {apiError && (
-            <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-              <span className="material-symbols-outlined text-red-600 text-lg mt-0.5">error</span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-red-800">เกิดข้อผิดพลาด</p>
-                <p className="text-sm text-red-600 mt-0.5">{apiError}</p>
-              </div>
-              <button type="button" onClick={() => setApiError(null)} className="text-red-400 hover:text-red-600 transition-colors">
-                <span className="material-symbols-outlined text-lg">close</span>
-              </button>
-            </div>
+            <Banner variant="danger" title="เกิดข้อผิดพลาด" onDismiss={() => setApiError(null)}>
+              {apiError}
+            </Banner>
           )}
         </form>
         )}

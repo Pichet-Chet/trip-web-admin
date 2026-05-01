@@ -20,6 +20,7 @@ export { ToggleSwitch } from "./toggle-switch";
 export { Skeleton, CardSkeleton, TableRowSkeleton, PageSkeleton } from "./skeleton";
 export { LoadingState, ErrorState } from "./page-state";
 export { Banner } from "./banner";
+export { SegmentedControl } from "./segmented-control";
 export { Modal } from "./modal";
 export { DatePicker } from "./date-picker";
 export { TimePicker } from "./time-picker";

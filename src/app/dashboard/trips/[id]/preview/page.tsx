@@ -7,7 +7,7 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
-import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog } from "@/components/shared";
+import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog, Banner } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 import { checkPublishReadiness, type PublishIssue } from "@/lib/validation/trip";
 import { MobilePreview } from "./_components/mobile-preview";
@@ -126,7 +126,6 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
-  const [customSlug, setCustomSlug] = useState("");
   const [visibility, setVisibility] = useState<"link_only" | "marketplace">("link_only");
   const [copied, setCopied] = useState(false);
   const [copiedLine, setCopiedLine] = useState(false);
@@ -157,10 +156,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     (async () => {
       try {
         const data = await api.get<TripDetail>(`/admin/trips/${id}`);
-        if (!cancelled) {
-          setTrip(data);
-          setCustomSlug(data.slug || "");
-        }
+        if (!cancelled) setTrip(data);
       } catch (err) {
         if (!cancelled) toast(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้", "error");
       } finally {
@@ -237,15 +233,23 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     try {
       const QRCode = (await import("qrcode")).default;
       const dataUrl = await QRCode.toDataURL(tripUrl, { width: 1024, margin: 2, color: { dark: "#1e293b", light: "#ffffff" }, errorCorrectionLevel: "H" });
+      // Filename: prefer trip title (sanitised) so the user can recognise
+      // the file in Downloads. Strip filesystem-hostile chars; fall back
+      // to slug or short id when the title is empty / non-Latin-only.
+      const sanitised = (trip?.title ?? "")
+        .replace(/[/\\?%*:|"<>]/g, "")
+        .trim()
+        .slice(0, 80);
+      const filenameStem = sanitised || trip?.slug || id.slice(0, 8);
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = `qr-${trip?.slug || id}.png`;
+      a.download = `qr-${filenameStem}.png`;
       a.click();
       toast("ดาวน์โหลด QR Code แล้ว");
     } catch {
       toast("ไม่สามารถสร้าง QR Code ได้", "error");
     }
-  }, [tripUrl, trip?.slug, id, toast]);
+  }, [tripUrl, trip?.title, trip?.slug, id, toast]);
 
   /* ─── Validation check ─── */
   // Single source of truth (lib/validation/trip.ts) shared with the
@@ -321,53 +325,40 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl lg:text-3xl font-extrabold text-(--on-surface) tracking-tight mb-8">ดูตัวอย่างก่อนเผยแพร่</h2>
 
-          {/* Staff Unpublish Reason Banner */}
           {isUnpublished && trip.staffUnpublishReason && (
-            <div className="mb-6 bg-orange-50 border border-orange-200 rounded-2xl p-5">
-              <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-orange-500 text-xl mt-0.5">block</span>
-                <div>
-                  <p className="font-bold text-sm text-orange-800">ถูกระงับโดยทีมงาน</p>
-                  <p className="text-sm text-orange-700 mt-1 leading-relaxed">{trip.staffUnpublishReason}</p>
-                  <p className="text-xs text-orange-500 mt-2">กรุณาแก้ไขตามเหตุผลด้านบน แล้วส่งตรวจสอบใหม่อีกครั้ง</p>
-                </div>
-              </div>
-            </div>
+            <Banner variant="warning" icon="block" title="ถูกระงับโดยทีมงาน" className="mb-6">
+              <p className="text-sm text-amber-700 leading-relaxed">{trip.staffUnpublishReason}</p>
+              <p className="text-xs text-amber-600 mt-2">กรุณาแก้ไขตามเหตุผลด้านบน แล้วส่งตรวจสอบใหม่อีกครั้ง</p>
+            </Banner>
           )}
 
-          {/* Validation Issues — each row links to the step that owns
-              the missing data so the user doesn't have to guess. */}
+          {/* Validation issues — each row links to the step that owns the
+              missing data so the user doesn't have to guess. */}
           {issues.length > 0 && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
-              <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-amber-500 text-xl mt-0.5">warning</span>
-                <div className="flex-1">
-                  <p className="font-bold text-sm text-amber-800">ยังไม่พร้อมเผยแพร่</p>
-                  <ul className="mt-2 space-y-1">
-                    {issues.map((issue) => {
-                      const href =
-                        issue.fixStep === "basics"
-                          ? `/dashboard/trips/new?id=${id}`
-                          : issue.fixStep === "activities"
-                            ? ROUTES.tripEdit(id)
-                            : null;
-                      return (
-                        <li key={issue.code} className="text-xs flex items-center gap-2">
-                          <span className="w-1 h-1 rounded-full bg-amber-400" />
-                          {href ? (
-                            <Link href={href} className="text-amber-700 hover:text-amber-900 underline decoration-amber-300 hover:decoration-amber-500 underline-offset-2">
-                              {issue.message}
-                            </Link>
-                          ) : (
-                            <span className="text-amber-700">{issue.message}</span>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <Banner variant="warning" title="ยังไม่พร้อมเผยแพร่" className="mb-6">
+              <ul className="space-y-1">
+                {issues.map((issue) => {
+                  const href =
+                    issue.fixStep === "basics"
+                      ? `/dashboard/trips/new?id=${id}`
+                      : issue.fixStep === "activities"
+                        ? ROUTES.tripEdit(id)
+                        : null;
+                  return (
+                    <li key={issue.code} className="text-xs flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-amber-400" />
+                      {href ? (
+                        <Link href={href} className="text-amber-700 hover:text-amber-900 underline decoration-amber-300 hover:decoration-amber-500 underline-offset-2">
+                          {issue.message}
+                        </Link>
+                      ) : (
+                        <span className="text-amber-700">{issue.message}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Banner>
           )}
 
           {/* ═══ Main Grid ═══ */}
