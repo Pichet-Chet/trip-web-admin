@@ -94,6 +94,9 @@ export default function LoginPage(): React.ReactNode {
       if (msg === "captcha_required") {
         setCaptchaRequired(true);
         setApiError("กรุณายืนยันว่าคุณไม่ใช่บอท");
+      } else if (msg.startsWith("account_suspended:")) {
+        const reason = msg.slice("account_suspended:".length);
+        router.push(`/suspended?reason=${encodeURIComponent(reason)}`);
       } else if (msg.includes("พยายามเข้าสู่ระบบมากเกินไป")) {
         setBlocked(true);
         // Parse seconds from error message

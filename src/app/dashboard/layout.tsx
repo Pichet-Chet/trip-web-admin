@@ -57,10 +57,6 @@ export default function DashboardLayout({
               <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2.5 -ml-2 rounded-lg hover:bg-slate-100 text-slate-500">
                 <span className="material-symbols-outlined">menu</span>
               </button>
-              <div className="relative hidden sm:block">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-                <input className="bg-slate-50 border-none rounded-full py-2.5 pl-10 pr-5 text-sm w-64 focus:ring-2 focus:ring-(--primary)/20 outline-none" placeholder="ค้นหา..." />
-              </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative">
