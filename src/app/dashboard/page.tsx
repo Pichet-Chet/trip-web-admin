@@ -107,7 +107,7 @@ export default function DashboardPage(): React.ReactNode {
 
   if (loading) return (
     <div className="p-8 flex items-center justify-center min-h-[50vh]">
-      <div className="text-slate-400 animate-pulse">กำลังโหลด...</div>
+      <div className="text-(--outline) animate-pulse">กำลังโหลด...</div>
     </div>
   );
 
@@ -130,10 +130,10 @@ export default function DashboardPage(): React.ReactNode {
           <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl" />
           <div className="absolute -left-10 -bottom-20 w-72 h-72 rounded-full bg-indigo-200/30 blur-3xl" />
           <div className="relative z-10 p-8 md:p-12 max-w-3xl">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) mb-3">
               สวัสดี {user?.firstName || ""}
             </h2>
-            <p className="text-slate-500 mb-10 max-w-lg">เริ่มจากตั้งค่าโปรไฟล์ แล้วสร้างทริปแรก</p>
+            <p className="text-(--on-surface-variant) mb-10 max-w-lg">เริ่มจากตั้งค่าโปรไฟล์ แล้วสร้างทริปแรก</p>
             <div className="space-y-3">
               {[
                 { step: 1, title: "ตั้งค่าโปรไฟล์", desc: "ใส่ชื่อ โลโก้ ช่องทางติดต่อ เพื่อแสดงบนหน้าทริป", href: ROUTES.profile, done: hasProfile },
@@ -153,8 +153,8 @@ export default function DashboardPage(): React.ReactNode {
                       {s.done ? <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check</span> : s.step}
                     </div>
                     <div>
-                      <p className={`font-bold ${s.done ? "text-slate-500 line-through" : "text-slate-900"}`}>{s.title}</p>
-                      <p className={`text-sm mt-0.5 ${s.done ? "text-slate-300" : "text-slate-500"}`}>{s.desc}</p>
+                      <p className={`font-bold ${s.done ? "text-(--on-surface-variant) line-through" : "text-(--on-surface)"}`}>{s.title}</p>
+                      <p className={`text-sm mt-0.5 ${s.done ? "text-(--outline-variant)" : "text-(--on-surface-variant)"}`}>{s.desc}</p>
                     </div>
                   </Link>
               ))}
@@ -219,18 +219,18 @@ export default function DashboardPage(): React.ReactNode {
           </Link>
 
           {/* Trip Count Stat */}
-          <div className="bg-white rounded-4xl p-6 md:p-8 flex flex-col justify-between shadow-sm border border-slate-200">
+          <div className="bg-white rounded-4xl p-6 md:p-8 flex flex-col justify-between shadow-sm border border-(--outline-variant)/30">
             <div className="flex justify-between items-start mb-4 lg:mb-0">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">ทริปทั้งหมด</span>
-              <span className="text-xs font-bold text-slate-300">
+              <span className="text-(--outline) text-xs font-bold uppercase tracking-wider">ทริปทั้งหมด</span>
+              <span className="text-xs font-bold text-(--outline-variant)">
                 {usage?.hasActiveSubscription
                   ? `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)}/∞`
                   : `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)}/${(usage?.tripQuotaLimit ?? 3) + (usage?.creditsTotal ?? 0)}`}
               </span>
             </div>
             <div>
-              <p className="text-4xl md:text-5xl font-black text-slate-900">{trips.length}</p>
-              <p className="text-slate-400 font-medium mt-1 text-sm">
+              <p className="text-4xl md:text-5xl font-black text-(--on-surface)">{trips.length}</p>
+              <p className="text-(--outline) font-medium mt-1 text-sm">
                 {usage?.publishedCount || 0} เผยแพร่ · {usage?.draftCount || 0} ร่าง
               </p>
               {quotaFull && (
@@ -300,13 +300,13 @@ export default function DashboardPage(): React.ReactNode {
                       ) : <p className="text-sm font-bold text-(--on-surface-variant)">—</p>}
                     </div>
                     <div className="flex flex-row md:flex-col items-end justify-end gap-2">
-                      <Link href={`/dashboard/trips/new?scope=edit&id=${trip.id}`}>
+                      <Link href={`/dashboard/trips/new?id=${trip.id}`}>
                         <IconButton icon="edit" variant="primary" />
                       </Link>
                       {isDraft && (
                         <button
                           onClick={() => setDeleteTarget(trip)}
-                          className="p-2 rounded-xl hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+                          className="p-2 rounded-xl hover:bg-red-50 text-(--outline-variant) hover:text-red-500 transition-colors"
                         >
                           <span className="material-symbols-outlined text-lg">delete</span>
                         </button>
@@ -321,8 +321,8 @@ export default function DashboardPage(): React.ReactNode {
           <EmptyState icon="filter_list" title="ไม่พบทริปในหมวดนี้" description="ลองเปลี่ยน filter ดู" />
         ) : (
           <div className="text-center py-16">
-            <span className="material-symbols-outlined text-5xl text-slate-200 mb-4 block">luggage</span>
-            <p className="text-slate-400 mb-6">ยังไม่มีทริป — สร้างทริปแรกกันเลย!</p>
+            <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
+            <p className="text-(--outline) mb-6">ยังไม่มีทริป — สร้างทริปแรกกันเลย!</p>
             <Link href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
             </Link>

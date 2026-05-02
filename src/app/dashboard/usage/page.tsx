@@ -99,7 +99,7 @@ export default function UsagePage(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 space-y-6">
 
-      <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">การใช้งาน</h1>
+      <h1 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) tracking-tight">การใช้งาน</h1>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Account Status */}
@@ -109,16 +109,16 @@ export default function UsagePage(): React.ReactNode {
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
                 <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
               </div>
-              <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-widest uppercase rounded-full">
+              <span className="px-3 py-1 bg-(--surface-container-high) text-(--on-surface-variant) text-[10px] font-bold tracking-widest uppercase rounded-full">
                 {TIER_LABEL[data.tier] ?? data.tier}
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
-              สร้างแล้ว {data.tripQuotaUsed} <span className="text-on-surface-variant font-bold text-2xl md:text-3xl">ทริป</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) leading-tight">
+              สร้างแล้ว {data.tripQuotaUsed} <span className="text-(--on-surface-variant) font-bold text-2xl md:text-3xl">ทริป</span>
             </h2>
-            <p className="text-on-surface-variant mt-2 text-sm md:text-base">{capacityLabel}</p>
+            <p className="text-(--on-surface-variant) mt-2 text-sm md:text-base">{capacityLabel}</p>
             {isSub && data.subscriptionExpiresAt && (
-              <p className="text-xs text-on-surface-variant mt-1">ต่ออายุ {formatDate(data.subscriptionExpiresAt)}</p>
+              <p className="text-xs text-(--on-surface-variant) mt-1">ต่ออายุ {formatDate(data.subscriptionExpiresAt)}</p>
             )}
           </div>
 
@@ -140,7 +140,7 @@ export default function UsagePage(): React.ReactNode {
                 {isFree ? "อัปเกรดแพลน" : "ซื้อเครดิตเพิ่ม"}
               </Link>
             )}
-            {!isSub && <p className="text-xs text-outline">เริ่มต้น ฿{priceFor(catalog, "per_trip").toLocaleString("th-TH")}/ทริป</p>}
+            {!isSub && <p className="text-xs text-(--outline)">เริ่มต้น ฿{priceFor(catalog, "per_trip").toLocaleString("th-TH")}/ทริป</p>}
           </div>
         </div>
 
@@ -149,13 +149,13 @@ export default function UsagePage(): React.ReactNode {
           {isSub ? (
             <>
               <div className="w-32 h-32 flex items-center justify-center rounded-full bg-primary/10">
-                <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                <span className="material-symbols-outlined text-5xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
               </div>
               <div>
-                <h3 className="font-bold text-lg text-on-surface">Subscription</h3>
-                <p className="text-sm text-on-surface-variant">ใช้งานไม่จำกัด</p>
+                <h3 className="font-bold text-lg text-(--on-surface)">Subscription</h3>
+                <p className="text-sm text-(--on-surface-variant)">ใช้งานไม่จำกัด</p>
                 {data.subscriptionExpiresAt && (
-                  <p className="text-xs text-on-surface-variant mt-1">ถึง {formatDate(data.subscriptionExpiresAt)}</p>
+                  <p className="text-xs text-(--on-surface-variant) mt-1">ถึง {formatDate(data.subscriptionExpiresAt)}</p>
                 )}
               </div>
             </>
@@ -167,15 +167,15 @@ export default function UsagePage(): React.ReactNode {
                   <circle cx="64" cy="64" r="58" fill="transparent" stroke="var(--primary)" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - freeUsedPct / 100)} />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-black text-on-surface">{data.tripQuotaUsed}/{data.tripQuotaLimit}</span>
-                  <span className="text-[10px] uppercase font-bold text-on-surface-variant">ทริปฟรี</span>
+                  <span className="text-3xl font-black text-(--on-surface)">{data.tripQuotaUsed}/{data.tripQuotaLimit}</span>
+                  <span className="text-[10px] uppercase font-bold text-(--on-surface-variant)">ทริปฟรี</span>
                 </div>
               </div>
               <div>
-                <h3 className="font-bold text-lg text-on-surface">ทริปฟรีที่เหลือ</h3>
-                <p className="text-sm text-on-surface-variant">เหลืออีก {data.remainingTrips} ทริป</p>
+                <h3 className="font-bold text-lg text-(--on-surface)">ทริปฟรีที่เหลือ</h3>
+                <p className="text-sm text-(--on-surface-variant)">เหลืออีก {data.remainingTrips} ทริป</p>
                 {hasCredits && (
-                  <p className="text-xs text-primary font-semibold mt-1">+ เครดิต {data.creditsRemaining} ทริป</p>
+                  <p className="text-xs text-(--primary) font-semibold mt-1">+ เครดิต {data.creditsRemaining} ทริป</p>
                 )}
               </div>
             </>
@@ -191,8 +191,8 @@ export default function UsagePage(): React.ReactNode {
           { label: "เครดิตคงเหลือ", value: isSub ? "∞" : data.creditsRemaining },
         ].map((s) => (
           <div key={s.label} className="p-5 first:rounded-l-3xl last:rounded-r-3xl">
-            <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{s.label}</p>
-            <p className="text-3xl md:text-4xl font-black text-on-surface mt-1.5">{s.value}</p>
+            <p className="text-[11px] font-semibold text-(--on-surface-variant) uppercase tracking-wider">{s.label}</p>
+            <p className="text-3xl md:text-4xl font-black text-(--on-surface) mt-1.5">{s.value}</p>
           </div>
         ))}
       </section>
@@ -200,8 +200,8 @@ export default function UsagePage(): React.ReactNode {
       {!isSub && data.creditsRemaining > 0 && Object.keys(data.creditsRemainingBySource ?? {}).length > 0 && (
         <section className="bg-white rounded-3xl border border-(--outline-variant)/50 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-on-surface">เครดิตแยกตามแหล่งซื้อ</h3>
-            <span className="text-[11px] text-on-surface-variant" title="ระบบใช้เครดิตจากรอบเก่าก่อน (FIFO) — ไม่มีวันหมดอายุ">FIFO · ไม่มีหมดอายุ</span>
+            <h3 className="text-sm font-bold text-(--on-surface)">เครดิตแยกตามแหล่งซื้อ</h3>
+            <span className="text-[11px] text-(--on-surface-variant)" title="ระบบใช้เครดิตจากรอบเก่าก่อน (FIFO) — ไม่มีวันหมดอายุ">FIFO · ไม่มีหมดอายุ</span>
           </div>
           <ul className="divide-y divide-(--outline-variant)/30">
             {Object.entries(data.creditsRemainingBySource).map(([source, count]) => {
@@ -210,9 +210,9 @@ export default function UsagePage(): React.ReactNode {
                 : source;
               return (
                 <li key={source} className="flex items-baseline justify-between py-3 first:pt-0 last:pb-0">
-                  <span className="text-sm text-on-surface-variant">{label}</span>
-                  <span className="text-lg font-bold text-on-surface tabular-nums">
-                    {count}<span className="text-xs font-medium text-on-surface-variant ml-1">ทริป</span>
+                  <span className="text-sm text-(--on-surface-variant)">{label}</span>
+                  <span className="text-lg font-bold text-(--on-surface) tabular-nums">
+                    {count}<span className="text-xs font-medium text-(--on-surface-variant) ml-1">ทริป</span>
                   </span>
                 </li>
               );
@@ -230,32 +230,32 @@ export default function UsagePage(): React.ReactNode {
           <div className={`relative bg-white rounded-3xl border ${data.tier === "free" ? "border-(--outline)" : "border-(--outline-variant)/50"} p-6 flex flex-col hover:shadow-md transition-shadow`}>
             <div className="flex items-start gap-3 mb-5">
               <div className="p-2 bg-(--surface-container-high) rounded-lg flex-shrink-0">
-                <span className="material-symbols-outlined text-on-surface-variant">person</span>
+                <span className="material-symbols-outlined text-(--on-surface-variant)">person</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <h3 className="text-lg font-bold text-on-surface">เริ่มต้น</h3>
+                  <h3 className="text-lg font-bold text-(--on-surface)">เริ่มต้น</h3>
                   {data.tier === "free" && (
-                    <span className="px-2 py-0.5 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-wider uppercase rounded-full">
+                    <span className="px-2 py-0.5 bg-(--surface-container-high) text-(--on-surface-variant) text-[10px] font-bold tracking-wider uppercase rounded-full">
                       ปัจจุบัน
                     </span>
                   )}
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-black text-on-surface">ฟรี</span>
+                  <span className="text-3xl font-black text-(--on-surface)">ฟรี</span>
                 </div>
-                <p className="text-xs text-on-surface-variant mt-1">3 ทริปแรก ไม่เสียค่าใช้จ่าย</p>
+                <p className="text-xs text-(--on-surface-variant) mt-1">3 ทริปแรก ไม่เสียค่าใช้จ่าย</p>
               </div>
             </div>
             <ul className="space-y-2.5 flex-1">
               {["3 ทริปฟรี ต่อบัญชี", "ผู้ติดตาม 30 คน/ทริป", "แจ้งเตือน LINE + Web Push"].map(f => (
-                <li key={f} className="flex items-start gap-2 text-sm text-on-surface-variant">
+                <li key={f} className="flex items-start gap-2 text-sm text-(--on-surface-variant)">
                   <span className="material-symbols-outlined text-green-500 text-base mt-0.5 flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>{f}</span>
                 </li>
               ))}
-              <li className="flex items-start gap-2 text-sm text-on-surface-variant/60">
-                <span className="material-symbols-outlined text-outline text-base mt-0.5 flex-shrink-0">cancel</span>
+              <li className="flex items-start gap-2 text-sm text-(--on-surface-variant)/60">
+                <span className="material-symbols-outlined text-(--outline) text-base mt-0.5 flex-shrink-0">cancel</span>
                 <span>มี &quot;Powered by&quot; badge</span>
               </li>
             </ul>
@@ -280,15 +280,15 @@ export default function UsagePage(): React.ReactNode {
                   )}
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-black text-on-surface">฿{priceFor(catalog, "per_trip").toLocaleString("th-TH")}</span>
-                  <span className="text-sm text-on-surface-variant ml-1">/ ทริป</span>
+                  <span className="text-3xl font-black text-(--on-surface)">฿{priceFor(catalog, "per_trip").toLocaleString("th-TH")}</span>
+                  <span className="text-sm text-(--on-surface-variant) ml-1">/ ทริป</span>
                 </div>
-                <p className="text-xs text-on-surface-variant mt-1">จ่ายเฉพาะทริปที่สร้างเพิ่ม</p>
+                <p className="text-xs text-(--on-surface-variant) mt-1">จ่ายเฉพาะทริปที่สร้างเพิ่ม</p>
               </div>
             </div>
             <ul className="space-y-2.5 flex-1">
               {["ทุกฟีเจอร์ไม่จำกัด", "ผู้ติดตามไม่จำกัด", "แก้ไขไม่จำกัด", "ไม่มี Powered by badge"].map(f => (
-                <li key={f} className="flex items-start gap-2 text-sm font-medium text-on-surface-variant">
+                <li key={f} className="flex items-start gap-2 text-sm font-medium text-(--on-surface-variant)">
                   <span className="material-symbols-outlined text-(--primary) text-base mt-0.5 flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>{f}</span>
                 </li>
@@ -307,29 +307,29 @@ export default function UsagePage(): React.ReactNode {
           <div className={`relative bg-white rounded-3xl border ${data.tier === "pack_5" ? "border-(--outline)" : "border-(--outline-variant)/50"} p-6 flex flex-col hover:shadow-md transition-shadow`}>
             <div className="flex items-start gap-3 mb-5">
               <div className="p-2 bg-(--surface-container-high) rounded-lg flex-shrink-0">
-                <span className="material-symbols-outlined text-on-surface-variant">redeem</span>
+                <span className="material-symbols-outlined text-(--on-surface-variant)">redeem</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <h3 className="text-lg font-bold text-on-surface">แพ็ค 5 ทริป</h3>
+                  <h3 className="text-lg font-bold text-(--on-surface)">แพ็ค 5 ทริป</h3>
                   {data.tier === "pack_5" && (
-                    <span className="px-2 py-0.5 bg-(--surface-container-high) text-on-surface-variant text-[10px] font-bold tracking-wider uppercase rounded-full">
+                    <span className="px-2 py-0.5 bg-(--surface-container-high) text-(--on-surface-variant) text-[10px] font-bold tracking-wider uppercase rounded-full">
                       ปัจจุบัน
                     </span>
                   )}
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-black text-on-surface">฿{priceFor(catalog, "pack_5").toLocaleString("th-TH")}</span>
-                  <span className="text-sm text-on-surface-variant ml-1">/ 5 ทริป</span>
+                  <span className="text-3xl font-black text-(--on-surface)">฿{priceFor(catalog, "pack_5").toLocaleString("th-TH")}</span>
+                  <span className="text-sm text-(--on-surface-variant) ml-1">/ 5 ทริป</span>
                 </div>
-                <p className="text-xs text-on-surface-variant mt-1">
+                <p className="text-xs text-(--on-surface-variant) mt-1">
                   ประหยัด ~฿{Math.max(0, priceFor(catalog, "per_trip") * 5 - priceFor(catalog, "pack_5")).toLocaleString("th-TH")} เหมาะกับคนจัดบ่อย
                 </p>
               </div>
             </div>
             <ul className="space-y-2.5 flex-1">
               {[`5 ทริป (เฉลี่ย ฿${(priceFor(catalog, "pack_5") / 5).toFixed(2)}/ทริป)`, "ทุกฟีเจอร์เหมือนจ่ายต่อทริป", "ไม่มีวันหมดอายุ"].map(f => (
-                <li key={f} className="flex items-start gap-2 text-sm text-on-surface-variant">
+                <li key={f} className="flex items-start gap-2 text-sm text-(--on-surface-variant)">
                   <span className="material-symbols-outlined text-green-500 text-base mt-0.5 flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>{f}</span>
                 </li>
@@ -337,7 +337,7 @@ export default function UsagePage(): React.ReactNode {
             </ul>
             <Link
               href="/dashboard/upgrade?plan=pack_5"
-              className="mt-6 inline-flex items-center justify-center gap-2 w-full py-3 bg-white border border-(--outline-variant) text-on-surface rounded-xl font-bold text-sm hover:bg-(--surface-container-low) active:scale-[0.98] transition-all"
+              className="mt-6 inline-flex items-center justify-center gap-2 w-full py-3 bg-white border border-(--outline-variant) text-(--on-surface) rounded-xl font-bold text-sm hover:bg-(--surface-container-low) active:scale-[0.98] transition-all"
             >
               ซื้อแพ็ค
               <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -351,8 +351,8 @@ export default function UsagePage(): React.ReactNode {
             className="flex items-center justify-between gap-3 px-5 py-3 rounded-2xl border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:bg-(--primary-container)/15 transition-colors group"
           >
             <p className="text-sm">
-              <span className="font-bold text-on-surface">Subscription รายเดือน</span>
-              <span className="text-on-surface-variant"> · ทริปไม่จำกัด · ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน</span>
+              <span className="font-bold text-(--on-surface)">Subscription รายเดือน</span>
+              <span className="text-(--on-surface-variant)"> · ทริปไม่จำกัด · ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน</span>
             </p>
             <span className="material-symbols-outlined text-(--primary) group-hover:translate-x-0.5 transition-transform flex-shrink-0 text-base">arrow_forward</span>
           </Link>

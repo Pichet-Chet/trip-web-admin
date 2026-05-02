@@ -646,7 +646,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       {/* ═══ Action Bar (sticky under stepper) ═══ */}
       <FooterActionBar
         backLabel="ย้อนกลับ"
-        onBack={() => router.push(`/dashboard/trips/new?scope=edit&id=${id}`)}
+        onBack={() => router.push(`/dashboard/trips/new?id=${id}`)}
         onSaveDraft={handleSaveDraft}
         savingDraft={saving}
         nextLabel="ถัดไป: ดูตัวอย่าง"

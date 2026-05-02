@@ -28,7 +28,7 @@ interface Trip {
 }
 
 const QUOTA_SOURCE_LABEL: Record<string, { text: string; cls: string; icon: string }> = {
-  free:         { text: "ฟรี",            cls: "bg-slate-100 text-slate-600 border-slate-200",       icon: "card_giftcard" },
+  free:         { text: "ฟรี",            cls: "bg-(--surface-variant) text-(--on-surface-variant) border-(--outline-variant)/30",       icon: "card_giftcard" },
   per_trip:     { text: "ต่อทริป",         cls: "bg-sky-50 text-sky-700 border-sky-200",              icon: "credit_card" },
   pack_5:       { text: "แพ็ค 5",          cls: "bg-violet-50 text-violet-700 border-violet-200",     icon: "redeem" },
   subscription: { text: "Subscription",   cls: "bg-emerald-50 text-emerald-700 border-emerald-200",  icon: "workspace_premium" },
@@ -72,7 +72,7 @@ export default function MyTripsPage(): React.ReactNode {
     try {
       const result = await api.post<{ id: string; title: string }>(`/admin/trips/${trip.id}/clone`);
       toast(`Clone เรียบร้อย: ${result.title}`, "success");
-      router.push(`/dashboard/trips/new?scope=edit&id=${result.id}`);
+      router.push(`/dashboard/trips/new?id=${result.id}`);
     } catch (err) {
       toast(err instanceof ApiError ? err.message : "Clone ไม่สำเร็จ", "error");
     } finally {
@@ -114,7 +114,7 @@ export default function MyTripsPage(): React.ReactNode {
 
   if (loading) return (
     <div className="p-8 flex items-center justify-center min-h-[50vh]">
-      <div className="text-slate-400 animate-pulse">กำลังโหลด...</div>
+      <div className="text-(--outline) animate-pulse">กำลังโหลด...</div>
     </div>
   );
 
@@ -124,9 +124,9 @@ export default function MyTripsPage(): React.ReactNode {
         {/* Search + Filter */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative w-full sm:w-72">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-(--outline) text-lg">search</span>
             <input
-              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
+              className="w-full bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               placeholder="ค้นหาชื่อทริป หรือจุดหมาย..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -185,22 +185,22 @@ export default function MyTripsPage(): React.ReactNode {
               const isEnded = isArchived || (trip.endDate ? new Date(trip.endDate + "T23:59:59") < new Date() : false);
 
               return (
-                <div key={trip.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 overflow-hidden flex flex-col">
+                <div key={trip.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-(--outline-variant)/60 transition-all duration-300 overflow-hidden flex flex-col">
                   {/* Cover */}
                   <div className={`relative aspect-16/10 overflow-hidden ${isEnded ? "grayscale opacity-80" : ""}`}>
                     {trip.coverImageUrl ? (
                       <img src={trip.coverImageUrl} alt={trip.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     ) : (
-                      <div className="w-full h-full bg-linear-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-4xl text-slate-300">landscape</span>
+                      <div className="w-full h-full bg-linear-to-br from-(--surface-variant) to-(--outline-variant)/40 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-4xl text-(--outline-variant)">landscape</span>
                       </div>
                     )}
                     {/* Single status badge — scope shown in body, quota source moved to body footer */}
                     <span className={`absolute top-3 left-3 text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm ${
-                      isArchived ? "bg-slate-400"
+                      isArchived ? "bg-(--outline)"
                       : isPendingReview ? "bg-orange-500"
                       : isDraft ? "bg-amber-500"
-                      : isEnded ? "bg-slate-500"
+                      : isEnded ? "bg-(--on-surface-variant)"
                       : "bg-emerald-500"
                     }`}>
                       {isArchived ? "จบแล้ว" : isPendingReview ? "รอตรวจสอบ" : isDraft ? "ฉบับร่าง" : isEnded ? "สิ้นสุด" : "เผยแพร่"}
@@ -209,26 +209,26 @@ export default function MyTripsPage(): React.ReactNode {
 
                   {/* Body */}
                   <div className="flex-1 p-4 flex flex-col">
-                    <Link href={`/dashboard/trips/new?scope=edit&id=${trip.id}`} className="min-w-0">
-                      <h3 className="font-bold text-[15px] text-slate-900 leading-snug line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h3>
+                    <Link href={`/dashboard/trips/new?id=${trip.id}`} className="min-w-0">
+                      <h3 className="font-bold text-[15px] text-(--on-surface) leading-snug line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h3>
                     </Link>
-                    <p className="text-[12px] text-slate-400 mt-1">
+                    <p className="text-[12px] text-(--outline) mt-1">
                       {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"} · {trip.destination} · {trip.travelersCount} คน
                     </p>
                     {trip.followerCount > 0 && (
-                      <p className="text-[11px] text-slate-400 mt-1">{trip.followerCount} ผู้ติดตาม</p>
+                      <p className="text-[11px] text-(--outline) mt-1">{trip.followerCount} ผู้ติดตาม</p>
                     )}
 
                     <div className="flex-1" />
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-                      <span className="text-[11px] text-slate-400">
+                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-(--outline-variant)/20">
+                      <span className="text-[11px] text-(--outline)">
                         {formatDateRange(trip.startDate, trip.endDate)}
                       </span>
                       <div className="flex gap-1">
                         {!isArchived && (
-                          <Link href={`/dashboard/trips/new?scope=edit&id=${trip.id}`} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+                          <Link href={`/dashboard/trips/new?id=${trip.id}`} className="w-7 h-7 rounded-lg hover:bg-(--surface-variant) flex items-center justify-center text-(--outline) hover:text-(--on-surface) transition-colors">
                             <span className="material-symbols-outlined text-[16px]">edit</span>
                           </Link>
                         )}
@@ -236,14 +236,14 @@ export default function MyTripsPage(): React.ReactNode {
                           onClick={() => handleClone(trip)}
                           disabled={cloning === trip.id || quotaFull}
                           title={quotaFull ? "Quota เต็ม — ซื้อเครดิตเพิ่มก่อน" : "Clone ทริปนี้"}
-                          className="w-7 h-7 rounded-lg hover:bg-(--primary-container)/40 flex items-center justify-center text-slate-400 hover:text-(--primary) transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="w-7 h-7 rounded-lg hover:bg-(--primary-container)/40 flex items-center justify-center text-(--outline) hover:text-(--primary) transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <span className="material-symbols-outlined text-[16px]">content_copy</span>
                         </button>
                         {isDraft && (
                           <button
                             onClick={() => setDeleteTarget(trip)}
-                            className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
+                            className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline) hover:text-red-500 transition-colors"
                           >
                             <span className="material-symbols-outlined text-[16px]">delete</span>
                           </button>
@@ -260,8 +260,8 @@ export default function MyTripsPage(): React.ReactNode {
         {/* Empty state — ไม่มีทริปเลย */}
         {trips.length === 0 && (
           <div className="text-center py-16">
-            <span className="material-symbols-outlined text-5xl text-slate-200 mb-4 block">luggage</span>
-            <p className="text-slate-400 mb-6">ยังไม่มีทริป</p>
+            <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
+            <p className="text-(--outline) mb-6">ยังไม่มีทริป</p>
             <Link href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
             </Link>
