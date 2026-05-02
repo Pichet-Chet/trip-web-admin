@@ -388,27 +388,46 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
             {/* Right: Controls */}
             <div className="col-span-12 lg:col-span-7 space-y-6 order-2">
 
-              {/* Status Card */}
-              <div className={`rounded-3xl p-6 md:p-8 shadow-sm border ${isPendingReview ? "bg-orange-50 border-orange-200" : "bg-white border-(--outline-variant)/30"}`}>
+              {/* Status Card — colour reflects state at a glance:
+                  pending = orange, unpublished = rose (was draft-grey
+                  and easy to mistake for "not started yet"), published
+                  = primary, draft = neutral. */}
+              <div className={`rounded-3xl p-6 md:p-8 shadow-sm border ${
+                isPendingReview ? "bg-orange-50 border-orange-200"
+                  : isUnpublished ? "bg-rose-50 border-rose-200"
+                  : "bg-white border-(--outline-variant)/30"
+              }`}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
                       isPublished ? "bg-(--primary-container) text-(--on-primary-container)"
                       : isPendingReview ? "bg-orange-100 text-orange-600"
+                      : isUnpublished ? "bg-rose-100 text-rose-600"
                       : "bg-(--surface-variant) text-(--on-surface-variant)"
                     }`}>
                       <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {isPublished ? "check_circle" : isPendingReview ? "hourglass_empty" : "edit_note"}
+                        {isPublished ? "check_circle"
+                          : isPendingReview ? "hourglass_empty"
+                          : isUnpublished ? "block"
+                          : "edit_note"}
                       </span>
                     </div>
                     <div>
-                      <h3 className={`font-bold text-lg ${isPendingReview ? "text-orange-800" : "text-(--on-surface)"}`}>
+                      <h3 className={`font-bold text-lg ${
+                        isPendingReview ? "text-orange-800"
+                        : isUnpublished ? "text-rose-800"
+                        : "text-(--on-surface)"
+                      }`}>
                         {isPublished ? "เผยแพร่แล้ว"
                           : isPendingReview ? "รอตรวจสอบ"
                           : isDraft ? "ฉบับร่าง"
                           : "ยกเลิกเผยแพร่แล้ว"}
                       </h3>
-                      <p className={`text-sm ${isPendingReview ? "text-orange-700" : "text-(--on-surface-variant)"}`}>
+                      <p className={`text-sm ${
+                        isPendingReview ? "text-orange-700"
+                        : isUnpublished ? "text-rose-700"
+                        : "text-(--on-surface-variant)"
+                      }`}>
                         {isPublished ? "ทุกคนที่มีลิงก์สามารถเข้าดูได้"
                           : isPendingReview ? "ทีมงานกำลังตรวจสอบ จะแจ้งผลทาง email โดยเร็ว"
                           : isDraft ? "ยังไม่เผยแพร่ มีแค่คุณที่เห็น"

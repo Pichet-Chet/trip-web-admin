@@ -709,15 +709,36 @@ export default function NewTripPage(): React.ReactNode {
                 const isPublished = tripStatus === "Published" || tripStatus === "Unpublished";
                 const isDateLocked = isPublished && dateChangeCount >= maxDateChanges;
                 const remaining = maxDateChanges - dateChangeCount;
-                const dateHint = isPublished && !isDateLocked ? `เปลี่ยนวันได้อีก ${remaining} ครั้ง` : isDateLocked ? "ล็อค — ใช้สิทธิ์เปลี่ยนวันหมดแล้ว" : "";
+                // Native title= gives a hover/long-press tooltip without
+                // pulling in a tooltip component. Lock state always
+                // surfaces both the reason ("สิทธิ์เปลี่ยนวันหมด") and
+                // the next step ("ติดต่อทีมงาน") so a stuck operator
+                // doesn't have to guess.
+                const lockTooltip = "ใช้สิทธิ์เปลี่ยนวันเดินทางครบจำนวนแล้ว — กรุณาติดต่อทีมงานหากต้องเปลี่ยนเพิ่ม";
+                const dateHint = isPublished && !isDateLocked
+                  ? `เปลี่ยนวันได้อีก ${remaining} ครั้ง`
+                  : isDateLocked
+                    ? "ล็อค — ใช้สิทธิ์เปลี่ยนวันหมดแล้ว"
+                    : "";
                 return (
                   <>
-                    <div className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}>
+                    <div
+                      className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}
+                      title={isDateLocked ? lockTooltip : undefined}
+                    >
                       <DatePicker label={`วันเดินทาง${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required value={startDate} onChange={(v) => updateField("startDate", v)} error={fieldErrors.startDate} />
                     </div>
-                    <div className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}>
+                    <div
+                      className={`md:col-span-1 lg:col-span-3 relative ${isDateLocked ? "opacity-60 pointer-events-none" : ""}`}
+                      title={isDateLocked ? lockTooltip : undefined}
+                    >
                       <DatePicker label={`วันกลับ${isDateLocked ? " (ล็อค)" : ""}`} placeholder="เลือกวันที่" required min={startDate} value={endDate} onChange={(v) => updateField("endDate", v)} error={fieldErrors.endDate} />
-                      {dateHint && <p className="text-[10px] text-(--on-surface-variant) mt-1 px-1">{dateHint}</p>}
+                      {dateHint && (
+                        <p className={`text-[10px] mt-1 px-1 ${isDateLocked ? "text-rose-600 font-semibold" : "text-(--on-surface-variant)"}`}>
+                          {dateHint}
+                          {isDateLocked && <span className="block mt-0.5 font-normal text-(--on-surface-variant)">ติดต่อทีมงานหากต้องเปลี่ยนเพิ่ม</span>}
+                        </p>
+                      )}
                     </div>
                   </>
                 );
