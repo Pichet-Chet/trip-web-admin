@@ -148,8 +148,8 @@ function UpgradeContent(): React.ReactNode {
     return (
       <div className="p-8 text-center space-y-3">
         <span className="material-symbols-outlined text-4xl text-red-400">error</span>
-        <p className="text-on-surface-variant text-sm">{plansError}</p>
-        <button onClick={() => window.location.reload()} className="text-sm text-primary font-semibold cursor-pointer">ลองใหม่</button>
+        <p className="text-(--on-surface-variant) text-sm">{plansError}</p>
+        <button onClick={() => window.location.reload()} className="text-sm text-(--primary) font-semibold cursor-pointer">ลองใหม่</button>
       </div>
     );
   }
@@ -161,12 +161,12 @@ function UpgradeContent(): React.ReactNode {
         <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
           <span className="material-symbols-outlined text-amber-500 text-3xl">inventory_2</span>
         </div>
-        <h2 className="text-lg font-bold text-on-surface">แพลนไม่พร้อมจำหน่าย</h2>
-        <p className="text-sm text-on-surface-variant leading-relaxed">
+        <h2 className="text-lg font-bold text-(--on-surface)">แพลนไม่พร้อมจำหน่าย</h2>
+        <p className="text-sm text-(--on-surface-variant) leading-relaxed">
           ขณะนี้ไม่มีแพลนที่เปิดให้ซื้อ — ระบบอาจกำลังบำรุงรักษา กรุณาลองใหม่ในอีกสักครู่
-          หรือติดต่อ <a href="mailto:support@tripapp.co" className="text-primary hover:underline">support@tripapp.co</a>
+          หรือติดต่อ <a href="mailto:support@tripapp.co" className="text-(--primary) hover:underline">support@tripapp.co</a>
         </p>
-        <button onClick={() => window.location.reload()} className="text-sm text-primary font-semibold cursor-pointer">ลองใหม่</button>
+        <button onClick={() => window.location.reload()} className="text-sm text-(--primary) font-semibold cursor-pointer">ลองใหม่</button>
       </div>
     );
   }
@@ -174,7 +174,7 @@ function UpgradeContent(): React.ReactNode {
   if (!plans || !plan) {
     return (
       <div className="p-8 flex items-center justify-center min-h-60">
-        <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
+        <span className="material-symbols-outlined animate-spin text-(--primary) text-3xl">progress_activity</span>
       </div>
     );
   }
@@ -183,11 +183,11 @@ function UpgradeContent(): React.ReactNode {
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-8 md:mb-10">
-        <Link href="/dashboard/usage" className="text-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1 mb-4 cursor-pointer">
+        <Link href="/dashboard/usage" className="text-sm text-(--on-surface-variant) hover:text-(--on-surface) flex items-center gap-1 mb-4 cursor-pointer">
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           กลับ
         </Link>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">อัปเกรดแพลน</h1>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) tracking-tight">อัปเกรดแพลน</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
@@ -196,24 +196,24 @@ function UpgradeContent(): React.ReactNode {
           {/* Free / Current plan card */}
           <div className="relative p-6 rounded-xl border-2 border-outline-variant bg-(--surface-container-lowest) flex items-start gap-4">
             <div className="mt-1 p-2 bg-(--surface-container-high) rounded-lg flex-shrink-0">
-              <span className="material-symbols-outlined text-on-surface-variant">person</span>
+              <span className="material-symbols-outlined text-(--on-surface-variant)">person</span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start gap-2 flex-wrap">
-                <h3 className="text-xl font-bold text-on-surface">Free</h3>
+                <h3 className="text-xl font-bold text-(--on-surface)">Free</h3>
                 {currentTier === "free" && (
-                  <span className="px-3 py-1 bg-(--surface-container-high) text-on-surface-variant text-xs font-bold rounded-full">
+                  <span className="px-3 py-1 bg-(--surface-container-high) text-(--on-surface-variant) text-xs font-bold rounded-full">
                     แพลนปัจจุบัน
                   </span>
                 )}
               </div>
-              <p className="text-sm text-on-surface-variant mt-1">เริ่มต้นใช้งาน — เหมาะกับมือใหม่</p>
+              <p className="text-sm text-(--on-surface-variant) mt-1">เริ่มต้นใช้งาน — เหมาะกับมือใหม่</p>
               <ul className="mt-4 space-y-2">
-                <li className="flex items-center gap-2 text-sm text-on-surface-variant">
+                <li className="flex items-center gap-2 text-sm text-(--on-surface-variant)">
                   <span className="material-symbols-outlined text-green-500 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   3 ทริปฟรี ต่อบัญชี
                 </li>
-                <li className="flex items-center gap-2 text-sm text-on-surface-variant">
+                <li className="flex items-center gap-2 text-sm text-(--on-surface-variant)">
                   <span className="material-symbols-outlined text-green-500 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   Basic Support
                 </li>
@@ -240,21 +240,21 @@ function UpgradeContent(): React.ReactNode {
                     {p.badge}
                   </span>
                 )}
-                <div className={`mt-1 p-2 rounded-lg flex-shrink-0 ${isSelected ? "bg-(--primary-container) text-(--primary)" : "bg-(--surface-container-high) text-on-surface-variant"}`}>
+                <div className={`mt-1 p-2 rounded-lg flex-shrink-0 ${isSelected ? "bg-(--primary-container) text-(--primary)" : "bg-(--surface-container-high) text-(--on-surface-variant)"}`}>
                   <span className="material-symbols-outlined">{p.icon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline gap-2 flex-wrap">
-                    <h3 className={`text-xl font-bold ${isSelected ? "text-(--primary)" : "text-on-surface"}`}>{p.name}</h3>
+                    <h3 className={`text-xl font-bold ${isSelected ? "text-(--primary)" : "text-(--on-surface)"}`}>{p.name}</h3>
                     <div className="text-right">
-                      <span className="text-2xl font-extrabold text-on-surface">฿{p.price.toLocaleString("th-TH", { maximumFractionDigits: 0 })}</span>
-                      <span className="text-on-surface-variant text-sm ml-1">{p.unit}</span>
+                      <span className="text-2xl font-extrabold text-(--on-surface)">฿{p.price.toLocaleString("th-TH", { maximumFractionDigits: 0 })}</span>
+                      <span className="text-(--on-surface-variant) text-sm ml-1">{p.unit}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-on-surface-variant mt-1">{p.description}</p>
+                  <p className="text-sm text-(--on-surface-variant) mt-1">{p.description}</p>
                   <ul className={`mt-4 grid gap-y-2 ${isSelected ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
                     {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-sm font-medium text-on-surface-variant">
+                      <li key={f} className="flex items-start gap-2 text-sm font-medium text-(--on-surface-variant)">
                         <span className={`material-symbols-outlined text-base mt-0.5 flex-shrink-0 ${isSelected ? "text-(--primary)" : "text-green-500"}`} style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                         <span>{f}</span>
                       </li>
@@ -277,17 +277,17 @@ function UpgradeContent(): React.ReactNode {
           <div className="bg-white rounded-2xl shadow-lg border border-(--surface-container-high) overflow-hidden sticky top-24">
             {/* Order Summary */}
             <div className="p-6 bg-(--surface-container-lowest) border-b border-(--surface-container)">
-              <h3 className="text-lg font-bold text-on-surface mb-4">สรุปคำสั่งซื้อ</h3>
+              <h3 className="text-lg font-bold text-(--on-surface) mb-4">สรุปคำสั่งซื้อ</h3>
               <div className="flex justify-between mb-2">
-                <span className="text-on-surface-variant text-sm">{plan.name}</span>
-                <span className="font-bold text-on-surface">฿{plan.price.toFixed(2)}</span>
+                <span className="text-(--on-surface-variant) text-sm">{plan.name}</span>
+                <span className="font-bold text-(--on-surface)">฿{plan.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm text-outline mb-4">
+              <div className="flex justify-between text-sm text-(--outline) mb-4">
                 <span>ค่าธรรมเนียม</span>
                 <span>฿0.00</span>
               </div>
               <div className="flex justify-between items-center pt-4 border-t border-(--surface-container) text-xl">
-                <span className="font-bold text-on-surface">รวม</span>
+                <span className="font-bold text-(--on-surface)">รวม</span>
                 <span className="font-extrabold text-(--primary)">฿{plan.price.toFixed(2)}</span>
               </div>
             </div>
@@ -318,7 +318,7 @@ function UpgradeContent(): React.ReactNode {
                 )}
               </button>
 
-              <p className="text-[11px] text-on-surface-variant text-center flex items-center justify-center gap-1">
+              <p className="text-[11px] text-(--on-surface-variant) text-center flex items-center justify-center gap-1">
                 <span className="material-symbols-outlined text-sm">lock</span>
                 ชำระเงินปลอดภัยผ่าน Stripe · รองรับ Visa / Mastercard / PromptPay
               </p>
@@ -342,7 +342,7 @@ function UpgradeContent(): React.ReactNode {
 
 export default function UpgradePage(): React.ReactNode {
   return (
-    <Suspense fallback={<div className="p-8 flex justify-center"><span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span></div>}>
+    <Suspense fallback={<div className="p-8 flex justify-center"><span className="material-symbols-outlined animate-spin text-(--primary) text-3xl">progress_activity</span></div>}>
       <UpgradeContent />
     </Suspense>
   );

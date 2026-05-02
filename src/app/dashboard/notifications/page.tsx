@@ -96,8 +96,8 @@ export default function NotificationsPage(): React.ReactNode {
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">การแจ้งเตือน</h1>
-          <p className="text-slate-500 mt-2 text-sm">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">การแจ้งเตือน</h1>
+          <p className="text-(--on-surface-variant) mt-2 text-sm">
             {data ? `ทั้งหมด ${data.totalCount} รายการ — ยังไม่อ่าน ${data.unreadCount}` : "กำลังโหลด..."}
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function NotificationsPage(): React.ReactNode {
           <button
             type="button"
             onClick={markAllRead}
-            className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="px-4 py-2 rounded-lg border border-(--outline-variant)/30 text-sm font-semibold text-(--on-surface) hover:bg-(--surface-container-low)"
           >
             อ่านทั้งหมด
           </button>
@@ -116,14 +116,14 @@ export default function NotificationsPage(): React.ReactNode {
         <button
           type="button"
           onClick={() => { setUnreadOnly(false); setPage(1); }}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold ${!unreadOnly ? "bg-(--primary) text-white" : "bg-white border border-slate-200 text-slate-700"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold ${!unreadOnly ? "bg-(--primary) text-white" : "bg-white border border-(--outline-variant)/30 text-(--on-surface)"}`}
         >
           ทั้งหมด
         </button>
         <button
           type="button"
           onClick={() => { setUnreadOnly(true); setPage(1); }}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold ${unreadOnly ? "bg-(--primary) text-white" : "bg-white border border-slate-200 text-slate-700"}`}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold ${unreadOnly ? "bg-(--primary) text-white" : "bg-white border border-(--outline-variant)/30 text-(--on-surface)"}`}
         >
           ยังไม่อ่าน {data?.unreadCount ? `(${data.unreadCount})` : ""}
         </button>
@@ -134,29 +134,29 @@ export default function NotificationsPage(): React.ReactNode {
       ) : error ? (
         <ErrorState message={error} onRetry={load} />
       ) : !data || data.items.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-          <span className="material-symbols-outlined text-slate-300 text-4xl">notifications_off</span>
-          <p className="mt-3 text-sm text-slate-500">
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-10 text-center">
+          <span className="material-symbols-outlined text-(--outline-variant) text-4xl">notifications_off</span>
+          <p className="mt-3 text-sm text-(--on-surface-variant)">
             {unreadOnly ? "ไม่มีการแจ้งเตือนที่ยังไม่อ่าน" : "ยังไม่มีการแจ้งเตือน"}
           </p>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
+          <div className="bg-white rounded-2xl border border-(--outline-variant)/30 divide-y divide-(--outline-variant)/20">
             {data.items.map((n) => {
               const icon = TYPE_ICON[n.type] ?? "info";
-              const tone = TYPE_TONE[n.type] ?? "text-slate-600 bg-slate-100";
+              const tone = TYPE_TONE[n.type] ?? "text-(--on-surface-variant) bg-(--surface-variant)";
               const inner = (
-                <div className={`p-4 md:p-5 flex items-start gap-4 hover:bg-slate-50 transition ${!n.isRead ? "bg-(--primary-container)/20" : ""}`}>
+                <div className={`p-4 md:p-5 flex items-start gap-4 hover:bg-(--surface-container-low) transition ${!n.isRead ? "bg-(--primary-container)/20" : ""}`}>
                   <span className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${tone}`}>
                     <span className="material-symbols-outlined text-xl">{icon}</span>
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${!n.isRead ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}>
+                    <p className={`text-sm leading-snug ${!n.isRead ? "font-bold text-(--on-surface)" : "font-semibold text-(--on-surface)"}`}>
                       {n.title}
                     </p>
-                    <p className="text-sm text-slate-600 mt-1">{n.body}</p>
-                    <p className="text-xs text-slate-400 mt-2">{new Date(n.createdAt).toLocaleString("th-TH")}</p>
+                    <p className="text-sm text-(--on-surface-variant) mt-1">{n.body}</p>
+                    <p className="text-xs text-(--outline) mt-2">{new Date(n.createdAt).toLocaleString("th-TH")}</p>
                   </div>
                   {!n.isRead && <span className="w-2 h-2 bg-(--primary) rounded-full shrink-0 mt-2" />}
                 </div>

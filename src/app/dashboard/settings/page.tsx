@@ -112,14 +112,14 @@ export default function SettingsPage(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ตั้งค่าบัญชี</h1>
-        <p className="text-slate-500 mt-2 text-sm">จัดการบัญชี รหัสผ่าน และสิทธิ์ข้อมูลส่วนบุคคล (PDPA)</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">ตั้งค่าบัญชี</h1>
+        <p className="text-(--on-surface-variant) mt-2 text-sm">จัดการบัญชี รหัสผ่าน และสิทธิ์ข้อมูลส่วนบุคคล (PDPA)</p>
       </div>
 
       <EmailChangeSection />
 
       {/* Password */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-6">
         <SectionHeader title="รหัสผ่าน" variant="bar" />
         <div className="space-y-4">
           <FormInput
@@ -166,9 +166,9 @@ export default function SettingsPage(): React.ReactNode {
       <NotificationPreferencesSection />
 
       {/* Export Data — PDPA */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">
         <SectionHeader title="ข้อมูลของฉัน (PDPA)" variant="bar" />
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-(--on-surface-variant)">
           ดูสรุปข้อมูลทั้งหมดที่ TripApp เก็บเกี่ยวกับคุณ พร้อมตัวเลือกดาวน์โหลด JSON —
           ตามสิทธิ์ที่บัญญัติใน PDPA / GDPR (มาตรา 30)
         </p>
@@ -183,7 +183,7 @@ export default function SettingsPage(): React.ReactNode {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="px-6 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+            className="px-6 py-3 border border-(--outline-variant)/30 text-(--on-surface) rounded-xl text-sm font-bold hover:bg-(--surface-container-low) transition-colors disabled:opacity-50 inline-flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-base">download</span>
             {exporting ? "กำลังเตรียมไฟล์..." : "ดาวน์โหลด JSON ทันที"}
@@ -194,7 +194,7 @@ export default function SettingsPage(): React.ReactNode {
       {/* Danger Zone */}
       <div className="bg-white rounded-2xl border border-red-200 p-6 space-y-4">
         <h3 className="text-lg font-bold text-red-600">ลบบัญชี</h3>
-        <p className="text-sm text-slate-500 leading-relaxed">
+        <p className="text-sm text-(--on-surface-variant) leading-relaxed">
           เมื่อลบบัญชีแล้ว ข้อมูลส่วนตัวของคุณจะถูก anonymize ทันที (ชื่อ, อีเมล, เบอร์โทร)
           ระบบจะคงเฉพาะประวัติทางการเงินและ audit logs เท่านั้นตามกฎหมายบัญชีไทย (5 ปี).
           <strong className="text-red-600"> หากคุณเป็นเจ้าของบริษัทเพียงคนเดียว ต้องโอนความเป็นเจ้าของก่อน</strong>
@@ -248,7 +248,7 @@ function DeleteAccountModal({ onClose, onConfirm, password, setPassword, reason,
           <button
             onClick={onClose}
             disabled={deleting}
-            className="flex-1 py-3 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 disabled:opacity-50"
+            className="flex-1 py-3 border border-(--outline-variant)/30 text-(--on-surface) rounded-xl text-sm font-bold hover:bg-(--surface-container-low) disabled:opacity-50"
           >
             ยกเลิก
           </button>
