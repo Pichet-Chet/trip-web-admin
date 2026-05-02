@@ -33,9 +33,9 @@ function RecoverContent(): React.ReactNode {
 
   if (!token) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8 max-w-lg w-full space-y-4">
-        <h1 className="text-xl font-extrabold text-slate-900">ลิงก์ไม่ถูกต้อง</h1>
-        <p className="text-sm text-slate-600">ไม่พบโทเค็นในลิงก์ — กรุณากลับไปขอใหม่</p>
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-xl p-8 max-w-lg w-full space-y-4">
+        <h1 className="text-xl font-extrabold text-(--on-surface)">ลิงก์ไม่ถูกต้อง</h1>
+        <p className="text-sm text-(--on-surface-variant)">ไม่พบโทเค็นในลิงก์ — กรุณากลับไปขอใหม่</p>
         <Link href="/forgot-2fa" className="block w-full bg-(--primary) text-white text-center py-3 rounded-lg font-semibold">
           ขอลิงก์ใหม่
         </Link>
@@ -45,12 +45,12 @@ function RecoverContent(): React.ReactNode {
 
   if (done) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8 md:p-10 max-w-lg w-full space-y-5">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-xl p-8 md:p-10 max-w-lg w-full space-y-5">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-3xl text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-          <h1 className="text-2xl font-extrabold text-slate-900">ปิด 2FA สำเร็จ</h1>
+          <h1 className="text-2xl font-extrabold text-(--on-surface)">ปิด 2FA สำเร็จ</h1>
         </div>
-        <p className="text-sm text-slate-700 leading-relaxed">
+        <p className="text-sm text-(--on-surface) leading-relaxed">
           ระบบปิดการใช้งาน 2FA และล้างรหัสสำรองทั้งหมดเรียบร้อย
           session ในทุกอุปกรณ์ถูก logout เพื่อความปลอดภัย
         </p>
@@ -65,12 +65,12 @@ function RecoverContent(): React.ReactNode {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8 md:p-10 max-w-lg w-full space-y-5">
+    <div className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-xl p-8 md:p-10 max-w-lg w-full space-y-5">
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-3xl text-amber-600">verified_user</span>
-        <h1 className="text-2xl font-extrabold text-slate-900">ยืนยันตัวตน</h1>
+        <h1 className="text-2xl font-extrabold text-(--on-surface)">ยืนยันตัวตน</h1>
       </div>
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-(--on-surface)">
         เพื่อความปลอดภัย กรุณาป้อนรหัสผ่านบัญชีของคุณเพื่อปิด 2FA
       </p>
       <form onSubmit={submit} className="space-y-3">
@@ -92,7 +92,7 @@ function RecoverContent(): React.ReactNode {
         </button>
       </form>
       <div className="text-center">
-        <Link href="/login" className="text-xs text-slate-500 hover:text-(--primary) hover:underline">
+        <Link href="/login" className="text-xs text-(--on-surface-variant) hover:text-(--primary) hover:underline">
           ← ยกเลิก
         </Link>
       </div>
@@ -102,7 +102,7 @@ function RecoverContent(): React.ReactNode {
 
 export default function Recover2FaPage(): React.ReactNode {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-slate-50">
+    <main className="min-h-screen flex items-center justify-center px-4 bg-(--surface-container-low)">
       <Suspense fallback={<div className="bg-white rounded-2xl p-8 max-w-lg w-full animate-pulse h-72" />}>
         <RecoverContent />
       </Suspense>

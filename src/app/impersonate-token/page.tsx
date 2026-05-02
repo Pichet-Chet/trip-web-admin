@@ -50,13 +50,13 @@ export default function ImpersonateTokenPage(): React.ReactNode {
         {error ? (
           <>
             <span className="material-symbols-outlined text-5xl text-red-400 block mb-3">error</span>
-            <h1 className="text-lg font-bold text-slate-900 mb-2">เริ่มโหมดดูแทน operator ไม่สำเร็จ</h1>
-            <p className="text-sm text-slate-500">{error}</p>
+            <h1 className="text-lg font-bold text-(--on-surface) mb-2">เริ่มโหมดดูแทน operator ไม่สำเร็จ</h1>
+            <p className="text-sm text-(--on-surface-variant)">{error}</p>
           </>
         ) : (
           <>
             <span className="material-symbols-outlined animate-spin text-4xl text-blue-500 block mb-3">progress_activity</span>
-            <p className="text-sm text-slate-500">กำลังเริ่มโหมดดูแทน operator...</p>
+            <p className="text-sm text-(--on-surface-variant)">กำลังเริ่มโหมดดูแทน operator...</p>
           </>
         )}
       </div>

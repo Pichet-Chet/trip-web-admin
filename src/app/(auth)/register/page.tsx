@@ -226,7 +226,7 @@ export default function RegisterPage(): React.ReactNode {
                     {form.termsRead ? (
                       <span className="material-symbols-outlined text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                     ) : (
-                      <span className="material-symbols-outlined text-slate-300">circle</span>
+                      <span className="material-symbols-outlined text-(--outline-variant)">circle</span>
                     )}
                     <span className="text-sm text-(--on-surface)">เงื่อนไขการใช้งาน</span>
                     {termsReadAt && <span className="text-[10px] text-green-600 hidden sm:inline">อ่านแล้ว</span>}
@@ -247,7 +247,7 @@ export default function RegisterPage(): React.ReactNode {
                     {form.privacyRead ? (
                       <span className="material-symbols-outlined text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                     ) : (
-                      <span className="material-symbols-outlined text-slate-300">circle</span>
+                      <span className="material-symbols-outlined text-(--outline-variant)">circle</span>
                     )}
                     <span className="text-sm text-(--on-surface)">นโยบายความเป็นส่วนตัว</span>
                     {privacyReadAt && <span className="text-[10px] text-green-600 hidden sm:inline">อ่านแล้ว</span>}

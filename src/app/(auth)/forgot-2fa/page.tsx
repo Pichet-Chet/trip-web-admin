@@ -29,11 +29,11 @@ export default function Forgot2FaPage(): React.ReactNode {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-slate-50">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8 md:p-10 max-w-lg w-full space-y-5">
+    <main className="min-h-screen flex items-center justify-center px-4 bg-(--surface-container-low)">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-xl p-8 md:p-10 max-w-lg w-full space-y-5">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-3xl text-amber-600">help</span>
-          <h1 className="text-2xl font-extrabold text-slate-900">กู้คืน 2FA</h1>
+          <h1 className="text-2xl font-extrabold text-(--on-surface)">กู้คืน 2FA</h1>
         </div>
 
         {submitted ? (
@@ -42,7 +42,7 @@ export default function Forgot2FaPage(): React.ReactNode {
               <p className="font-semibold mb-1">ส่งลิงก์เรียบร้อย</p>
               <p>หากอีเมลนี้มีอยู่ในระบบและเปิดใช้ 2FA จะได้รับลิงก์กู้คืนภายในไม่กี่นาที</p>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-(--on-surface-variant) leading-relaxed">
               เปิดอีเมล กดลิงก์ในข้อความ จากนั้นป้อนรหัสผ่านเพื่อปิด 2FA และล้างรหัสสำรองทั้งหมด
               session ในทุกอุปกรณ์จะถูก logout เพื่อความปลอดภัย
             </p>
@@ -55,7 +55,7 @@ export default function Forgot2FaPage(): React.ReactNode {
           </>
         ) : (
           <>
-            <p className="text-sm text-slate-700 leading-relaxed">
+            <p className="text-sm text-(--on-surface) leading-relaxed">
               ใช้สำหรับกรณีคุณ <strong>เสียมือถือและรหัสสำรองทั้งหมด</strong>
               ระบบจะส่งลิงก์ไปยังอีเมลที่ลงทะเบียนไว้ — เพียงคุณยังเข้าถึงอีเมลได้และจำรหัสผ่านได้
               ก็จะกู้คืนได้
@@ -79,7 +79,7 @@ export default function Forgot2FaPage(): React.ReactNode {
               </button>
             </form>
             <div className="text-center">
-              <Link href="/login" className="text-xs text-slate-500 hover:text-(--primary) hover:underline">
+              <Link href="/login" className="text-xs text-(--on-surface-variant) hover:text-(--primary) hover:underline">
                 ← กลับหน้าเข้าสู่ระบบ
               </Link>
             </div>
