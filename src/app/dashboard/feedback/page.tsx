@@ -123,19 +123,19 @@ export default function FeedbackPage(): React.ReactNode {
       <div>
         <Link
           href="/dashboard/support/tickets"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-(--primary) transition-colors mb-3 group"
+          className="inline-flex items-center gap-1.5 text-sm text-(--outline) hover:text-(--primary) transition-colors mb-3 group"
         >
           <span className="material-symbols-outlined text-base group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
           ตั๋วสนับสนุน
         </Link>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">เปิด Ticket ใหม่</h1>
-        <p className="text-slate-500 mt-2 text-sm">แจ้งปัญหา ขอฟีเจอร์ หรือส่งคำถามให้ทีมงาน — เราจะตอบกลับโดยเร็วที่สุด</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">เปิด Ticket ใหม่</h1>
+        <p className="text-(--on-surface-variant) mt-2 text-sm">แจ้งปัญหา ขอฟีเจอร์ หรือส่งคำถามให้ทีมงาน — เราจะตอบกลับโดยเร็วที่สุด</p>
       </div>
 
       {/* Step 1: Select type */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100">
-          <h2 className="font-bold text-slate-900">ประเภท</h2>
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 overflow-hidden">
+        <div className="px-6 py-5 border-b border-(--outline-variant)/20">
+          <h2 className="font-bold text-(--on-surface)">ประเภท</h2>
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {feedbackTypes.map((ft) => (
@@ -145,11 +145,11 @@ export default function FeedbackPage(): React.ReactNode {
               className={`text-left p-4 rounded-xl border-2 transition-all ${
                 type === ft.value
                   ? "border-(--primary) bg-(--primary-container)/40"
-                  : "border-slate-200 hover:border-slate-300"
+                  : "border-(--outline-variant)/30 hover:border-(--outline-variant)"
               }`}
             >
-              <p className={`text-sm font-bold ${type === ft.value ? "text-(--primary)" : "text-slate-900"}`}>{ft.label}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{ft.desc}</p>
+              <p className={`text-sm font-bold ${type === ft.value ? "text-(--primary)" : "text-(--on-surface)"}`}>{ft.label}</p>
+              <p className="text-xs text-(--outline) mt-0.5">{ft.desc}</p>
             </button>
           ))}
         </div>
@@ -157,9 +157,9 @@ export default function FeedbackPage(): React.ReactNode {
 
       {/* Step 2: Detail form */}
       {type && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900">รายละเอียด</h2>
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-(--outline-variant)/30 overflow-hidden">
+          <div className="px-6 py-5 border-b border-(--outline-variant)/20">
+            <h2 className="font-bold text-(--on-surface)">รายละเอียด</h2>
           </div>
           <div className="p-6 space-y-6">
             <FormInput
@@ -193,7 +193,7 @@ export default function FeedbackPage(): React.ReactNode {
 
             {/* Priority */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">ระดับความสำคัญ</label>
+              <label className="text-xs font-bold text-(--outline) uppercase tracking-widest px-1">ระดับความสำคัญ</label>
               <div className="flex gap-2">
                 {priorityOptions.map((p) => (
                   <button
@@ -203,7 +203,7 @@ export default function FeedbackPage(): React.ReactNode {
                     className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                       priority === p.value
                         ? "bg-(--primary) text-white"
-                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                        : "bg-(--surface-container-low) text-(--on-surface-variant) hover:bg-(--surface-variant)"
                     }`}
                   >
                     {p.label}
@@ -215,17 +215,17 @@ export default function FeedbackPage(): React.ReactNode {
             {/* Multi-file attachment */}
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <label className="text-xs font-bold text-(--outline) uppercase tracking-widest">
                   แนบภาพหน้าจอ (ไม่บังคับ)
                 </label>
-                <span className="text-xs text-slate-400">{attachments.length}/{MAX_ATTACHMENTS}</span>
+                <span className="text-xs text-(--outline)">{attachments.length}/{MAX_ATTACHMENTS}</span>
               </div>
 
               {/* Thumbnail grid */}
               {attachments.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {attachments.map((a) => (
-                    <div key={a.url} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200">
+                    <div key={a.url} className="relative group aspect-square rounded-xl overflow-hidden border border-(--outline-variant)/30">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={a.url} alt={a.name} className="w-full h-full object-cover" />
                       <button
@@ -246,16 +246,16 @@ export default function FeedbackPage(): React.ReactNode {
                   <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
                     uploading
                       ? "border-(--primary)/40 bg-(--primary-container)/30"
-                      : "border-slate-200 hover:border-(--primary)/40 hover:bg-(--primary-container)/20"
+                      : "border-(--outline-variant)/30 hover:border-(--primary)/40 hover:bg-(--primary-container)/20"
                   }`}>
                     {uploading
                       ? <span className="material-symbols-outlined text-2xl text-(--primary) animate-spin">progress_activity</span>
-                      : <span className="material-symbols-outlined text-2xl text-slate-300">add_photo_alternate</span>
+                      : <span className="material-symbols-outlined text-2xl text-(--outline-variant)">add_photo_alternate</span>
                     }
-                    <p className="text-sm text-slate-400 mt-1">
+                    <p className="text-sm text-(--outline) mt-1">
                       {uploading ? "กำลังอัปโหลด..." : `คลิกหรือลากไฟล์มาวางที่นี่`}
                     </p>
-                    <p className="text-xs text-slate-300 mt-0.5">JPEG, PNG, WebP ≤ 8MB · เพิ่มได้อีก {MAX_ATTACHMENTS - attachments.length} ไฟล์</p>
+                    <p className="text-xs text-(--outline-variant) mt-0.5">JPEG, PNG, WebP ≤ 8MB · เพิ่มได้อีก {MAX_ATTACHMENTS - attachments.length} ไฟล์</p>
                   </div>
                   <input
                     ref={fileRef}

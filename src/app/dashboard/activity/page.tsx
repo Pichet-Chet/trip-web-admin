@@ -28,7 +28,7 @@ const ACTION_META: Record<string, { label: string; icon: string; tone: string }>
   data_exported: { label: "ดาวน์โหลดข้อมูล", icon: "download", tone: "text-violet-600 bg-violet-50" },
   account_deleted: { label: "ลบบัญชี", icon: "delete", tone: "text-red-600 bg-red-50" },
   trip_published: { label: "เผยแพร่ทริป", icon: "flight_takeoff", tone: "text-emerald-700 bg-emerald-50" },
-  trip_unpublished: { label: "ยกเลิกเผยแพร่", icon: "unpublished", tone: "text-slate-600 bg-slate-100" },
+  trip_unpublished: { label: "ยกเลิกเผยแพร่", icon: "unpublished", tone: "text-(--on-surface-variant) bg-(--surface-variant)" },
   member_invited: { label: "เชิญสมาชิก", icon: "person_add", tone: "text-indigo-600 bg-indigo-50" },
   member_removed: { label: "ลบสมาชิก", icon: "person_remove", tone: "text-rose-600 bg-rose-50" },
   plan_purchased: { label: "ซื้อแพ็กเกจ", icon: "shopping_bag", tone: "text-emerald-700 bg-emerald-50" },
@@ -106,37 +106,37 @@ export default function ActivityPage(): React.ReactNode {
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ประวัติการใช้งาน</h1>
-          <p className="text-slate-500 mt-2 text-sm">บันทึกการกระทำสำคัญในบัญชีของคุณ — ใช้ตรวจสอบความผิดปกติและความปลอดภัย</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">ประวัติการใช้งาน</h1>
+          <p className="text-(--on-surface-variant) mt-2 text-sm">บันทึกการกระทำสำคัญในบัญชีของคุณ — ใช้ตรวจสอบความผิดปกติและความปลอดภัย</p>
         </div>
         <button
           type="button"
           onClick={exportCsv}
           disabled={!data || data.totalCount === 0}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-(--outline-variant)/30 text-sm font-semibold text-(--on-surface) hover:bg-(--surface-container-low) disabled:opacity-50"
         >
           <span className="material-symbols-outlined text-base">download</span>
           ดาวน์โหลด CSV
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="bg-white rounded-xl border border-(--outline-variant)/30 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">ตั้งแต่วันที่</label>
+          <label className="block text-xs font-semibold text-(--on-surface-variant) mb-1">ตั้งแต่วันที่</label>
           <input
             type="date"
             value={from}
             onChange={(e) => { setFrom(e.target.value); setPage(1); }}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-(--outline-variant) px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">ถึงวันที่</label>
+          <label className="block text-xs font-semibold text-(--on-surface-variant) mb-1">ถึงวันที่</label>
           <input
             type="date"
             value={to}
             onChange={(e) => { setTo(e.target.value); setPage(1); }}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-(--outline-variant) px-3 py-2 text-sm"
           />
         </div>
       </div>
@@ -152,18 +152,18 @@ export default function ActivityPage(): React.ReactNode {
       ) : error ? (
         <ErrorState message={error} onRetry={load} />
       ) : !data || data.items.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-          <span className="material-symbols-outlined text-slate-300 text-4xl">history</span>
-          <p className="mt-3 text-sm text-slate-500">ยังไม่มีบันทึกในช่วงนี้</p>
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-10 text-center">
+          <span className="material-symbols-outlined text-(--outline-variant) text-4xl">history</span>
+          <p className="mt-3 text-sm text-(--on-surface-variant)">ยังไม่มีบันทึกในช่วงนี้</p>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
+          <div className="bg-white rounded-2xl border border-(--outline-variant)/30 divide-y divide-(--outline-variant)/20">
             {data.items.map((item) => {
               const meta = ACTION_META[item.action] ?? {
                 label: item.action,
                 icon: "info",
-                tone: "text-slate-600 bg-slate-100",
+                tone: "text-(--on-surface-variant) bg-(--surface-variant)",
               };
               return (
                 <div key={item.id} className="p-4 md:p-5 flex items-start gap-4">
@@ -172,12 +172,12 @@ export default function ActivityPage(): React.ReactNode {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span className="font-semibold text-slate-900 text-sm">{meta.label}</span>
-                      <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleString("th-TH")}</span>
+                      <span className="font-semibold text-(--on-surface) text-sm">{meta.label}</span>
+                      <span className="text-xs text-(--outline)">{new Date(item.createdAt).toLocaleString("th-TH")}</span>
                     </div>
-                    <p className="text-sm text-slate-600 mt-0.5">{item.detail}</p>
+                    <p className="text-sm text-(--on-surface-variant) mt-0.5">{item.detail}</p>
                     {item.ipAddress && (
-                      <p className="text-xs text-slate-400 font-mono mt-1">{item.ipAddress}</p>
+                      <p className="text-xs text-(--outline) font-mono mt-1">{item.ipAddress}</p>
                     )}
                   </div>
                 </div>

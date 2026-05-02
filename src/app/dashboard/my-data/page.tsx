@@ -98,8 +98,8 @@ export default function MyDataPage(): React.ReactNode {
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ข้อมูลของฉัน</h1>
-          <p className="text-slate-500 mt-2 text-sm">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">ข้อมูลของฉัน</h1>
+          <p className="text-(--on-surface-variant) mt-2 text-sm">
             สรุปข้อมูลทั้งหมดที่ TripApp เก็บเกี่ยวกับคุณ — สิทธิ์ตาม PDPA มาตรา 30
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function MyDataPage(): React.ReactNode {
         </button>
       </div>
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-(--outline)">
         สร้างเมื่อ {new Date(data.generatedAt).toLocaleString("th-TH")}
       </p>
 
@@ -127,17 +127,17 @@ export default function MyDataPage(): React.ReactNode {
 
       <Block icon="business" title={`บริษัท / ทีม (${data.companies.length})`}>
         {data.companies.length === 0 ? (
-          <p className="text-sm text-slate-400">ไม่มี</p>
+          <p className="text-sm text-(--outline)">ไม่มี</p>
         ) : (
           <div className="space-y-3 -mx-1">
             {data.companies.map((c) => (
-              <div key={c.id} className="px-3 py-2.5 bg-slate-50 rounded-lg">
+              <div key={c.id} className="px-3 py-2.5 bg-(--surface-container-low) rounded-lg">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <p className="font-semibold text-slate-900 text-sm">{c.name}</p>
+                  <p className="font-semibold text-(--on-surface) text-sm">{c.name}</p>
                   <span className="text-xs font-bold text-(--primary) uppercase">{c.tier}</span>
-                  <span className="text-xs text-slate-500">บทบาท: {c.role}</span>
+                  <span className="text-xs text-(--on-surface-variant)">บทบาท: {c.role}</span>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-(--outline) mt-1">
                   {c.phone && <>โทร {c.phone} · </>}
                   {c.lineId && <>LINE {c.lineId} · </>}
                   เข้าร่วม {new Date(c.joinedAt).toLocaleDateString("th-TH")}
@@ -166,13 +166,13 @@ export default function MyDataPage(): React.ReactNode {
 
       <Block icon="payments" title={`ประวัติชำระเงิน (${data.payments.length})`}>
         {data.payments.length === 0 ? (
-          <p className="text-sm text-slate-400">ยังไม่มีรายการ</p>
+          <p className="text-sm text-(--outline)">ยังไม่มีรายการ</p>
         ) : (
           <>
             <Stat label="ยอดชำระสำเร็จรวม" value={`${totalSpent.toLocaleString()} ${currency}`} />
             <div className="mt-3 -mx-1 max-h-72 overflow-y-auto">
               <table className="w-full text-xs">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-(--surface-container-low) text-(--on-surface-variant)">
                   <tr>
                     <th className="text-left px-3 py-2">วันที่</th>
                     <th className="text-left px-3 py-2">แพ็กเกจ</th>
@@ -180,7 +180,7 @@ export default function MyDataPage(): React.ReactNode {
                     <th className="text-left px-3 py-2">สถานะ</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-(--outline-variant)/20">
                   {data.payments.map((p) => (
                     <tr key={p.id}>
                       <td className="px-3 py-1.5">{new Date(p.createdAt).toLocaleDateString("th-TH")}</td>
@@ -210,10 +210,10 @@ export default function MyDataPage(): React.ReactNode {
 
 function Block({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-        <span className="material-symbols-outlined text-slate-500 text-lg">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-900">{title}</h2>
+    <section className="bg-white rounded-2xl border border-(--outline-variant)/30 overflow-hidden">
+      <div className="px-5 py-3 border-b border-(--outline-variant)/20 flex items-center gap-2">
+        <span className="material-symbols-outlined text-(--on-surface-variant) text-lg">{icon}</span>
+        <h2 className="text-sm font-bold text-(--on-surface)">{title}</h2>
       </div>
       <div className="p-5 space-y-2">{children}</div>
     </section>
@@ -223,8 +223,8 @@ function Block({ icon, title, children }: { icon: string; title: string; childre
 function Field({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3 flex-wrap">
-      <span className="text-xs text-slate-500">{label}</span>
-      <span className={`text-sm text-slate-800 ${mono ? "font-mono" : ""}`}>{value}</span>
+      <span className="text-xs text-(--on-surface-variant)">{label}</span>
+      <span className={`text-sm text-(--on-surface) ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );
 }
@@ -232,8 +232,8 @@ function Field({ label, value, mono = false }: { label: string; value: React.Rea
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between">
-      <span className="text-xs text-slate-500">{label}</span>
-      <span className="text-base font-bold text-slate-900 tabular-nums">{value}</span>
+      <span className="text-xs text-(--on-surface-variant)">{label}</span>
+      <span className="text-base font-bold text-(--on-surface) tabular-nums">{value}</span>
     </div>
   );
 }
