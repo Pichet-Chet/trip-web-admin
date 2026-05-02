@@ -363,7 +363,9 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     try {
       const res = await api.post<ActivityDetailApi>(`/admin/days/${currentDay.id}/activities`, {
         name: "กิจกรรมใหม่",
-        type: "Attraction",
+        // Lowercase to match the chip strip's value set so the new
+        // row shows the right chip selected immediately.
+        type: "attraction",
         emoji: "📍",
       });
       const newAct = mapActivity(res, currentDay.id);

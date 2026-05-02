@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, ApiError } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export interface LanguageOption {
   /** BCP 47 / ISO 639-1 code, e.g. "th", "en", "zh-CN". */
@@ -56,10 +56,11 @@ export function useLanguages(): { languages: LanguageOption[]; loading: boolean 
           setLoading(false);
         }
       })
-      .catch((err) => {
+      .catch(() => {
+        // Silent — the fallback list is already in state, so the UI
+        // stays usable. A failed master-list fetch isn't actionable to
+        // the operator and noisy logs aren't worth it.
         if (!cancelled) setLoading(false);
-        // Silent — fallback list is already in state.
-        if (!(err instanceof ApiError)) console.warn("[useLanguages] fetch failed:", err);
       });
     return () => { cancelled = true; };
   }, []);
