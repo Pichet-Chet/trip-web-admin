@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/components/shared";
 import type { PostStatus } from "@/types";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
 
 interface PostResponse {
   id: string;
@@ -39,7 +40,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<PostResponse | null>(null);
   const [saving, setSaving] = useState(false);
-  usePageTitle(post ? `แก้ไข: ${post.title}` : "แก้ไขโพสต์");
+  // Skip the placeholder title while loading so the tab doesn't flash.
+  usePageTitle(post ? `แก้ไข: ${post.title}` : null);
   const [error, setError] = useState("");
 
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
@@ -55,6 +57,33 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmStatus, setConfirmStatus] = useState<PostStatus | null>(null);
+
+  // Snapshot the loaded post so dirty = "diverged from server state".
+  // useMemo so we don't re-stringify on every keystroke when nothing
+  // depends on the snapshot value.
+  const loadedSnapshot = useMemo(
+    () => post
+      ? JSON.stringify({
+          coverUrl: post.images[0] ?? null,
+          title: post.title,
+          destination: post.destination ?? "",
+          duration: post.duration ?? "",
+          travelPeriod: post.travelPeriod ?? "",
+          price: post.price !== null ? String(post.price) : "",
+          slots: post.slots !== null ? String(post.slots) : "",
+          description: post.description ?? "",
+          highlights: (post.highlights ?? "").split("\n").filter(Boolean),
+          tagsInput: post.tags.join(", "),
+        })
+      : "",
+    [post],
+  );
+  const currentSnapshot = JSON.stringify({
+    coverUrl, title, destination, duration, travelPeriod, price, slots,
+    description, highlights: highlights.filter((h) => h.trim() !== ""), tagsInput,
+  });
+  const isDirty = !saving && loadedSnapshot !== "" && currentSnapshot !== loadedSnapshot;
+  useUnsavedChanges(isDirty);
 
   useEffect(() => {
     api.get<PostResponse>(`/admin/posts/${id}`)
@@ -161,21 +190,21 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
       <div>
-        <button onClick={() => router.push("/dashboard/posts")} className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1 mb-4">
+        <button onClick={() => router.push("/dashboard/posts")} className="text-sm text-(--outline) hover:text-(--on-surface-variant) flex items-center gap-1 mb-4">
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           กลับหน้าแพ็กเกจ
         </button>
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">แก้ไขแพ็กเกจ</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">แก้ไขแพ็กเกจ</h1>
           <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-white ${
-            isPublished ? "bg-emerald-500" : isClosed ? "bg-slate-500" : "bg-amber-500"
+            isPublished ? "bg-emerald-500" : isClosed ? "bg-(--surface-container-low)0" : "bg-amber-500"
           }`}>
             {isPublished ? "เปิดรับ" : isClosed ? "ปิดรับแล้ว" : "ร่าง"}
           </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-6">
         <ImageUpload
           value={coverUrl}
           onChange={setCoverUrl}
@@ -225,18 +254,18 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
         {/* Highlights */}
         <div className="space-y-3">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">ไฮไลท์ทริป</label>
+          <label className="text-xs font-bold text-(--outline) uppercase tracking-widest px-1">ไฮไลท์ทริป</label>
           {highlights.map((h, idx) => (
             <div key={idx} className="flex gap-2 items-center">
-              <span className="text-xs text-slate-300 w-5 text-center">{idx + 1}.</span>
+              <span className="text-xs text-(--outline-variant) w-5 text-center">{idx + 1}.</span>
               <input
                 value={h}
                 onChange={(e) => updateHighlight(idx, e.target.value)}
                 placeholder="เช่น ชมใบไม้เปลี่ยนสีที่เกียวโต"
-                className="flex-1 bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
+                className="flex-1 bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               />
               {highlights.length > 1 && (
-                <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors">
+                <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline-variant) hover:text-red-500 transition-colors">
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
               )}
@@ -265,7 +294,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         )}
 
         {/* Status actions */}
-        <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-100">
+        <div className="flex flex-wrap gap-2 pt-4 border-t border-(--outline-variant)/20">
           {!isPublished && (
             <button
               onClick={() => setConfirmStatus("published")}
@@ -279,7 +308,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             <button
               onClick={() => setConfirmStatus("closed")}
               disabled={saving}
-              className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-(--surface-variant) text-(--on-surface) text-sm font-bold rounded-lg hover:bg-(--outline-variant)/40 transition-colors disabled:opacity-50"
             >
               ปิดรับลูกค้า
             </button>
@@ -298,7 +327,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           <button
             onClick={() => router.push("/dashboard/posts")}
             disabled={saving}
-            className="flex-1 py-3.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="flex-1 py-3.5 rounded-xl border border-(--outline-variant)/30 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) transition-colors disabled:opacity-50"
           >
             ยกเลิก
           </button>

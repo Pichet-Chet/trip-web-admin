@@ -31,7 +31,7 @@ interface PostResponse {
 const statusConfig: Record<PostStatus, { label: string; cls: string }> = {
   published: { label: "เปิดรับ", cls: "bg-emerald-500" },
   draft: { label: "ร่าง", cls: "bg-amber-500" },
-  closed: { label: "ปิดรับแล้ว", cls: "bg-slate-500" },
+  closed: { label: "ปิดรับแล้ว", cls: "bg-(--surface-container-low)0" },
 };
 
 function formatPrice(n: number): string {
@@ -89,7 +89,7 @@ export default function PostsPage(): React.ReactNode {
       {/* Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">แพ็กเกจทัวร์</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">แพ็กเกจทัวร์</h1>
         </div>
         <Link href="/dashboard/posts/new" className="px-5 py-3 bg-(--primary) text-white rounded-xl font-bold text-sm hover:opacity-95 transition-colors shadow-sm flex items-center gap-2 w-fit">
           <span className="material-symbols-outlined text-lg">add</span>
@@ -100,9 +100,9 @@ export default function PostsPage(): React.ReactNode {
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative w-full sm:w-72">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-(--outline) text-lg">search</span>
           <input
-            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
+            className="w-full bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
             placeholder="ค้นหาแพ็กเกจ หรือจุดหมาย..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -134,14 +134,14 @@ export default function PostsPage(): React.ReactNode {
           {filtered.map((post) => {
             const cfg = statusConfig[post.status];
             return (
-              <div key={post.id} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 flex flex-col">
+              <div key={post.id} className="group bg-white rounded-2xl border border-(--outline-variant)/30 overflow-hidden hover:shadow-lg hover:shadow-(--outline-variant)/40 transition-all duration-300 flex flex-col">
                 {/* Image */}
                 <div className="relative aspect-16/10 overflow-hidden">
                   {post.images[0] ? (
                     <img src={post.images[0]} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-4xl text-slate-300">image</span>
+                    <div className="w-full h-full bg-(--surface-variant) flex items-center justify-center">
+                      <span className="material-symbols-outlined text-4xl text-(--outline-variant)">image</span>
                     </div>
                   )}
                   <div className="absolute top-3 left-3">
@@ -151,7 +151,7 @@ export default function PostsPage(): React.ReactNode {
                   </div>
                   {post.destination && (
                     <div className="absolute bottom-3 right-3">
-                      <span className="bg-white/90 backdrop-blur-sm text-slate-800 text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
+                      <span className="bg-white/90 backdrop-blur-sm text-(--on-surface) text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
                         {post.destination}
                       </span>
                     </div>
@@ -160,17 +160,17 @@ export default function PostsPage(): React.ReactNode {
 
                 {/* Body */}
                 <div className="flex-1 p-4 flex flex-col">
-                  <h3 className="font-bold text-sm text-slate-900 line-clamp-2 group-hover:text-(--primary) transition-colors">{post.title}</h3>
+                  <h3 className="font-bold text-sm text-(--on-surface) line-clamp-2 group-hover:text-(--primary) transition-colors">{post.title}</h3>
 
                   {/* Price + Duration */}
                   {post.price !== null && (
                     <div className="flex items-baseline gap-2 mt-2">
                       <span className="text-lg font-extrabold text-(--primary)">฿{formatPrice(post.price)}</span>
-                      <span className="text-[11px] text-slate-400">/ท่าน</span>
+                      <span className="text-[11px] text-(--outline)">/ท่าน</span>
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-500">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-(--on-surface-variant)">
                     {post.duration && (
                       <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">schedule</span>
@@ -195,7 +195,7 @@ export default function PostsPage(): React.ReactNode {
                   {post.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
                       {post.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded">#{tag}</span>
+                        <span key={tag} className="text-[10px] font-medium text-(--outline) bg-(--surface-container-low) px-2 py-0.5 rounded">#{tag}</span>
                       ))}
                     </div>
                   )}
@@ -203,17 +203,27 @@ export default function PostsPage(): React.ReactNode {
                   <div className="flex-1" />
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-                    <span className="text-[11px] text-slate-400">
+                  <div className="flex items-center justify-between pt-3 mt-3 border-t border-(--outline-variant)/20">
+                    <span className="text-[11px] text-(--outline)">
                       {post.viewCount > 0 && `${post.viewCount.toLocaleString()} views`}
                       {post.viewCount > 0 && post.inquiryCount > 0 && " · "}
                       {post.inquiryCount > 0 && `${post.inquiryCount} สนใจ`}
                     </span>
                     <div className="flex gap-1">
-                      <Link href={`/dashboard/posts/${post.id}/edit`} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+                      <Link
+                        href={`/dashboard/posts/${post.id}/edit`}
+                        className="w-7 h-7 rounded-lg hover:bg-(--surface-variant) flex items-center justify-center text-(--outline) hover:text-(--on-surface) transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary)"
+                        aria-label={`แก้ไข ${post.title}`}
+                      >
                         <span className="material-symbols-outlined text-[16px]">edit</span>
                       </Link>
-                      <button onClick={() => setDeleteTarget(post)} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(post)}
+                        disabled={deleting}
+                        className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline) hover:text-red-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary)"
+                        aria-label={`ลบ ${post.title}`}
+                      >
                         <span className="material-symbols-outlined text-[16px]">delete</span>
                       </button>
                     </div>
@@ -224,9 +234,9 @@ export default function PostsPage(): React.ReactNode {
           })}
 
           {/* Create Card */}
-          <Link href="/dashboard/posts/new" className="group rounded-2xl border-2 border-dashed border-slate-200 hover:border-(--primary)/40 flex flex-col items-center justify-center min-h-70 transition-all duration-300 hover:bg-(--primary-container)/20">
-            <span className="material-symbols-outlined text-3xl text-slate-300 group-hover:text-(--primary) transition-colors mb-3">add</span>
-            <p className="font-bold text-slate-500 text-sm">สร้างแพ็กเกจใหม่</p>
+          <Link href="/dashboard/posts/new" className="group rounded-2xl border-2 border-dashed border-(--outline-variant)/30 hover:border-(--primary)/40 flex flex-col items-center justify-center min-h-70 transition-all duration-300 hover:bg-(--primary-container)/20">
+            <span className="material-symbols-outlined text-3xl text-(--outline-variant) group-hover:text-(--primary) transition-colors mb-3">add</span>
+            <p className="font-bold text-(--on-surface-variant) text-sm">สร้างแพ็กเกจใหม่</p>
           </Link>
         </div>
       )}

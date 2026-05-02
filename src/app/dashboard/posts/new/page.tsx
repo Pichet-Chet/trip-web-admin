@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { FormInput, FormTextarea, ImageUpload, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
 
 interface CreatePostRequest {
   title: string;
@@ -37,6 +38,17 @@ export default function NewPostPage(): React.ReactNode {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // Treat any non-empty form field as "dirty" so the operator gets a
+  // beforeunload warning if they navigate away mid-create. Cheap check
+  // — none of these fields cost much to read on every render.
+  const isDirty = !saving && (
+    !!coverUrl || title.trim() !== "" || destination.trim() !== "" ||
+    duration.trim() !== "" || travelPeriod.trim() !== "" || price !== "" ||
+    slots !== "" || description.trim() !== "" ||
+    highlights.some((h) => h.trim() !== "") || tagsInput.trim() !== ""
+  );
+  useUnsavedChanges(isDirty);
 
   function addHighlight(): void {
     if (highlights.length < 8) setHighlights([...highlights, ""]);
@@ -94,14 +106,14 @@ export default function NewPostPage(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
       <div>
-        <button onClick={() => router.push("/dashboard/posts")} className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1 mb-4">
+        <button onClick={() => router.push("/dashboard/posts")} className="text-sm text-(--outline) hover:text-(--on-surface-variant) flex items-center gap-1 mb-4">
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           กลับหน้าแพ็กเกจ
         </button>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">สร้างแพ็กเกจทัวร์</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">สร้างแพ็กเกจทัวร์</h1>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-6">
         <ImageUpload
           value={coverUrl}
           onChange={setCoverUrl}
@@ -166,18 +178,18 @@ export default function NewPostPage(): React.ReactNode {
 
         {/* Highlights */}
         <div className="space-y-3">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">ไฮไลท์ทริป</label>
+          <label className="text-xs font-bold text-(--outline) uppercase tracking-widest px-1">ไฮไลท์ทริป</label>
           {highlights.map((h, idx) => (
             <div key={idx} className="flex gap-2 items-center">
-              <span className="text-xs text-slate-300 w-5 text-center">{idx + 1}.</span>
+              <span className="text-xs text-(--outline-variant) w-5 text-center">{idx + 1}.</span>
               <input
                 value={h}
                 onChange={(e) => updateHighlight(idx, e.target.value)}
                 placeholder="เช่น ชมใบไม้เปลี่ยนสีที่เกียวโต"
-                className="flex-1 bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
+                className="flex-1 bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               />
               {highlights.length > 1 && (
-                <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors">
+                <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline-variant) hover:text-red-500 transition-colors">
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
               )}
@@ -206,11 +218,11 @@ export default function NewPostPage(): React.ReactNode {
         )}
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-slate-100">
+        <div className="flex gap-3 pt-4 border-t border-(--outline-variant)/20">
           <button
             onClick={() => save("draft")}
             disabled={saving}
-            className="flex-1 py-3.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="flex-1 py-3.5 rounded-xl border border-(--outline-variant)/30 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) transition-colors disabled:opacity-50"
           >
             {saving ? "กำลังบันทึก..." : "บันทึกร่าง"}
           </button>
