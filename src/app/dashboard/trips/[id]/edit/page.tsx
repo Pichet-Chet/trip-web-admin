@@ -614,7 +614,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
-        <TripStepperHeader currentStep={3} tripId={id} subtitle="กิจกรรม" />
+        <TripStepperHeader currentStep={2} tripId={id} subtitle="กิจกรรม" />
         <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-6">
           <div className="flex gap-2">
             <Skeleton className="h-10 w-24" />
@@ -639,7 +639,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <TripStepperHeader currentStep={3} tripId={id} subtitle="กิจกรรม" />
+      <TripStepperHeader currentStep={2} tripId={id} subtitle="กิจกรรม" />
 
       {/* ═══ Action Bar (sticky under stepper) ═══ */}
       <FooterActionBar
@@ -798,7 +798,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                     {currentDay.title?.trim() || `Day ${activeDay + 1}`}
                   </h2>
                   <p className="text-xs text-(--on-surface-variant) mt-0.5">
-                    {currentDay.isFreeDay ? `วันอิสระ · Day ${activeDay + 1}` : `ตารางกิจกรรม · Day ${activeDay + 1}`}
+                    {currentDay.isFreeDay ? "วันอิสระ" : "ตารางกิจกรรม"}
                   </p>
                 </div>
                 {/* Add-activity button hidden on free days — having both

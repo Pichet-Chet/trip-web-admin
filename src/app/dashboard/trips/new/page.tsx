@@ -679,7 +679,7 @@ export default function NewTripPage(): React.ReactNode {
               folder="covers"
               aspect="wide"
               label="อัปโหลดหรือลากรูปภาพปกมาวาง"
-              hint="แนะนำ: 1920x800px ขึ้นไป"
+              hint="แนะนำ: 1920x1080 px (อัตราส่วน 16:9)"
             />
           </section>
 
@@ -757,7 +757,7 @@ export default function NewTripPage(): React.ReactNode {
 
             {/* Accommodation */}
             <div className="space-y-6">
-              <SectionHeader title="Accommodation" icon="hotel" variant="icon" />
+              <SectionHeader title="ที่พัก" icon="hotel" variant="icon" />
               <div className="space-y-4">
                 {hotels.map((hotel, i) => (
                   <HotelCard

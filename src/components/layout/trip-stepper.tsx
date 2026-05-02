@@ -2,15 +2,23 @@
 
 import Link from "next/link";
 
+// Three steps. The original four-step layout had a dedicated "ประเภททริป"
+// step before basics; that picker has since been collapsed into a toggle
+// at the top of the basics page so the wizard now opens directly on the
+// data form. Keep this in sync with each page's TripStepperHeader
+// `currentStep` prop (1 = basics, 2 = activities, 3 = preview).
 const steps = [
-  { num: 1, label: "ประเภททริป", href: () => "/dashboard/trips/new" },
-  { num: 2, label: "ข้อมูลทริป", href: (id: string) => id === "new" ? "/dashboard/trips/new" : `/dashboard/trips/new?scope=edit&id=${id}` },
-  { num: 3, label: "กิจกรรม", href: (id: string) => `/dashboard/trips/${id}/edit` },
-  { num: 4, label: "ดูตัวอย่าง", href: (id: string) => `/dashboard/trips/${id}/preview` },
+  {
+    num: 1,
+    label: "ข้อมูลทริป",
+    href: (id: string) => id === "new" ? "/dashboard/trips/new" : `/dashboard/trips/new?id=${id}`,
+  },
+  { num: 2, label: "กิจกรรม", href: (id: string) => `/dashboard/trips/${id}/edit` },
+  { num: 3, label: "ดูตัวอย่าง", href: (id: string) => `/dashboard/trips/${id}/preview` },
 ] as const;
 
 interface TripStepperHeaderProps {
-  currentStep: 1 | 2 | 3 | 4;
+  currentStep: 1 | 2 | 3;
   tripId: string;
   subtitle?: string;
 }

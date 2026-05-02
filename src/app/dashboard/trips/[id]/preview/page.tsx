@@ -283,7 +283,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
-        <TripStepperHeader currentStep={4} tripId={id} subtitle="ดูตัวอย่าง" />
+        <TripStepperHeader currentStep={3} tripId={id} subtitle="ดูตัวอย่าง" />
         <div className="flex-1 p-4 lg:p-8 max-w-6xl mx-auto w-full">
           <div className="grid grid-cols-12 gap-8">
             <div className="col-span-12 lg:col-span-5 flex justify-center">
@@ -307,7 +307,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="flex flex-col min-h-screen">
-      <TripStepperHeader currentStep={4} tripId={id} subtitle="ดูตัวอย่าง" />
+      <TripStepperHeader currentStep={3} tripId={id} subtitle="ดูตัวอย่าง" />
 
       {/* ═══ Action Bar ═══ */}
       <FooterActionBar
@@ -451,14 +451,19 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                   </div>
                 </div>
 
-                {/* Stats row */}
-                <div className="grid grid-cols-4 gap-4 mt-5 pt-5 border-t border-(--outline-variant)/20">
+                {/* Stats row — follower / view counts only carry meaning
+                    once the trip is published. Pre-publish, "0 ยอดดู"
+                    looked like missing data; show them only after the
+                    counters can move. */}
+                <div className={`grid gap-4 mt-5 pt-5 border-t border-(--outline-variant)/20 ${isPublished ? "grid-cols-4" : "grid-cols-2"}`}>
                   {[
-                    { label: "วัน", value: totalDays },
-                    { label: "กิจกรรม", value: totalActivities },
-                    { label: "ผู้ติดตาม", value: trip.followerCount },
-                    { label: "ยอดดู", value: trip.viewCount },
-                  ].map((s) => (
+                    { label: "วัน", value: totalDays, alwaysShow: true },
+                    { label: "กิจกรรม", value: totalActivities, alwaysShow: true },
+                    { label: "ผู้ติดตาม", value: trip.followerCount, alwaysShow: false },
+                    { label: "ยอดดู", value: trip.viewCount, alwaysShow: false },
+                  ]
+                    .filter((s) => s.alwaysShow || isPublished)
+                    .map((s) => (
                     <div key={s.label} className="text-center">
                       <p className="text-xl font-extrabold text-(--on-surface)">{s.value}</p>
                       <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest">{s.label}</p>
