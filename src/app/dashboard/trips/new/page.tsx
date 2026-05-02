@@ -651,21 +651,32 @@ export default function NewTripPage(): React.ReactNode {
         <form noValidate className="space-y-12 md:space-y-20" onSubmit={(e) => e.preventDefault()}>
           {/* Scope toggle — was a separate step in the old flow. Toggling
               after data has been entered resets segments + emergency
-              contacts to the chosen scope's defaults; we confirm first. */}
-          <div className="max-w-md">
-            <SegmentedControl
-              label="ประเภททริป"
-              value={(tripScope ?? "domestic") as "domestic" | "international"}
-              onChange={(next) => {
-                if (next === tripScope) return;
-                setPendingScope(next);
-              }}
-              options={[
-                { value: "domestic", label: "ในประเทศ", icon: "holiday_village" },
-                { value: "international", label: "ต่างประเทศ", icon: "flight_takeoff" },
-              ]}
-            />
-          </div>
+              contacts to the chosen scope's defaults; we confirm first.
+              Wrapped in the same white card pattern as the sections
+              below so it doesn't look like floating chrome. */}
+          <section className="bg-white p-5 md:p-7 rounded-3xl border border-(--outline-variant)/30 shadow-sm">
+            <div className="flex items-start gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-(--on-surface)">ประเภททริป</h3>
+                <p className="text-xs text-(--on-surface-variant) mt-0.5">
+                  เปลี่ยนได้ — ระบบจะรีเซ็ตข้อมูลเดินทาง / เบอร์ฉุกเฉินตามประเภทใหม่ (มีคำเตือนก่อน)
+                </p>
+              </div>
+              <div className="w-full sm:w-auto sm:min-w-[280px]">
+                <SegmentedControl
+                  value={(tripScope ?? "domestic") as "domestic" | "international"}
+                  onChange={(next) => {
+                    if (next === tripScope) return;
+                    setPendingScope(next);
+                  }}
+                  options={[
+                    { value: "domestic", label: "ในประเทศ", icon: "holiday_village" },
+                    { value: "international", label: "ต่างประเทศ", icon: "flight_takeoff" },
+                  ]}
+                />
+              </div>
+            </div>
+          </section>
 
           {/* ═══ Section 1: Cover Image ═══ */}
           <section className="space-y-6">

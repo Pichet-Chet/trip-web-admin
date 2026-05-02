@@ -717,11 +717,14 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                           />
                         )
                         : (
-                          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
-                            selected
-                              ? "bg-(--primary-container) text-(--on-primary-container)"
-                              : "bg-(--surface-variant) text-(--on-surface-variant)"
-                          }`}>
+                          <span
+                            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+                              selected
+                                ? "bg-(--primary-container) text-(--on-primary-container)"
+                                : "bg-(--surface-variant) text-(--on-surface-variant)"
+                            }`}
+                            aria-label={`${activityCount} กิจกรรม`}
+                          >
                             {activityCount}
                           </span>
                         )}
@@ -787,7 +790,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {/* Left: Itinerary List */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-start justify-between mb-4 gap-3">
+              <div className="flex items-start justify-between mb-4 gap-3 flex-wrap">
                 <div className="min-w-0">
                   {/* Header shows the day's actual title when it has one
                       (less repetition with the tab strip above), falling
@@ -801,24 +804,46 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                     {currentDay.isFreeDay ? "วันอิสระ" : "ตารางกิจกรรม"}
                   </p>
                 </div>
-                {/* Add-activity button hidden on free days — having both
-                    "วันอิสระ" and an active "เพิ่มกิจกรรม" affordance was
-                    contradictory; if the operator wants to schedule
-                    activities they untick the free-day toggle first. */}
-                {!currentDay.isFreeDay && (
+                {/* Schedule controls live together — the free-day toggle
+                    is a schedule-mode switch (no schedule vs scheduled),
+                    not a property of the day's title. Placing it next to
+                    the add-activity button makes that relationship clear. */}
+                <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={addActivity}
-                    disabled={addingActivity}
-                    className="shrink-0 flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
+                    onClick={() => toggleFreeDay(currentDay.id, !currentDay.isFreeDay)}
+                    aria-pressed={currentDay.isFreeDay}
+                    title={currentDay.isFreeDay
+                      ? "ปิดวันอิสระ — กลับสู่โหมดตารางกิจกรรม"
+                      : "เปิดวันอิสระ — ลูกทัวร์เลือกกิจกรรมเอง"}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border ${
+                      currentDay.isFreeDay
+                        ? "bg-(--primary-container) text-(--on-primary-container) border-(--primary)/30"
+                        : "bg-white text-(--on-surface-variant) border-(--outline-variant)/40 hover:border-(--primary)/30"
+                    }`}
                   >
-                    {addingActivity ? (
-                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <span className="material-symbols-outlined text-lg">add_circle</span>
-                    )}
-                    {addingActivity ? "กำลังเพิ่ม..." : "เพิ่มกิจกรรม"}
+                    <span className="material-symbols-outlined text-base" style={currentDay.isFreeDay ? { fontVariationSettings: "'FILL' 1" } : undefined}>beach_access</span>
+                    วันอิสระ
                   </button>
-                )}
+                  {/* Add-activity button hidden on free days — having both
+                      "วันอิสระ" and an active "เพิ่มกิจกรรม" affordance was
+                      contradictory; if the operator wants to schedule
+                      activities they untick the free-day toggle first. */}
+                  {!currentDay.isFreeDay && (
+                    <button
+                      onClick={addActivity}
+                      disabled={addingActivity}
+                      className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {addingActivity ? (
+                        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <span className="material-symbols-outlined text-lg">add_circle</span>
+                      )}
+                      {addingActivity ? "กำลังเพิ่ม..." : "เพิ่มกิจกรรม"}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Day Title Input — clearly labelled as a description, not
@@ -839,29 +864,6 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                   icon="edit_calendar"
                 />
               </div>
-
-              {/* Free-day toggle — flips the day into a "no schedule"
-                  state. Existing activities are preserved in the DB but
-                  hidden from the editor; toggling off brings them back.
-                  We don't auto-delete on toggle to avoid surprising the
-                  operator. */}
-              <label className="flex items-start gap-3 mb-4 p-4 bg-white rounded-2xl border border-(--outline-variant)/30 cursor-pointer hover:border-(--primary)/30 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={currentDay.isFreeDay}
-                  onChange={(e) => toggleFreeDay(currentDay.id, e.target.checked)}
-                  className="w-5 h-5 mt-0.5 rounded accent-(--primary) cursor-pointer"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-(--on-surface) flex items-center gap-2">
-                    <span className="material-symbols-outlined text-base">beach_access</span>
-                    วันอิสระ (Free Day)
-                  </p>
-                  <p className="text-xs text-(--on-surface-variant) mt-0.5">
-                    ลูกทัวร์เลือกกิจกรรมเอง — ไม่ต้องกรอกตารางกิจกรรม
-                  </p>
-                </div>
-              </label>
 
               {/* Activity Cards — hidden entirely on a free day. */}
               {currentDay.isFreeDay ? (
