@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { ErrorState, LoadingState, Pagination, useToast } from "@/components/shared";
+import { ErrorState, Pagination, TableRowSkeleton, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface NotificationItem {
@@ -139,7 +139,9 @@ export default function NotificationsPage(): React.ReactNode {
       </div>
 
       {loading ? (
-        <LoadingState message="กำลังโหลด..." />
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/30 divide-y divide-(--outline-variant)/20">
+          {Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} />)}
+        </div>
       ) : error ? (
         <ErrorState message={error} onRetry={load} />
       ) : !data || data.items.length === 0 ? (

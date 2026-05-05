@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { ErrorState, LoadingState, useToast } from "@/components/shared";
+import { ErrorState, PageSkeleton, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface ExportPayload {
@@ -84,7 +84,7 @@ export default function MyDataPage(): React.ReactNode {
     toast("ดาวน์โหลดข้อมูลเรียบร้อย", "success");
   }
 
-  if (loading) return <LoadingState message="กำลังรวบรวมข้อมูลของคุณ..." />;
+  if (loading) return <PageSkeleton />;
   if (error || !data) return <ErrorState message={error ?? "ไม่พบข้อมูล"} onRetry={load} />;
 
   const tripsByStatus = groupBy(data.trips, (t) => t.status);

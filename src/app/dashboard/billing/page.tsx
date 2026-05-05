@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
+import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, PageSkeleton, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
 import type { StatusConfig } from "@/components/shared/status-badge";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -313,7 +313,7 @@ function BillingContent(): React.ReactNode {
 
   const payments = paymentPage?.items ?? [];
 
-  if (loading) return <LoadingState />;
+  if (loading) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
 
   const isSub = usage?.hasActiveSubscription ?? false;
@@ -1110,7 +1110,7 @@ function InvoicePreviewModal({ runningNumber, previewUrl, paymentId, onClose }: 
 
 export default function BillingPage(): React.ReactNode {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<PageSkeleton />}>
       <BillingContent />
     </Suspense>
   );

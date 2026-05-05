@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { FormInput, FormTextarea, ImageUpload, LoadingState, SectionHeader, ToggleSwitch, useToast } from "@/components/shared";
+import { FormInput, FormTextarea, ImageUpload, PageSkeleton, SectionHeader, ToggleSwitch, useToast } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -190,7 +190,7 @@ export default function ProfilePage(): React.ReactNode {
     setSaveError("");
   }
 
-  if (loading) return <LoadingState />;
+  if (loading) return <PageSkeleton />;
 
   const currentAccountType = accountTypes.find((t) => t.value === form.accountType) ?? accountTypes[0];
 

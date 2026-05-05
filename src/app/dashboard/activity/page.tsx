@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { getValidToken } from "@/lib/auth";
-import { ErrorState, LoadingState, FilterTabs, Pagination, useToast } from "@/components/shared";
+import { ErrorState, FilterTabs, Pagination, TableRowSkeleton, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface ActivityItem {
@@ -152,7 +152,9 @@ export default function ActivityPage(): React.ReactNode {
       />
 
       {loading ? (
-        <LoadingState message="กำลังโหลด..." />
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/30 divide-y divide-(--outline-variant)/20">
+          {Array.from({ length: 6 }).map((_, i) => <TableRowSkeleton key={i} />)}
+        </div>
       ) : error ? (
         <ErrorState message={error} onRetry={load} />
       ) : !data || data.items.length === 0 ? (

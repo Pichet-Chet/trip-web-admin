@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 import { api, ApiError } from "@/lib/api";
-import { ErrorState, LoadingState } from "@/components/shared";
+import { ErrorState, PageSkeleton } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface FaqGroup {
@@ -44,7 +44,7 @@ export default function HelpPage(): React.ReactNode {
     return () => { mounted = false; };
   }, []);
 
-  if (loading) return <LoadingState message="กำลังโหลดศูนย์ช่วยเหลือ..." />;
+  if (loading) return <PageSkeleton />;
   if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
 
   return (

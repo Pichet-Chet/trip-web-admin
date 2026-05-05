@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { FormInput, FormTextarea, LoadingState, ToggleSwitch, useToast } from "@/components/shared";
+import { FormInput, FormTextarea, PageSkeleton, ToggleSwitch, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface BillingProfile {
@@ -77,7 +77,7 @@ export default function BillingProfilePage(): React.ReactNode {
     }
   }
 
-  if (loading) return <LoadingState />;
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
