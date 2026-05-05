@@ -9,7 +9,7 @@ import dynamic from "next/dynamic";
 // DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
 // out of the production bundle.
 const DevAutoFill = process.env.NODE_ENV === "development"
-  ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
+  ? dynamic(() => import("@trip/ui").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog, PreviewDrawer } from "@/components/shared";

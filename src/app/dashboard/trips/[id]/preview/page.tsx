@@ -10,7 +10,7 @@ import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog, Banner, MobilePreview } from "@/components/shared";
 import { useToast } from "@/components/shared";
 import { checkPublishReadiness, type PublishIssue } from "@/lib/validation/trip";
-import { TripDayMapLazy, type MapActivity } from "@/components/shared/trip-day-map-lazy";
+import { TripDayMapLazy, type MapActivity } from "@/components/shared";
 import { resolveCoords } from "@/lib/parse-maps-link";
 import { airportTimezone, utcOffsetLabel } from "@/lib/airport-timezone";
 import { SubmitReviewModal } from "./_components/submit-review-modal";

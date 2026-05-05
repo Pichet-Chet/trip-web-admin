@@ -29,23 +29,29 @@ export {
   TableRowSkeleton,
   StatCardSkeleton,
   PageSkeleton,
+  // Migrated admin-specific components
+  AgreementModal,
+  AuthHero,
+  ChangeSummaryModal,
+  type ChangeEntry,
+  ChannelBadge,
+  type FollowChannel,
+  DatePicker,
+  DevAutoFill,
+  MobilePreview,
+  PreviewDrawer,
+  QRCodeDisplay,
+  SegmentedControl,
+  SelectPicker,
+  type SelectOption,
+  TimePicker,
+  TripDayMap,
+  type MapActivity,
+  TripDayMapLazy,
 } from "@trip/ui";
 
-// Admin-specific: ChannelBadge uses FollowChannel from @/types
-export { ChannelBadge } from "./channel-badge";
-
-// Admin-specific components
-export { ChangeSummaryModal } from "./change-summary-modal";
-export { QRCodeDisplay } from "./qr-code-display";
-export { ImageUpload } from "./image-upload";
-export { SegmentedControl } from "./segmented-control";
-export { DatePicker } from "./date-picker";
-export { TimePicker } from "./time-picker";
-export { SelectPicker } from "./select-picker";
-export type { SelectOption } from "./select-picker";
-export { MediaLibraryModal } from "./media-library-modal";
-export { AuthHero } from "./auth-hero";
-export { MobilePreview } from "./mobile-preview";
-export { PreviewDrawer } from "./preview-drawer";
+// Local-only admin components (depend on @/lib/*)
 export { AuthGuard } from "./auth-guard";
-export { DevAutoFill } from "./dev-auto-fill";
+export { MediaLibraryModal } from "./media-library-modal";
+export { RemoteLegalContent } from "./remote-legal-content";
+export { ImageUpload } from "./image-upload";

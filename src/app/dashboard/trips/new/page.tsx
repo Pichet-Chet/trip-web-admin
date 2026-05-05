@@ -25,7 +25,7 @@ import dynamic from "next/dynamic";
 // out of the production bundle (process.env.NODE_ENV is statically
 // replaced at build time, so this branch becomes dead code in prod).
 const DevAutoFill = process.env.NODE_ENV === "development"
-  ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
+  ? dynamic(() => import("@trip/ui").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { useToast } from "@/components/shared";
 import type { Accommodation, TripPlan } from "@/types";

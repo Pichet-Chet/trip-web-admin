@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
 import { useToast } from "@/components/shared";
-import { AgreementModal } from "@/components/shared/agreement-modal";
+import { AgreementModal } from "@/components/shared";
 import { register } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { ApiError } from "@/lib/api";
