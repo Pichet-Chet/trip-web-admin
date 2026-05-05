@@ -7,11 +7,15 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
-import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog, Banner } from "@/components/shared";
+import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog, Banner, MobilePreview } from "@/components/shared";
 import { useToast } from "@/components/shared/toast";
 import { checkPublishReadiness, type PublishIssue } from "@/lib/validation/trip";
-import { MobilePreview } from "./_components/mobile-preview";
+import { TripDayMapLazy, type MapActivity } from "@/components/shared/trip-day-map-lazy";
+import { resolveCoords } from "@/lib/parse-maps-link";
+import { airportTimezone, utcOffsetLabel } from "@/lib/airport-timezone";
 import { SubmitReviewModal } from "./_components/submit-review-modal";
+import { CurrencyWidget } from "./_components/currency-widget";
+import { EmergencyFab } from "./_components/emergency-fab";
 
 /* ─── API types ─── */
 interface TripDetail {
@@ -39,6 +43,16 @@ interface TripDetail {
   airlineInfo: AirlineDetail[];
   accommodations: AccommodationDetail[];
   emergencyContacts: EmergencyDetail[];
+  checklistItems?: ChecklistItem[];
+  groupMembers?: { displayName: string; groupRole: string }[];
+  pinnedAnnouncement?: {
+    id: string;
+    message: string;
+    createdAt: string;
+  } | null;
+  lineGroupUrl?: string | null;
+  whatsappGroupUrl?: string | null;
+  telegramGroupUrl?: string | null;
   publishedQuotaSource: string | null;
 }
 
@@ -65,6 +79,7 @@ interface ActivityDetail {
   lng: number | null;
   mapsLink: string | null;
   imageUrl: string | null;
+  imageUrls?: string[];
   emoji: string | null;
   sortOrder: number;
 }
@@ -76,6 +91,11 @@ interface AirlineDetail {
   flightNumber: string | null;
   departureAirport: string | null;
   arrivalAirport: string | null;
+  departureDate: string | null;
+  departureTime: string | null;
+  arrivalDate: string | null;
+  arrivalTime: string | null;
+  bookingRef: string | null;
 }
 
 interface AccommodationDetail {
@@ -88,6 +108,13 @@ interface EmergencyDetail {
   name: string;
   phone: string;
   icon: string | null;
+}
+
+interface ChecklistItem {
+  id: string;
+  label: string;
+  isRequired: boolean;
+  sortOrder: number;
 }
 
 interface SubmitReviewResponse {
@@ -132,6 +159,8 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const [copiedLine, setCopiedLine] = useState(false);
   const [previewDay, setPreviewDay] = useState(0);
   const [username, setUsername] = useState("");
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
 
   // Load username from auth
   useEffect(() => {
@@ -229,6 +258,52 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     setTimeout(() => setCopiedLine(false), 2000);
   }, [trip?.title, tripUrl, toast]);
 
+  /* ─── Download ICS ─── */
+  const downloadIcs = useCallback(async () => {
+    try {
+      const { getValidToken } = await import("@/lib/auth");
+      const token = await getValidToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+      const res = await fetch(`${apiUrl}/admin/trips/${id}/calendar.ics`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Failed to generate ICS");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${trip?.slug ?? id}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("ดาวน์โหลดไฟล์ปฏิทินแล้ว");
+    } catch {
+      toast("ไม่สามารถสร้างไฟล์ปฏิทินได้", "error");
+    }
+  }, [id, trip?.slug, toast]);
+
+  /* ─── Download PDF ─── */
+  const downloadPdf = useCallback(async () => {
+    try {
+      const { getValidToken } = await import("@/lib/auth");
+      const token = await getValidToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+      const res = await fetch(`${apiUrl}/admin/trips/${id}/export.pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Failed to generate PDF");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${trip?.slug ?? id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("ดาวน์โหลด PDF แล้ว");
+    } catch {
+      toast("ไม่สามารถสร้าง PDF ได้", "error");
+    }
+  }, [id, trip?.slug, toast]);
+
   /* ─── Download QR ─── */
   const downloadQR = useCallback(async () => {
     try {
@@ -305,6 +380,13 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
 
   const days = [...trip.days].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, totalDays);
 
+  const mapActivities: MapActivity[] = (days[previewDay]?.activities ?? [])
+    .flatMap((a) => {
+      const coords = resolveCoords(a.lat, a.lng, a.mapsLink);
+      if (!coords) return [];
+      return [{ name: a.name, lat: coords.lat, lng: coords.lng, time: a.time ?? undefined }];
+    });
+
   return (
     <div className="flex flex-col min-h-screen">
       <TripStepperHeader currentStep={3} tripId={id} subtitle="ดูตัวอย่าง" />
@@ -363,6 +445,19 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                 })}
               </ul>
             </Banner>
+          )}
+
+          {/* Pinned announcement banner — operator sees what followers see */}
+          {trip.pinnedAnnouncement && (
+            <div className="mb-6 flex items-start gap-3 px-5 py-4 bg-orange-50 border border-orange-200 rounded-2xl">
+              <span className="material-symbols-outlined text-orange-500 shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>campaign</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-orange-700 uppercase tracking-widest mb-1">ประกาศล่าสุด (ปักหมุด)</p>
+                <p className="text-sm text-orange-900 whitespace-pre-wrap">{trip.pinnedAnnouncement.message}</p>
+                <p className="text-[11px] text-orange-600 mt-1">{new Date(trip.pinnedAnnouncement.createdAt).toLocaleString("th-TH", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+              </div>
+              <Link href={`/dashboard/trips/${id}/manage?tab=announcements`} className="text-xs text-orange-700 underline hover:text-orange-900 shrink-0 mt-0.5">จัดการ</Link>
+            </div>
           )}
 
           {/* ═══ Main Grid ═══ */}
@@ -520,13 +615,29 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                     <div className="flex-1 space-y-4 text-center sm:text-left">
                       <h3 className="font-bold text-(--on-surface)">QR Code</h3>
                       <p className="text-sm text-(--on-surface-variant)">สร้าง QR Code สำหรับพิมพ์หรือแปะบนเอกสาร</p>
-                      <button
-                        onClick={downloadQR}
-                        className="px-5 py-2.5 bg-(--on-surface) text-(--surface) rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center gap-2 mx-auto sm:mx-0"
-                      >
-                        <span className="material-symbols-outlined text-lg">download</span>
-                        ดาวน์โหลด PNG
-                      </button>
+                      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                        <button
+                          onClick={downloadQR}
+                          className="px-5 py-2.5 bg-(--on-surface) text-(--surface) rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">download</span>
+                          ดาวน์โหลด PNG
+                        </button>
+                        <button
+                          onClick={downloadIcs}
+                          className="px-5 py-2.5 bg-(--secondary-container) text-(--on-secondary-container) rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">calendar_add_on</span>
+                          เพิ่มในปฏิทิน (.ics)
+                        </button>
+                        <button
+                          onClick={downloadPdf}
+                          className="px-5 py-2.5 bg-(--tertiary-container) text-(--on-tertiary-container) rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
+                          ดาวน์โหลด PDF
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -579,6 +690,153 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                 </Link>
               )}
 
+              {/* Group members — only when any member has a role */}
+              {trip.groupMembers && trip.groupMembers.length > 0 && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">groups</span>
+                    สมาชิกในกลุ่ม
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {trip.groupMembers.map((m, i) => {
+                      const roleLabel: Record<string, string> = {
+                        head_of_group: "หัวหน้ากลุ่ม",
+                        expense_keeper: "ผู้ดูแลค่าใช้จ่าย",
+                        driver: "คนขับ",
+                        member: "สมาชิก",
+                      };
+                      const label = roleLabel[m.groupRole] ?? m.groupRole;
+                      const isHead = m.groupRole === "head_of_group";
+                      return (
+                        <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${isHead ? "border-amber-300 bg-amber-50" : "border-(--outline-variant)/30 bg-(--surface-container-low)"}`}>
+                          <span className={`font-semibold ${isHead ? "text-amber-800" : "text-(--on-surface)"}`}>{m.displayName}</span>
+                          <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${isHead ? "bg-amber-200 text-amber-700" : "bg-(--surface-variant) text-(--on-surface-variant)"}`}>{label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Group chat buttons */}
+              {(trip.lineGroupUrl || trip.whatsappGroupUrl || trip.telegramGroupUrl) && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">chat</span>
+                    กลุ่มสนทนา
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {trip.lineGroupUrl && (
+                      <a
+                        href={trip.lineGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-500 text-white text-sm font-semibold shadow-sm hover:bg-green-600 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">chat</span>
+                        เข้ากลุ่ม LINE
+                      </a>
+                    )}
+                    {trip.whatsappGroupUrl && (
+                      <a
+                        href={trip.whatsappGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">phone_in_talk</span>
+                        เข้ากลุ่ม WhatsApp
+                      </a>
+                    )}
+                    {trip.telegramGroupUrl && (
+                      <a
+                        href={trip.telegramGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-500 text-white text-sm font-semibold shadow-sm hover:bg-blue-600 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">send</span>
+                        เข้ากลุ่ม Telegram
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Transport segments — only when data present */}
+              {trip.airlineInfo.length > 0 && trip.airlineInfo.some((a) => a.departureAirport || a.airline) && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">flight</span>
+                    ข้อมูลการเดินทาง
+                  </h3>
+                  <div className="space-y-4">
+                    {trip.airlineInfo.map((seg, i) => {
+                      const depTz = seg.departureAirport ? airportTimezone(seg.departureAirport) : undefined;
+                      const arrTz = seg.arrivalAirport ? airportTimezone(seg.arrivalAirport) : undefined;
+                      const depOffset = depTz ? utcOffsetLabel(depTz) : null;
+                      const arrOffset = arrTz ? utcOffsetLabel(arrTz) : null;
+                      const TRANSPORT_ICONS: Record<string, string> = {
+                        flight: "flight", van: "airport_shuttle", bus: "directions_bus",
+                        train: "train", boat: "directions_boat", car: "directions_car",
+                      };
+                      const icon = TRANSPORT_ICONS[seg.transportType] ?? "directions_car";
+                      return (
+                        <div key={i} className="bg-(--surface-container-low) rounded-2xl p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-base text-(--primary)">{icon}</span>
+                            <span className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-wide">
+                              {seg.type === "departure" ? "ขาไป" : "ขากลับ"}
+                            </span>
+                            {seg.airline && <span className="text-xs font-semibold text-(--on-surface)">{seg.airline}</span>}
+                            {seg.flightNumber && (
+                              <span className="ml-auto text-xs font-bold text-(--on-surface-variant) font-mono">{seg.flightNumber}</span>
+                            )}
+                          </div>
+
+                          {/* Route row */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-lg font-extrabold text-(--on-surface) tracking-widest font-mono">
+                                {seg.departureAirport ?? "—"}
+                              </p>
+                              {seg.departureTime && (
+                                <p className="text-xs text-(--on-surface-variant)">
+                                  {seg.departureTime}
+                                  {depOffset && <span className="ml-1 text-[11px] font-bold text-(--primary)">({depOffset})</span>}
+                                </p>
+                              )}
+                              {seg.departureDate && <p className="text-[11px] text-(--on-surface-variant)">{seg.departureDate}</p>}
+                            </div>
+                            <span className="material-symbols-outlined text-(--outline) shrink-0">arrow_forward</span>
+                            <div className="flex-1 min-w-0 text-right">
+                              <p className="text-lg font-extrabold text-(--on-surface) tracking-widest font-mono">
+                                {seg.arrivalAirport ?? "—"}
+                              </p>
+                              {seg.arrivalTime && (
+                                <p className="text-xs text-(--on-surface-variant)">
+                                  {seg.arrivalTime}
+                                  {arrOffset && <span className="ml-1 text-[11px] font-bold text-(--primary)">({arrOffset})</span>}
+                                </p>
+                              )}
+                              {seg.arrivalDate && <p className="text-[11px] text-(--on-surface-variant)">{seg.arrivalDate}</p>}
+                            </div>
+                          </div>
+
+                          {seg.bookingRef && (
+                            <div className="flex items-center gap-2 pt-2 border-t border-(--outline-variant)/20">
+                              <span className="material-symbols-outlined text-xs text-(--on-surface-variant)">bookmark</span>
+                              <span className="text-xs text-(--on-surface-variant)">รหัสจอง:</span>
+                              <span className="text-xs font-bold font-mono text-(--on-surface)">{seg.bookingRef}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Trip info summary — always visible */}
               <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
                 <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
@@ -603,6 +861,22 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                     <p className="font-semibold text-(--on-surface)">{trip.accommodations.length} แห่ง</p>
                   </div>
                 </div>
+                {trip.checklistItems && trip.checklistItems.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-(--outline-variant)/20">
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-3">สิ่งที่ต้องเตรียม</p>
+                    <ul className="space-y-2">
+                      {trip.checklistItems.map((item) => (
+                        <li key={item.id} className="flex items-center gap-2.5 text-sm">
+                          <span className={`w-4 h-4 rounded border-2 shrink-0 ${item.isRequired ? "border-(--error)" : "border-(--outline-variant)"}`} />
+                          <span className="text-(--on-surface) flex-1">{item.label}</span>
+                          {item.isRequired && (
+                            <span className="text-[10px] font-bold text-(--error) uppercase tracking-wide">จำเป็น</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {trip.importantNotes && (
                   <div className="mt-4 pt-4 border-t border-(--outline-variant)/20">
                     <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-2">หมายเหตุ</p>
@@ -610,10 +884,127 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
               </div>
+
+              {/* Map card — only when the active day has locatable activities */}
+              {mapActivities.length > 0 && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">map</span>
+                    แผนที่วันที่ {(days[previewDay]?.dayNumber ?? previewDay + 1)}
+                    <span className="ml-auto text-xs font-normal text-(--on-surface-variant)">{mapActivities.length} จุด</span>
+                  </h3>
+                  <TripDayMapLazy activities={mapActivities} />
+                </div>
+              )}
+
+              {/* Photo gallery — only when the active day has activities with images */}
+              {(() => {
+                const activitiesWithImages = (days[previewDay]?.activities ?? [])
+                  .map((a) => ({ name: a.name, emoji: a.emoji, urls: a.imageUrls ?? [] }))
+                  .filter((a) => a.urls.length > 0);
+                if (activitiesWithImages.length === 0) return null;
+                const allUrls = activitiesWithImages.flatMap((a) => a.urls);
+                return (
+                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                    <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-(--primary)">photo_library</span>
+                      รูปภาพวันที่ {days[previewDay]?.dayNumber ?? previewDay + 1}
+                      <span className="ml-auto text-xs font-normal text-(--on-surface-variant)">{allUrls.length} รูป</span>
+                    </h3>
+                    <div className="space-y-4">
+                      {activitiesWithImages.map((act, ai) => (
+                        <div key={ai}>
+                          <p className="text-xs font-semibold text-(--on-surface-variant) mb-2 flex items-center gap-1.5">
+                            <span>{act.emoji ?? "📍"}</span>
+                            {act.name}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {act.urls.map((url, ui) => {
+                              const globalIdx = allUrls.indexOf(url, activitiesWithImages.slice(0, ai).reduce((s, a) => s + a.urls.length, 0));
+                              return (
+                                <button
+                                  key={ui}
+                                  type="button"
+                                  onClick={() => { setLightboxImages(allUrls); setLightboxIdx(globalIdx >= 0 ? globalIdx : 0); }}
+                                  className="w-20 h-20 rounded-xl overflow-hidden border border-(--outline-variant)/30 hover:ring-2 hover:ring-(--primary) transition-all shrink-0"
+                                  title="คลิกเพื่อดูขยาย"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt={`${act.name} รูปที่ ${ui + 1}`} className="w-full h-full object-cover" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
       </div>
+
+      {/* ═══ Currency Widget (international trips only) ═══ */}
+      {trip?.scope === "international" && (
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pb-8">
+          <div className="max-w-sm">
+            <CurrencyWidget />
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Lightbox ═══ */}
+      {lightboxImages.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxImages([])}
+        >
+          {/* Stop propagation so clicking the image doesn't close */}
+          <div className="relative max-w-3xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxImages[lightboxIdx]}
+              alt={`รูปที่ ${lightboxIdx + 1}`}
+              className="w-full max-h-[80vh] object-contain rounded-2xl"
+            />
+            {/* Nav: prev */}
+            {lightboxIdx > 0 && (
+              <button
+                onClick={() => setLightboxIdx((i) => i - 1)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+            )}
+            {/* Nav: next */}
+            {lightboxIdx < lightboxImages.length - 1 && (
+              <button
+                onClick={() => setLightboxIdx((i) => i + 1)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            )}
+            {/* Counter + close */}
+            <div className="absolute top-2 right-2 flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-full bg-black/50 text-white text-xs font-bold">
+                {lightboxIdx + 1} / {lightboxImages.length}
+              </span>
+              <button
+                onClick={() => setLightboxImages([])}
+                className="w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Emergency FAB (mobile only) ═══ */}
+      {trip && <EmergencyFab contacts={trip.emergencyContacts} />}
 
       <SubmitReviewModal
         open={showSubmitModal}

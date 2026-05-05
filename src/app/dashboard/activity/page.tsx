@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { ErrorState, LoadingState, FilterTabs, Pagination } from "@/components/shared";
+import { getValidToken } from "@/lib/auth";
+import { ErrorState, LoadingState, FilterTabs, Pagination, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface ActivityItem {
@@ -43,6 +44,7 @@ const FILTERS = [
 ];
 
 export default function ActivityPage(): React.ReactNode {
+  const { toast } = useToast();
   const [data, setData] = useState<ActivityResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,26 +80,28 @@ export default function ActivityPage(): React.ReactNode {
     }
   }, [buildParams]);
 
-  function exportCsv() {
+  async function exportCsv() {
     const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api"}/admin/me/activity/export.csv?${buildParams(false)}`;
-    // Open in new tab — browser handles auth via cookie+token; for header-based
-    // bearer auth this doesn't work cleanly, so we fetch + download manually.
-    fetch(url, {
-      credentials: "include",
-      headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token") ?? ""}` },
-    })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const dlUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = dlUrl;
-        a.download = `activity-${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(dlUrl);
-      })
-      .catch(() => alert("ดาวน์โหลดไม่สำเร็จ"));
+    try {
+      const token = await getValidToken();
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const dlUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = dlUrl;
+      a.download = `activity-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(dlUrl);
+      toast("ดาวน์โหลดเรียบร้อย", "success");
+    } catch {
+      toast("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่", "error");
+    }
   }
 
   useEffect(() => { load(); }, [load]);

@@ -1,17 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, SelectPicker, ConfirmDialog } from "@/components/shared";
+import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, SelectPicker, ConfirmDialog, PreviewDrawer } from "@/components/shared";
 import { useLanguages } from "@/lib/hooks/use-languages";
 import { TransportSection, type TransportSegment, type TransportType, makeSegment } from "./_components/transport-section";
 import { type TripScopeLocal } from "./_components/scope-selector";
 import { HotelCard } from "./_components/hotel-card";
 import { EmergencyContactCard, type EmergencyContactRow } from "./_components/emergency-contact-card";
+import { ChecklistItemCard, type ChecklistRow } from "./_components/checklist-item-card";
+import { CollapsibleSection } from "./_components/collapsible-section";
+import { TemplatePickerModal } from "./_components/template-picker-modal";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
 import { tripBasicsSchema, hotelSchema, emergencyContactSchema } from "@/lib/validation/trip";
@@ -46,9 +49,13 @@ interface TripFormValues {
   language: string;
   coverUrl: string | null;
   notes: string;
+  lineGroupUrl: string;
+  whatsappGroupUrl: string;
+  telegramGroupUrl: string;
   segments: TransportSegment[];
   hotels: Accommodation[];
   emergencyContacts: EmergencyContactRow[];
+  checklist: ChecklistRow[];
 }
 
 const FORM_DEFAULTS: TripFormValues = {
@@ -64,12 +71,16 @@ const FORM_DEFAULTS: TripFormValues = {
   language: "th",
   coverUrl: null,
   notes: "",
+  lineGroupUrl: "",
+  whatsappGroupUrl: "",
+  telegramGroupUrl: "",
   // Domestic defaults: 2 van segments. Emergency contacts always start
   // empty — guessing what numbers the operator wants is presumptive
   // regardless of scope.
   segments: [makeSegment("outbound", "van"), makeSegment("return", "van")],
   hotels: [{ ...emptyHotel }],
   emergencyContacts: [],
+  checklist: [],
 };
 
 export default function NewTripPage(): React.ReactNode {
@@ -80,14 +91,37 @@ export default function NewTripPage(): React.ReactNode {
 
   // ─── Draft state (URL/UI, not part of the form) ───
   const [draftId, setDraftId] = useState<string | null>(searchParams.get("id"));
-  const [savingDraft, setSavingDraft] = useState(false);
   const [tripStatus, setTripStatus] = useState("");
+
+  // ─── Auto-save state ───
+  type SaveStatus = "idle" | "saving" | "saved" | "error";
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const inFlightRef = useRef(0);
+  const savedFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const beginAutoSave = useCallback((): void => {
+    inFlightRef.current += 1;
+    setSaveStatus("saving");
+    if (savedFadeRef.current) { clearTimeout(savedFadeRef.current); savedFadeRef.current = null; }
+  }, []);
+
+  const endAutoSave = useCallback((ok: boolean): void => {
+    inFlightRef.current = Math.max(0, inFlightRef.current - 1);
+    if (inFlightRef.current > 0) return;
+    if (!ok) { setSaveStatus("error"); return; }
+    setSaveStatus("saved");
+    savedFadeRef.current = setTimeout(() => { setSaveStatus("idle"); savedFadeRef.current = null; }, 2000);
+  }, []);
   const [dateChangeCount, setDateChangeCount] = useState(0);
   const [maxDateChanges, setMaxDateChanges] = useState(99);
   const [loading, setLoading] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(!!draftId);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   // ─── Form (react-hook-form) ───
   // One useForm owns every field the operator can edit. useFieldArray
@@ -100,6 +134,7 @@ export default function NewTripPage(): React.ReactNode {
   const segmentsField = useFieldArray({ control, name: "segments" });
   const hotelsField = useFieldArray({ control, name: "hotels" });
   const contactsField = useFieldArray({ control, name: "emergencyContacts" });
+  const checklistField = useFieldArray({ control, name: "checklist" });
 
   // Watched values used by conditional rendering / effects below. RHF
   // re-renders the page when any of these change because we read them
@@ -113,11 +148,28 @@ export default function NewTripPage(): React.ReactNode {
   const language = watch("language");
   const coverUrl = watch("coverUrl");
   const notes = watch("notes");
+  const lineGroupUrl = watch("lineGroupUrl");
+  const whatsappGroupUrl = watch("whatsappGroupUrl");
+  const telegramGroupUrl = watch("telegramGroupUrl");
   const segments = watch("segments");
   const hotels = watch("hotels");
   const emergencyContacts = watch("emergencyContacts");
+  const checklist = watch("checklist");
 
-  useUnsavedChanges(formState.isDirty);
+  useUnsavedChanges(formState.isDirty || saveStatus === "saving");
+
+  // ─── Debounced auto-save (1 500 ms after last edit) ───
+  // Runs after every render. Since every watched field causes a re-render,
+  // this resets the 1 500 ms window on each keystroke — classic debounce.
+  // Only fires when the form is dirty AND a trip already exists.
+  useEffect(() => {
+    if (!formState.isDirty || !draftId) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSave();
+      autoSaveTimerRef.current = null;
+    }, 1500);
+  }); // intentionally no deps — fires on every render triggered by watched field changes
 
   // Pending scope swap — confirm before resetting segments/contacts.
   const [pendingScope, setPendingScope] = useState<"domestic" | "international" | null>(null);
@@ -191,6 +243,7 @@ export default function NewTripPage(): React.ReactNode {
       startDate?: string; endDate?: string;
       travelersCount?: number; language?: string;
       coverImageUrl?: string | null; importantNotes?: string | null;
+      lineGroupUrl?: string | null; whatsappGroupUrl?: string | null; telegramGroupUrl?: string | null;
     };
     type AirlineDto = {
       id: string; type: string; transportType: string;
@@ -210,6 +263,9 @@ export default function NewTripPage(): React.ReactNode {
     type EmergencyContactDto = {
       id: string; name?: string; phone?: string;
     };
+    type ChecklistItemDto = {
+      id: string; label: string; isRequired: boolean;
+    };
 
     (async () => {
       try {
@@ -224,11 +280,14 @@ export default function NewTripPage(): React.ReactNode {
         } catch { /* use default */ }
 
         // Children loaded in parallel — they're independent.
-        const [airlines, accoms, contacts] = await Promise.all([
+        const [airlines, accoms, contacts, checklistItems, supportedLangsResp] = await Promise.all([
           api.get<AirlineDto[]>(`/admin/trips/${draftId}/airlines`),
           api.get<AccommodationDto[]>(`/admin/trips/${draftId}/accommodations`),
           api.get<EmergencyContactDto[]>(`/admin/trips/${draftId}/emergency-contacts`),
+          api.get<ChecklistItemDto[]>(`/admin/trips/${draftId}/checklist`),
+          api.get<{ languageCodes: string[] }>(`/admin/trips/${draftId}/translations/supported`).catch(() => ({ languageCodes: [] })),
         ]);
+        setSupportedLangs(supportedLangsResp.languageCodes ?? []);
 
         // One reset() seeds the entire form and clears isDirty in a single
         // commit, avoiding the flicker from per-field setValue calls.
@@ -242,6 +301,9 @@ export default function NewTripPage(): React.ReactNode {
           language: trip.language?.toLowerCase() || "th",
           coverUrl: trip.coverImageUrl || null,
           notes: trip.importantNotes || "",
+          lineGroupUrl: trip.lineGroupUrl || "",
+          whatsappGroupUrl: trip.whatsappGroupUrl || "",
+          telegramGroupUrl: trip.telegramGroupUrl || "",
           segments: airlines.length > 0
             ? airlines.map((a) => ({
                 ...makeSegment(a.type === "return" ? "return" : "outbound", (a.transportType || "flight") as TransportType),
@@ -269,6 +331,11 @@ export default function NewTripPage(): React.ReactNode {
                 name: c.name || "", phone: c.phone || "", note: "",
               }))
             : [],
+          checklist: checklistItems.map((c) => ({
+            serverId: c.id,
+            label: c.label,
+            isRequired: c.isRequired,
+          })),
         });
       } catch {
         setApiError("ไม่สามารถโหลดข้อมูล draft ได้");
@@ -488,16 +555,15 @@ export default function NewTripPage(): React.ReactNode {
 
   // ─── Submit ───
   /**
-   * Save trip — ใช้ทั้ง save draft + submit
-   * ถ้ามี draftId → PUT update, ถ้าไม่มี → POST create
+   * Core save — ใช้ทั้ง submit (redirectToEdit=true) + manual draft + auto-save.
+   * silent=true → ใช้ beginAutoSave/endAutoSave แทน loading spinner, ไม่ toast สำเร็จ
    */
-  async function saveTrip(redirectToEdit: boolean): Promise<void> {
+  async function saveTrip(redirectToEdit: boolean, silent = false): Promise<void> {
     setApiError(null);
 
     if (redirectToEdit && !validate()) return;
 
-    const isSaving = !redirectToEdit;
-    if (isSaving) setSavingDraft(true); else setLoading(true);
+    if (silent) { beginAutoSave(); } else if (redirectToEdit) { setLoading(true); }
 
     try {
       let tripId = draftId;
@@ -514,6 +580,9 @@ export default function NewTripPage(): React.ReactNode {
         language: v.language,
         coverImageUrl: v.coverUrl,
         importantNotes: v.notes.trim() || undefined,
+        lineGroupUrl: v.lineGroupUrl.trim() || undefined,
+        whatsappGroupUrl: v.whatsappGroupUrl.trim() || undefined,
+        telegramGroupUrl: v.telegramGroupUrl.trim() || undefined,
       };
 
       if (tripId) {
@@ -527,14 +596,20 @@ export default function NewTripPage(): React.ReactNode {
         router.replace(`/dashboard/trips/new?id=${tripId}`, { scroll: false });
       }
 
+      // Save supported languages (fire-and-forget — non-blocking for UX)
+      if (tripId && supportedLangs.length >= 0) {
+        api.put(`/admin/trips/${tripId}/translations/supported`, { languageCodes: supportedLangs }).catch(() => { /* silent */ });
+      }
+
       // Step 2-4: Bulk-diff each child collection. The server diffs the
       // incoming list against DB (UPDATE matched ids, INSERT null ids,
       // DELETE missing ids) inside one transaction per collection. We
       // run all 3 in parallel — they touch independent tables.
       const filteredHotels = v.hotels.filter((h) => h.name.trim());
       const filteredContacts = v.emergencyContacts.filter((c) => c.name.trim());
+      const filteredChecklist = v.checklist.filter((c) => c.label.trim());
 
-      const [airlinesRes, hotelsRes, contactsRes] = await Promise.all([
+      const [airlinesRes, hotelsRes, contactsRes, checklistRes] = await Promise.all([
         api.put<Array<{ id: string }>>(`/admin/trips/${tripId}/airlines/bulk`, {
           items: v.segments.map((seg) => ({
             id: seg.serverId ?? null,
@@ -569,6 +644,13 @@ export default function NewTripPage(): React.ReactNode {
             icon: "emergency",
           })),
         }),
+        api.put<Array<{ id: string }>>(`/admin/trips/${tripId}/checklist/bulk`, {
+          items: filteredChecklist.map((c) => ({
+            id: c.serverId ?? null,
+            label: c.label.trim(),
+            isRequired: c.isRequired,
+          })),
+        }),
       ]);
 
       // Adopt server-assigned ids back into the form so subsequent saves
@@ -588,34 +670,44 @@ export default function NewTripPage(): React.ReactNode {
         const id = contactsRes[savedContactIdx++]?.id;
         return id ? { ...c, serverId: id } : c;
       });
+      let savedChecklistIdx = 0;
+      const nextChecklist = v.checklist.map((c) => {
+        if (!c.label.trim()) return c;
+        const id = checklistRes[savedChecklistIdx++]?.id;
+        return id ? { ...c, serverId: id } : c;
+      });
       reset({
         ...v,
         segments: nextSegments,
         hotels: nextHotels,
         emergencyContacts: nextContacts,
+        checklist: nextChecklist,
       }, { keepDirty: false });
 
       if (redirectToEdit) {
         router.push(ROUTES.tripEdit(tripId!));
-      } else {
-        toast("บันทึกร่างแล้ว", "success");
+      } else if (silent) {
+        endAutoSave(true);
       }
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง";
-      setApiError(msg);
-      toast(msg, "error");
+      if (silent) {
+        endAutoSave(false);
+      } else {
+        setApiError(msg);
+        toast(msg, "error");
+      }
     } finally {
-      setLoading(false);
-      setSavingDraft(false);
+      if (!silent) setLoading(false);
     }
+  }
+
+  async function autoSave(): Promise<void> {
+    await saveTrip(false, true);
   }
 
   async function handleSubmit(): Promise<void> {
     await saveTrip(true);
-  }
-
-  async function handleSaveDraft(): Promise<void> {
-    await saveTrip(false);
   }
 
   if (loadingDraft) return (
@@ -632,13 +724,42 @@ export default function NewTripPage(): React.ReactNode {
         backHref={ROUTES.myTrips}
         backLabel="ย้อนกลับ"
         backIcon="arrow_back"
-        onSaveDraft={handleSaveDraft}
-        savingDraft={savingDraft}
-        saveDraftLabel={draftId ? "อัพเดทร่าง" : "บันทึกร่าง"}
+        middleSlot={(
+          <div className="flex items-center gap-3">
+            {draftId && (
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                title="ดูตัวอย่างบนมือถือ"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-(--on-surface-variant) border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:text-(--primary) bg-white transition-all"
+              >
+                <span className="material-symbols-outlined text-base">phone_iphone</span>
+                <span className="hidden sm:inline">Preview</span>
+              </button>
+            )}
+            {saveStatus !== "idle" && (
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                  saveStatus === "saving"
+                    ? "bg-(--surface-variant) text-(--on-surface-variant)"
+                    : saveStatus === "saved"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-rose-50 text-rose-700"
+                }`}
+                role="status"
+                aria-live="polite"
+              >
+                {saveStatus === "saving" && <><span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />กำลังบันทึก…</>}
+                {saveStatus === "saved" && <><span className="material-symbols-outlined text-sm">check_circle</span>บันทึกอัตโนมัติแล้ว</>}
+                {saveStatus === "error" && <><span className="material-symbols-outlined text-sm">error</span>บันทึกไม่สำเร็จ</>}
+              </span>
+            )}
+          </div>
+        )}
         nextLabel={loading ? "กำลังบันทึก..." : "ถัดไป: เพิ่มกิจกรรม"}
         onNext={handleSubmit}
         loading={loading}
-        disabled={loading || savingDraft}
+        disabled={loading || saveStatus === "saving"}
       />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
@@ -646,6 +767,20 @@ export default function NewTripPage(): React.ReactNode {
           <Banner variant="danger" title="เกิดข้อผิดพลาด" onDismiss={() => setApiError(null)} className="mb-6">
             {apiError}
           </Banner>
+        )}
+
+        {/* Template picker shortcut — only shown when no draft exists yet */}
+        {!draftId && (
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              onClick={() => setTemplatePickerOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-(--outline-variant)/40 hover:border-(--primary)/50 text-sm font-bold text-(--on-surface-variant) hover:text-(--primary) bg-white transition-all shadow-sm"
+            >
+              <span className="material-symbols-outlined text-base">layers</span>
+              สร้างจาก Template
+            </button>
+          </div>
         )}
 
         <form noValidate className="space-y-12 md:space-y-20" onSubmit={(e) => e.preventDefault()}>
@@ -704,7 +839,7 @@ export default function NewTripPage(): React.ReactNode {
               <div className="md:col-span-2 lg:col-span-8">
                 <FormInput label="ชื่อทริป" placeholder="เช่น ทริปเชียงใหม่ 3 วัน 2 คืน" required value={title} onChange={(e) => updateField("title", e.target.value)} error={fieldErrors.title} />
               </div>
-              <div className="md:col-span-1 lg:col-span-4">
+              <div className="md:col-span-1 lg:col-span-4 space-y-3">
                 <SelectPicker
                   label="ภาษาหลัก"
                   value={language}
@@ -712,6 +847,44 @@ export default function NewTripPage(): React.ReactNode {
                   options={languageOptions}
                   searchable={languageOptions.length > 6}
                 />
+                {draftId && availableLanguages.length > 1 && (
+                  <div>
+                    <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">รองรับเพิ่มเติม</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableLanguages
+                        .filter((l) => l.code !== language)
+                        .map((l) => {
+                          const checked = supportedLangs.includes(l.code);
+                          return (
+                            <button
+                              key={l.code}
+                              type="button"
+                              onClick={() => setSupportedLangs((prev) =>
+                                checked ? prev.filter((c) => c !== l.code) : [...prev, l.code]
+                              )}
+                              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                                checked
+                                  ? "bg-(--primary) text-(--on-primary) border-(--primary)"
+                                  : "bg-white text-(--on-surface-variant) border-(--outline-variant)/50 hover:border-(--primary)/50"
+                              }`}
+                            >
+                              {l.flag && <span className="mr-1">{l.flag}</span>}
+                              {l.code.toUpperCase()}
+                            </button>
+                          );
+                        })}
+                    </div>
+                    {supportedLangs.length > 0 && draftId && (
+                      <a
+                        href={`/dashboard/trips/${draftId}/translations`}
+                        className="inline-flex items-center gap-1 text-xs text-(--primary) mt-1.5 hover:underline"
+                      >
+                        <span className="material-symbols-outlined text-sm">translate</span>
+                        แก้ไขคำแปล
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="md:col-span-1 lg:col-span-6">
                 <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => updateField("destination", e.target.value)} error={fieldErrors.destination} />
@@ -761,11 +934,13 @@ export default function NewTripPage(): React.ReactNode {
           </section>
 
           {/* ═══ Section 3: Logistics ═══ */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Transportation */}
-            <div className="space-y-6">
-              <SectionHeader title="การเดินทาง" icon="route" variant="icon" />
-
+            <CollapsibleSection
+              title="การเดินทาง"
+              icon="route"
+              summary={segments.length > 0 ? `${segments.length} ขา` : undefined}
+            >
               {/* ── ขาไป (Outbound) ── */}
               <TransportSection
                 label="ขาไป"
@@ -785,11 +960,14 @@ export default function NewTripPage(): React.ReactNode {
                 onRemove={removeSegment}
                 onUpdate={updateSegment}
               />
-            </div>
+            </CollapsibleSection>
 
             {/* Accommodation */}
-            <div className="space-y-6">
-              <SectionHeader title="ที่พัก" icon="hotel" variant="icon" />
+            <CollapsibleSection
+              title="ที่พัก"
+              icon="hotel"
+              summary={hotels.filter((h) => h.name).length > 0 ? `${hotels.filter((h) => h.name).length} แห่ง` : undefined}
+            >
               <div className="space-y-4">
                 {hotels.map((hotel, i) => (
                   <HotelCard
@@ -807,13 +985,16 @@ export default function NewTripPage(): React.ReactNode {
                   เพิ่มที่พัก
                 </DashedAddButton>
               </div>
-            </div>
-          </section>
+            </CollapsibleSection>
+          </div>
 
           {/* ═══ Section 4: Emergency Contacts ═══ */}
-          <section className="space-y-6">
-            <SectionHeader title="เบอร์ฉุกเฉิน" icon="emergency" variant="icon" subtitle="ข้อมูลสำหรับลูกทริปเมื่อเกิดเหตุฉุกเฉิน และใช้ยื่น ตม." />
-
+          <CollapsibleSection
+            title="เบอร์ฉุกเฉิน"
+            icon="emergency"
+            subtitle="ข้อมูลสำหรับลูกทริปเมื่อเกิดเหตุฉุกเฉิน และใช้ยื่น ตม."
+            summary={emergencyContacts.filter((c) => c.name).length > 0 ? `${emergencyContacts.filter((c) => c.name).length} เบอร์` : undefined}
+          >
             {tripScope === "international" && (() => {
               const matched = lookupEmergencyPrefill(destination);
               if (matched) {
@@ -844,9 +1025,31 @@ export default function NewTripPage(): React.ReactNode {
                 เพิ่มเบอร์ฉุกเฉิน
               </DashedAddButton>
             </div>
+          </CollapsibleSection>
+
+          {/* ═══ Section 5: Checklist ═══ */}
+          <section className="space-y-6">
+            <SectionHeader title="สิ่งที่ต้องเตรียม" icon="checklist" variant="icon" subtitle="รายการของที่ลูกทริปต้องเตรียมก่อนเดินทาง" />
+
+            <div className="space-y-3">
+              {checklist.map((item, i) => (
+                <ChecklistItemCard
+                  key={i}
+                  item={item}
+                  onUpdate={(patch) => {
+                    const current = getValues(`checklist.${i}`);
+                    setValue(`checklist.${i}`, { ...current, ...patch }, { shouldDirty: true });
+                  }}
+                  onRemove={() => checklistField.remove(i)}
+                />
+              ))}
+              <DashedAddButton onClick={() => checklistField.append({ label: "", isRequired: false })}>
+                เพิ่มรายการ
+              </DashedAddButton>
+            </div>
           </section>
 
-          {/* ═══ Section 5: Important Notes ═══ */}
+          {/* ═══ Section 6: Important Notes ═══ */}
           <section className="space-y-6">
             <SectionHeader title="หมายเหตุสำคัญ" icon="sticky_note_2" variant="icon" subtitle="ข้อมูลที่ลูกทริปต้องรู้ก่อนเดินทาง" />
 
@@ -864,6 +1067,60 @@ export default function NewTripPage(): React.ReactNode {
             </div>
           </section>
 
+          {/* ═══ Section 7: Group Communication Channels ═══ */}
+          <section className="space-y-6">
+            <SectionHeader title="ช่องทางกลุ่ม" icon="groups" variant="icon" subtitle="ลิงก์กลุ่มสำหรับสมาชิกทริป (ไม่บังคับ)" />
+
+            <div className="bg-white p-5 md:p-7 rounded-2xl border border-(--outline-variant)/30 shadow-sm space-y-5">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-(--on-surface)">LINE กลุ่ม</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500 material-symbols-outlined text-xl select-none">chat</span>
+                  <input
+                    type="url"
+                    placeholder="https://line.me/R/ti/g/..."
+                    value={lineGroupUrl}
+                    onChange={(e) => updateField("lineGroupUrl", e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-(--on-surface)">WhatsApp กลุ่ม</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-600 material-symbols-outlined text-xl select-none">phone_in_talk</span>
+                  <input
+                    type="url"
+                    placeholder="https://chat.whatsapp.com/..."
+                    value={whatsappGroupUrl}
+                    onChange={(e) => updateField("whatsappGroupUrl", e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-(--on-surface)">Telegram กลุ่ม</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-500 material-symbols-outlined text-xl select-none">send</span>
+                  <input
+                    type="url"
+                    placeholder="https://t.me/joinchat/..."
+                    value={telegramGroupUrl}
+                    onChange={(e) => updateField("telegramGroupUrl", e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-(--on-surface-variant) flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">info</span>
+                ลิงก์เหล่านี้จะแสดงบนหน้าทริปให้สมาชิกกดเข้ากลุ่มได้ทันที
+              </p>
+            </div>
+          </section>
+
           {apiError && (
             <Banner variant="danger" title="เกิดข้อผิดพลาด" onDismiss={() => setApiError(null)}>
               {apiError}
@@ -873,6 +1130,28 @@ export default function NewTripPage(): React.ReactNode {
       </div>
 
       {DevAutoFill && <DevAutoFill onFill={autoFill} />}
+
+      {/* ═══ Template Picker ═══ */}
+      <TemplatePickerModal
+        open={templatePickerOpen}
+        onClose={() => setTemplatePickerOpen(false)}
+      />
+
+      {/* ═══ Mobile Preview Drawer ═══ */}
+      <PreviewDrawer
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={title || "ทริปของคุณ"}
+        startDate={startDate || new Date().toISOString().split("T")[0]}
+        endDate={endDate || new Date().toISOString().split("T")[0]}
+        totalDays={startDate && endDate ? Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1) : 1}
+        travelersCount={Number(travelersCount) || 1}
+        coverImageUrl={coverUrl || null}
+        airlineName={null}
+        accommodationsCount={hotels.filter((h) => h.name.trim()).length}
+        countdownDays={startDate ? Math.max(0, Math.ceil((new Date(startDate).getTime() - Date.now()) / 86400000)) : 0}
+        days={[]}
+      />
 
       {/* Confirm before swapping scope — segments + emergency contacts
           reset to the new scope's defaults via selectScope(). */}

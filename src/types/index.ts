@@ -94,6 +94,7 @@ export type TripActivity = {
   lng: number | null;
   mapsLink: string | null;
   imageUrl: string | null;
+  imageUrls: string[];
   emoji: string;
   sortOrder: number;
 };

@@ -28,3 +28,5 @@ export { SelectPicker } from "./select-picker";
 export { MediaLibraryModal } from "./media-library-modal";
 export type { SelectOption } from "./select-picker";
 export { AuthHero } from "./auth-hero";
+export { MobilePreview } from "./mobile-preview";
+export { PreviewDrawer } from "./preview-drawer";

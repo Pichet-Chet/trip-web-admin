@@ -8,7 +8,7 @@ import { SecuritySection } from "@/components/security-section";
 import { TwoFactorSection } from "@/components/two-factor-section";
 import { EmailChangeSection } from "@/components/email-change-section";
 import { api, ApiError } from "@/lib/api";
-import { getUser, logout, type UserInfo } from "@/lib/auth";
+import { subscribe, logout, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 export default function SettingsPage(): React.ReactNode {
@@ -17,9 +17,7 @@ export default function SettingsPage(): React.ReactNode {
   const { toast } = useToast();
 
   const [user, setUser] = useState<UserInfo | null>(null);
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
+  useEffect(() => subscribe(setUser), []);
 
   // Change password
   const [oldPassword, setOldPassword] = useState("");

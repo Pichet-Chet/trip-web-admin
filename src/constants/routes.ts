@@ -19,4 +19,6 @@ export const ROUTES = {
   tripEdit: (id: string) => `/dashboard/trips/${id}/edit` as const,
   tripPreview: (id: string) => `/dashboard/trips/${id}/preview` as const,
   tripManage: (id: string) => `/dashboard/trips/${id}/manage` as const,
+  tripExpenses: (id: string) => `/dashboard/trips/${id}/expenses` as const,
+  tripTranslations: (id: string) => `/dashboard/trips/${id}/translations` as const,
 } as const;

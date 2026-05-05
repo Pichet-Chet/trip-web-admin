@@ -9,7 +9,7 @@ import { LegalReacceptGuard } from "@/components/legal-reaccept-guard";
 import { CookieBanner } from "@/components/cookie-banner";
 import { NotificationBell } from "@/components/notification-bell";
 import { QuotaWarningBanner } from "@/components/quota-warning-banner";
-import { getUser, logout, switchCompany, getCompanies, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
+import { subscribe, logout, switchCompany, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared/toast";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
@@ -28,19 +28,14 @@ export default function DashboardLayout({
   const [switching, setSwitching] = useState(false);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
 
-  // getUser() works after AuthGuard refreshes the token
+  // Subscribe to auth state changes — fires immediately with current value,
+  // then on every login / logout / refresh / company-switch.
   useEffect(() => {
-    const interval = setInterval(() => {
-      const u = getUser();
-      if (u && !user) {
-        setUser(u);
-        setCompanies(u.companies || []);
-      }
-    }, 100);
-    // cleanup after user loaded
-    if (user) clearInterval(interval);
-    return () => clearInterval(interval);
-  }, [user]);
+    return subscribe((u) => {
+      setUser(u);
+      setCompanies(u?.companies ?? []);
+    });
+  }, []);
 
   return (
     <SidebarContext.Provider value={{ openSidebar }}>

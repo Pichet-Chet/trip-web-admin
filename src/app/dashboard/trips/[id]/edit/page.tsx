@@ -12,8 +12,10 @@ const DevAutoFill = process.env.NODE_ENV === "development"
   ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog } from "@/components/shared";
+import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog, PreviewDrawer } from "@/components/shared";
 import { ActivityEditorCard } from "./_components/activity-editor-card";
+import { ActivityBottomSheet } from "./_components/activity-bottom-sheet";
+import { QuickActivityInput } from "./_components/quick-activity-input";
 import { DayContextPanel } from "./_components/day-context-panel";
 import { useToast } from "@/components/shared/toast";
 import type { TripDay, TripActivity } from "@/types";
@@ -67,6 +69,7 @@ interface ActivityDetailApi {
   lng: number | null;
   mapsLink: string | null;
   imageUrl: string | null;
+  imageUrls?: string[];
   emoji: string | null;
   sortOrder: number;
 }
@@ -85,6 +88,7 @@ function mapActivity(a: ActivityDetailApi, dayId: string): TripActivity {
     lng: a.lng,
     mapsLink: a.mapsLink,
     imageUrl: a.imageUrl,
+    imageUrls: a.imageUrls ?? [],
     emoji: a.emoji ?? "📍",
     sortOrder: a.sortOrder,
   };
@@ -223,6 +227,30 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const [activeDay, setActiveDay] = useState(0);
   const [accommodations, setAccommodations] = useState<AccommodationApi[]>([]);
   const [addingActivity, setAddingActivity] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [activeSheetActivity, setActiveSheetActivity] = useState<TripActivity | null>(null);
+
+  /* Mobile detection — true when viewport < 640px (sm breakpoint). */
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  /* Swipe left/right on activity list to change day. */
+  const swipeTouchStartX = useRef(0);
+  function handleCanvasTouchStart(e: React.TouchEvent) {
+    swipeTouchStartX.current = e.touches[0].clientX;
+  }
+  function handleCanvasTouchEnd(e: React.TouchEvent) {
+    const delta = e.changedTouches[0].clientX - swipeTouchStartX.current;
+    if (Math.abs(delta) < 60) return;
+    if (delta < 0) setActiveDay((prev) => Math.min(prev + 1, days.length - 1));
+    else setActiveDay((prev) => Math.max(prev - 1, 0));
+  }
 
   /* ─── Auto-save status ───
    * Per-field commits (blur on activity / day fields, cover image
@@ -357,18 +385,23 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
 
   /* ─── Activity CRUD ─── */
-  const addActivity = useCallback(async () => {
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null);
+
+  const addActivity = useCallback(async (
+    name = "กิจกรรมใหม่",
+    type = "attraction",
+    emoji = "📍",
+  ) => {
     if (!currentDay || addingActivity) return;
     setAddingActivity(true);
     try {
       const res = await api.post<ActivityDetailApi>(`/admin/days/${currentDay.id}/activities`, {
-        name: "กิจกรรมใหม่",
-        // Lowercase to match the chip strip's value set so the new
-        // row shows the right chip selected immediately.
-        type: "attraction",
-        emoji: "📍",
+        name,
+        type,
+        emoji,
       });
       const newAct = mapActivity(res, currentDay.id);
+      setLastAddedId(res.id);
       setDays((prev) =>
         prev.map((d) =>
           d.id === currentDay.id ? { ...d, activities: [...d.activities, newAct] } : d
@@ -462,6 +495,25 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     } catch {
       endAutoSave(false);
       toast("ไม่สามารถบันทึกกิจกรรมได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      await rollbackOnFailure();
+    }
+  }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
+
+  const updateActivityImages = useCallback(async (dayId: string, actId: string, urls: string[]) => {
+    setDays((prev) =>
+      prev.map((d) =>
+        d.id === dayId
+          ? { ...d, activities: d.activities.map((a) => a.id === actId ? { ...a, imageUrls: urls } : a) }
+          : d
+      )
+    );
+    beginAutoSave();
+    try {
+      await api.put(`/admin/days/${dayId}/activities/${actId}`, { imageUrls: urls });
+      endAutoSave(true);
+    } catch {
+      endAutoSave(false);
+      toast("ไม่สามารถบันทึกรูปภาพได้ กำลังโหลดข้อมูลล่าสุด...", "error");
       await rollbackOnFailure();
     }
   }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
@@ -655,7 +707,11 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       />
 
       {/* ═══ Content Canvas ═══ */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <div
+        className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full"
+        onTouchStart={handleCanvasTouchStart}
+        onTouchEnd={handleCanvasTouchEnd}
+      >
         {/* Day Tabs (fixed: matches travel dates) */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div
@@ -811,6 +867,16 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                     not a property of the day's title. Placing it next to
                     the add-activity button makes that relationship clear. */}
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Mobile preview button — opens PreviewDrawer */}
+                  <button
+                    type="button"
+                    onClick={() => setPreviewOpen(true)}
+                    title="ดูตัวอย่างบนมือถือ"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold text-(--on-surface-variant) border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:text-(--primary) transition-all bg-white"
+                  >
+                    <span className="material-symbols-outlined text-base">phone_iphone</span>
+                    <span className="hidden sm:inline">Preview</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => toggleFreeDay(currentDay.id, !currentDay.isFreeDay)}
@@ -833,7 +899,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                       activities they untick the free-day toggle first. */}
                   {!currentDay.isFreeDay && (
                     <button
-                      onClick={addActivity}
+                      onClick={() => addActivity()}
                       disabled={addingActivity}
                       className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -884,13 +950,14 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               <div className="space-y-4">
                 {currentDay.activities.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-(--outline-variant)/30">
-                    <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="เพิ่มกิจกรรมสำหรับวันนี้" />
+                    <EmptyState icon="event_note" title="ยังไม่มีกิจกรรม" description="พิมพ์ชื่อกิจกรรมด้านล่างแล้วกด Enter เพื่อเพิ่ม" />
                   </div>
                 ) : (
                   currentDay.activities.map((act) => (
                     <ActivityEditorCard
                       key={act.id}
                       activity={act}
+                      defaultExpanded={!isMobile && act.id === lastAddedId && act.name === "กิจกรรมใหม่"}
                       onLocalChange={(patch) =>
                         setDays((prev) =>
                           prev.map((d) =>
@@ -901,10 +968,17 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                         )
                       }
                       onCommit={(field, value) => updateActivityField(currentDay.id, act.id, field as string, value)}
+                      onImagesChange={(urls) => updateActivityImages(currentDay.id, act.id, urls)}
                       onRemove={() => removeActivity(currentDay.id, act.id)}
+                      onRequestExpand={isMobile ? () => setActiveSheetActivity(act) : undefined}
                     />
                   ))
                 )}
+
+                <QuickActivityInput
+                  disabled={addingActivity}
+                  onAdd={(name, type, emoji) => addActivity(name, type, emoji)}
+                />
               </div>
               )}
             </div>
@@ -929,6 +1003,68 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
       {/* ═══ Dev Auto Fill ═══ */}
       {DevAutoFill && <DevAutoFill onFill={handleAutoFill} label="กรอกข้อมูลตัวอย่าง" />}
+
+      {/* ═══ Activity Bottom Sheet (mobile) ═══ */}
+      <ActivityBottomSheet
+        activity={activeSheetActivity}
+        onClose={() => setActiveSheetActivity(null)}
+        onLocalChange={(patch) => {
+          if (!activeSheetActivity) return;
+          const act = activeSheetActivity;
+          const dayId = act.dayId;
+          setActiveSheetActivity((prev) => prev ? { ...prev, ...patch } : prev);
+          setDays((prev) =>
+            prev.map((d) =>
+              d.id === dayId
+                ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, ...patch } : a) }
+                : d
+            )
+          );
+        }}
+        onCommit={(field, value) => {
+          if (!activeSheetActivity) return;
+          updateActivityField(activeSheetActivity.dayId!, activeSheetActivity.id, field as string, value);
+          setActiveSheetActivity((prev) => prev ? { ...prev, [field]: value } : prev);
+        }}
+        onImagesChange={(urls) => {
+          if (!activeSheetActivity) return;
+          updateActivityImages(activeSheetActivity.dayId!, activeSheetActivity.id, urls);
+          setActiveSheetActivity((prev) => prev ? { ...prev, imageUrls: urls } : prev);
+        }}
+        onRemove={() => {
+          if (!activeSheetActivity) return;
+          removeActivity(activeSheetActivity.dayId!, activeSheetActivity.id);
+          setActiveSheetActivity(null);
+        }}
+      />
+
+      {/* ═══ Mobile Preview Drawer ═══ */}
+      <PreviewDrawer
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={tripTitle}
+        startDate={startDate}
+        endDate={endDate}
+        totalDays={totalTripDays}
+        travelersCount={travelersCount}
+        coverImageUrl={null}
+        airlineName={null}
+        accommodationsCount={accommodations.length}
+        countdownDays={startDate ? Math.max(0, Math.ceil((new Date(startDate).getTime() - Date.now()) / 86400000)) : 0}
+        days={days.map((d) => ({
+          id: d.id,
+          title: d.title ?? "",
+          date: d.date ?? null,
+          coverImageUrl: d.coverImageUrl ?? null,
+          activities: d.activities.map((a) => ({
+            id: a.id,
+            time: a.time ?? null,
+            name: a.name,
+            description: a.description ?? null,
+            emoji: a.emoji ?? null,
+          })),
+        }))}
+      />
 
       {/* ═══ Confirm Dialog ═══ */}
       <ConfirmDialog

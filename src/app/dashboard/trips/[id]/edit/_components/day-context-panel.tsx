@@ -1,7 +1,41 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ImageUpload, IconWrapper, StatsSummary } from "@/components/shared";
+import { api } from "@/lib/api";
+
+interface DayWeather {
+  date: string;
+  tempMin: number;
+  tempMax: number;
+  icon: string;
+  description: string;
+}
+
+interface WeatherForecastResponse {
+  available: boolean;
+  reason?: string;
+  days: DayWeather[];
+}
+
+// OpenWeatherMap icon code → Material Symbol name
+const OWM_ICON: Record<string, string> = {
+  "01": "sunny",
+  "02": "partly_cloudy_day",
+  "03": "cloud",
+  "04": "cloud",
+  "09": "rainy",
+  "10": "rainy",
+  "11": "thunderstorm",
+  "13": "weather_snowy",
+  "50": "foggy",
+};
+
+function owmIconToMaterial(iconCode: string): string {
+  const prefix = iconCode.slice(0, 2);
+  return OWM_ICON[prefix] ?? "device_thermostat";
+}
 
 export interface AccommodationLite {
   id: string;
@@ -45,6 +79,22 @@ export function DayContextPanel({
     : null;
   const dayStr = dayDate?.toISOString().split("T")[0] ?? "";
 
+  /* ─── Weather ─── */
+  const [weather, setWeather] = useState<WeatherForecastResponse | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  useEffect(() => {
+    if (!tripId) return;
+    setWeatherLoading(true);
+    api.get<WeatherForecastResponse>(`/admin/trips/${tripId}/weather`)
+      .then(setWeather)
+      .catch(() => setWeather(null))
+      .finally(() => setWeatherLoading(false));
+  }, [tripId]);
+
+  const todayWeather = weather?.available
+    ? weather.days.find((d) => d.date === dayStr) ?? null
+    : null;
+
   // Bucket accommodations into the three states this UI cares about.
   const checkIns = dayDate ? accommodations.filter((a) => a.checkIn?.split("T")[0] === dayStr) : [];
   const checkOuts = dayDate ? accommodations.filter((a) => a.checkOut?.split("T")[0] === dayStr) : [];
@@ -81,6 +131,37 @@ export function DayContextPanel({
         hint="แนะนำ 1920x1080 px"
         aspect="video"
       />
+
+      {/* Weather widget */}
+      {(weatherLoading || weather) && (
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <IconWrapper icon="partly_cloudy_day" size="sm" />
+            <h4 className="text-sm font-bold text-(--on-surface)">พยากรณ์อากาศ</h4>
+          </div>
+          {weatherLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="w-4 h-4 border-2 border-(--primary)/30 border-t-(--primary) rounded-full animate-spin" />
+            </div>
+          ) : !weather?.available ? (
+            <p className="text-xs text-(--on-surface-variant) px-1">{weather?.reason ?? "ไม่มีข้อมูลพยากรณ์อากาศ"}</p>
+          ) : todayWeather ? (
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-3xl text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>
+                {owmIconToMaterial(todayWeather.icon)}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-(--on-surface) capitalize">{todayWeather.description}</p>
+                <p className="text-xs text-(--on-surface-variant)">
+                  {Math.round(todayWeather.tempMin)}° – {Math.round(todayWeather.tempMax)}°C
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-(--on-surface-variant) px-1">ไม่มีข้อมูลสำหรับวันนี้</p>
+          )}
+        </div>
+      )}
 
       {entries.length > 0 && (
         <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">

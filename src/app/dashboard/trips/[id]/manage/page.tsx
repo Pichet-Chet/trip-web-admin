@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, useMemo } from "react";
+import { use, useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
@@ -25,7 +25,16 @@ interface Follower {
   displayName: string;
   channel: string;
   followedAt: string;
+  groupRole?: string | null;
 }
+
+const GROUP_ROLES = [
+  { value: "", label: "— ไม่ระบุ —" },
+  { value: "head_of_group", label: "หัวหน้ากลุ่ม" },
+  { value: "expense_keeper", label: "ผู้ดูแลค่าใช้จ่าย" },
+  { value: "driver", label: "คนขับ" },
+  { value: "member", label: "สมาชิก" },
+] as const;
 
 interface ChangeEntry {
   id: string;
@@ -45,6 +54,14 @@ interface ChangeLog {
   /** Server-provided count of followers who haven't acknowledged yet.
       Optional so this UI degrades gracefully if the API doesn't include it. */
   unreadCount?: number;
+}
+
+interface Announcement {
+  id: string;
+  message: string;
+  isPinned: boolean;
+  createdByName: string | null;
+  createdAt: string;
 }
 
 interface Receipt {
@@ -101,14 +118,23 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
   // refresh. Falls back to "changelog" — the more important view since
   // unsent notifications need attention.
   const tabParam = searchParams.get("tab");
-  const activeTab: "followers" | "changelog" = tabParam === "followers" ? "followers" : "changelog";
-  const setActiveTab = (tab: "followers" | "changelog"): void => {
+  const activeTab: "followers" | "changelog" | "announcements" =
+    tabParam === "followers" ? "followers"
+    : tabParam === "announcements" ? "announcements"
+    : "changelog";
+  const setActiveTab = (tab: "followers" | "changelog" | "announcements"): void => {
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "changelog") params.delete("tab");
     else params.set("tab", tab);
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   };
+
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementMsg, setAnnouncementMsg] = useState("");
+  const [announcementPinned, setAnnouncementPinned] = useState(false);
+  const [announcementNotify, setAnnouncementNotify] = useState(true);
+  const [postingAnnouncement, setPostingAnnouncement] = useState(false);
 
   const [sending, setSending] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ logId: string; mode: "send" | "resend" } | null>(null);
@@ -117,13 +143,59 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
   const [receiptData, setReceiptData] = useState<ReceiptResponse | null>(null);
   const [receiptLoading, setReceiptLoading] = useState(false);
 
+  const downloadIcs = useCallback(async () => {
+    try {
+      const { getValidToken } = await import("@/lib/auth");
+      const token = await getValidToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+      const res = await fetch(`${apiUrl}/admin/trips/${tripId}/calendar.ics`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `trip-${tripId}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("ดาวน์โหลดไฟล์ปฏิทินแล้ว");
+    } catch {
+      toast("ไม่สามารถสร้างไฟล์ปฏิทินได้", "error");
+    }
+  }, [tripId, toast]);
+
+  const downloadPdf = useCallback(async () => {
+    try {
+      const { getValidToken } = await import("@/lib/auth");
+      const token = await getValidToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+      const res = await fetch(`${apiUrl}/admin/trips/${tripId}/export.pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `trip-${tripId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("ดาวน์โหลด PDF แล้ว");
+    } catch {
+      toast("ไม่สามารถสร้าง PDF ได้", "error");
+    }
+  }, [tripId, toast]);
+
   const reload = async () => {
-    const [f, c] = await Promise.all([
+    const [f, c, a] = await Promise.all([
       api.get<Follower[]>(`/admin/trips/${tripId}/followers`),
       api.get<ChangeLog[]>(`/admin/trips/${tripId}/changelog`),
+      api.get<Announcement[]>(`/admin/trips/${tripId}/announcements`),
     ]);
     setFollowers(f);
     setChangelogs(c);
+    setAnnouncements(a);
   };
 
   useEffect(() => {
@@ -151,6 +223,54 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
     } finally {
       setSending(null);
       setConfirmAction(null);
+    }
+  }
+
+  async function setFollowerRole(followerId: string, role: string) {
+    try {
+      await api.put(`/admin/trips/${tripId}/followers/${followerId}/role`, { role: role || null });
+      setFollowers((prev) => prev.map((f) => f.id === followerId ? { ...f, groupRole: role || null } : f));
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "อัปเดตบทบาทไม่สำเร็จ", "error");
+    }
+  }
+
+  async function handlePostAnnouncement() {
+    if (!announcementMsg.trim()) return;
+    setPostingAnnouncement(true);
+    try {
+      await api.post(`/admin/trips/${tripId}/announcements`, {
+        message: announcementMsg.trim(),
+        isPinned: announcementPinned,
+        notify: announcementNotify,
+      });
+      setAnnouncementMsg("");
+      setAnnouncementPinned(false);
+      toast("โพสต์ประกาศเรียบร้อย" + (announcementNotify ? " · กำลังส่งแจ้งเตือน" : ""), "success");
+      await reload();
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "โพสต์ไม่สำเร็จ", "error");
+    } finally {
+      setPostingAnnouncement(false);
+    }
+  }
+
+  async function handleTogglePin(a: Announcement) {
+    try {
+      await api.put(`/admin/trips/${tripId}/announcements/${a.id}/pin`, { isPinned: !a.isPinned });
+      await reload();
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "อัปเดตไม่สำเร็จ", "error");
+    }
+  }
+
+  async function handleDeleteAnnouncement(id: string) {
+    try {
+      await api.delete(`/admin/trips/${tripId}/announcements/${id}`);
+      toast("ลบประกาศแล้ว");
+      await reload();
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
     }
   }
 
@@ -189,6 +309,34 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
               {followers.length} ผู้ติดตาม · {pendingCount > 0 ? `${pendingCount} การเปลี่ยนแปลงรอแจ้งเตือน` : "ไม่มีการเปลี่ยนแปลงรอแจ้งเตือน"}
             </p>
           </div>
+          <Link
+            href={ROUTES.tripExpenses(tripId)}
+            title="ค่าใช้จ่ายกลุ่ม"
+            className="p-2 rounded-lg hover:bg-(--surface-variant) transition-colors text-(--on-surface-variant)"
+          >
+            <span className="material-symbols-outlined">receipt_long</span>
+          </Link>
+          <Link
+            href={ROUTES.tripTranslations(tripId)}
+            title="คำแปลทริป"
+            className="p-2 rounded-lg hover:bg-(--surface-variant) transition-colors text-(--on-surface-variant)"
+          >
+            <span className="material-symbols-outlined">translate</span>
+          </Link>
+          <button
+            onClick={downloadIcs}
+            title="เพิ่มในปฏิทิน"
+            className="p-2 rounded-lg hover:bg-(--surface-variant) transition-colors text-(--on-surface-variant)"
+          >
+            <span className="material-symbols-outlined">calendar_add_on</span>
+          </button>
+          <button
+            onClick={downloadPdf}
+            title="ดาวน์โหลด PDF"
+            className="p-2 rounded-lg hover:bg-(--surface-variant) transition-colors text-(--on-surface-variant)"
+          >
+            <span className="material-symbols-outlined">picture_as_pdf</span>
+          </button>
         </div>
 
         {/* Tabs */}
@@ -220,6 +368,21 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-(--surface-variant) text-(--on-surface-variant)">
               {followers.length}
             </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("announcements")}
+            className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "announcements"
+                ? "border-(--primary) text-(--primary)"
+                : "border-transparent text-(--on-surface-variant) hover:text-(--on-surface)"
+            }`}
+          >
+            ประกาศระหว่างทาง
+            {announcements.some((a) => a.isPinned) && (
+              <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-orange-100 text-orange-700">
+                ปักหมุด
+              </span>
+            )}
           </button>
         </div>
 
@@ -332,8 +495,8 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             ) : (
               <ul className="divide-y divide-(--outline-variant)/20">
                 {followers.map((f) => (
-                  <li key={f.id} className="px-5 py-4 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <li key={f.id} className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-full bg-(--surface-variant) flex items-center justify-center text-sm font-bold text-(--on-surface-variant) shrink-0">
                         {f.displayName.charAt(0)}
                       </div>
@@ -342,12 +505,124 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                         <p className="text-[11px] text-(--outline)">เริ่มติดตามเมื่อ {formatThaiDate(f.followedAt)}</p>
                       </div>
                     </div>
-                    <ChannelBadge channel={toFollowChannel(f.channel)} />
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      <select
+                        value={f.groupRole ?? ""}
+                        onChange={(e) => setFollowerRole(f.id, e.target.value)}
+                        className="text-xs rounded-lg border border-(--outline-variant)/40 px-2 py-1.5 bg-white text-(--on-surface) focus:border-(--primary) focus:outline-none"
+                        title="บทบาทในกลุ่ม"
+                      >
+                        {GROUP_ROLES.map((r) => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                        {/* If the current role is free-form (not in preset list), show it */}
+                        {f.groupRole && !GROUP_ROLES.some((r) => r.value === f.groupRole) && (
+                          <option value={f.groupRole}>{f.groupRole}</option>
+                        )}
+                      </select>
+                      <ChannelBadge channel={toFollowChannel(f.channel)} />
+                    </div>
                   </li>
                 ))}
               </ul>
             )}
           </section>
+        )}
+
+        {/* Announcements tab */}
+        {activeTab === "announcements" && (
+          <div className="space-y-6">
+            {/* Compose form */}
+            <section className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 md:p-6 shadow-sm">
+              <h2 className="text-sm font-bold text-(--on-surface) mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-(--primary)">campaign</span>
+                โพสต์ประกาศใหม่
+              </h2>
+              <textarea
+                value={announcementMsg}
+                onChange={(e) => setAnnouncementMsg(e.target.value)}
+                maxLength={2048}
+                rows={3}
+                placeholder="เช่น ฝนตก เปลี่ยนแผน 14:00 ไปคาเฟ่แทน ..."
+                className="w-full px-3 py-2 text-sm rounded-xl border border-(--outline-variant)/40 focus:border-(--primary) focus:outline-none resize-none"
+              />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-sm text-(--on-surface-variant) cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={announcementPinned}
+                    onChange={(e) => setAnnouncementPinned(e.target.checked)}
+                    className="w-4 h-4 accent-(--primary)"
+                  />
+                  ปักหมุดด้านบนหน้าทริป
+                </label>
+                <label className="flex items-center gap-2 text-sm text-(--on-surface-variant) cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={announcementNotify}
+                    onChange={(e) => setAnnouncementNotify(e.target.checked)}
+                    className="w-4 h-4 accent-(--primary)"
+                  />
+                  ส่งแจ้งเตือนผู้ติดตาม
+                </label>
+                <button
+                  onClick={handlePostAnnouncement}
+                  disabled={postingAnnouncement || !announcementMsg.trim()}
+                  className="ml-auto px-5 py-2 bg-(--primary) text-(--on-primary) rounded-xl text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                  {postingAnnouncement && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  โพสต์ประกาศ
+                </button>
+              </div>
+            </section>
+
+            {/* Announcement list */}
+            {announcements.length === 0 ? (
+              <EmptyState
+                icon="campaign"
+                title="ยังไม่มีประกาศ"
+                description="ใช้ประกาศส่งข้อความด่วนถึงลูกทริป เช่น เปลี่ยนแผน เวลานัดหมาย"
+              />
+            ) : (
+              <div className="space-y-3">
+                {announcements.map((a) => (
+                  <div
+                    key={a.id}
+                    className={`bg-white rounded-2xl border shadow-sm p-5 flex gap-4 ${
+                      a.isPinned ? "border-orange-300" : "border-(--outline-variant)/30"
+                    }`}
+                  >
+                    {a.isPinned && (
+                      <span className="material-symbols-outlined text-orange-500 shrink-0 mt-0.5" title="ปักหมุด" style={{ fontVariationSettings: "'FILL' 1" }}>push_pin</span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-(--on-surface) whitespace-pre-wrap">{a.message}</p>
+                      <p className="text-[11px] text-(--on-surface-variant) mt-1.5">
+                        {formatThaiDateTime(a.createdAt)}
+                        {a.createdByName && ` · ${a.createdByName}`}
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-1 shrink-0">
+                      <button
+                        onClick={() => handleTogglePin(a)}
+                        title={a.isPinned ? "เลิกปักหมุด" : "ปักหมุด"}
+                        className={`p-1.5 rounded-lg transition-colors ${a.isPinned ? "text-orange-500 hover:bg-orange-50" : "text-(--on-surface-variant) hover:bg-(--surface-variant)"}`}
+                      >
+                        <span className="material-symbols-outlined text-base" style={a.isPinned ? { fontVariationSettings: "'FILL' 1" } : undefined}>push_pin</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAnnouncement(a.id)}
+                        title="ลบ"
+                        className="p-1.5 rounded-lg text-(--on-surface-variant) hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

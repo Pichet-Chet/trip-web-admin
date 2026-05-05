@@ -1,6 +1,7 @@
 "use client";
 
 import { FormInput, DashedAddButton, IconButton, DatePicker, TimePicker } from "@/components/shared";
+import { airportTimezone, utcOffsetLabel } from "@/lib/airport-timezone";
 
 export type TransportType = "flight" | "van" | "bus" | "train" | "boat" | "car";
 
@@ -137,7 +138,14 @@ export function TransportSection({
 
           {/* Departure datetime */}
           <div>
-            <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 mb-2">ออกเดินทาง</p>
+            <div className="flex items-center gap-2 px-1 mb-2">
+              <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest">ออกเดินทาง</p>
+              {isFlight(seg.type) && seg.from && airportTimezone(seg.from) && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-(--surface-variant) text-(--on-surface-variant)">
+                  {seg.from.toUpperCase()} · {utcOffsetLabel(airportTimezone(seg.from)!)}
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="relative">
                 <DatePicker placeholder="วันที่" value={seg.departureDate} onChange={(v) => onUpdate(seg.id, { departureDate: v })} />
@@ -150,7 +158,14 @@ export function TransportSection({
 
           {/* Arrival datetime */}
           <div>
-            <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 mb-2">ถึงปลายทาง</p>
+            <div className="flex items-center gap-2 px-1 mb-2">
+              <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase tracking-widest">ถึงปลายทาง</p>
+              {isFlight(seg.type) && seg.to && airportTimezone(seg.to) && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-(--surface-variant) text-(--on-surface-variant)">
+                  {seg.to.toUpperCase()} · {utcOffsetLabel(airportTimezone(seg.to)!)}
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="relative">
                 <DatePicker placeholder="วันที่" value={seg.arrivalDate} onChange={(v) => onUpdate(seg.id, { arrivalDate: v })} />

@@ -225,12 +225,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           onChange={(e) => setDestination(e.target.value)}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormInput label="ระยะเวลา" value={duration} onChange={(e) => setDuration(e.target.value)} />
           <FormInput label="ช่วงเดินทาง" value={travelPeriod} onChange={(e) => setTravelPeriod(e.target.value)} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormInput
             label="ราคาเริ่มต้น (บาท)"
             type="number"
@@ -265,7 +265,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 className="flex-1 bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               />
               {highlights.length > 1 && (
-                <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline-variant) hover:text-red-500 transition-colors">
+                <button onClick={() => removeHighlight(idx)} className="w-10 h-10 min-w-[40px] rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline-variant) hover:text-red-500 transition-colors">
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
               )}

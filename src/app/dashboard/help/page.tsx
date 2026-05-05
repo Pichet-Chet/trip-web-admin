@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
 import { api, ApiError } from "@/lib/api";
 import { ErrorState, LoadingState } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -13,9 +14,9 @@ interface FaqGroup {
 }
 
 const contacts = [
-  { label: "LINE Official", value: "@tripadmin-support", icon: "chat" },
-  { label: "อีเมล", value: "support@example.com", icon: "mail" },
-  { label: "เวลาทำการ", value: "จ-ศ 09:00-18:00", icon: "schedule" },
+  { label: "LINE Official", value: "@tripadmin-support", href: "https://line.me/ti/p/@tripadmin-support", icon: "chat" },
+  { label: "อีเมล", value: "support@tripapp.co", href: "mailto:support@tripapp.co", icon: "mail" },
+  { label: "เวลาทำการ", value: "จ-ศ 09:00-18:00", href: null, icon: "schedule" },
 ];
 
 export default function HelpPage(): React.ReactNode {
@@ -84,7 +85,7 @@ export default function HelpPage(): React.ReactNode {
                   </summary>
                   <div
                     className="px-6 pb-5 text-sm text-(--on-surface-variant) leading-relaxed prose prose-sm max-w-none prose-a:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: item.answerHtml }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.answerHtml, { ALLOWED_TAGS: ["p", "br", "b", "strong", "i", "em", "ul", "ol", "li", "a", "code"], ALLOWED_ATTR: ["href", "target", "rel"] }) }}
                   />
                 </details>
               ))}
@@ -98,15 +99,27 @@ export default function HelpPage(): React.ReactNode {
           <h2 className="text-lg font-bold text-(--on-surface)">ติดต่อทีมงาน</h2>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {contacts.map((c) => (
-            <div key={c.label} className="p-4 bg-(--surface-container-low) rounded-xl border border-(--outline-variant)/20">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="material-symbols-outlined text-(--outline)">{c.icon}</span>
-                <span className="text-xs font-bold text-(--outline) uppercase tracking-wider">{c.label}</span>
+          {contacts.map((c) => {
+            const inner = (
+              <>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-(--outline)">{c.icon}</span>
+                  <span className="text-xs font-bold text-(--outline) uppercase tracking-wider">{c.label}</span>
+                </div>
+                <p className="text-sm font-semibold text-(--on-surface)">{c.value}</p>
+              </>
+            );
+            return c.href ? (
+              <a key={c.label} href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer"
+                className="p-4 bg-(--surface-container-low) rounded-xl border border-(--outline-variant)/20 hover:border-(--outline-variant) transition-colors block">
+                {inner}
+              </a>
+            ) : (
+              <div key={c.label} className="p-4 bg-(--surface-container-low) rounded-xl border border-(--outline-variant)/20">
+                {inner}
               </div>
-              <p className="text-sm font-semibold text-(--on-surface)">{c.value}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

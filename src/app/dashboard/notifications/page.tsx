@@ -101,15 +101,24 @@ export default function NotificationsPage(): React.ReactNode {
             {data ? `ทั้งหมด ${data.totalCount} รายการ — ยังไม่อ่าน ${data.unreadCount}` : "กำลังโหลด..."}
           </p>
         </div>
-        {data && data.unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={markAllRead}
-            className="px-4 py-2 rounded-lg border border-(--outline-variant)/30 text-sm font-semibold text-(--on-surface) hover:bg-(--surface-container-low)"
+        <div className="flex items-center gap-3 flex-wrap">
+          {data && data.unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              className="px-4 py-2 rounded-lg border border-(--outline-variant)/30 text-sm font-semibold text-(--on-surface) hover:bg-(--surface-container-low)"
+            >
+              อ่านทั้งหมด
+            </button>
+          )}
+          <Link
+            href="/dashboard/settings#notifications"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-(--outline-variant)/30 text-sm font-semibold text-(--on-surface-variant) hover:bg-(--surface-container-low) transition-colors"
           >
-            อ่านทั้งหมด
-          </button>
-        )}
+            <span className="material-symbols-outlined text-base">tune</span>
+            ตั้งค่าการแจ้งเตือน
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-2">

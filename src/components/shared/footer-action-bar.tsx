@@ -10,6 +10,8 @@ interface FooterActionBarProps {
   onSaveDraft?: () => void;
   saveDraftLabel?: string;
   savingDraft?: boolean;
+  /** Optional node rendered between back button and action buttons (e.g. auto-save indicator). */
+  middleSlot?: React.ReactNode;
   nextHref?: string;
   nextLabel: string;
   nextIcon?: string;
@@ -27,6 +29,7 @@ export function FooterActionBar({
   onSaveDraft,
   saveDraftLabel = "บันทึกร่าง",
   savingDraft = false,
+  middleSlot,
   nextHref,
   nextLabel,
   nextIcon = "arrow_forward",
@@ -54,7 +57,7 @@ export function FooterActionBar({
   );
 
   return (
-    <div className="sticky top-32 z-19 bg-white/95 backdrop-blur-sm border-b border-(--outline-variant)/30 px-4 md:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+    <div className="sticky top-32 z-19 bg-white/95 backdrop-blur-sm border-b border-(--outline-variant)/30 px-4 md:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3 flex-wrap">
       {onBack ? (
         <button
           type="button"
@@ -73,6 +76,7 @@ export function FooterActionBar({
       ) : (
         <div />
       )}
+      {middleSlot && <div className="flex-1 flex justify-center">{middleSlot}</div>}
       <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-4">
         {onSaveDraft && (
           <button

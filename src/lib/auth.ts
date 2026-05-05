@@ -66,6 +66,31 @@ let currentUser: UserInfo | null = null;
 let tokenExpiresAt: number = 0;
 let refreshPromise: Promise<void> | null = null;
 
+// === Subscriber registry ===
+
+type UserListener = (user: UserInfo | null) => void;
+const listeners = new Set<UserListener>();
+
+/**
+ * Subscribe to user-state changes. Fires immediately with the current
+ * value, then again on every login / logout / token-refresh / company-switch.
+ * Returns an unsubscribe function — always call it in useEffect cleanup.
+ *
+ * @example
+ * useEffect(() => {
+ *   return subscribe((user) => setUser(user));
+ * }, []);
+ */
+export function subscribe(fn: UserListener): () => void {
+  listeners.add(fn);
+  fn(currentUser); // fire immediately with current state
+  return () => listeners.delete(fn);
+}
+
+function notify() {
+  for (const fn of listeners) fn(currentUser);
+}
+
 // === Public API ===
 
 export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
@@ -179,6 +204,7 @@ function setMemory(data: AuthResponse) {
   accessToken = data.accessToken;
   currentUser = data.user;
   tokenExpiresAt = new Date(data.expiresAt).getTime();
+  notify();
 }
 
 /**
@@ -204,6 +230,7 @@ export function setAccessToken(token: string): void {
     accountType: payload.account_type ?? "",
     companies: [],
   };
+  notify();
 }
 
 interface JwtPayload {
@@ -244,4 +271,5 @@ function clearMemory() {
   accessToken = null;
   currentUser = null;
   tokenExpiresAt = 0;
+  notify();
 }

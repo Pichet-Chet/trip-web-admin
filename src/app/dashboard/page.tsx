@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog } from "@/components/shared";
 import { api } from "@/lib/api";
-import { getUser, type UserInfo } from "@/lib/auth";
+import { subscribe, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type FilterTab = "all" | "draft" | "published" | "active";
@@ -48,13 +48,7 @@ export default function DashboardPage(): React.ReactNode {
   const [apiError, setApiError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const u = getUser();
-      if (u) { setUser(u); clearInterval(interval); }
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => subscribe(setUser), []);
 
   useEffect(() => {
     Promise.all([
