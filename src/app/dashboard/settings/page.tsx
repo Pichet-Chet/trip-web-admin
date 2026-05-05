@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FormInput, FormTextarea, Modal, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
-import { NotificationPreferencesSection } from "@/components/notification-preferences-section";
-import { SecuritySection } from "@/components/security-section";
-import { TwoFactorSection } from "@/components/two-factor-section";
-import { EmailChangeSection } from "@/components/email-change-section";
+import { NotificationPreferencesSection } from "@/components/settings/notification-preferences-section";
+import { SecuritySection } from "@/components/settings/security-section";
+import { TwoFactorSection } from "@/components/settings/two-factor-section";
+import { EmailChangeSection } from "@/components/settings/email-change-section";
 import { api, ApiError } from "@/lib/api";
 import { subscribe, logout, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
