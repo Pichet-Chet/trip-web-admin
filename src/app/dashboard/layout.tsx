@@ -6,9 +6,9 @@ import { ToastProvider } from "@/components/shared";
 import { ConfirmProvider } from "@/lib/hooks/use-confirm";
 import { AuthGuard } from "@/components/shared/auth-guard";
 import { LegalReacceptGuard } from "@/components/legal/legal-reaccept-guard";
-import { CookieBanner } from "@/components/cookie-banner";
+import { CookieBanner } from "@/components/app/cookie-banner";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { QuotaWarningBanner } from "@/components/quota-warning-banner";
+import { QuotaWarningBanner } from "@/components/app/quota-warning-banner";
 import { subscribe, logout, switchCompany, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared";
 
