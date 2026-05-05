@@ -65,7 +65,7 @@ export function RemoteLegalContent({ slug, onLoaded }: Props): React.ReactNode {
         เวอร์ชั่น {doc.version} · มีผลตั้งแต่ {new Date(doc.effectiveAt).toLocaleDateString("th-TH")}
       </div>
       <div
-        className="prose prose-sm max-w-none prose-slate prose-headings:font-bold prose-h2:text-base prose-h2:text-slate-900 prose-h3:text-sm prose-h3:text-slate-700 prose-a:text-blue-600 prose-strong:text-slate-900"
+        className="prose prose-sm max-w-none prose-slate prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-2 prose-h2:text-base prose-h2:text-slate-900 prose-h3:text-sm prose-h3:text-slate-700 prose-p:my-3 prose-li:my-1 prose-ul:my-3 prose-ol:my-3 prose-a:text-blue-600 prose-strong:text-slate-900"
         dangerouslySetInnerHTML={{ __html: doc.contentHtml }}
       />
     </div>

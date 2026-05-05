@@ -176,7 +176,7 @@ function ScrollableContent({ slug, onReachBottom }: ScrollableContentProps): Rea
   }, [onReachBottom]);
 
   return (
-    <div ref={ref} className="max-h-[60vh] overflow-y-auto px-1">
+    <div ref={ref} className="max-h-[60vh] overflow-y-auto">
       <RemoteLegalContent slug={slug} />
     </div>
   );
