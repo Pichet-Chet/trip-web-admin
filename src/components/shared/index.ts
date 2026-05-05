@@ -19,16 +19,20 @@ export {
   Banner,
   Modal,
   FilterTabs,
+  ToastProvider,
+  useToast,
+  StatusBadge,
+  type StatusConfig,
+  type StatusTone,
+  Skeleton,
+  CardSkeleton,
+  TableRowSkeleton,
+  StatCardSkeleton,
+  PageSkeleton,
 } from "@trip/ui";
 
-export { ToastProvider, useToast } from "@trip/ui";
-
-// Admin-specific: keep local (has ChannelBadge importing FollowChannel from @/types)
-export { StatusBadge, ChannelBadge } from "./status-badge";
-export type { StatusConfig, StatusTone } from "./status-badge";
-
-// Admin-specific: keep local (has StatCardSkeleton which is absent in @trip/ui)
-export { Skeleton, CardSkeleton, TableRowSkeleton, PageSkeleton } from "./skeleton";
+// Admin-specific: ChannelBadge uses FollowChannel from @/types
+export { ChannelBadge } from "./channel-badge";
 
 // Admin-specific components
 export { ChangeSummaryModal } from "./change-summary-modal";

@@ -12,7 +12,7 @@ import {
   StatusBadge,
   TableRowSkeleton,
 } from "@/components/shared";
-import type { StatusConfig } from "@/components/shared/status-badge";
+import type { StatusConfig } from "@trip/ui";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 

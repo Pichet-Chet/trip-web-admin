@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, PageSkeleton, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
-import type { StatusConfig } from "@/components/shared/status-badge";
+import type { StatusConfig } from "@trip/ui";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface PaymentItem {
