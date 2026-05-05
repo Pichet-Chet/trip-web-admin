@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/shared/toast";
 import { Skeleton, ConfirmDialog, EmptyState, Pagination } from "@/components/shared";
@@ -414,7 +415,7 @@ export default function MediaPage(): React.ReactNode {
                     }`}
                   >
                     <div className="aspect-square bg-(--surface-variant)/30">
-                      <img src={item.url} alt={item.fileName} className="w-full h-full object-cover" loading="lazy" />
+                      <Image src={item.url} alt={item.fileName} fill sizes="(max-width:768px) 50vw, 200px" className="object-cover" />
                     </div>
 
                     {/* Hover overlay */}
@@ -474,7 +475,9 @@ export default function MediaPage(): React.ReactNode {
           {selectedItem && (
             <div className="border-t border-(--outline-variant)/20 bg-(--surface-container-lowest) px-5 py-4">
               <div className="flex items-center gap-5">
-                <img src={selectedItem.url} alt={selectedItem.altText || selectedItem.fileName} className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                  <Image src={selectedItem.url} alt={selectedItem.altText || selectedItem.fileName} fill sizes="64px" className="object-cover" />
+                </div>
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center gap-3">
                     <p className="font-bold text-sm text-(--on-surface) truncate">{selectedItem.fileName}</p>

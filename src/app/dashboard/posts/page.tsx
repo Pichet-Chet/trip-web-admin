@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { api, ApiError } from "@/lib/api";
 import { FilterTabs, EmptyState, ConfirmDialog, PageSkeleton, useToast } from "@/components/shared";
 import type { PostStatus } from "@/types";
@@ -138,7 +139,7 @@ export default function PostsPage(): React.ReactNode {
                 {/* Image */}
                 <div className="relative aspect-16/10 overflow-hidden">
                   {post.images[0] ? (
-                    <img src={post.images[0]} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={post.images[0]} alt={post.title} fill sizes="(max-width:768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full bg-(--surface-variant) flex items-center justify-center">
                       <span className="material-symbols-outlined text-4xl text-(--outline-variant)">image</span>
