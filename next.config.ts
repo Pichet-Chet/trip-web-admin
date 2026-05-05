@@ -6,6 +6,7 @@ const withBundleAnalyzer = BundleAnalyzer({
 });
 
 const nextConfig = {
+  transpilePackages: ["@trip/ui"],
   images: {
     remotePatterns: [
       {

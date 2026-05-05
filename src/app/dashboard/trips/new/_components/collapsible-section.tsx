@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconWrapper } from "@/components/shared/icon-wrapper";
+import { IconWrapper } from "@trip/ui";
 
 interface CollapsibleSectionProps {
   title: string;
