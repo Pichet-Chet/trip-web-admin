@@ -4,7 +4,7 @@ import { useState, createContext, useContext, useCallback, useEffect } from "rea
 import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/shared";
 import { ConfirmProvider } from "@/lib/hooks/use-confirm";
-import { AuthGuard } from "@/components/shared/auth-guard";
+import { AuthGuard } from "@/components/app/auth-guard";
 import { LegalReacceptGuard } from "@/components/legal/legal-reaccept-guard";
 import { CookieBanner } from "@/components/app/cookie-banner";
 import { NotificationBell } from "@/components/notifications/notification-bell";

@@ -10,7 +10,7 @@ import { AgreementModal } from "@/components/shared";
 import { register } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { ApiError } from "@/lib/api";
-import { RemoteLegalContent } from "@/components/shared/remote-legal-content";
+import { RemoteLegalContent } from "@/components/legal/remote-legal-content";
 
 type Errors = Record<string, string>;
 

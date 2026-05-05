@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Modal } from "@/components/shared";
-import { RemoteLegalContent } from "@/components/shared/remote-legal-content";
+import { RemoteLegalContent } from "@/components/legal/remote-legal-content";
 
 interface LegalDocResponse {
   id: string;
