@@ -45,12 +45,12 @@ type StatusFilter = "all" | "Open" | "Pending" | "Resolved" | "Closed";
 type PriorityFilter = "" | "High" | "Medium" | "Low";
 type TypeFilter = "" | "Bug" | "FeatureRequest" | "Question" | "Other";
 
-const STATUS_TABS: { value: StatusFilter; label: string }[] = [
-  { value: "all",      label: "ทั้งหมด" },
-  { value: "Open",     label: "เปิด" },
-  { value: "Pending",  label: "รอดำเนินการ" },
-  { value: "Resolved", label: "แก้ไขแล้ว" },
-  { value: "Closed",   label: "ปิดแล้ว" },
+const STATUS_TABS: { id: StatusFilter; label: string }[] = [
+  { id: "all",      label: "ทั้งหมด" },
+  { id: "Open",     label: "เปิด" },
+  { id: "Pending",  label: "รอดำเนินการ" },
+  { id: "Resolved", label: "แก้ไขแล้ว" },
+  { id: "Closed",   label: "ปิดแล้ว" },
 ];
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
@@ -237,8 +237,8 @@ export default function SupportTicketsPage() {
       {/* Status tabs — primary filter, full row */}
       <FilterTabs
         tabs={STATUS_TABS}
-        active={statusFilter}
-        onChange={(v) => { setStatusFilter(v); setPage(1); }}
+        activeTab={statusFilter}
+        onTabChange={(v) => { setStatusFilter(v as StatusFilter); setPage(1); }}
       />
 
       {/* Secondary filters — responsive grid */}

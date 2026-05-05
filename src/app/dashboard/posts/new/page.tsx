@@ -94,7 +94,7 @@ export default function NewPostPage(): React.ReactNode {
       if (targetStatus === "published") {
         await api.put(`/admin/posts/${post.id}/status`, { status: "published" });
       }
-      toast(targetStatus === "published" ? "เผยแพร่แพ็กเกจแล้ว" : "บันทึกร่างแล้ว", "success");
+      toast.success(targetStatus === "published" ? "เผยแพร่แพ็กเกจแล้ว" : "บันทึกร่างแล้ว");
       router.push("/dashboard/posts");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ");

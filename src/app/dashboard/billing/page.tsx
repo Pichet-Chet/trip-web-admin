@@ -147,11 +147,11 @@ function BillingContent(): React.ReactNode {
       } catch (e: unknown) {
         if (!(e instanceof ApiError) || e.status !== 404) throw e;
         invoice = await api.post<{ runningNumber: string; previewUrl: string }>(`/admin/billing/payments/${paymentId}/tax-invoice/issue`, {});
-        toast("ออกใบเสร็จเรียบร้อย", "success");
+        toast.success("ออกใบเสร็จเรียบร้อย");
       }
       setPreviewInvoice({ runningNumber: invoice.runningNumber, previewUrl: invoice.previewUrl, paymentId });
     } catch (e: unknown) {
-      toast(e instanceof ApiError ? e.message : "ไม่สามารถเปิดใบเสร็จได้", "error");
+      toast.error(e instanceof ApiError ? e.message : "ไม่สามารถเปิดใบเสร็จได้");
     } finally {
       setPreviewLoading(false);
     }
@@ -168,10 +168,10 @@ function BillingContent(): React.ReactNode {
     if (!confirm("ยกเลิกคำขอคืนเงินนี้?")) return;
     try {
       await api.post(`/admin/refund-requests/${id}/cancel`, {});
-      toast("ยกเลิกคำขอเรียบร้อย", "success");
+      toast.success("ยกเลิกคำขอเรียบร้อย");
       await loadRefunds();
     } catch (e: unknown) {
-      toast(e instanceof ApiError ? e.message : "ยกเลิกไม่สำเร็จ", "error");
+      toast.error(e instanceof ApiError ? e.message : "ยกเลิกไม่สำเร็จ");
     }
   }
 
@@ -246,9 +246,9 @@ function BillingContent(): React.ReactNode {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(dlUrl);
-        toast("ดาวน์โหลด CSV เรียบร้อย", "success");
+        toast.success("ดาวน์โหลด CSV เรียบร้อย");
       })
-      .catch(() => toast("ดาวน์โหลด CSV ไม่สำเร็จ", "error"));
+      .catch(() => toast.error("ดาวน์โหลด CSV ไม่สำเร็จ"));
   }
 
   // Stripe webhook can land 1-10s after redirect — refetch usage twice at
@@ -281,7 +281,7 @@ function BillingContent(): React.ReactNode {
       window.location.href = result.url;
     } catch (e: unknown) {
       setPortalLoading(false);
-      toast(e instanceof ApiError ? e.message : "เกิดข้อผิดพลาด", "error");
+      toast.error(e instanceof ApiError ? e.message : "เกิดข้อผิดพลาด");
     }
   };
 
@@ -1068,9 +1068,9 @@ function InvoicePreviewModal({ runningNumber, previewUrl, paymentId, onClose }: 
       // Re-fetch with download=true → server returns presigned URL with attachment header
       const r = await api.get<{ downloadUrl: string }>(`/admin/billing/payments/${paymentId}/tax-invoice?download=true`);
       triggerDownload(r.downloadUrl, `${runningNumber}.pdf`);
-      toast("กำลังดาวน์โหลดไฟล์", "success");
+      toast.success("กำลังดาวน์โหลดไฟล์");
     } catch (e: unknown) {
-      toast(e instanceof ApiError ? e.message : "ดาวน์โหลดไม่สำเร็จ", "error");
+      toast.error(e instanceof ApiError ? e.message : "ดาวน์โหลดไม่สำเร็จ");
     } finally {
       setDownloading(false);
     }

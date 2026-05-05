@@ -75,7 +75,7 @@ export function SecuritySection(): React.ReactNode {
       const data = await api.get<Session[]>("/me/sessions");
       setSessions(data);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "โหลด session ไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "โหลด session ไม่สำเร็จ");
     } finally {
       setLoadingS(false);
     }
@@ -87,7 +87,7 @@ export function SecuritySection(): React.ReactNode {
       const data = await api.get<LoginHistory>("/me/login-history?page=1&pageSize=10");
       setHistory(data);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "โหลดประวัติไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "โหลดประวัติไม่สำเร็จ");
     } finally {
       setLoadingH(false);
     }
@@ -99,10 +99,10 @@ export function SecuritySection(): React.ReactNode {
     setRevoking(id);
     try {
       await api.delete(`/me/sessions/${id}`);
-      toast("เพิกถอนสำเร็จ", "success");
+      toast.success("เพิกถอนสำเร็จ");
       await loadSessions();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เพิกถอนไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "เพิกถอนไม่สำเร็จ");
     } finally {
       setRevoking(null);
     }
@@ -113,10 +113,10 @@ export function SecuritySection(): React.ReactNode {
     setRevokingAll(true);
     try {
       await api.post<{ revokedCount: number; message: string }>("/me/sessions/revoke-others", {});
-      toast("ออกจากระบบในอุปกรณ์อื่นเรียบร้อย", "success");
+      toast.success("ออกจากระบบในอุปกรณ์อื่นเรียบร้อย");
       await loadSessions();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ดำเนินการไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ดำเนินการไม่สำเร็จ");
     } finally {
       setRevokingAll(false);
     }

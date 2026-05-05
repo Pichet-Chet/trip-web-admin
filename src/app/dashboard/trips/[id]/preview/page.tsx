@@ -8,7 +8,7 @@ import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog, Banner, MobilePreview } from "@/components/shared";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import { checkPublishReadiness, type PublishIssue } from "@/lib/validation/trip";
 import { TripDayMapLazy, type MapActivity } from "@/components/shared/trip-day-map-lazy";
 import { resolveCoords } from "@/lib/parse-maps-link";
@@ -188,7 +188,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
         const data = await api.get<TripDetail>(`/admin/trips/${id}`);
         if (!cancelled) setTrip(data);
       } catch (err) {
-        if (!cancelled) toast(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้", "error");
+        if (!cancelled) toast.error(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -203,9 +203,9 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       const res = await api.post<SubmitReviewResponse>(`/admin/trips/${id}/publish`, { visibility });
       setTrip((prev) => prev ? { ...prev, status: "PendingReview" } : prev);
       setShowSubmitModal(false);
-      toast(res.message || "ส่งตรวจสอบเรียบร้อย ทีมงานจะตรวจสอบและแจ้งผลโดยเร็ว");
+      toast.success(res.message || "ส่งตรวจสอบเรียบร้อย ทีมงานจะตรวจสอบและแจ้งผลโดยเร็ว");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ไม่สามารถส่งตรวจสอบได้", "error");
+      toast.error(err instanceof ApiError ? err.message : "ไม่สามารถส่งตรวจสอบได้");
     } finally {
       setSubmitting(false);
     }
@@ -218,9 +218,9 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       await api.post(`/admin/trips/${id}/cancel-review`, {});
       setTrip((prev) => prev ? { ...prev, status: "Draft" } : prev);
       setShowCancelConfirm(false);
-      toast("ยกเลิกการส่งตรวจสอบแล้ว");
+      toast.success("ยกเลิกการส่งตรวจสอบแล้ว");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ไม่สามารถยกเลิกได้", "error");
+      toast.error(err instanceof ApiError ? err.message : "ไม่สามารถยกเลิกได้");
     } finally {
       setCancelling(false);
     }
@@ -233,9 +233,9 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       await api.post(`/admin/trips/${id}/unpublish`, {});
       setTrip((prev) => prev ? { ...prev, status: "Unpublished" } : prev);
       setShowUnpublishConfirm(false);
-      toast("ยกเลิกเผยแพร่แล้ว ลูกทริปจะไม่สามารถเข้าดูได้");
+      toast.success("ยกเลิกเผยแพร่แล้ว ลูกทริปจะไม่สามารถเข้าดูได้");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ไม่สามารถยกเลิกเผยแพร่ได้", "error");
+      toast.error(err instanceof ApiError ? err.message : "ไม่สามารถยกเลิกเผยแพร่ได้");
     } finally {
       setUnpublishing(false);
     }
@@ -245,7 +245,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const copyLink = useCallback(() => {
     navigator.clipboard.writeText(tripUrl);
     setCopied(true);
-    toast("คัดลอกลิงก์แล้ว");
+    toast.success("คัดลอกลิงก์แล้ว");
     setTimeout(() => setCopied(false), 2000);
   }, [tripUrl, toast]);
 
@@ -254,7 +254,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     const msg = `สวัสดีค่ะ 🙏\nทริป "${trip?.title}" พร้อมแล้วค่ะ\n\nเปิดดู itinerary ได้ที่:\n👉 ${tripUrl}\n\nกด "ติดตาม" เพื่อรับแจ้งเตือนเมื่อมีการเปลี่ยนแปลงค่ะ 🔔`;
     navigator.clipboard.writeText(msg);
     setCopiedLine(true);
-    toast("คัดลอกข้อความ LINE แล้ว");
+    toast.success("คัดลอกข้อความ LINE แล้ว");
     setTimeout(() => setCopiedLine(false), 2000);
   }, [trip?.title, tripUrl, toast]);
 
@@ -275,9 +275,9 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       a.download = `${trip?.slug ?? id}.ics`;
       a.click();
       URL.revokeObjectURL(url);
-      toast("ดาวน์โหลดไฟล์ปฏิทินแล้ว");
+      toast.success("ดาวน์โหลดไฟล์ปฏิทินแล้ว");
     } catch {
-      toast("ไม่สามารถสร้างไฟล์ปฏิทินได้", "error");
+      toast.error("ไม่สามารถสร้างไฟล์ปฏิทินได้");
     }
   }, [id, trip?.slug, toast]);
 
@@ -298,9 +298,9 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       a.download = `${trip?.slug ?? id}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast("ดาวน์โหลด PDF แล้ว");
+      toast.success("ดาวน์โหลด PDF แล้ว");
     } catch {
-      toast("ไม่สามารถสร้าง PDF ได้", "error");
+      toast.error("ไม่สามารถสร้าง PDF ได้");
     }
   }, [id, trip?.slug, toast]);
 
@@ -321,9 +321,9 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       a.href = dataUrl;
       a.download = `qr-${filenameStem}.png`;
       a.click();
-      toast("ดาวน์โหลด QR Code แล้ว");
+      toast.success("ดาวน์โหลด QR Code แล้ว");
     } catch {
-      toast("ไม่สามารถสร้าง QR Code ได้", "error");
+      toast.error("ไม่สามารถสร้าง QR Code ได้");
     }
   }, [tripUrl, trip?.title, trip?.slug, id, toast]);
 

@@ -18,13 +18,10 @@ export {
   ErrorState,
   Banner,
   Modal,
+  FilterTabs,
 } from "@trip/ui";
 
-// Keep local: different API (toast(msg, type?) vs @trip/ui toast.success(msg))
-export { ToastProvider, useToast } from "./toast";
-
-// Keep local: different API ({ value, active, onChange } vs @trip/ui { id, activeTab, onTabChange })
-export { FilterTabs } from "./filter-tabs";
+export { ToastProvider, useToast } from "@trip/ui";
 
 // Admin-specific: keep local (has ChannelBadge importing FollowChannel from @/types)
 export { StatusBadge, ChannelBadge } from "./status-badge";

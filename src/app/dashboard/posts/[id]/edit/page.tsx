@@ -102,7 +102,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         setTagsInput(p.tags.join(", "));
       })
       .catch((err) => {
-        toast(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ", "error");
+        toast.error(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ");
         router.push("/dashboard/posts");
       })
       .finally(() => setLoading(false));
@@ -141,7 +141,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         slots: slots ? Number(slots) : null,
         tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
       });
-      toast("อัปเดตแพ็กเกจแล้ว", "success");
+      toast.success("อัปเดตแพ็กเกจแล้ว");
       router.push("/dashboard/posts");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ");
@@ -154,15 +154,14 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     setSaving(true);
     try {
       await api.put(`/admin/posts/${id}/status`, { status: newStatus });
-      toast(
+      toast.success(
         newStatus === "published" ? "เผยแพร่แล้ว"
         : newStatus === "closed" ? "ปิดรับลูกค้าแล้ว"
         : "เปลี่ยนเป็นร่างแล้ว",
-        "success",
       );
       router.push("/dashboard/posts");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เปลี่ยนสถานะไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "เปลี่ยนสถานะไม่สำเร็จ");
     } finally {
       setSaving(false);
       setConfirmStatus(null);
@@ -173,10 +172,10 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     setSaving(true);
     try {
       await api.delete(`/admin/posts/${id}`);
-      toast("ลบแพ็กเกจแล้ว", "success");
+      toast.success("ลบแพ็กเกจแล้ว");
       router.push("/dashboard/posts");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
       setSaving(false);
     }
   }

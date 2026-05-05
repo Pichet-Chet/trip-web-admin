@@ -40,7 +40,7 @@ export default function BillingProfilePage(): React.ReactNode {
           setHasProfile(true);
         }
       })
-      .catch((e: ApiError) => toast(e.message, "error"))
+      .catch((e: ApiError) => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [toast]);
 
@@ -69,9 +69,9 @@ export default function BillingProfilePage(): React.ReactNode {
         wantsTaxInvoice: wants,
       });
       setHasProfile(true);
-      toast("บันทึกแล้ว", "success");
+      toast.success("บันทึกแล้ว");
     } catch (e) {
-      toast(e instanceof ApiError ? e.message : "บันทึกไม่สำเร็จ", "error");
+      toast.error(e instanceof ApiError ? e.message : "บันทึกไม่สำเร็จ");
     } finally {
       setSaving(false);
     }

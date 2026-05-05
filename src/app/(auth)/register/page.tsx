@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import { AgreementModal } from "@/components/shared/agreement-modal";
 import { register } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";

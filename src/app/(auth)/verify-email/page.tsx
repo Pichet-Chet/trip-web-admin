@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import { AuthHero } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -49,13 +49,13 @@ function VerifyEmailContent(): React.ReactNode {
       });
       const json = await res.json();
       if (json.success) {
-        toast("ส่งอีเมลยืนยันใหม่แล้ว");
+        toast.success("ส่งอีเมลยืนยันใหม่แล้ว");
         setCooldown(60);
       } else {
-        toast(json.error || "เกิดข้อผิดพลาด", "error");
+        toast.error(json.error || "เกิดข้อผิดพลาด");
       }
     } catch {
-      toast("เกิดข้อผิดพลาด", "error");
+      toast.error("เกิดข้อผิดพลาด");
     } finally {
       setResending(false);
     }

@@ -40,7 +40,7 @@ export function NotificationPreferencesSection(): React.ReactNode {
       const res = await api.get<PreferencesResponse>("/me/notification-preferences");
       setData(res);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "โหลดไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "โหลดไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export function NotificationPreferencesSection(): React.ReactNode {
         items: [{ category, channel, enabled }],
       });
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ");
       setLocal(category, channel, !enabled); // revert
     } finally {
       setSaving(false);

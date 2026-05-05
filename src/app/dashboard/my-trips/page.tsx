@@ -59,7 +59,7 @@ export default function MyTripsPage(): React.ReactNode {
   async function handleClone(trip: Trip) {
     if (cloning) return;
     if (quotaFull) {
-      toast("Quota เต็ม — ซื้อเครดิตเพิ่มก่อน clone", "error");
+      toast.error("Quota เต็ม — ซื้อเครดิตเพิ่มก่อน clone");
       return;
     }
     const ok = await confirm({
@@ -71,10 +71,10 @@ export default function MyTripsPage(): React.ReactNode {
     setCloning(trip.id);
     try {
       const result = await api.post<{ id: string; title: string }>(`/admin/trips/${trip.id}/clone`);
-      toast(`Clone เรียบร้อย: ${result.title}`, "success");
+      toast.success(`Clone เรียบร้อย: ${result.title}`);
       router.push(`/dashboard/trips/new?id=${result.id}`);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "Clone ไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "Clone ไม่สำเร็จ");
     } finally {
       setCloning(null);
     }
@@ -134,15 +134,15 @@ export default function MyTripsPage(): React.ReactNode {
           </div>
           <FilterTabs
             tabs={[
-              { value: "all" as FilterTab, label: `ทั้งหมด (${trips.length})` },
-              { value: "pending_review" as FilterTab, label: `รอตรวจสอบ (${trips.filter(t => t.status === "PendingReview").length})` },
-              { value: "published" as FilterTab, label: `เผยแพร่ (${trips.filter(t => t.status === "Published").length})` },
-              { value: "draft" as FilterTab, label: `ร่าง (${trips.filter(t => t.status === "Draft").length})` },
-              { value: "unpublished" as FilterTab, label: "ปิดแล้ว" },
-              { value: "archived" as FilterTab, label: `จบแล้ว (${trips.filter(t => t.status === "Archived").length})` },
+              { id: "all" as FilterTab, label: `ทั้งหมด (${trips.length})` },
+              { id: "pending_review" as FilterTab, label: `รอตรวจสอบ (${trips.filter(t => t.status === "PendingReview").length})` },
+              { id: "published" as FilterTab, label: `เผยแพร่ (${trips.filter(t => t.status === "Published").length})` },
+              { id: "draft" as FilterTab, label: `ร่าง (${trips.filter(t => t.status === "Draft").length})` },
+              { id: "unpublished" as FilterTab, label: "ปิดแล้ว" },
+              { id: "archived" as FilterTab, label: `จบแล้ว (${trips.filter(t => t.status === "Archived").length})` },
             ]}
-            active={filter}
-            onChange={setFilter}
+            activeTab={filter}
+            onTabChange={(v) => setFilter(v as FilterTab)}
           />
         </div>
 
@@ -277,9 +277,9 @@ export default function MyTripsPage(): React.ReactNode {
           try {
             await api.delete(`/admin/trips/${deleteTarget.id}`);
             setTrips((prev) => prev.filter((t) => t.id !== deleteTarget.id));
-            toast("ลบทริปเรียบร้อย", "success");
+            toast.success("ลบทริปเรียบร้อย");
           } catch (err) {
-            toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+            toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
           }
           setDeleteTarget(null);
         }}

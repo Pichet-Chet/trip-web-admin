@@ -81,7 +81,7 @@ export default function MyDataPage(): React.ReactNode {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast("ดาวน์โหลดข้อมูลเรียบร้อย", "success");
+    toast.success("ดาวน์โหลดข้อมูลเรียบร้อย");
   }
 
   if (loading) return <PageSkeleton />;

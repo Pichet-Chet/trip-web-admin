@@ -6,7 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useLanguages } from "@/lib/hooks/use-languages";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import { ROUTES } from "@/constants/routes";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ export default function TranslationsPage(): React.ReactNode {
         setSupportedLangs(langs);
         if (langs.length > 0) setActiveLang(langs[0]);
       })
-      .catch(() => toast("ไม่สามารถโหลดข้อมูลได้", "error"))
+      .catch(() => toast.error("ไม่สามารถโหลดข้อมูลได้"))
       .finally(() => setLoading(false));
   }, [tripId]);
 
@@ -93,7 +93,7 @@ export default function TranslationsPage(): React.ReactNode {
         setTranslations(map);
         setDirty(false);
       })
-      .catch(() => toast("ไม่สามารถโหลดคำแปลได้", "error"));
+      .catch(() => toast.error("ไม่สามารถโหลดคำแปลได้"));
   }, [tripId, activeLang]);
 
   const getValue = (field: string, targetId?: string | null): string =>
@@ -123,9 +123,9 @@ export default function TranslationsPage(): React.ReactNode {
       }));
       await api.put(`/admin/trips/${tripId}/translations`, { languageCode: activeLang, items });
       setDirty(false);
-      toast("บันทึกคำแปลเรียบร้อย", "success");
+      toast.success("บันทึกคำแปลเรียบร้อย");
     } catch {
-      toast("บันทึกไม่สำเร็จ กรุณาลองใหม่", "error");
+      toast.error("บันทึกไม่สำเร็จ กรุณาลองใหม่");
     } finally {
       setSaving(false);
     }
@@ -149,13 +149,12 @@ export default function TranslationsPage(): React.ReactNode {
       });
       setTranslations(map);
       setDirty(false);
-      toast(
+      toast.success(
         `แปลอัตโนมัติเสร็จ: ${resp.translatedCount} ช่อง, ข้าม ${resp.skippedCount} ช่อง`,
-        "success"
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "แปลอัตโนมัติไม่สำเร็จ";
-      toast(msg, "error");
+      toast.error(msg);
     } finally {
       setAutoTranslating(false);
     }

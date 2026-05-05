@@ -52,7 +52,7 @@ export default function PostsPage(): React.ReactNode {
   useEffect(() => {
     api.get<PostResponse[]>("/admin/posts")
       .then(setPosts)
-      .catch((err) => toast(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ", "error"))
+      .catch((err) => toast.error(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ"))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -74,10 +74,10 @@ export default function PostsPage(): React.ReactNode {
     try {
       await api.delete(`/admin/posts/${deleteTarget.id}`);
       setPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-      toast("ลบแพ็กเกจเรียบร้อยแล้ว", "success");
+      toast.success("ลบแพ็กเกจเรียบร้อยแล้ว");
       setDeleteTarget(null);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
     } finally {
       setDeleting(false);
     }
@@ -111,13 +111,13 @@ export default function PostsPage(): React.ReactNode {
         </div>
         <FilterTabs
           tabs={[
-            { value: "all" as FilterTab, label: "ทั้งหมด" },
-            { value: "published" as FilterTab, label: "เปิดรับ" },
-            { value: "draft" as FilterTab, label: "ร่าง" },
-            { value: "closed" as FilterTab, label: "ปิดรับแล้ว" },
+            { id: "all" as FilterTab, label: "ทั้งหมด" },
+            { id: "published" as FilterTab, label: "เปิดรับ" },
+            { id: "draft" as FilterTab, label: "ร่าง" },
+            { id: "closed" as FilterTab, label: "ปิดรับแล้ว" },
           ]}
-          active={filter}
-          onChange={setFilter}
+          activeTab={filter}
+          onTabChange={(v) => setFilter(v as FilterTab)}
         />
       </div>
 

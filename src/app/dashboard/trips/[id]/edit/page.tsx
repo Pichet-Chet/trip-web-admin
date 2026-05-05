@@ -17,7 +17,7 @@ import { ActivityEditorCard } from "./_components/activity-editor-card";
 import { ActivityBottomSheet } from "./_components/activity-bottom-sheet";
 import { QuickActivityInput } from "./_components/quick-activity-input";
 import { DayContextPanel } from "./_components/day-context-panel";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import type { TripDay, TripActivity } from "@/types";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
@@ -347,7 +347,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       try {
         await loadTrip();
       } catch (err) {
-        if (!cancelled) toast(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้", "error");
+        if (!cancelled) toast.error(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -364,7 +364,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       endAutoSave(true);
     } catch {
       endAutoSave(false);
-      toast("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      toast.error("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...");
       await rollbackOnFailure();
     }
   }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
@@ -379,7 +379,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       endAutoSave(true);
     } catch {
       endAutoSave(false);
-      toast("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      toast.error("ไม่สามารถบันทึกได้ กำลังโหลดข้อมูลล่าสุด...");
       await rollbackOnFailure();
     }
   }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
@@ -408,7 +408,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
         )
       );
     } catch {
-      toast("ไม่สามารถเพิ่มกิจกรรมได้", "error");
+      toast.error("ไม่สามารถเพิ่มกิจกรรมได้");
       await rollbackOnFailure();
     } finally {
       setAddingActivity(false);
@@ -437,47 +437,12 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     try {
       await api.delete(`/admin/days/${dayId}/activities/${actId}`);
     } catch {
-      toast("ไม่สามารถลบกิจกรรมได้", "error");
+      toast.error("ไม่สามารถลบกิจกรรมได้");
       await rollbackOnFailure();
       return;
     }
 
-    toast("ลบกิจกรรมแล้ว", "info", {
-      durationMs: 5000,
-      action: {
-        label: "ยกเลิก",
-        onClick: async (dismiss) => {
-          dismiss();
-          // Re-create with all fields from the deleted snapshot. Server
-          // assigns a fresh id; we splice the new row back in at the
-          // original index so visual order is preserved.
-          try {
-            const created = await api.post<ActivityDetailApi>(
-              `/admin/days/${dayId}/activities`,
-              {
-                time: removedActivity.time,
-                name: removedActivity.name,
-                description: removedActivity.description,
-                type: removedActivity.type,
-                placeName: removedActivity.placeName,
-                mapsLink: removedActivity.mapsLink,
-                emoji: removedActivity.emoji,
-              },
-            );
-            const restored = mapActivity(created, dayId);
-            setDays((prev) => prev.map((d) => {
-              if (d.id !== dayId) return d;
-              const next = [...d.activities];
-              next.splice(Math.max(0, Math.min(removedIndex, next.length)), 0, restored);
-              return { ...d, activities: next };
-            }));
-          } catch {
-            toast("ไม่สามารถกู้คืนได้", "error");
-            await rollbackOnFailure();
-          }
-        },
-      },
-    });
+    toast.info("ลบกิจกรรมแล้ว", 5000);
   }, [days, toast, rollbackOnFailure]);
 
   const updateActivityField = useCallback(async (dayId: string, actId: string, field: string, value: string | null) => {
@@ -494,7 +459,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       endAutoSave(true);
     } catch {
       endAutoSave(false);
-      toast("ไม่สามารถบันทึกกิจกรรมได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      toast.error("ไม่สามารถบันทึกกิจกรรมได้ กำลังโหลดข้อมูลล่าสุด...");
       await rollbackOnFailure();
     }
   }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
@@ -513,7 +478,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       endAutoSave(true);
     } catch {
       endAutoSave(false);
-      toast("ไม่สามารถบันทึกรูปภาพได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      toast.error("ไม่สามารถบันทึกรูปภาพได้ กำลังโหลดข้อมูลล่าสุด...");
       await rollbackOnFailure();
     }
   }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
@@ -527,7 +492,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       endAutoSave(true);
     } catch {
       endAutoSave(false);
-      toast("ไม่สามารถบันทึกภาพปกได้ กำลังโหลดข้อมูลล่าสุด...", "error");
+      toast.error("ไม่สามารถบันทึกภาพปกได้ กำลังโหลดข้อมูลล่าสุด...");
       await rollbackOnFailure();
     }
   }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
@@ -561,9 +526,9 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
         }
       }
       await Promise.all(promises);
-      toast("บันทึกร่างสำเร็จ");
+      toast.success("บันทึกร่างสำเร็จ");
     } catch {
-      toast("ไม่สามารถบันทึกร่างได้", "error");
+      toast.error("ไม่สามารถบันทึกร่างได้");
     } finally {
       setSaving(false);
     }
@@ -600,7 +565,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
       await Promise.all(promises);
       router.push(ROUTES.tripPreview(id));
     } catch {
-      toast("ไม่สามารถบันทึกได้ กรุณาลองอีกครั้ง", "error");
+      toast.error("ไม่สามารถบันทึกได้ กรุณาลองอีกครั้ง");
     } finally {
       setSaving(false);
     }
@@ -609,7 +574,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   /* ─── Auto Fill (fill activities into existing days) ─── */
   const handleAutoFill = useCallback(async () => {
     if (days.length === 0) {
-      toast("ยังไม่มีวัน กรุณาตรวจสอบวันเดินทาง", "error");
+      toast.error("ยังไม่มีวัน กรุณาตรวจสอบวันเดินทาง");
       return;
     }
 
@@ -657,9 +622,9 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
         }
 
         setDays(updatedDays);
-        toast("เพิ่มข้อมูลตัวอย่างสำเร็จ");
+        toast.success("เพิ่มข้อมูลตัวอย่างสำเร็จ");
       } catch {
-        toast("ไม่สามารถเพิ่มข้อมูลตัวอย่างได้", "error");
+        toast.error("ไม่สามารถเพิ่มข้อมูลตัวอย่างได้");
       }
     }
   }, [id, days, toast]);

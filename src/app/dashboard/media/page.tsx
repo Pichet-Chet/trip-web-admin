@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { api, ApiError } from "@/lib/api";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import { Skeleton, ConfirmDialog, EmptyState, Pagination } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -93,7 +93,7 @@ export default function MediaPage(): React.ReactNode {
       counts["__all__"] = allData.totalCount;
       setFolderCounts(counts);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลได้", "error");
+      toast.error(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลได้");
     } finally {
       setLoading(false);
     }
@@ -137,10 +137,10 @@ export default function MediaPage(): React.ReactNode {
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
     if (successCount > 0) {
-      toast(`อัปโหลดสำเร็จ ${successCount} ไฟล์`);
+      toast.success(`อัปโหลดสำเร็จ ${successCount} ไฟล์`);
       load();
     } else if (lastError) {
-      toast(lastError, "error");
+      toast.error(lastError);
     }
   }
 
@@ -148,18 +148,18 @@ export default function MediaPage(): React.ReactNode {
     if (!deleteTarget) return;
     try {
       await api.delete(`/admin/media/${deleteTarget.id}`);
-      toast("ลบสำเร็จ");
+      toast.success("ลบสำเร็จ");
       setDeleteTarget(null);
       setSelectedId(null);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
     }
   }
 
   function copyUrl(url: string) {
     navigator.clipboard.writeText(url);
-    toast("คัดลอก URL แล้ว");
+    toast.success("คัดลอก URL แล้ว");
   }
 
   function downloadFile(url: string, fileName: string) {
@@ -179,10 +179,10 @@ export default function MediaPage(): React.ReactNode {
       setFolder(name);
       setShowNewFolder(false);
       setNewFolderName("");
-      toast(`สร้างโฟลเดอร์ "${name}" สำเร็จ`);
+      toast.success(`สร้างโฟลเดอร์ "${name}" สำเร็จ`);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "สร้างโฟลเดอร์ไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "สร้างโฟลเดอร์ไม่สำเร็จ");
     }
   }
 
@@ -190,34 +190,34 @@ export default function MediaPage(): React.ReactNode {
     if (!renamingFolder || !renameFolderValue.trim()) return;
     try {
       await api.put("/admin/media/folders/rename", { oldName: renamingFolder, newName: renameFolderValue.trim() });
-      toast("เปลี่ยนชื่อโฟลเดอร์สำเร็จ");
+      toast.success("เปลี่ยนชื่อโฟลเดอร์สำเร็จ");
       if (folder === renamingFolder) setFolder(renameFolderValue.trim());
       setRenamingFolder(null);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เปลี่ยนชื่อไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "เปลี่ยนชื่อไม่สำเร็จ");
     }
   }
 
   async function handleDeleteFolder(name: string) {
     try {
       await api.delete(`/admin/media/folders/${encodeURIComponent(name)}`);
-      toast("ลบโฟลเดอร์สำเร็จ ไฟล์ถูกย้ายไปทั้งหมด");
+      toast.success("ลบโฟลเดอร์สำเร็จ ไฟล์ถูกย้ายไปทั้งหมด");
       if (folder === name) setFolder("");
       setContextFolder(null);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
     }
   }
 
   async function handleMoveToFolder(mediaId: string, targetFolder: string) {
     try {
       await api.put(`/admin/media/${mediaId}/move`, { folder: targetFolder });
-      toast("ย้ายไฟล์สำเร็จ");
+      toast.success("ย้ายไฟล์สำเร็จ");
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ย้ายไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ย้ายไม่สำเร็จ");
     }
   }
 
@@ -489,7 +489,7 @@ export default function MediaPage(): React.ReactNode {
                     type="text"
                     value={selectedItem.altText || ""}
                     onChange={(e) => setItems((prev) => prev.map((m) => m.id === selectedItem.id ? { ...m, altText: e.target.value } : m))}
-                    onBlur={(e) => { api.put(`/admin/media/${selectedItem.id}/alt`, { altText: e.target.value || null }).catch(() => toast("บันทึก Alt Text ไม่สำเร็จ", "error")); }}
+                    onBlur={(e) => { api.put(`/admin/media/${selectedItem.id}/alt`, { altText: e.target.value || null }).catch(() => toast.error("บันทึก Alt Text ไม่สำเร็จ")); }}
                     placeholder="Alt Text (สำหรับ SEO) เช่น ทริปญี่ปุ่น วัดคินคาคุจิ..."
                     className="w-full px-3 py-1.5 rounded-lg bg-white border border-(--outline-variant)/30 text-xs text-(--on-surface) placeholder:text-(--outline)/40 outline-none focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/20 transition-all"
                   />

@@ -10,7 +10,7 @@ import { CookieBanner } from "@/components/cookie-banner";
 import { NotificationBell } from "@/components/notification-bell";
 import { QuotaWarningBanner } from "@/components/quota-warning-banner";
 import { subscribe, logout, switchCompany, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
 export function useSidebar(): { openSidebar: () => void } { return useContext(SidebarContext); }

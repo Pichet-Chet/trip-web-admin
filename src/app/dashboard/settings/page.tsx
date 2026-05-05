@@ -56,7 +56,7 @@ export default function SettingsPage(): React.ReactNode {
         oldPassword,
         newPassword,
       });
-      toast("เปลี่ยนรหัสผ่านเรียบร้อย", "success");
+      toast.success("เปลี่ยนรหัสผ่านเรียบร้อย");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -78,9 +78,9 @@ export default function SettingsPage(): React.ReactNode {
       link.download = `tripapp-export-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       URL.revokeObjectURL(url);
-      toast("ส่งออกข้อมูลเรียบร้อย", "success");
+      toast.success("ส่งออกข้อมูลเรียบร้อย");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ส่งออกข้อมูลไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ส่งออกข้อมูลไม่สำเร็จ");
     } finally {
       setExporting(false);
     }
@@ -99,7 +99,7 @@ export default function SettingsPage(): React.ReactNode {
         reason: deleteReason.trim() || undefined,
       });
       await logout().catch(() => {});
-      toast("ลบบัญชีเรียบร้อย", "success");
+      toast.success("ลบบัญชีเรียบร้อย");
       router.push("/login");
     } catch (err) {
       setDeleteError(err instanceof ApiError ? err.message : "ลบบัญชีไม่สำเร็จ");

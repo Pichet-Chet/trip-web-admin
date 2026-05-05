@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 
 interface TripTemplate {
   id: string;
@@ -46,11 +46,11 @@ export function TemplatePickerModal({ open, onClose }: TemplatePickerModalProps)
     setCloning(template.id);
     try {
       const result = await api.post<{ id: string; title: string }>(`/admin/trips/${template.id}/clone`);
-      toast(`สร้างจาก template เรียบร้อย: ${result.title}`, "success");
+      toast.success(`สร้างจาก template เรียบร้อย: ${result.title}`);
       onClose();
       router.push(ROUTES.tripEdit(result.id));
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "Clone ไม่สำเร็จ กรุณาลองใหม่", "error");
+      toast.error(err instanceof ApiError ? err.message : "Clone ไม่สำเร็จ กรุณาลองใหม่");
     } finally {
       setCloning(null);
     }

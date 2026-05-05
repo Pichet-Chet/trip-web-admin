@@ -123,7 +123,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ id: string 
 
   useEffect(() => {
     reload()
-      .catch((err) => toast(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ", "error"))
+      .catch((err) => toast.error(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ"))
       .finally(() => setLoading(false));
   }, [reload, toast]);
 
@@ -133,7 +133,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ id: string 
       const data = await api.get<SettlementResponse>(`/admin/trips/${tripId}/expenses/settlement`);
       setSettlement(data);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "คำนวณไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "คำนวณไม่สำเร็จ");
     } finally {
       setSettlementLoading(false);
     }
@@ -181,12 +181,12 @@ export default function ExpensesPage({ params }: { params: Promise<{ id: string 
 
   async function handleSave() {
     if (!paidBy || !amount || !description || selectedParticipants.size === 0) {
-      toast("กรุณากรอกข้อมูลให้ครบ", "error");
+      toast.error("กรุณากรอกข้อมูลให้ครบ");
       return;
     }
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      toast("จำนวนเงินไม่ถูกต้อง", "error");
+      toast.error("จำนวนเงินไม่ถูกต้อง");
       return;
     }
 
@@ -211,11 +211,11 @@ export default function ExpensesPage({ params }: { params: Promise<{ id: string 
       } else {
         await api.post(`/admin/trips/${tripId}/expenses`, body);
       }
-      toast(editingId ? "อัปเดตเรียบร้อย" : "เพิ่มรายการเรียบร้อย", "success");
+      toast.success(editingId ? "อัปเดตเรียบร้อย" : "เพิ่มรายการเรียบร้อย");
       setShowForm(false);
       await reload();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ");
     } finally {
       setSaving(false);
     }
@@ -225,11 +225,11 @@ export default function ExpensesPage({ params }: { params: Promise<{ id: string 
     if (!deleteId) return;
     try {
       await api.delete(`/admin/trips/${tripId}/expenses/${deleteId}`);
-      toast("ลบเรียบร้อย");
+      toast.success("ลบเรียบร้อย");
       setDeleteId(null);
       await reload();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
     }
   }
 

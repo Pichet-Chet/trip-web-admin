@@ -37,10 +37,10 @@ const ACTION_META: Record<string, { label: string; icon: string; tone: string }>
 };
 
 const FILTERS = [
-  { value: "all", label: "ทั้งหมด" },
-  { value: "login", label: "การเข้าสู่ระบบ" },
-  { value: "password_changed", label: "รหัสผ่าน" },
-  { value: "data_exported", label: "ดาวน์โหลดข้อมูล" },
+  { id: "all", label: "ทั้งหมด" },
+  { id: "login", label: "การเข้าสู่ระบบ" },
+  { id: "password_changed", label: "รหัสผ่าน" },
+  { id: "data_exported", label: "ดาวน์โหลดข้อมูล" },
 ];
 
 export default function ActivityPage(): React.ReactNode {
@@ -98,9 +98,9 @@ export default function ActivityPage(): React.ReactNode {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(dlUrl);
-      toast("ดาวน์โหลดเรียบร้อย", "success");
+      toast.success("ดาวน์โหลดเรียบร้อย");
     } catch {
-      toast("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่", "error");
+      toast.error("ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่");
     }
   }
 
@@ -147,8 +147,8 @@ export default function ActivityPage(): React.ReactNode {
 
       <FilterTabs
         tabs={FILTERS}
-        active={filter}
-        onChange={(v) => { setFilter(v); setPage(1); }}
+        activeTab={filter}
+        onTabChange={(v) => { setFilter(v); setPage(1); }}
       />
 
       {loading ? (

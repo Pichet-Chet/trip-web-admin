@@ -242,13 +242,13 @@ export default function DashboardPage(): React.ReactNode {
           {trips.length > 0 && (
             <FilterTabs
               tabs={[
-                { value: "all" as FilterTab, label: `ทั้งหมด (${trips.length})` },
-                { value: "draft" as FilterTab, label: `ร่าง (${trips.filter(t => t.status === "Draft").length})` },
-                { value: "published" as FilterTab, label: `เผยแพร่ (${trips.filter(t => t.status === "Published").length})` },
-                { value: "active" as FilterTab, label: "กำลังเดินทาง" },
+                { id: "all" as FilterTab, label: `ทั้งหมด (${trips.length})` },
+                { id: "draft" as FilterTab, label: `ร่าง (${trips.filter(t => t.status === "Draft").length})` },
+                { id: "published" as FilterTab, label: `เผยแพร่ (${trips.filter(t => t.status === "Published").length})` },
+                { id: "active" as FilterTab, label: "กำลังเดินทาง" },
               ]}
-              active={filter}
-              onChange={setFilter}
+              activeTab={filter}
+              onTabChange={(v) => setFilter(v as FilterTab)}
             />
           )}
         </div>

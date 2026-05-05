@@ -85,10 +85,10 @@ export default function NotificationsPage(): React.ReactNode {
     if (!data || data.unreadCount === 0) return;
     try {
       await api.post("/me/notifications/read-all", {});
-      toast("อ่านทั้งหมดเรียบร้อย", "success");
+      toast.success("อ่านทั้งหมดเรียบร้อย");
       await load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ไม่สำเร็จ");
     }
   }
 

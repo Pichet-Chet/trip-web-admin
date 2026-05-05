@@ -34,7 +34,7 @@ export function EmailChangeSection(): React.ReactNode {
     setError(null);
     try {
       const msg = await api.post<string>("/admin/me/email/request-change", { password, newEmail: newEmail.trim() });
-      toast(typeof msg === "string" ? msg : "ส่งลิงก์ยืนยันแล้ว", "success");
+      toast.success(typeof msg === "string" ? msg : "ส่งลิงก์ยืนยันแล้ว");
       setOpen(false);
       setPassword("");
       setNewEmail("");
@@ -50,10 +50,10 @@ export function EmailChangeSection(): React.ReactNode {
     if (!confirm("ยกเลิกคำขอเปลี่ยนอีเมล?")) return;
     try {
       await api.post("/admin/me/email/cancel-change", {});
-      toast("ยกเลิกแล้ว", "success");
+      toast.success("ยกเลิกแล้ว");
       await load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ยกเลิกไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ยกเลิกไม่สำเร็จ");
     }
   }
 

@@ -27,7 +27,7 @@ import dynamic from "next/dynamic";
 const DevAutoFill = process.env.NODE_ENV === "development"
   ? dynamic(() => import("@/components/shared/dev-auto-fill").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
-import { useToast } from "@/components/shared/toast";
+import { useToast } from "@/components/shared";
 import type { Accommodation, TripPlan } from "@/types";
 
 const emptyHotel: Accommodation = { name: "", address: "", phone: "", checkIn: "", checkOut: "", nights: 1 };
@@ -548,8 +548,8 @@ export default function NewTripPage(): React.ReactNode {
     }
 
     setFieldErrors(errors);
-    if (errors._hotels) toast(errors._hotels, "error");
-    if (errors._contacts) toast(errors._contacts, "error");
+    if (errors._hotels) toast.error(errors._hotels);
+    if (errors._contacts) toast.error(errors._contacts);
     return Object.keys(errors).length === 0;
   }
 
@@ -695,7 +695,7 @@ export default function NewTripPage(): React.ReactNode {
         endAutoSave(false);
       } else {
         setApiError(msg);
-        toast(msg, "error");
+        toast.error(msg);
       }
     } finally {
       if (!silent) setLoading(false);

@@ -159,9 +159,9 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       a.download = `trip-${tripId}.ics`;
       a.click();
       URL.revokeObjectURL(url);
-      toast("ดาวน์โหลดไฟล์ปฏิทินแล้ว");
+      toast.success("ดาวน์โหลดไฟล์ปฏิทินแล้ว");
     } catch {
-      toast("ไม่สามารถสร้างไฟล์ปฏิทินได้", "error");
+      toast.error("ไม่สามารถสร้างไฟล์ปฏิทินได้");
     }
   }, [tripId, toast]);
 
@@ -181,9 +181,9 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       a.download = `trip-${tripId}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast("ดาวน์โหลด PDF แล้ว");
+      toast.success("ดาวน์โหลด PDF แล้ว");
     } catch {
-      toast("ไม่สามารถสร้าง PDF ได้", "error");
+      toast.error("ไม่สามารถสร้าง PDF ได้");
     }
   }, [tripId, toast]);
 
@@ -201,7 +201,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
   useEffect(() => {
     reload()
       .catch((err) => {
-        toast(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ", "error");
+        toast.error(err instanceof ApiError ? err.message : "โหลดข้อมูลไม่สำเร็จ");
       })
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -216,10 +216,10 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
         ? `/admin/trips/${tripId}/notify/${logId}`
         : `/admin/trips/${tripId}/notify/${logId}/resend`;
       await api.post(path);
-      toast(mode === "send" ? "ส่งการแจ้งเตือนเรียบร้อย" : "ส่งซ้ำเรียบร้อย", "success");
+      toast.success(mode === "send" ? "ส่งการแจ้งเตือนเรียบร้อย" : "ส่งซ้ำเรียบร้อย");
       await reload();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ส่งไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ส่งไม่สำเร็จ");
     } finally {
       setSending(null);
       setConfirmAction(null);
@@ -231,7 +231,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       await api.put(`/admin/trips/${tripId}/followers/${followerId}/role`, { role: role || null });
       setFollowers((prev) => prev.map((f) => f.id === followerId ? { ...f, groupRole: role || null } : f));
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "อัปเดตบทบาทไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "อัปเดตบทบาทไม่สำเร็จ");
     }
   }
 
@@ -246,10 +246,10 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       });
       setAnnouncementMsg("");
       setAnnouncementPinned(false);
-      toast("โพสต์ประกาศเรียบร้อย" + (announcementNotify ? " · กำลังส่งแจ้งเตือน" : ""), "success");
+      toast.success("โพสต์ประกาศเรียบร้อย" + (announcementNotify ? " · กำลังส่งแจ้งเตือน" : ""));
       await reload();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "โพสต์ไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "โพสต์ไม่สำเร็จ");
     } finally {
       setPostingAnnouncement(false);
     }
@@ -260,17 +260,17 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       await api.put(`/admin/trips/${tripId}/announcements/${a.id}/pin`, { isPinned: !a.isPinned });
       await reload();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "อัปเดตไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "อัปเดตไม่สำเร็จ");
     }
   }
 
   async function handleDeleteAnnouncement(id: string) {
     try {
       await api.delete(`/admin/trips/${tripId}/announcements/${id}`);
-      toast("ลบประกาศแล้ว");
+      toast.success("ลบประกาศแล้ว");
       await reload();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ");
     }
   }
 
@@ -282,7 +282,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       const data = await api.get<ReceiptResponse>(`/admin/trips/${tripId}/changelog/${log.id}/receipts`);
       setReceiptData(data);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "โหลดสถานะการอ่านไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "โหลดสถานะการอ่านไม่สำเร็จ");
       setReceiptOpen(null);
     } finally {
       setReceiptLoading(false);

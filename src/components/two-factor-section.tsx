@@ -37,7 +37,7 @@ export function TwoFactorSection(): React.ReactNode {
       const res = await api.get<Status>("/admin/me/2fa/status");
       setStatus(res);
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "โหลด 2FA status ไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "โหลด 2FA status ไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export function TwoFactorSection(): React.ReactNode {
       setQrDataUrl(dataUrl);
       setMode("setup");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เริ่มตั้งค่าไม่สำเร็จ", "error");
+      toast.error(err instanceof ApiError ? err.message : "เริ่มตั้งค่าไม่สำเร็จ");
     } finally {
       setBusy(false);
     }
@@ -91,7 +91,7 @@ export function TwoFactorSection(): React.ReactNode {
     setError(null);
     try {
       await api.post("/admin/me/2fa/disable", { password, code });
-      toast("ปิดใช้งาน 2FA เรียบร้อย", "success");
+      toast.success("ปิดใช้งาน 2FA เรียบร้อย");
       reset();
       await load();
     } catch (err) {

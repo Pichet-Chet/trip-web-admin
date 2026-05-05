@@ -177,7 +177,7 @@ export default function ProfilePage(): React.ReactNode {
         portfolioBio: form.portfolioBio || undefined,
       });
       setOriginal(form);
-      toast("บันทึกสำเร็จ", "success");
+      toast.success("บันทึกสำเร็จ");
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
@@ -384,7 +384,7 @@ export default function ProfilePage(): React.ReactNode {
               <span className="text-sm text-slate-500 truncate flex-1 font-mono">tripapp.co/g/{form.portfolioSlug || "your-slug"}</span>
               <button
                 type="button"
-                onClick={() => { navigator.clipboard.writeText(`tripapp.co/g/${form.portfolioSlug}`); toast("คัดลอกลิงก์แล้ว"); }}
+                onClick={() => { navigator.clipboard.writeText(`tripapp.co/g/${form.portfolioSlug}`); toast.success("คัดลอกลิงก์แล้ว"); }}
                 disabled={!form.portfolioSlug}
                 className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
@@ -521,7 +521,7 @@ function TeamSection(): React.ReactNode {
       setPendingInvites((prev) => [inv, ...prev]);
       setShowInvite(false);
       setInvite({ email: "", role: "Editor" });
-      toast("ส่งคำเชิญแล้ว", "success");
+      toast.success("ส่งคำเชิญแล้ว");
     } catch (err) {
       setInviteError(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด");
     } finally {
@@ -533,9 +533,9 @@ function TeamSection(): React.ReactNode {
     try {
       await api.delete(`/admin/company/team/invite/${id}`);
       setPendingInvites((prev) => prev.filter((i) => i.id !== id));
-      toast("ยกเลิกคำเชิญสำเร็จ", "success");
+      toast.success("ยกเลิกคำเชิญสำเร็จ");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด", "error");
+      toast.error(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด");
     }
   }
 
@@ -550,9 +550,9 @@ function TeamSection(): React.ReactNode {
     try {
       await api.delete(`/admin/company/team/${id}`);
       setMembers((prev) => prev.filter((m) => m.id !== id));
-      toast("ลบสมาชิกสำเร็จ", "success");
+      toast.success("ลบสมาชิกสำเร็จ");
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด", "error");
+      toast.error(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด");
     }
   }
 
