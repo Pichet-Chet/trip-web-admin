@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { ConfirmDialog, ErrorState, StatusBadge } from "@/components/shared";
-import type { StatusConfig } from "@trip/ui";
+import type { StatusConfig } from "@pichetch08/trip-ui";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";

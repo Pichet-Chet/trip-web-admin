@@ -9,7 +9,7 @@ import dynamic from "next/dynamic";
 // DevAutoFill is gated by NEXT_PUBLIC_DEV_TOOLS so it can be enabled
 // in any environment via .env.local without requiring `npm run dev`.
 const DevAutoFill = process.env.NEXT_PUBLIC_DEV_TOOLS === "true"
-  ? dynamic(() => import("@trip/ui").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
+  ? dynamic(() => import("@pichetch08/trip-ui").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog } from "@/components/shared";

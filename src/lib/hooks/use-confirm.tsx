@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
-import { ConfirmDialog } from "@trip/ui";
+import { ConfirmDialog } from "@pichetch08/trip-ui";
 
 interface ConfirmOptions {
   title: string;

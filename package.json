@@ -14,9 +14,10 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@trip/ui": "file:../trip-ui-component",
+    "@pichetch08/trip-ui": "^0.1.0",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
+    "@trip/ui": "file:../trip-ui-component",
     "@types/dompurify": "^3.0.5",
     "@types/leaflet": "^1.9.21",
     "@types/qrcode": "^1.5.6",

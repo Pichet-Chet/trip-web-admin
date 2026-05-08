@@ -1,4 +1,4 @@
-export * from "@trip/ui";
+export * from "@pichetch08/trip-ui";
 export { AuthGuard } from "./app/auth-guard";
 export { MediaLibraryModal } from "./media/media-library-modal";
 export { RemoteLegalContent } from "./legal/remote-legal-content";

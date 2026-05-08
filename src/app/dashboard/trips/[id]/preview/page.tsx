@@ -898,7 +898,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                     {/* LINE */}
                     <div className="p-4 bg-(--primary-container)/20 rounded-2xl border border-(--primary)/10">
                       <div className="flex items-start gap-4">
-                        <IconWrapper icon="chat" size="md" color="bg-[#06C755] text-white" />
+                        <IconWrapper icon="chat" size="md" className="bg-[#06C755] text-white" />
                         <div className="flex-1">
                           <h4 className="font-bold text-(--on-surface) text-sm">ข้อความ LINE สำเร็จรูป</h4>
                           <p className="text-xs text-(--on-surface-variant) mt-1 mb-4 italic line-clamp-2">
