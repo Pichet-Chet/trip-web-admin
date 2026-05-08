@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
 import { getUser, type UserInfo } from "@/lib/auth";
+import { useDashboard } from "@/lib/contexts/dashboard-context";
 
 const navItems = [
   { label: "หน้าหลัก", href: ROUTES.dashboard, icon: "dashboard" },
@@ -20,8 +20,8 @@ const navItems = [
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }): React.ReactNode {
   const pathname = usePathname();
-  const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const { ticketUnread } = useDashboard();
 
   // getUser() lives in module memory; poll briefly until the AuthGuard refresh
   // hydrates it, then stop. Same pattern the dashboard layout uses.
@@ -33,23 +33,6 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       if (u) { setUser(u); clearInterval(interval); }
     }, 200);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchBadge = () => {
-      if (document.hidden) return;
-      api.get<{ unread: number }>("/admin/support/tickets/summary")
-        .then((s) => setUnreadCount(s.unread))
-        .catch(() => {});
-    };
-    fetchBadge();
-    const interval = setInterval(fetchBadge, 60_000);
-    const onVisible = () => { if (!document.hidden) fetchBadge(); };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
   }, []);
 
   return (
@@ -97,9 +80,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                     {item.icon}
                   </span>
                   <span className="text-sm font-medium md:hidden lg:block">{item.label}</span>
-                  {item.href === "/dashboard/support/tickets" && unreadCount > 0 && (
+                  {item.href === "/dashboard/support/tickets" && ticketUnread > 0 && (
                     <span className="ml-auto md:hidden lg:flex shrink-0 min-w-5 h-5 items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1">
-                      {unreadCount > 99 ? "99+" : unreadCount}
+                      {ticketUnread > 99 ? "99+" : ticketUnread}
                     </span>
                   )}
                 </Link>

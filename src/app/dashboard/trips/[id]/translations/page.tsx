@@ -2,11 +2,21 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useLanguages } from "@/lib/hooks/use-languages";
-import { useToast } from "@/components/shared";
+import {
+  useToast,
+  PageSkeleton,
+  EmptyState,
+  PageHeader,
+  FilterTabs,
+  SectionHeader,
+  FormInput,
+  FormTextarea,
+  Badge,
+  ConfirmDialog,
+} from "@/components/shared";
 import { ROUTES } from "@/constants/routes";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,7 +49,66 @@ interface TripData {
   }[];
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── FieldRow ─────────────────────────────────────────────────────────────────
+
+interface FieldRowProps {
+  label: string;
+  original: string;
+  multiline?: boolean;
+  value: string;
+  source?: "manual" | "auto";
+  langLabel: string;
+  onChange: (value: string) => void;
+}
+
+function FieldRow({ label, original, multiline, value, source, langLabel, onChange }: FieldRowProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-3 border-b border-(--outline-variant)/20 last:border-0">
+      {/* Original */}
+      <div className="space-y-1">
+        <p className="text-[11px] font-bold text-(--on-surface-variant) uppercase tracking-widest">{label}</p>
+        {multiline ? (
+          <div className="text-sm text-(--on-surface-variant) bg-(--surface-container-low) rounded-xl px-3 py-2 whitespace-pre-wrap min-h-16">
+            {original || <span className="opacity-40 italic">ไม่มีข้อมูล</span>}
+          </div>
+        ) : (
+          <p className="text-sm text-(--on-surface) font-medium px-1">
+            {original || <span className="text-(--on-surface-variant) italic opacity-60">ไม่มีข้อมูล</span>}
+          </p>
+        )}
+      </div>
+
+      {/* Translation */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <p className="text-[11px] font-bold text-(--primary) uppercase tracking-widest flex-1">{langLabel}</p>
+          {source && (
+            <Badge variant={source === "auto" ? "warning" : "success"}>
+              {source === "auto" ? "แปลอัตโนมัติ" : "แก้ด้วยตนเอง"}
+            </Badge>
+          )}
+        </div>
+        {multiline ? (
+          <FormTextarea
+            rows={4}
+            placeholder="พิมพ์คำแปล..."
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        ) : (
+          <FormInput
+            type="text"
+            placeholder="พิมพ์คำแปล..."
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function TranslationsPage(): React.ReactNode {
   const { id: tripId } = useParams<{ id: string }>();
@@ -50,16 +119,16 @@ export default function TranslationsPage(): React.ReactNode {
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
   const [activeLang, setActiveLang] = useState<string>("");
+  const [pendingLang, setPendingLang] = useState<string | null>(null);
   const [translations, setTranslations] = useState<Record<string, TranslationItem>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoTranslating, setAutoTranslating] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [autoMenuOpen, setAutoMenuOpen] = useState(false);
 
-  const makeKey = (field: string, targetId?: string | null) =>
-    `${field}::${targetId ?? ""}`;
+  const makeKey = (field: string, targetId?: string | null) => `${field}::${targetId ?? ""}`;
 
-  // Load trip data + supported languages
   useEffect(() => {
     if (!tripId) return;
     setLoading(true);
@@ -77,7 +146,6 @@ export default function TranslationsPage(): React.ReactNode {
       .finally(() => setLoading(false));
   }, [tripId]);
 
-  // Reload translations when active language changes
   useEffect(() => {
     if (!tripId || !activeLang) return;
     api
@@ -96,7 +164,7 @@ export default function TranslationsPage(): React.ReactNode {
       .catch(() => toast.error("ไม่สามารถโหลดคำแปลได้"));
   }, [tripId, activeLang]);
 
-  const getValue = (field: string, targetId?: string | null): string =>
+  const getValue = (field: string, targetId?: string | null) =>
     translations[makeKey(field, targetId)]?.value ?? "";
 
   const getSource = (field: string, targetId?: string | null): "manual" | "auto" | undefined =>
@@ -133,6 +201,7 @@ export default function TranslationsPage(): React.ReactNode {
 
   const handleAutoTranslate = useCallback(async (forceRefresh = false) => {
     if (!tripId || !activeLang) return;
+    setAutoMenuOpen(false);
     setAutoTranslating(true);
     try {
       const resp = await api.post<{
@@ -149,12 +218,9 @@ export default function TranslationsPage(): React.ReactNode {
       });
       setTranslations(map);
       setDirty(false);
-      toast.success(
-        `แปลอัตโนมัติเสร็จ: ${resp.translatedCount} ช่อง, ข้าม ${resp.skippedCount} ช่อง`,
-      );
+      toast.success(`แปลอัตโนมัติเสร็จ: ${resp.translatedCount} ช่อง, ข้าม ${resp.skippedCount} ช่อง`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "แปลอัตโนมัติไม่สำเร็จ";
-      toast.error(msg);
+      toast.error(err instanceof Error ? err.message : "แปลอัตโนมัติไม่สำเร็จ");
     } finally {
       setAutoTranslating(false);
     }
@@ -162,229 +228,174 @@ export default function TranslationsPage(): React.ReactNode {
 
   const langMeta = (code: string) => languages.find((l) => l.code === code);
 
-  // ─── Sub-component: field row ────────────────────────────────────────
+  const langLabel = (code: string) => {
+    const meta = langMeta(code);
+    return `${meta?.flag ?? ""} ${meta?.nameNative ?? code.toUpperCase()}`.trim();
+  };
 
-  function FieldRow({
-    label,
-    original,
-    field,
-    targetId,
-    multiline = false,
-  }: {
-    label: string;
-    original: string;
-    field: string;
-    targetId?: string | null;
-    multiline?: boolean;
-  }) {
-    const val = getValue(field, targetId);
-    const src = getSource(field, targetId);
-    const inputClass =
-      "w-full px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30 bg-white";
+  const handleTabChange = (code: string) => {
+    if (code === activeLang) return;
+    if (dirty) {
+      setPendingLang(code);
+    } else {
+      setActiveLang(code);
+    }
+  };
 
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-3 border-b border-(--outline-variant)/20 last:border-0">
-        {/* Original */}
-        <div className="space-y-1">
-          <p className="text-[11px] font-bold text-(--on-surface-variant) uppercase tracking-widest">{label}</p>
-          {multiline ? (
-            <div className="text-sm text-(--on-surface-variant) bg-(--surface-container-low) rounded-xl px-3 py-2 whitespace-pre-wrap min-h-[4rem]">
-              {original || <span className="opacity-40 italic">ไม่มีข้อมูล</span>}
-            </div>
-          ) : (
-            <p className="text-sm text-(--on-surface) font-medium px-1">
-              {original || <span className="text-(--on-surface-variant) italic opacity-60">ไม่มีข้อมูล</span>}
-            </p>
-          )}
-        </div>
+  const confirmTabSwitch = () => {
+    if (!pendingLang) return;
+    setActiveLang(pendingLang);
+    setPendingLang(null);
+    setDirty(false);
+  };
 
-        {/* Translation */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <p className="text-[11px] font-bold text-(--primary) uppercase tracking-widest flex-1">
-              {langMeta(activeLang)?.flag} {langMeta(activeLang)?.nameNative ?? activeLang.toUpperCase()}
-            </p>
-            {src && (
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                  src === "auto"
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-emerald-100 text-emerald-700"
-                }`}
-              >
-                {src === "auto" ? "แปลอัตโนมัติ" : "แก้ด้วยตนเอง"}
-              </span>
-            )}
-          </div>
-          {multiline ? (
-            <textarea
-              className={inputClass}
-              rows={4}
-              placeholder="พิมพ์คำแปล..."
-              value={val}
-              onChange={(e) => setValue(field, targetId, e.target.value)}
-            />
-          ) : (
-            <input
-              type="text"
-              className={inputClass}
-              placeholder="พิมพ์คำแปล..."
-              value={val}
-              onChange={(e) => setValue(field, targetId, e.target.value)}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
+  // ─── States ───────────────────────────────────────────────────────────
 
-  // ─── Loading / empty states ──────────────────────────────────────────
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-(--on-surface-variant)">
-        <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-        กำลังโหลด...
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton />;
 
   if (!tripData) return null;
 
   if (supportedLangs.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center space-y-4">
-        <span className="material-symbols-outlined text-5xl text-(--on-surface-variant)">translate</span>
-        <h2 className="text-xl font-bold text-(--on-surface)">ยังไม่ได้เปิดภาษาเพิ่มเติม</h2>
-        <p className="text-(--on-surface-variant)">ไปที่หน้าแก้ไขทริป เพื่อเลือกภาษาที่ต้องการรองรับ</p>
-        <Link
-          href={`/dashboard/trips/new?id=${tripId}`}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-(--primary) text-(--on-primary) text-sm font-semibold"
-        >
-          <span className="material-symbols-outlined text-base">edit</span>
-          ไปหน้าแก้ไข
-        </Link>
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <EmptyState
+          icon="translate"
+          title="ยังไม่ได้เปิดภาษาเพิ่มเติม"
+          description="ไปที่หน้าแก้ไขทริป เพื่อเลือกภาษาที่ต้องการรองรับ"
+          actionLabel="ไปหน้าแก้ไข"
+          actionHref={ROUTES.tripEdit(tripId)}
+          actionIcon="edit"
+        />
       </div>
     );
   }
 
-  // ─── Main UI ─────────────────────────────────────────────────────────
+  // ─── Main UI ──────────────────────────────────────────────────────────
+
+  const autoTranslateMenu = (
+    <div className="relative">
+      <button
+        type="button"
+        disabled={autoTranslating || !activeLang}
+        onClick={() => setAutoMenuOpen((v) => !v)}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-(--outline-variant)/40 bg-white text-(--on-surface) text-sm font-semibold hover:bg-(--surface-container-low) disabled:opacity-40 transition-colors"
+      >
+        <span className="material-symbols-outlined text-base">
+          {autoTranslating ? "hourglass_empty" : "auto_fix_high"}
+        </span>
+        {autoTranslating ? "กำลังแปล..." : "แปลอัตโนมัติ"}
+        <span className="material-symbols-outlined text-sm">arrow_drop_down</span>
+      </button>
+      {autoMenuOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setAutoMenuOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 bg-white border border-(--outline-variant)/30 rounded-2xl shadow-lg py-1 min-w-50 z-20">
+            <button
+              type="button"
+              onClick={() => handleAutoTranslate(false)}
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-(--surface-container-low) flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base text-(--primary)">auto_fix_high</span>
+              แปลเฉพาะช่องที่ยังไม่มี
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAutoTranslate(true)}
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-(--surface-container-low) flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base text-amber-600">refresh</span>
+              แปลใหม่ทั้งหมด
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="max-w-5xl mx-auto px-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between py-6 gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <Link
-            href={ROUTES.tripManage(tripId)}
-            className="p-2 rounded-xl hover:bg-(--surface-variant) transition-colors"
-          >
-            <span className="material-symbols-outlined text-(--on-surface-variant)">arrow_back</span>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-(--on-surface)">คำแปลทริป</h1>
-            <p className="text-sm text-(--on-surface-variant)">{tripData.title}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Auto-translate dropdown */}
-          <div className="relative group">
-            <button
-              type="button"
-              disabled={autoTranslating || !activeLang}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-(--outline-variant)/40 bg-white text-(--on-surface) text-sm font-semibold hover:bg-(--surface-container-low) disabled:opacity-40 transition-colors"
-            >
-              <span className="material-symbols-outlined text-base">
-                {autoTranslating ? "hourglass_empty" : "auto_fix_high"}
-              </span>
-              {autoTranslating ? "กำลังแปล..." : "แปลอัตโนมัติ"}
-              <span className="material-symbols-outlined text-sm">arrow_drop_down</span>
-            </button>
-            {/* Dropdown */}
-            <div className="absolute right-0 top-full mt-1 bg-white border border-(--outline-variant)/30 rounded-2xl shadow-lg py-1 min-w-[180px] z-10 hidden group-hover:block group-focus-within:block">
-              <button
-                type="button"
-                onClick={() => handleAutoTranslate(false)}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-(--surface-container-low) flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base text-(--primary)">auto_fix_high</span>
-                แปลเฉพาะช่องที่ยังไม่มี
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAutoTranslate(true)}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-(--surface-container-low) flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base text-amber-600">refresh</span>
-                แปลใหม่ทั้งหมด
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={handleSave}
-            disabled={!dirty || saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-(--primary) text-(--on-primary) text-sm font-semibold disabled:opacity-40 transition-opacity"
-          >
-            <span className="material-symbols-outlined text-base">{saving ? "hourglass_empty" : "save"}</span>
-            {saving ? "กำลังบันทึก..." : "บันทึก"}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="คำแปลทริป"
+        description={tripData.title}
+        breadcrumbs={[
+          { label: "จัดการทริป", href: ROUTES.tripManage(tripId) },
+          { label: "คำแปล" },
+        ]}
+        actions={autoTranslateMenu}
+      />
 
       {/* Language tabs */}
-      <div className="flex gap-2 mb-6 border-b border-(--outline-variant)/30 pb-1 overflow-x-auto">
-        {supportedLangs.map((code) => {
-          const meta = langMeta(code);
-          return (
-            <button
-              key={code}
-              type="button"
-              onClick={() => { if (code !== activeLang) { setActiveLang(code); setDirty(false); } }}
-              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-t-xl whitespace-nowrap transition-colors ${
-                code === activeLang
-                  ? "bg-white border border-b-white border-(--outline-variant)/30 -mb-px text-(--primary)"
-                  : "text-(--on-surface-variant) hover:text-(--on-surface)"
-              }`}
-            >
-              {meta?.flag && <span>{meta.flag}</span>}
-              {meta?.nameNative ?? code.toUpperCase()}
-            </button>
-          );
-        })}
-      </div>
+      <FilterTabs
+        tabs={supportedLangs.map((code) => ({ id: code, label: langLabel(code) }))}
+        activeTab={activeLang}
+        onTabChange={handleTabChange}
+      />
 
       {/* Legend */}
-      <div className="flex items-center gap-3 mb-4 text-xs text-(--on-surface-variant)">
-        <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">แปลอัตโนมัติ</span>
+      <div className="flex items-center gap-3 my-4 text-xs text-(--on-surface-variant)">
+        <Badge variant="warning">แปลอัตโนมัติ</Badge>
         <span>= ผลจาก AI (แก้ไขได้)</span>
-        <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold ml-2">แก้ด้วยตนเอง</span>
+        <Badge variant="success">แก้ด้วยตนเอง</Badge>
         <span>= บันทึกโดย operator</span>
       </div>
 
       {/* Trip-level fields */}
       <section className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm p-6 mb-6">
-        <h2 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-(--primary) text-base">info</span>
-          ข้อมูลหลักข��งทริป
-        </h2>
-        <FieldRow label="ชื่อทริป" original={tripData.title} field="title" />
-        <FieldRow label="จุดหมาย" original={tripData.destination} field="destination" />
+        <div className="mb-4">
+          <SectionHeader title="ข้อมูลหลักของทริป" icon="info" variant="icon" />
+        </div>
+        <FieldRow
+          label="ชื่อทริป"
+          original={tripData.title}
+          value={getValue("title")}
+          source={getSource("title")}
+          langLabel={langLabel(activeLang)}
+          onChange={(v) => setValue("title", null, v)}
+        />
+        <FieldRow
+          label="จุดหมาย"
+          original={tripData.destination}
+          value={getValue("destination")}
+          source={getSource("destination")}
+          langLabel={langLabel(activeLang)}
+          onChange={(v) => setValue("destination", null, v)}
+        />
         {tripData.importantNotes && (
-          <FieldRow label="หมายเหตุสำคัญ" original={tripData.importantNotes} field="importantNotes" multiline />
+          <FieldRow
+            label="หมายเหตุสำคัญ"
+            original={tripData.importantNotes}
+            multiline
+            value={getValue("importantNotes")}
+            source={getSource("importantNotes")}
+            langLabel={langLabel(activeLang)}
+            onChange={(v) => setValue("importantNotes", null, v)}
+          />
         )}
       </section>
 
       {/* Per-day / per-activity fields */}
       {tripData.days.map((day) => (
         <section key={day.id} className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm p-6 mb-4">
-          <h2 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-(--primary) text-base">calendar_today</span>
-            วันที่ {day.dayNumber} ��� {day.title}
-          </h2>
-          <FieldRow label="ชื่อวัน" original={day.title} field="day.title" targetId={day.id} />
+          <div className="mb-4">
+            <SectionHeader title={`วันที่ ${day.dayNumber} — ${day.title}`} icon="calendar_today" variant="icon" />
+          </div>
+          <FieldRow
+            label="ชื่อวัน"
+            original={day.title}
+            value={getValue("day.title", day.id)}
+            source={getSource("day.title", day.id)}
+            langLabel={langLabel(activeLang)}
+            onChange={(v) => setValue("day.title", day.id, v)}
+          />
           {day.subtitle && (
-            <FieldRow label="คำอธิบายวัน" original={day.subtitle} field="day.subtitle" targetId={day.id} />
+            <FieldRow
+              label="คำอธิบายวัน"
+              original={day.subtitle}
+              value={getValue("day.subtitle", day.id)}
+              source={getSource("day.subtitle", day.id)}
+              langLabel={langLabel(activeLang)}
+              onChange={(v) => setValue("day.subtitle", day.id, v)}
+            />
           )}
 
           {day.activities.length > 0 && (
@@ -395,12 +406,34 @@ export default function TranslationsPage(): React.ReactNode {
                     {act.emoji && <span className="mr-1">{act.emoji}</span>}
                     {act.name}
                   </p>
-                  <FieldRow label="ชื่อกิจกรรม" original={act.name} field="activity.name" targetId={act.id} />
+                  <FieldRow
+                    label="ชื่อกิจกรรม"
+                    original={act.name}
+                    value={getValue("activity.name", act.id)}
+                    source={getSource("activity.name", act.id)}
+                    langLabel={langLabel(activeLang)}
+                    onChange={(v) => setValue("activity.name", act.id, v)}
+                  />
                   {act.description && (
-                    <FieldRow label="รายละเอียด" original={act.description} field="activity.description" targetId={act.id} multiline />
+                    <FieldRow
+                      label="รายละเอียด"
+                      original={act.description}
+                      multiline
+                      value={getValue("activity.description", act.id)}
+                      source={getSource("activity.description", act.id)}
+                      langLabel={langLabel(activeLang)}
+                      onChange={(v) => setValue("activity.description", act.id, v)}
+                    />
                   )}
                   {act.placeName && (
-                    <FieldRow label="ชื่อสถานที่" original={act.placeName} field="activity.placeName" targetId={act.id} />
+                    <FieldRow
+                      label="ชื่อสถานที่"
+                      original={act.placeName}
+                      value={getValue("activity.placeName", act.id)}
+                      source={getSource("activity.placeName", act.id)}
+                      langLabel={langLabel(activeLang)}
+                      onChange={(v) => setValue("activity.placeName", act.id, v)}
+                    />
                   )}
                 </div>
               ))}
@@ -417,11 +450,25 @@ export default function TranslationsPage(): React.ReactNode {
             disabled={saving}
             className="flex items-center gap-2 px-6 py-3 rounded-full bg-(--primary) text-(--on-primary) text-sm font-bold shadow-lg disabled:opacity-60"
           >
-            <span className="material-symbols-outlined text-base">{saving ? "hourglass_empty" : "save"}</span>
+            <span className="material-symbols-outlined text-base">
+              {saving ? "hourglass_empty" : "save"}
+            </span>
             {saving ? "กำลังบันทึก..." : "บันทึกคำแปล"}
           </button>
         </div>
       )}
+
+      {/* Unsaved changes guard on tab switch */}
+      <ConfirmDialog
+        open={!!pendingLang}
+        onOpenChange={(open) => { if (!open) setPendingLang(null); }}
+        onConfirm={confirmTabSwitch}
+        title="ยังมีคำแปลที่ยังไม่ได้บันทึก"
+        description="หากเปลี่ยนภาษาตอนนี้ คำแปลที่แก้ไขไว้จะหายไป ต้องการดำเนินต่อหรือไม่?"
+        confirmLabel="เปลี่ยนภาษา"
+        cancelLabel="ยกเลิก"
+        variant="danger"
+      />
     </div>
   );
 }

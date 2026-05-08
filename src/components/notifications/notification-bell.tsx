@@ -1,28 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { api, ApiError } from "@/lib/api";
-
-interface NotificationItem {
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  actionUrl: string | null;
-  entityType: string | null;
-  entityId: string | null;
-  isRead: boolean;
-  createdAt: string;
-}
-
-interface ListResponse {
-  totalCount: number;
-  unreadCount: number;
-  page: number;
-  pageSize: number;
-  items: NotificationItem[];
-}
+import { useState } from "react";
+import { useDashboard } from "@/lib/contexts/dashboard-context";
 
 const TYPE_ICON: Record<string, string> = {
   ticket_replied: "support_agent",
@@ -63,66 +43,23 @@ interface Props {
 }
 
 export function NotificationBell({ open, onOpenChange }: Props): React.ReactNode {
-  const [data, setData] = useState<ListResponse | null>(null);
+  const { notifications, refreshNotifications, markNotificationRead, markAllNotificationsRead } = useDashboard();
   const [busy, setBusy] = useState(false);
-  const pollRef = useRef<number | null>(null);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await api.get<ListResponse>("/me/notifications?pageSize=10");
-      setData(res);
-    } catch (err) {
-      if (!(err instanceof ApiError)) console.error("[NotificationBell]", err);
-    }
-  }, []);
+  const unread = notifications?.unreadCount ?? 0;
+  const items = notifications?.items ?? [];
 
-  // Initial load + poll every 60s. Stops when tab is hidden.
-  useEffect(() => {
-    fetchNotifications();
-    function tick() {
-      if (document.visibilityState === "visible") fetchNotifications();
-    }
-    pollRef.current = window.setInterval(tick, 60_000);
-    document.addEventListener("visibilitychange", tick);
-    return () => {
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      document.removeEventListener("visibilitychange", tick);
-    };
-  }, [fetchNotifications]);
-
-  // Refresh on dropdown open
-  useEffect(() => {
-    if (open) fetchNotifications();
-  }, [open, fetchNotifications]);
-
-  async function markRead(id: string) {
-    setData((prev) => prev && {
-      ...prev,
-      unreadCount: Math.max(0, prev.unreadCount - 1),
-      items: prev.items.map((n) => n.id === id ? { ...n, isRead: true } : n),
-    });
-    try { await api.put(`/me/notifications/${id}/read`, {}); } catch { /* swallow */ }
-  }
-
-  async function markAllRead() {
-    if (busy || !data || data.unreadCount === 0) return;
+  async function handleMarkAllRead() {
+    if (busy || unread === 0) return;
     setBusy(true);
-    setData((prev) => prev && {
-      ...prev,
-      unreadCount: 0,
-      items: prev.items.map((n) => ({ ...n, isRead: true })),
-    });
-    try { await api.post("/me/notifications/read-all", {}); }
+    try { markAllNotificationsRead(); }
     finally { setBusy(false); }
   }
-
-  const unread = data?.unreadCount ?? 0;
-  const items = data?.items ?? [];
 
   return (
     <div className="relative">
       <button
-        onClick={() => onOpenChange(!open)}
+        onClick={() => { onOpenChange(!open); if (!open) refreshNotifications(); }}
         className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors relative"
         aria-label={`การแจ้งเตือน${unread > 0 ? ` (${unread} ใหม่)` : ""}`}
       >
@@ -142,7 +79,7 @@ export function NotificationBell({ open, onOpenChange }: Props): React.ReactNode
               <span className="font-bold text-slate-900 text-sm">การแจ้งเตือน</span>
               <button
                 type="button"
-                onClick={markAllRead}
+                onClick={handleMarkAllRead}
                 disabled={busy || unread === 0}
                 className="text-xs text-(--primary) font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:underline"
               >
@@ -179,7 +116,7 @@ export function NotificationBell({ open, onOpenChange }: Props): React.ReactNode
                     <Link
                       key={n.id}
                       href={n.actionUrl}
-                      onClick={() => { markRead(n.id); onOpenChange(false); }}
+                      onClick={() => { markNotificationRead(n.id); onOpenChange(false); }}
                     >
                       {inner}
                     </Link>
@@ -187,7 +124,7 @@ export function NotificationBell({ open, onOpenChange }: Props): React.ReactNode
                     <button
                       key={n.id}
                       type="button"
-                      onClick={() => markRead(n.id)}
+                      onClick={() => markNotificationRead(n.id)}
                       className="w-full text-left"
                     >
                       {inner}

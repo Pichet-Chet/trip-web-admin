@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, SelectPicker, ConfirmDialog, PreviewDrawer } from "@/components/shared";
+import { FormInput, FormTextarea, SectionHeader, DashedAddButton, FooterActionBar, ImageUpload, DatePicker, Banner, SegmentedControl, SelectPicker, ConfirmDialog } from "@/components/shared";
 import { useLanguages } from "@/lib/hooks/use-languages";
 import { TransportSection, type TransportSegment, type TransportType, makeSegment } from "./_components/transport-section";
 import { type TripScopeLocal } from "./_components/scope-selector";
@@ -21,10 +21,9 @@ import { tripBasicsSchema, hotelSchema, emergencyContactSchema } from "@/lib/val
 import { lookupEmergencyPrefill } from "@/lib/emergency-contacts";
 import dynamic from "next/dynamic";
 
-// DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
-// out of the production bundle (process.env.NODE_ENV is statically
-// replaced at build time, so this branch becomes dead code in prod).
-const DevAutoFill = process.env.NODE_ENV === "development"
+// DevAutoFill is gated by NEXT_PUBLIC_DEV_TOOLS so it can be enabled
+// in any environment via .env.local without requiring `npm run dev`.
+const DevAutoFill = process.env.NEXT_PUBLIC_DEV_TOOLS === "true"
   ? dynamic(() => import("@trip/ui").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { useToast } from "@/components/shared";
@@ -93,6 +92,7 @@ export default function NewTripPage(): React.ReactNode {
   const [draftId, setDraftId] = useState<string | null>(searchParams.get("id"));
   const [tripStatus, setTripStatus] = useState("");
 
+
   // ─── Auto-save state ───
   type SaveStatus = "idle" | "saving" | "saved" | "error";
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -120,7 +120,6 @@ export default function NewTripPage(): React.ReactNode {
   const [apiError, setApiError] = useState<string | null>(null);
   const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   // ─── Form (react-hook-form) ───
@@ -157,6 +156,23 @@ export default function NewTripPage(): React.ReactNode {
   const checklist = watch("checklist");
 
   useUnsavedChanges(formState.isDirty || saveStatus === "saving");
+
+  // When the user navigates to /trips/new (no ?id=) while the component
+  // stays mounted (same pathname, only searchParams changed), useState
+  // won't reinitialize. Use the string value as dep so this fires on
+  // actual ID change rather than object reference change.
+  const urlDraftId = searchParams.get("id");
+  useEffect(() => {
+    if (!urlDraftId && draftId) {
+      setDraftId(null);
+      setLoadingDraft(false);
+      setTripStatus("");
+      setDateChangeCount(0);
+      reset(FORM_DEFAULTS);
+    }
+    // draftId is intentionally read via closure — we only care when urlDraftId changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlDraftId]);
 
   // ─── Debounced auto-save (1 500 ms after last edit) ───
   // Runs after every render. Since every watched field causes a re-render,
@@ -469,11 +485,55 @@ export default function NewTripPage(): React.ReactNode {
       ]);
     }
 
-    // Notes
+    // Notes — randomize details each time
+    const meetTime = rand(["05:00", "05:30", "06:00", "06:30"]);
+    const meetPoints = ["ปั๊ม ปตท. ถนนพหลโยธิน กม.12", "ลานจอดรถห้างเซ็นทรัล ลาดพร้าว", "หน้า 7-11 ถนนรัชดา", "อนุสาวรีย์ชัยสมรภูมิ ทางออก 4"];
+    const cashAmounts = ["¥20,000", "¥30,000", "¥40,000"];
+    const temps = ["5-10°C", "10-15°C", "0-5°C"];
+    const counters = ["D", "E", "F", "G"];
     setValue("notes", isDomestic
-      ? `สิ่งที่ต้องเตรียม:\n• ครีมกันแดด\n• ยากันยุง\n• เสื้อผ้าสบายๆ\n\nนัดหมาย:\n• จุดรับ-ส่ง: ปั๊ม ปตท. ถนนพหลโยธิน กม.12\n• เวลา 05:30 น.`
-      : `สิ่งที่ต้องเตรียม:\n• พาสปอร์ต (อายุเหลือ 6 เดือนขึ้นไป)\n• ประกันการเดินทาง\n• เงินสด ¥30,000 ต่อคน\n• เสื้อกันหนาว (อุณหภูมิ 5-10°C)\n\nนัดหมาย:\n• สนามบินสุวรรณภูมิ ชั้น 4 เคาน์เตอร์ D\n• 3 ชม. ก่อนเวลาบิน`,
+      ? `สิ่งที่ต้องเตรียม:\n• ครีมกันแดด SPF50+\n• ยากันยุง\n• เสื้อผ้าสบายๆ\n\nนัดหมาย:\n• จุดรับ-ส่ง: ${rand(meetPoints)}\n• เวลา ${meetTime} น.`
+      : `สิ่งที่ต้องเตรียม:\n• พาสปอร์ต (อายุเหลือ 6 เดือนขึ้นไป)\n• ประกันการเดินทาง\n• เงินสด ${rand(cashAmounts)} ต่อคน\n• เสื้อกันหนาว (อุณหภูมิ ${rand(temps)})\n\nนัดหมาย:\n• สนามบินสุวรรณภูมิ ชั้น 4 เคาน์เตอร์ ${rand(counters)}\n• 3 ชม. ก่อนเวลาบิน`,
       { shouldDirty: true });
+
+    // Checklist — สุ่มจาก pool ใหญ่
+    const domesticPool = [
+      { label: "บัตรประชาชน / พาสปอร์ต", isRequired: true },
+      { label: "ครีมกันแดด SPF50+", isRequired: false },
+      { label: "ยากันยุง", isRequired: false },
+      { label: "เสื้อผ้าสำหรับ 3 วัน", isRequired: false },
+      { label: "รองเท้าสบาย", isRequired: false },
+      { label: "หมวกกันแดด", isRequired: false },
+      { label: "ร่ม / เสื้อกันฝน", isRequired: false },
+      { label: "ยาแก้ท้องเสีย", isRequired: false },
+      { label: "กระเป๋าเป้ใบเล็ก", isRequired: false },
+      { label: "ธนบัตรย่อย", isRequired: false },
+    ];
+    const intlPool = [
+      { label: "พาสปอร์ต (อายุเหลือ 6 เดือนขึ้นไป)", isRequired: true },
+      { label: "ประกันการเดินทาง", isRequired: true },
+      { label: "วีซ่า (ถ้าจำเป็น)", isRequired: true },
+      { label: "เงินสด / บัตรเครดิต", isRequired: false },
+      { label: "ปลั๊กแปลง", isRequired: false },
+      { label: "ยาประจำตัว", isRequired: false },
+      { label: "หูฟัง / ที่อุดหู", isRequired: false },
+      { label: "Pocket WiFi / SIM ต่างประเทศ", isRequired: false },
+      { label: "กระเป๋าล็อคซิป", isRequired: false },
+      { label: "แจ็คเก็ตกันหนาว", isRequired: false },
+    ];
+    const pickRandom = <T,>(pool: T[], min: number, max: number): T[] => {
+      const count = min + Math.floor(Math.random() * (max - min + 1));
+      return [...pool].sort(() => Math.random() - 0.5).slice(0, count);
+    };
+    checklistField.replace(isDomestic ? pickRandom(domesticPool, 4, 6) : pickRandom(intlPool, 5, 7));
+
+    // Group channels
+    setValue("lineGroupUrl", `https://line.me/R/ti/g/${Math.random().toString(36).slice(2, 12)}`, { shouldDirty: true });
+    setValue("whatsappGroupUrl", "", { shouldDirty: true });
+    setValue("telegramGroupUrl", "", { shouldDirty: true });
+
+    // Supported translation languages
+    setSupportedLangs(isDomestic ? ["en"] : ["th"]);
   }
 
   // Outbound/return projection used by the JSX. Recomputed each render
@@ -726,17 +786,6 @@ export default function NewTripPage(): React.ReactNode {
         backIcon="arrow_back"
         middleSlot={(
           <div className="flex items-center gap-3">
-            {draftId && (
-              <button
-                type="button"
-                onClick={() => setPreviewOpen(true)}
-                title="ดูตัวอย่างบนมือถือ"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-(--on-surface-variant) border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:text-(--primary) bg-white transition-all"
-              >
-                <span className="material-symbols-outlined text-base">phone_iphone</span>
-                <span className="hidden sm:inline">Preview</span>
-              </button>
-            )}
             {saveStatus !== "idle" && (
               <span
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
@@ -756,7 +805,7 @@ export default function NewTripPage(): React.ReactNode {
             )}
           </div>
         )}
-        nextLabel={loading ? "กำลังบันทึก..." : "ถัดไป: เพิ่มกิจกรรม"}
+        nextLabel={loading ? "กำลังบันทึก..." : "ถัดไป"}
         onNext={handleSubmit}
         loading={loading}
         disabled={loading || saveStatus === "saving"}
@@ -783,7 +832,7 @@ export default function NewTripPage(): React.ReactNode {
           </div>
         )}
 
-        <form noValidate className="space-y-12 md:space-y-20" onSubmit={(e) => e.preventDefault()}>
+        <form noValidate className="space-y-8 md:space-y-10" onSubmit={(e) => e.preventDefault()}>
           {/* Scope toggle — was a separate step in the old flow. Toggling
               after data has been entered resets segments + emergency
               contacts to the chosen scope's defaults; we confirm first.
@@ -814,10 +863,9 @@ export default function NewTripPage(): React.ReactNode {
           </section>
 
           {/* ═══ Section 1: Cover Image ═══ */}
-          <section className="space-y-6">
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold text-(--on-surface)">ภาพปกทริป</h3>
-              <p className="text-(--on-surface-variant) text-sm">เลือกภาพปกเพื่อสร้างบรรยากาศให้ลูกทริป</p>
+          <section className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm overflow-hidden">
+            <div className="px-6 md:px-8 pt-5 pb-4 border-b border-(--outline-variant)/20">
+              <SectionHeader title="ภาพปกทริป" icon="image" variant="icon" subtitle="เลือกภาพปกเพื่อสร้างบรรยากาศให้ลูกทริป" />
             </div>
             <ImageUpload
               value={coverUrl}
@@ -826,16 +874,16 @@ export default function NewTripPage(): React.ReactNode {
               aspect="wide"
               label="อัปโหลดหรือลากรูปภาพปกมาวาง"
               hint="แนะนำ: 1920x1080 px (อัตราส่วน 16:9)"
+              containerClassName="!rounded-none !border-0"
             />
           </section>
 
           {/* ═══ Section 2: ข้อมูลทริป ═══ */}
-          <section className="space-y-8">
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold text-(--on-surface)">ข้อมูลทริป</h3>
-              <p className="text-(--on-surface-variant) text-sm">กรอกข้อมูลพื้นฐานของทริป</p>
+          <section className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm">
+            <div className="px-6 md:px-8 pt-6 md:pt-7 pb-4 border-b border-(--outline-variant)/20">
+              <SectionHeader title="ข้อมูลทริป" icon="info" variant="icon" subtitle="กรอกข้อมูลพื้นฐานของทริป" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-4 sm:gap-x-6 md:gap-x-8 gap-y-6 md:gap-y-10 bg-white p-6 md:p-10 rounded-3xl border border-(--outline-variant)/30 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-4 sm:gap-x-6 md:gap-x-8 gap-y-6 md:gap-y-8 p-6 md:p-8">
               <div className="md:col-span-2 lg:col-span-8">
                 <FormInput label="ชื่อทริป" placeholder="เช่น ทริปเชียงใหม่ 3 วัน 2 คืน" required value={title} onChange={(e) => updateField("title", e.target.value)} error={fieldErrors.title} />
               </div>
@@ -847,44 +895,6 @@ export default function NewTripPage(): React.ReactNode {
                   options={languageOptions}
                   searchable={languageOptions.length > 6}
                 />
-                {draftId && availableLanguages.length > 1 && (
-                  <div>
-                    <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">รองรับเพิ่มเติม</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {availableLanguages
-                        .filter((l) => l.code !== language)
-                        .map((l) => {
-                          const checked = supportedLangs.includes(l.code);
-                          return (
-                            <button
-                              key={l.code}
-                              type="button"
-                              onClick={() => setSupportedLangs((prev) =>
-                                checked ? prev.filter((c) => c !== l.code) : [...prev, l.code]
-                              )}
-                              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                                checked
-                                  ? "bg-(--primary) text-(--on-primary) border-(--primary)"
-                                  : "bg-white text-(--on-surface-variant) border-(--outline-variant)/50 hover:border-(--primary)/50"
-                              }`}
-                            >
-                              {l.flag && <span className="mr-1">{l.flag}</span>}
-                              {l.code.toUpperCase()}
-                            </button>
-                          );
-                        })}
-                    </div>
-                    {supportedLangs.length > 0 && draftId && (
-                      <a
-                        href={`/dashboard/trips/${draftId}/translations`}
-                        className="inline-flex items-center gap-1 text-xs text-(--primary) mt-1.5 hover:underline"
-                      >
-                        <span className="material-symbols-outlined text-sm">translate</span>
-                        แก้ไขคำแปล
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
               <div className="md:col-span-1 lg:col-span-6">
                 <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => updateField("destination", e.target.value)} error={fieldErrors.destination} />
@@ -934,7 +944,7 @@ export default function NewTripPage(): React.ReactNode {
           </section>
 
           {/* ═══ Section 3: Logistics ═══ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
             {/* Transportation */}
             <CollapsibleSection
               title="การเดินทาง"
@@ -1028,10 +1038,11 @@ export default function NewTripPage(): React.ReactNode {
           </CollapsibleSection>
 
           {/* ═══ Section 5: Checklist ═══ */}
-          <section className="space-y-6">
-            <SectionHeader title="สิ่งที่ต้องเตรียม" icon="checklist" variant="icon" subtitle="รายการของที่ลูกทริปต้องเตรียมก่อนเดินทาง" />
-
-            <div className="space-y-3">
+          <section className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm">
+            <div className="px-6 md:px-8 pt-5 pb-4 border-b border-(--outline-variant)/20">
+              <SectionHeader title="สิ่งที่ต้องเตรียม" icon="checklist" variant="icon" subtitle="รายการของที่ลูกทริปต้องเตรียมก่อนเดินทาง" />
+            </div>
+            <div className="p-6 md:p-8 space-y-3">
               {checklist.map((item, i) => (
                 <ChecklistItemCard
                   key={i}
@@ -1050,10 +1061,11 @@ export default function NewTripPage(): React.ReactNode {
           </section>
 
           {/* ═══ Section 6: Important Notes ═══ */}
-          <section className="space-y-6">
-            <SectionHeader title="หมายเหตุสำคัญ" icon="sticky_note_2" variant="icon" subtitle="ข้อมูลที่ลูกทริปต้องรู้ก่อนเดินทาง" />
-
-            <div className="bg-white p-5 md:p-7 rounded-2xl border border-(--outline-variant)/30 shadow-sm space-y-4">
+          <section className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm">
+            <div className="px-6 md:px-8 pt-5 pb-4 border-b border-(--outline-variant)/20">
+              <SectionHeader title="หมายเหตุสำคัญ" icon="sticky_note_2" variant="icon" subtitle="ข้อมูลที่ลูกทริปต้องรู้ก่อนเดินทาง" />
+            </div>
+            <div className="p-6 md:p-8 space-y-4">
               <FormTextarea
                 placeholder={"ข้อมูลที่ลูกทริปต้องรู้ก่อนเดินทาง เช่น สิ่งที่ต้องเตรียม อุณหภูมิ การแลกเงิน เอกสาร เวลานัดพบ"}
                 value={notes}
@@ -1068,52 +1080,30 @@ export default function NewTripPage(): React.ReactNode {
           </section>
 
           {/* ═══ Section 7: Group Communication Channels ═══ */}
-          <section className="space-y-6">
-            <SectionHeader title="ช่องทางกลุ่ม" icon="groups" variant="icon" subtitle="ลิงก์กลุ่มสำหรับสมาชิกทริป (ไม่บังคับ)" />
-
-            <div className="bg-white p-5 md:p-7 rounded-2xl border border-(--outline-variant)/30 shadow-sm space-y-5">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-(--on-surface)">LINE กลุ่ม</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500 material-symbols-outlined text-xl select-none">chat</span>
-                  <input
-                    type="url"
-                    placeholder="https://line.me/R/ti/g/..."
-                    value={lineGroupUrl}
-                    onChange={(e) => updateField("lineGroupUrl", e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
-                  />
+          <section className="bg-white rounded-3xl border border-(--outline-variant)/30 shadow-sm">
+            <div className="px-6 md:px-8 pt-5 pb-4 border-b border-(--outline-variant)/20">
+              <SectionHeader title="ช่องทางกลุ่ม" icon="groups" variant="icon" subtitle="ลิงก์กลุ่มสำหรับสมาชิกทริป (ไม่บังคับ)" />
+            </div>
+            <div className="p-6 md:p-8 space-y-5">
+              {([
+                { key: "lineGroupUrl", label: "LINE กลุ่ม", placeholder: "https://line.me/R/ti/g/...", icon: "chat", iconColor: "text-green-500", value: lineGroupUrl },
+                { key: "whatsappGroupUrl", label: "WhatsApp กลุ่ม", placeholder: "https://chat.whatsapp.com/...", icon: "phone_in_talk", iconColor: "text-green-600", value: whatsappGroupUrl },
+                { key: "telegramGroupUrl", label: "Telegram กลุ่ม", placeholder: "https://t.me/joinchat/...", icon: "send", iconColor: "text-blue-500", value: telegramGroupUrl },
+              ] as const).map(({ key, label, placeholder, icon, iconColor, value }) => (
+                <div key={key} className="space-y-1.5">
+                  <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1">{label}</label>
+                  <div className="relative">
+                    <span className={`material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-xl select-none pointer-events-none ${iconColor}`}>{icon}</span>
+                    <input
+                      type="url"
+                      placeholder={placeholder}
+                      value={value}
+                      onChange={(e) => updateField(key, e.target.value)}
+                      className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 pl-12 pr-6 focus:bg-white focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) transition-[border-color,box-shadow,background-color] text-(--on-surface) font-medium placeholder:text-(--outline)/40 outline-none text-sm"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-(--on-surface)">WhatsApp กลุ่ม</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-600 material-symbols-outlined text-xl select-none">phone_in_talk</span>
-                  <input
-                    type="url"
-                    placeholder="https://chat.whatsapp.com/..."
-                    value={whatsappGroupUrl}
-                    onChange={(e) => updateField("whatsappGroupUrl", e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-(--on-surface)">Telegram กลุ่ม</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-500 material-symbols-outlined text-xl select-none">send</span>
-                  <input
-                    type="url"
-                    placeholder="https://t.me/joinchat/..."
-                    value={telegramGroupUrl}
-                    onChange={(e) => updateField("telegramGroupUrl", e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-(--outline-variant)/40 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
-                  />
-                </div>
-              </div>
-
+              ))}
               <p className="text-xs text-(--on-surface-variant) flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm">info</span>
                 ลิงก์เหล่านี้จะแสดงบนหน้าทริปให้สมาชิกกดเข้ากลุ่มได้ทันที
@@ -1137,21 +1127,6 @@ export default function NewTripPage(): React.ReactNode {
         onClose={() => setTemplatePickerOpen(false)}
       />
 
-      {/* ═══ Mobile Preview Drawer ═══ */}
-      <PreviewDrawer
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title={title || "ทริปของคุณ"}
-        startDate={startDate || new Date().toISOString().split("T")[0]}
-        endDate={endDate || new Date().toISOString().split("T")[0]}
-        totalDays={startDate && endDate ? Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1) : 1}
-        travelersCount={Number(travelersCount) || 1}
-        coverImageUrl={coverUrl || null}
-        airlineName={null}
-        accommodationsCount={hotels.filter((h) => h.name.trim()).length}
-        countdownDays={startDate ? Math.max(0, Math.ceil((new Date(startDate).getTime() - Date.now()) / 86400000)) : 0}
-        days={[]}
-      />
 
       {/* Confirm before swapping scope — segments + emergency contacts
           reset to the new scope's defaults via selectScope(). */}

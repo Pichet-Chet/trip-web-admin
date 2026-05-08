@@ -173,10 +173,10 @@ export default function DashboardPage(): React.ReactNode {
                 โควต้าเต็ม — อัปเกรดแพลน
               </Link>
             ) : (
-              <Link href={ROUTES.tripNew} className="w-fit bg-white text-(--primary) px-6 md:px-8 py-3 md:py-4 rounded-full font-extrabold text-sm md:text-lg flex items-center gap-3 hover:bg-(--primary-container) transition-colors shadow-xl">
+              <a href={ROUTES.tripNew} className="w-fit bg-white text-(--primary) px-6 md:px-8 py-3 md:py-4 rounded-full font-extrabold text-sm md:text-lg flex items-center gap-3 hover:bg-(--primary-container) transition-colors shadow-xl">
                 <span className="material-symbols-outlined">add_circle</span>
                 สร้างทริปใหม่
-              </Link>
+              </a>
             )}
           </div>
         </div>
@@ -317,9 +317,9 @@ export default function DashboardPage(): React.ReactNode {
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
             <p className="text-(--outline) mb-6">ยังไม่มีทริป — สร้างทริปแรกกันเลย!</p>
-            <Link href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
+            <a href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
-            </Link>
+            </a>
           </div>
         )}
       </section>

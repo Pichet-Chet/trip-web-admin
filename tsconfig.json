@@ -23,6 +23,7 @@
       }
     ],
     "paths": {
+      "@trip/ui": ["../trip-ui-component/src/components/shared/index.ts"],
       "@/*": [
         "./src/*"
       ]

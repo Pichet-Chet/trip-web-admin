@@ -11,6 +11,7 @@ import { NotificationBell } from "@/components/notifications/notification-bell";
 import { QuotaWarningBanner } from "@/components/app/quota-warning-banner";
 import { subscribe, logout, switchCompany, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared";
+import { DashboardProvider } from "@/lib/contexts/dashboard-context";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
 export function useSidebar(): { openSidebar: () => void } { return useContext(SidebarContext); }
@@ -42,6 +43,7 @@ export default function DashboardLayout({
       <ToastProvider>
       <ConfirmProvider>
       <AuthGuard>
+      <DashboardProvider>
       <LegalReacceptGuard />
       <CookieBanner />
       <ImpersonationBanner />
@@ -187,6 +189,7 @@ export default function DashboardLayout({
           </footer>
         </main>
       </div>
+    </DashboardProvider>
     </AuthGuard>
     </ConfirmProvider>
     </ToastProvider>

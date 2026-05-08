@@ -9,10 +9,13 @@ import { TripStepperHeader } from "@/components/layout/trip-stepper";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { IconWrapper, FooterActionBar, QRCodeDisplay, Skeleton, ConfirmDialog, Banner, MobilePreview } from "@/components/shared";
 import { useToast } from "@/components/shared";
+import { useLanguages } from "@/lib/hooks/use-languages";
 import { checkPublishReadiness, type PublishIssue } from "@/lib/validation/trip";
 import { TripDayMapLazy, type MapActivity } from "@/components/shared";
 import { resolveCoords } from "@/lib/parse-maps-link";
 import { airportTimezone, utcOffsetLabel } from "@/lib/airport-timezone";
+
+const isIataCode = (s: string | null | undefined): boolean => !!s && /^[A-Z]{3}$/.test(s.trim());
 import { SubmitReviewModal } from "./_components/submit-review-modal";
 import { CurrencyWidget } from "./_components/currency-widget";
 import { EmergencyFab } from "./_components/emergency-fab";
@@ -54,6 +57,7 @@ interface TripDetail {
   whatsappGroupUrl?: string | null;
   telegramGroupUrl?: string | null;
   publishedQuotaSource: string | null;
+  submittedAt: string | null;
 }
 
 interface DayDetail {
@@ -148,6 +152,8 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const [trip, setTrip] = useState<TripDetail | null>(null);
   usePageTitle(trip ? `ดูตัวอย่าง: ${trip.title}` : null);
   const [loading, setLoading] = useState(true);
+  const { languages: availableLanguages } = useLanguages();
+  const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [unpublishing, setUnpublishing] = useState(false);
@@ -180,13 +186,19 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const totalActivities = trip?.days.reduce((s, d) => s + d.activities.length, 0) ?? 0;
   const countdown = trip ? daysUntil(trip.startDate) : 0;
 
-  /* ─── Load trip ─── */
+  /* ─── Load trip + supported languages ─── */
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const data = await api.get<TripDetail>(`/admin/trips/${id}`);
-        if (!cancelled) setTrip(data);
+        const [data, suppResp] = await Promise.all([
+          api.get<TripDetail>(`/admin/trips/${id}`),
+          api.get<{ languageCodes: string[] }>(`/admin/trips/${id}/translations/supported`).catch(() => ({ languageCodes: [] })),
+        ]);
+        if (!cancelled) {
+          setTrip(data);
+          setSupportedLangs(suppResp.languageCodes ?? []);
+        }
       } catch (err) {
         if (!cancelled) toast.error(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้");
       } finally {
@@ -462,7 +474,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
 
           {/* ═══ Main Grid ═══ */}
           <div className="grid grid-cols-12 gap-6 lg:gap-8 items-start">
-            <div className="col-span-12 lg:col-span-5 flex flex-col items-center gap-2 order-1">
+            <div className="col-span-12 lg:col-span-5 flex flex-col items-center gap-2 order-1 lg:sticky lg:top-6 lg:self-start">
               <MobilePreview
                 title={trip.title}
                 startDate={trip.startDate}
@@ -492,23 +504,27 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                   : isUnpublished ? "bg-rose-50 border-rose-200"
                   : "bg-white border-(--outline-variant)/30"
               }`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
-                      isPublished ? "bg-(--primary-container) text-(--on-primary-container)"
-                      : isPendingReview ? "bg-orange-100 text-orange-600"
-                      : isUnpublished ? "bg-rose-100 text-rose-600"
-                      : "bg-(--surface-variant) text-(--on-surface-variant)"
-                    }`}>
-                      <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {isPublished ? "check_circle"
-                          : isPendingReview ? "hourglass_empty"
-                          : isUnpublished ? "block"
-                          : "edit_note"}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className={`font-bold text-lg ${
+                <div className="flex items-start gap-4">
+                  {/* Status icon */}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+                    isPublished ? "bg-(--primary-container) text-(--on-primary-container)"
+                    : isPendingReview ? "bg-orange-100 text-orange-600"
+                    : isUnpublished ? "bg-rose-100 text-rose-600"
+                    : "bg-(--surface-variant) text-(--on-surface-variant)"
+                  }`}>
+                    <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      {isPublished ? "check_circle"
+                        : isPendingReview ? "hourglass_empty"
+                        : isUnpublished ? "block"
+                        : "edit_note"}
+                    </span>
+                  </div>
+
+                  {/* Status text + action */}
+                  <div className="flex-1 min-w-0">
+                    {/* Title row: heading + visibility badge */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className={`font-bold text-lg leading-tight ${
                         isPendingReview ? "text-orange-800"
                         : isUnpublished ? "text-rose-800"
                         : "text-(--on-surface)"
@@ -518,24 +534,14 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                           : isDraft ? "ฉบับร่าง"
                           : "ยกเลิกเผยแพร่แล้ว"}
                       </h3>
-                      <p className={`text-sm ${
-                        isPendingReview ? "text-orange-700"
-                        : isUnpublished ? "text-rose-700"
-                        : "text-(--on-surface-variant)"
-                      }`}>
-                        {isPublished ? "ทุกคนที่มีลิงก์สามารถเข้าดูได้"
-                          : isPendingReview ? "ทีมงานกำลังตรวจสอบ จะแจ้งผลทาง email โดยเร็ว"
-                          : isDraft ? "ยังไม่เผยแพร่ มีแค่คุณที่เห็น"
-                          : "ลูกทริปไม่สามารถเข้าดูได้จนกว่าจะส่งตรวจสอบใหม่"}
-                      </p>
                       {isPublished && (
-                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-lg bg-(--primary-container) text-(--on-primary-container) text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-(--primary-container) text-(--on-primary-container) text-[10px] font-bold">
                           <span className="material-symbols-outlined text-xs">link</span>
                           {trip.visibility === "marketplace" ? "แสดงบน Marketplace" : "เฉพาะคนที่มีลิงก์"}
                         </span>
                       )}
                       {isPendingReview && (
-                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-lg bg-orange-100 text-orange-700 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-100 text-orange-700 text-[10px] font-bold">
                           <span className="material-symbols-outlined text-xs">
                             {trip.visibility === "marketplace" ? "storefront" : "link"}
                           </span>
@@ -543,24 +549,48 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                         </span>
                       )}
                     </div>
-                  </div>
-                  <div className="flex flex-col gap-2 shrink-0">
-                    {isPublished && (
-                      <button
-                        onClick={() => setShowUnpublishConfirm(true)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-(--on-surface-variant) hover:bg-(--surface-variant) transition-colors whitespace-nowrap"
-                      >
-                        ยกเลิกเผยแพร่
-                      </button>
-                    )}
+
+                    {/* Description */}
+                    <p className={`text-sm mt-0.5 ${
+                      isPendingReview ? "text-orange-700"
+                      : isUnpublished ? "text-rose-700"
+                      : "text-(--on-surface-variant)"
+                    }`}>
+                      {isPublished ? "ทุกคนที่มีลิงก์สามารถเข้าดูได้"
+                        : isPendingReview ? "ทีมงานกำลังตรวจสอบ จะแจ้งผลทาง email โดยเร็ว"
+                        : isDraft ? "ยังไม่เผยแพร่ มีแค่คุณที่เห็น"
+                        : "ลูกทริปไม่สามารถเข้าดูได้จนกว่าจะส่งตรวจสอบใหม่"}
+                    </p>
+
+                    {/* Submitted timestamp + cancel button row */}
                     {isPendingReview && (
-                      <button
-                        onClick={() => setShowCancelConfirm(true)}
-                        disabled={cancelling}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-orange-700 hover:bg-orange-100 border border-orange-200 transition-colors whitespace-nowrap disabled:opacity-50"
-                      >
-                        ยกเลิกส่งตรวจสอบ
-                      </button>
+                      <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
+                        {trip.submittedAt ? (
+                          <p className="flex items-center gap-1 text-xs text-orange-500">
+                            <span className="material-symbols-outlined text-xs">schedule</span>
+                            ส่งเมื่อ {new Date(trip.submittedAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}
+                          </p>
+                        ) : <span />}
+                        <button
+                          onClick={() => setShowCancelConfirm(true)}
+                          disabled={cancelling}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-orange-700 hover:bg-orange-100 border border-orange-200 transition-colors whitespace-nowrap disabled:opacity-50"
+                        >
+                          ยกเลิกส่งตรวจสอบ
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Unpublish button */}
+                    {isPublished && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setShowUnpublishConfirm(true)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-(--on-surface-variant) hover:bg-(--surface-variant) transition-colors whitespace-nowrap"
+                        >
+                          ยกเลิกเผยแพร่
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -585,6 +615,223 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                   ))}
                 </div>
               </div>
+
+              {/* Transport segments — only when data present */}
+              {trip.airlineInfo.length > 0 && trip.airlineInfo.some((a) => a.departureAirport || a.airline) && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">flight</span>
+                    ข้อมูลการเดินทาง
+                  </h3>
+                  <div className="space-y-4">
+                    {trip.airlineInfo.map((seg, i) => {
+                      const depTz = seg.departureAirport ? airportTimezone(seg.departureAirport) : undefined;
+                      const arrTz = seg.arrivalAirport ? airportTimezone(seg.arrivalAirport) : undefined;
+                      const depOffset = depTz ? utcOffsetLabel(depTz) : null;
+                      const arrOffset = arrTz ? utcOffsetLabel(arrTz) : null;
+                      const TRANSPORT_ICONS: Record<string, string> = {
+                        flight: "flight", van: "airport_shuttle", bus: "directions_bus",
+                        train: "train", boat: "directions_boat", car: "directions_car",
+                      };
+                      const icon = TRANSPORT_ICONS[seg.transportType] ?? "directions_car";
+                      return (
+                        <div key={i} className="bg-(--surface-container-low) rounded-2xl p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-base text-(--primary)">{icon}</span>
+                            <span className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-wide">
+                              {seg.type === "departure" ? "ขาไป" : "ขากลับ"}
+                            </span>
+                            {seg.airline && <span className="text-xs font-semibold text-(--on-surface)">{seg.airline}</span>}
+                            {seg.flightNumber && (
+                              <span className="ml-auto text-xs font-bold text-(--on-surface-variant) font-mono">{seg.flightNumber}</span>
+                            )}
+                          </div>
+
+                          {/* Route row */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-extrabold text-(--on-surface) ${isIataCode(seg.departureAirport) ? "text-lg tracking-widest font-mono" : "text-base"}`}>
+                                {seg.departureAirport ?? "—"}
+                              </p>
+                              {seg.departureTime && (
+                                <p className="text-xs text-(--on-surface-variant)">
+                                  {seg.departureTime}
+                                  {depOffset && <span className="ml-1 text-[11px] font-bold text-(--primary)">({depOffset})</span>}
+                                </p>
+                              )}
+                              {seg.departureDate && <p className="text-[11px] text-(--on-surface-variant)">{seg.departureDate}</p>}
+                            </div>
+                            <span className="material-symbols-outlined text-(--outline) shrink-0">arrow_forward</span>
+                            <div className="flex-1 min-w-0 text-right">
+                              <p className={`font-extrabold text-(--on-surface) ${isIataCode(seg.arrivalAirport) ? "text-lg tracking-widest font-mono" : "text-base"}`}>
+                                {seg.arrivalAirport ?? "—"}
+                              </p>
+                              {seg.arrivalTime && (
+                                <p className="text-xs text-(--on-surface-variant)">
+                                  {seg.arrivalTime}
+                                  {arrOffset && <span className="ml-1 text-[11px] font-bold text-(--primary)">({arrOffset})</span>}
+                                </p>
+                              )}
+                              {seg.arrivalDate && <p className="text-[11px] text-(--on-surface-variant)">{seg.arrivalDate}</p>}
+                            </div>
+                          </div>
+
+                          {seg.bookingRef && (
+                            <div className="flex items-center gap-2 pt-2 border-t border-(--outline-variant)/20">
+                              <span className="material-symbols-outlined text-xs text-(--on-surface-variant)">bookmark</span>
+                              <span className="text-xs text-(--on-surface-variant)">รหัสจอง:</span>
+                              <span className="text-xs font-bold font-mono text-(--on-surface)">{seg.bookingRef}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Trip info summary — always visible */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-(--primary)">info</span>
+                  ข้อมูลทริป
+                </h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">จุดหมาย</p>
+                    <p className="font-semibold text-(--on-surface)">{trip.destination}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">วันเดินทาง</p>
+                    <p className="font-semibold text-(--on-surface)">{formatDateFullTH(trip.startDate)} — {formatDateFullTH(trip.endDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">ผู้เดินทาง</p>
+                    <p className="font-semibold text-(--on-surface)">{trip.travelersCount} คน</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">ที่พัก</p>
+                    <p className="font-semibold text-(--on-surface)">{trip.accommodations.length} แห่ง</p>
+                  </div>
+                </div>
+                {trip.checklistItems && trip.checklistItems.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-(--outline-variant)/20">
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-3">สิ่งที่ต้องเตรียม</p>
+                    <ul className="space-y-2">
+                      {trip.checklistItems.map((item) => (
+                        <li key={item.id} className="flex items-center gap-2.5 text-sm">
+                          <span className={`w-4 h-4 rounded border-2 shrink-0 ${item.isRequired ? "border-(--error)" : "border-(--outline-variant)"}`} />
+                          <span className="text-(--on-surface) flex-1">{item.label}</span>
+                          {item.isRequired && (
+                            <span className="text-[10px] font-bold text-(--error) uppercase tracking-wide">จำเป็น</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {trip.importantNotes && (
+                  <div className="mt-4 pt-4 border-t border-(--outline-variant)/20">
+                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-2">หมายเหตุ</p>
+                    <p className="text-sm text-(--on-surface) whitespace-pre-line">{trip.importantNotes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Currency Widget — international trips only */}
+              {trip.scope === "international" && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">currency_exchange</span>
+                    แปลงสกุลเงิน
+                  </h3>
+                  <CurrencyWidget />
+                </div>
+              )}
+
+              {/* ─── Translation Languages Card (read-only) ─── */}
+              {availableLanguages.length > 1 && trip && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <h3 className="font-bold text-(--on-surface) flex items-center gap-2">
+                      <span className="material-symbols-outlined text-(--primary)">translate</span>
+                      ภาษาที่รองรับ
+                    </h3>
+                    <Link
+                      href={`/dashboard/trips/${id}/translations`}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-(--outline-variant)/40 text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-container-low) transition-colors whitespace-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-sm">edit_note</span>
+                      จัดการคำแปล
+                    </Link>
+                  </div>
+                  {supportedLangs.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {supportedLangs.map((code) => {
+                        const lang = availableLanguages.find((l) => l.code === code);
+                        return (
+                          <span key={code} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full bg-(--primary-container) text-(--on-primary-container) font-semibold">
+                            {lang?.flag && <span>{lang.flag}</span>}
+                            {lang?.nameNative ?? code.toUpperCase()}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-(--on-surface-variant) italic">
+                      ยังไม่ได้เลือกภาษาเพิ่มเติม —{" "}
+                      <Link href={`/dashboard/trips/new?id=${id}`} className="text-(--primary) underline">
+                        เพิ่มภาษาที่หน้าแก้ไขทริป
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Group chat buttons */}
+              {(trip.lineGroupUrl || trip.whatsappGroupUrl || trip.telegramGroupUrl) && (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
+                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-(--primary)">chat</span>
+                    กลุ่มสนทนา
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {trip.lineGroupUrl && (
+                      <a
+                        href={trip.lineGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-500 text-white text-sm font-semibold shadow-sm hover:bg-green-600 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">chat</span>
+                        เข้ากลุ่ม LINE
+                      </a>
+                    )}
+                    {trip.whatsappGroupUrl && (
+                      <a
+                        href={trip.whatsappGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">phone_in_talk</span>
+                        เข้ากลุ่ม WhatsApp
+                      </a>
+                    )}
+                    {trip.telegramGroupUrl && (
+                      <a
+                        href={trip.telegramGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-500 text-white text-sm font-semibold shadow-sm hover:bg-blue-600 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">send</span>
+                        เข้ากลุ่ม Telegram
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Trip Link — only if published */}
               {isPublished && tripUrl && (
@@ -718,173 +965,6 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
 
-              {/* Group chat buttons */}
-              {(trip.lineGroupUrl || trip.whatsappGroupUrl || trip.telegramGroupUrl) && (
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
-                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-(--primary)">chat</span>
-                    กลุ่มสนทนา
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {trip.lineGroupUrl && (
-                      <a
-                        href={trip.lineGroupUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-500 text-white text-sm font-semibold shadow-sm hover:bg-green-600 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-base">chat</span>
-                        เข้ากลุ่ม LINE
-                      </a>
-                    )}
-                    {trip.whatsappGroupUrl && (
-                      <a
-                        href={trip.whatsappGroupUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-base">phone_in_talk</span>
-                        เข้ากลุ่ม WhatsApp
-                      </a>
-                    )}
-                    {trip.telegramGroupUrl && (
-                      <a
-                        href={trip.telegramGroupUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-500 text-white text-sm font-semibold shadow-sm hover:bg-blue-600 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-base">send</span>
-                        เข้ากลุ่ม Telegram
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Transport segments — only when data present */}
-              {trip.airlineInfo.length > 0 && trip.airlineInfo.some((a) => a.departureAirport || a.airline) && (
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
-                  <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-(--primary)">flight</span>
-                    ข้อมูลการเดินทาง
-                  </h3>
-                  <div className="space-y-4">
-                    {trip.airlineInfo.map((seg, i) => {
-                      const depTz = seg.departureAirport ? airportTimezone(seg.departureAirport) : undefined;
-                      const arrTz = seg.arrivalAirport ? airportTimezone(seg.arrivalAirport) : undefined;
-                      const depOffset = depTz ? utcOffsetLabel(depTz) : null;
-                      const arrOffset = arrTz ? utcOffsetLabel(arrTz) : null;
-                      const TRANSPORT_ICONS: Record<string, string> = {
-                        flight: "flight", van: "airport_shuttle", bus: "directions_bus",
-                        train: "train", boat: "directions_boat", car: "directions_car",
-                      };
-                      const icon = TRANSPORT_ICONS[seg.transportType] ?? "directions_car";
-                      return (
-                        <div key={i} className="bg-(--surface-container-low) rounded-2xl p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-base text-(--primary)">{icon}</span>
-                            <span className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-wide">
-                              {seg.type === "departure" ? "ขาไป" : "ขากลับ"}
-                            </span>
-                            {seg.airline && <span className="text-xs font-semibold text-(--on-surface)">{seg.airline}</span>}
-                            {seg.flightNumber && (
-                              <span className="ml-auto text-xs font-bold text-(--on-surface-variant) font-mono">{seg.flightNumber}</span>
-                            )}
-                          </div>
-
-                          {/* Route row */}
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-lg font-extrabold text-(--on-surface) tracking-widest font-mono">
-                                {seg.departureAirport ?? "—"}
-                              </p>
-                              {seg.departureTime && (
-                                <p className="text-xs text-(--on-surface-variant)">
-                                  {seg.departureTime}
-                                  {depOffset && <span className="ml-1 text-[11px] font-bold text-(--primary)">({depOffset})</span>}
-                                </p>
-                              )}
-                              {seg.departureDate && <p className="text-[11px] text-(--on-surface-variant)">{seg.departureDate}</p>}
-                            </div>
-                            <span className="material-symbols-outlined text-(--outline) shrink-0">arrow_forward</span>
-                            <div className="flex-1 min-w-0 text-right">
-                              <p className="text-lg font-extrabold text-(--on-surface) tracking-widest font-mono">
-                                {seg.arrivalAirport ?? "—"}
-                              </p>
-                              {seg.arrivalTime && (
-                                <p className="text-xs text-(--on-surface-variant)">
-                                  {seg.arrivalTime}
-                                  {arrOffset && <span className="ml-1 text-[11px] font-bold text-(--primary)">({arrOffset})</span>}
-                                </p>
-                              )}
-                              {seg.arrivalDate && <p className="text-[11px] text-(--on-surface-variant)">{seg.arrivalDate}</p>}
-                            </div>
-                          </div>
-
-                          {seg.bookingRef && (
-                            <div className="flex items-center gap-2 pt-2 border-t border-(--outline-variant)/20">
-                              <span className="material-symbols-outlined text-xs text-(--on-surface-variant)">bookmark</span>
-                              <span className="text-xs text-(--on-surface-variant)">รหัสจอง:</span>
-                              <span className="text-xs font-bold font-mono text-(--on-surface)">{seg.bookingRef}</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Trip info summary — always visible */}
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
-                <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-(--primary)">info</span>
-                  ข้อมูลทริป
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">จุดหมาย</p>
-                    <p className="font-semibold text-(--on-surface)">{trip.destination}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">วันเดินทาง</p>
-                    <p className="font-semibold text-(--on-surface)">{formatDateFullTH(trip.startDate)} — {formatDateFullTH(trip.endDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">ผู้เดินทาง</p>
-                    <p className="font-semibold text-(--on-surface)">{trip.travelersCount} คน</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-1">ที่พัก</p>
-                    <p className="font-semibold text-(--on-surface)">{trip.accommodations.length} แห่ง</p>
-                  </div>
-                </div>
-                {trip.checklistItems && trip.checklistItems.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-(--outline-variant)/20">
-                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-3">สิ่งที่ต้องเตรียม</p>
-                    <ul className="space-y-2">
-                      {trip.checklistItems.map((item) => (
-                        <li key={item.id} className="flex items-center gap-2.5 text-sm">
-                          <span className={`w-4 h-4 rounded border-2 shrink-0 ${item.isRequired ? "border-(--error)" : "border-(--outline-variant)"}`} />
-                          <span className="text-(--on-surface) flex-1">{item.label}</span>
-                          {item.isRequired && (
-                            <span className="text-[10px] font-bold text-(--error) uppercase tracking-wide">จำเป็น</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {trip.importantNotes && (
-                  <div className="mt-4 pt-4 border-t border-(--outline-variant)/20">
-                    <p className="text-xs text-(--on-surface-variant) font-bold uppercase tracking-widest mb-2">หมายเหตุ</p>
-                    <p className="text-sm text-(--on-surface) whitespace-pre-line">{trip.importantNotes}</p>
-                  </div>
-                )}
-              </div>
-
               {/* Map card — only when the active day has locatable activities */}
               {mapActivities.length > 0 && (
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
@@ -945,15 +1025,6 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
-
-      {/* ═══ Currency Widget (international trips only) ═══ */}
-      {trip?.scope === "international" && (
-        <div className="max-w-7xl mx-auto px-4 md:px-8 pb-8">
-          <div className="max-w-sm">
-            <CurrencyWidget />
-          </div>
-        </div>
-      )}
 
       {/* ═══ Lightbox ═══ */}
       {lightboxImages.length > 0 && (

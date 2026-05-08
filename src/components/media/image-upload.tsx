@@ -3,16 +3,7 @@
 import { useRef, useState } from "react";
 import { MediaLibraryModal } from "./media-library-modal";
 
-interface ImageUploadProps {
-  value: string | null;
-  onChange: (url: string | null) => void;
-  uploadUrl?: string;
-  folder?: string;
-  label?: string;
-  hint?: string;
-  aspect?: "square" | "video" | "wide";
-  presets?: { label: string; url: string }[];
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
 
 const aspectClass = {
   square: "aspect-square w-32 md:w-40",
@@ -20,9 +11,79 @@ const aspectClass = {
   wide: "aspect-video lg:aspect-21/9 w-full",
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+/* ─── Shared upload logic ─── */
+async function uploadFile(
+  file: File,
+  folder: string,
+  uploadUrl?: string,
+): Promise<string> {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  if (!allowedTypes.includes(file.type)) throw new Error("รองรับเฉพาะ JPEG, PNG, WebP, GIF");
+  if (file.size > 5 * 1024 * 1024) throw new Error("ขนาดไฟล์ต้องไม่เกิน 5 MB");
 
-export function ImageUpload({
+  const { getValidToken } = await import("@/lib/auth");
+  const token = await getValidToken();
+  const endpoint = uploadUrl || `${API_URL}/admin/media/upload?folder=${folder}`;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+    credentials: "include",
+  });
+
+  const json = await res.json();
+  if (json.success && json.data) return json.data.url || json.data.logoUrl || json.data;
+  throw new Error(json.error || "อัปโหลดไม่สำเร็จ");
+}
+
+/* ─── Single-image mode ─── */
+interface SingleProps {
+  value: string | null;
+  onChange: (url: string | null) => void;
+  values?: never;
+  onMultiChange?: never;
+  maxImages?: never;
+  uploadUrl?: string;
+  folder?: string;
+  label?: string;
+  hint?: string;
+  aspect?: "square" | "video" | "wide";
+  presets?: { label: string; url: string }[];
+  containerClassName?: string;
+}
+
+/* ─── Multi-image mode ─── */
+interface MultiProps {
+  values: string[];
+  onMultiChange: (urls: string[]) => void;
+  maxImages?: number;
+  value?: never;
+  onChange?: never;
+  uploadUrl?: string;
+  folder?: string;
+  label?: string;
+  containerClassName?: string;
+  aspect?: never;
+  hint?: never;
+  presets?: never;
+}
+
+type ImageUploadProps = SingleProps | MultiProps;
+
+export function ImageUpload(props: ImageUploadProps): React.ReactNode {
+  if ("values" in props && props.values !== undefined) {
+    return <MultiImageUpload {...props} />;
+  }
+  return <SingleImageUpload {...(props as SingleProps)} />;
+}
+
+/* ════════════════════════════════════════
+   Single-image upload (existing behaviour)
+   ════════════════════════════════════════ */
+function SingleImageUpload({
   value,
   onChange,
   uploadUrl,
@@ -31,7 +92,8 @@ export function ImageUpload({
   hint,
   aspect = "square",
   presets,
-}: ImageUploadProps): React.ReactNode {
+  containerClassName,
+}: SingleProps): React.ReactNode {
   const isSquare = aspect === "square";
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -41,46 +103,13 @@ export function ImageUpload({
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const maxSize = 5 * 1024 * 1024;
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-
-    if (!allowedTypes.includes(file.type)) {
-      setError("รองรับเฉพาะ JPEG, PNG, WebP, GIF");
-      return;
-    }
-    if (file.size > maxSize) {
-      setError("ขนาดไฟล์ต้องไม่เกิน 5 MB");
-      return;
-    }
-
     setError("");
     setUploading(true);
-
     try {
-      const { getValidToken } = await import("@/lib/auth");
-      const token = await getValidToken();
-
-      // Use media endpoint for tracking
-      const endpoint = uploadUrl || `${API_URL}/admin/media/upload?folder=${folder}`;
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-        credentials: "include",
-      });
-
-      const json = await res.json();
-      if (json.success && json.data) {
-        onChange(json.data.url || json.data.logoUrl || json.data);
-      } else {
-        setError(json.error || "อัปโหลดไม่สำเร็จ");
-      }
-    } catch {
-      setError("เกิดข้อผิดพลาดในการอัปโหลด");
+      const url = await uploadFile(file, folder, uploadUrl);
+      onChange(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการอัปโหลด");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -89,19 +118,10 @@ export function ImageUpload({
 
   return (
     <div className={isSquare ? "flex flex-col items-center gap-4" : "space-y-4"}>
-      {/* Hidden file input */}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        onChange={handleFile}
-        className="hidden"
-      />
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFile} className="hidden" />
 
       <div className={isSquare ? "" : presets ? "grid grid-cols-1 lg:grid-cols-12 gap-6" : ""}>
-        <div
-          className={`${isSquare ? "" : presets ? "lg:col-span-8" : ""} relative overflow-hidden rounded-2xl bg-white border-2 border-dashed border-(--outline-variant)/30 transition-all ${aspectClass[aspect]}`}
-        >
+        <div className={`${isSquare ? "" : presets ? "lg:col-span-8" : ""} relative overflow-hidden rounded-2xl bg-white border-2 border-dashed border-(--outline-variant)/30 transition-all ${aspectClass[aspect]} ${containerClassName ?? ""}`}>
           {uploading ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center space-y-2 z-10 p-4">
               <div className="w-8 h-8 border-3 border-(--primary) border-t-transparent rounded-full animate-spin mx-auto" />
@@ -111,45 +131,18 @@ export function ImageUpload({
             <>
               <img src={value} alt={label ?? "Upload"} className="absolute inset-0 w-full h-full object-cover" />
               {isSquare ? (
-                /* Square / avatar — icon-only round buttons so text doesn't
-                   wrap into a "two-circle" blob in tight containers. */
                 <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-(--on-surface) shadow-sm hover:bg-white transition-colors"
-                    title="อัปโหลดใหม่"
-                    aria-label="อัปโหลดใหม่"
-                  >
+                  <button type="button" onClick={() => fileRef.current?.click()} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-(--on-surface) shadow-sm hover:bg-white transition-colors" title="อัปโหลดใหม่" aria-label="อัปโหลดใหม่">
                     <span className="material-symbols-outlined text-lg leading-none">photo_camera</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLibrary(true)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-(--on-surface) shadow-sm hover:bg-white transition-colors"
-                    title="เลือกจากคลังสื่อ"
-                    aria-label="เลือกจากคลังสื่อ"
-                  >
+                  <button type="button" onClick={() => setShowLibrary(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-(--on-surface) shadow-sm hover:bg-white transition-colors" title="เลือกจากคลังสื่อ" aria-label="เลือกจากคลังสื่อ">
                     <span className="material-symbols-outlined text-lg leading-none">photo_library</span>
                   </button>
                 </div>
               ) : (
-                /* Wide / cover — full-text pills, plenty of horizontal room. */
                 <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-all flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors whitespace-nowrap"
-                  >
-                    อัปโหลดใหม่
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLibrary(true)}
-                    className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors whitespace-nowrap"
-                  >
-                    คลังสื่อ
-                  </button>
+                  <button type="button" onClick={() => fileRef.current?.click()} className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors whitespace-nowrap">อัปโหลดใหม่</button>
+                  <button type="button" onClick={() => setShowLibrary(true)} className="bg-white/90 text-(--on-surface) px-4 py-2 rounded-full text-xs font-bold shadow-sm hover:bg-white transition-colors whitespace-nowrap">คลังสื่อ</button>
                 </div>
               )}
             </>
@@ -159,20 +152,8 @@ export function ImageUpload({
               {label && <p className="text-sm font-semibold text-(--on-surface-variant)">{label}</p>}
               {hint && <p className="text-xs text-(--on-surface-variant)">{hint}</p>}
               <div className={`flex gap-2 ${isSquare ? "flex-col w-full max-w-[160px]" : ""}`}>
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="px-4 py-2 rounded-xl bg-(--primary) text-(--on-primary) text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
-                >
-                  อัปโหลด
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLibrary(true)}
-                  className="px-4 py-2 rounded-xl bg-(--surface-variant) text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-variant)/80 transition-colors whitespace-nowrap"
-                >
-                  คลังสื่อ
-                </button>
+                <button type="button" onClick={() => fileRef.current?.click()} className="px-4 py-2 rounded-xl bg-(--primary) text-(--on-primary) text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap">อัปโหลด</button>
+                <button type="button" onClick={() => setShowLibrary(true)} className="px-4 py-2 rounded-xl bg-(--surface-variant) text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-variant)/80 transition-colors whitespace-nowrap">คลังสื่อ</button>
               </div>
             </div>
           )}
@@ -183,12 +164,7 @@ export function ImageUpload({
             <p className="text-xs font-bold uppercase tracking-widest text-(--on-surface-variant)">ภาพสำเร็จรูป</p>
             <div className="grid grid-cols-2 gap-3">
               {presets.map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => onChange(p.url)}
-                  className="group/preset relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-(--primary) ring-offset-2 transition-all"
-                >
+                <button key={p.label} type="button" onClick={() => onChange(p.url)} className="group/preset relative h-24 rounded-xl overflow-hidden shadow-sm hover:ring-2 ring-(--primary) ring-offset-2 transition-all">
                   <img src={p.url} alt={p.label} className="w-full h-full object-cover group-hover/preset:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <span className="text-white text-xs font-bold">{p.label}</span>
@@ -207,11 +183,140 @@ export function ImageUpload({
         </p>
       )}
 
-      {/* Media Library Modal */}
+      <MediaLibraryModal open={showLibrary} onClose={() => setShowLibrary(false)} onSelect={(url) => onChange(url)} folder={folder} />
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════
+   Multi-image upload (new)
+   ════════════════════════════════════════ */
+function MultiImageUpload({
+  values,
+  onMultiChange,
+  maxImages = 6,
+  uploadUrl,
+  folder = "activities",
+  label,
+  containerClassName,
+}: MultiProps): React.ReactNode {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
+
+  const canAdd = values.length < maxImages;
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setError("");
+    setUploading(true);
+    try {
+      const url = await uploadFile(file, folder, uploadUrl);
+      onMultiChange([...values, url]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการอัปโหลด");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function removeImage(idx: number) {
+    onMultiChange(values.filter((_, i) => i !== idx));
+  }
+
+  return (
+    <div className={containerClassName}>
+      {label && (
+        <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest block mb-2">
+          {label}
+          <span className="ml-1.5 font-normal normal-case">({values.length}/{maxImages})</span>
+        </label>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        {/* Existing images */}
+        {values.map((url, idx) => (
+          <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-(--outline-variant)/40 group/img shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => removeImage(idx)}
+              className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
+              title="ลบรูป"
+            >
+              <span className="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </div>
+        ))}
+
+        {/* Add button */}
+        {canAdd && (
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setAddMenuOpen((o) => !o)}
+              disabled={uploading}
+              className="w-20 h-20 rounded-xl border-2 border-dashed border-(--outline-variant)/60 hover:border-(--primary)/50 flex flex-col items-center justify-center gap-0.5 text-(--on-surface-variant) hover:text-(--primary) transition-all disabled:opacity-50"
+              title="เพิ่มรูป"
+            >
+              {uploading ? (
+                <span className="w-5 h-5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-xl">add_photo_alternate</span>
+                  <span className="text-[10px] font-bold">เพิ่มรูป</span>
+                </>
+              )}
+            </button>
+
+            {/* Add menu dropdown */}
+            {addMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setAddMenuOpen(false)} />
+                <div className="absolute bottom-full mb-1 left-0 z-50 bg-white rounded-xl shadow-lg border border-(--outline-variant)/30 overflow-hidden min-w-36">
+                  <button
+                    type="button"
+                    onClick={() => { setAddMenuOpen(false); fileRef.current?.click(); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-(--on-surface) hover:bg-(--surface-container-low) transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base text-(--primary)">upload</span>
+                    อัปโหลดรูป
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAddMenuOpen(false); setShowLibrary(true); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-(--on-surface) hover:bg-(--surface-container-low) transition-colors border-t border-(--outline-variant)/20"
+                  >
+                    <span className="material-symbols-outlined text-base text-(--primary)">photo_library</span>
+                    คลังสื่อ
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
+          <span className="material-symbols-outlined text-sm">error</span>
+          {error}
+        </p>
+      )}
+
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFile} className="hidden" />
+
       <MediaLibraryModal
         open={showLibrary}
         onClose={() => setShowLibrary(false)}
-        onSelect={(url) => onChange(url)}
+        onSelect={(url) => {
+          if (values.length < maxImages) onMultiChange([...values, url]);
+        }}
         folder={folder}
       />
     </div>

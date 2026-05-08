@@ -6,13 +6,13 @@ import { ROUTES } from "@/constants/routes";
 import { api, ApiError } from "@/lib/api";
 import dynamic from "next/dynamic";
 
-// DevAutoFill is dev-only — dynamic import + NODE_ENV gate keeps it
-// out of the production bundle.
-const DevAutoFill = process.env.NODE_ENV === "development"
+// DevAutoFill is gated by NEXT_PUBLIC_DEV_TOOLS so it can be enabled
+// in any environment via .env.local without requiring `npm run dev`.
+const DevAutoFill = process.env.NEXT_PUBLIC_DEV_TOOLS === "true"
   ? dynamic(() => import("@trip/ui").then((m) => ({ default: m.DevAutoFill })), { ssr: false })
   : null;
 import { TripStepperHeader } from "@/components/layout/trip-stepper";
-import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog, PreviewDrawer } from "@/components/shared";
+import { FormInput, FooterActionBar, EmptyState, Skeleton, ConfirmDialog } from "@/components/shared";
 import { ActivityEditorCard } from "./_components/activity-editor-card";
 import { ActivityBottomSheet } from "./_components/activity-bottom-sheet";
 import { QuickActivityInput } from "./_components/quick-activity-input";
@@ -227,7 +227,6 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const [activeDay, setActiveDay] = useState(0);
   const [accommodations, setAccommodations] = useState<AccommodationApi[]>([]);
   const [addingActivity, setAddingActivity] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [activeSheetActivity, setActiveSheetActivity] = useState<TripActivity | null>(null);
 
   /* Mobile detection — true when viewport < 640px (sm breakpoint). */
@@ -497,35 +496,45 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     }
   }, [id, toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
 
-  /* ─── Save Draft (parallel) ─── */
+  /* ─── Batch PUT helper — avoids flooding the admin-write rate limit ─── */
+  async function batchPut(tasks: (() => Promise<unknown>)[], batchSize = 10) {
+    for (let i = 0; i < tasks.length; i += batchSize) {
+      await Promise.all(tasks.slice(i, i + batchSize).map((t) => t()));
+    }
+  }
+
+  function buildSaveTasks(targetDays: typeof days) {
+    const tasks: (() => Promise<unknown>)[] = [];
+    for (const day of targetDays) {
+      tasks.push(() => api.put(`/admin/trips/${id}/days/${day.id}`, {
+        title: day.title,
+        subtitle: day.subtitle,
+        coverImageUrl: day.coverImageUrl,
+        date: day.date,
+      }));
+      if (day.activities.length > 0) {
+        tasks.push(() => api.put(`/admin/days/${day.id}/activities/bulk`, {
+          items: day.activities.map((act) => ({
+            activityId: act.id,
+            time: act.time,
+            name: act.name,
+            description: act.description,
+            type: act.type,
+            placeName: act.placeName,
+            mapsLink: act.mapsLink,
+            emoji: act.emoji,
+          })),
+        }));
+      }
+    }
+    return tasks;
+  }
+
+  /* ─── Save Draft ─── */
   const handleSaveDraft = useCallback(async () => {
     setSaving(true);
     try {
-      const promises: Promise<unknown>[] = [];
-      for (const day of days) {
-        promises.push(
-          api.put(`/admin/trips/${id}/days/${day.id}`, {
-            title: day.title,
-            subtitle: day.subtitle,
-            coverImageUrl: day.coverImageUrl,
-            date: day.date,
-          })
-        );
-        for (const act of day.activities) {
-          promises.push(
-            api.put(`/admin/days/${day.id}/activities/${act.id}`, {
-              time: act.time,
-              name: act.name,
-              description: act.description,
-              type: act.type,
-              placeName: act.placeName,
-              mapsLink: act.mapsLink,
-              emoji: act.emoji,
-            })
-          );
-        }
-      }
-      await Promise.all(promises);
+      await batchPut(buildSaveTasks(days));
       toast.success("บันทึกร่างสำเร็จ");
     } catch {
       toast.error("ไม่สามารถบันทึกร่างได้");
@@ -538,31 +547,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const handleNext = useCallback(async () => {
     setSaving(true);
     try {
-      const promises: Promise<unknown>[] = [];
-      for (const day of days) {
-        promises.push(
-          api.put(`/admin/trips/${id}/days/${day.id}`, {
-            title: day.title,
-            subtitle: day.subtitle,
-            coverImageUrl: day.coverImageUrl,
-            date: day.date,
-          })
-        );
-        for (const act of day.activities) {
-          promises.push(
-            api.put(`/admin/days/${day.id}/activities/${act.id}`, {
-              time: act.time,
-              name: act.name,
-              description: act.description,
-              type: act.type,
-              placeName: act.placeName,
-              mapsLink: act.mapsLink,
-              emoji: act.emoji,
-            })
-          );
-        }
-      }
-      await Promise.all(promises);
+      await batchPut(buildSaveTasks(days));
       router.push(ROUTES.tripPreview(id));
     } catch {
       toast.error("ไม่สามารถบันทึกได้ กรุณาลองอีกครั้ง");
@@ -832,16 +817,6 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                     not a property of the day's title. Placing it next to
                     the add-activity button makes that relationship clear. */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {/* Mobile preview button — opens PreviewDrawer */}
-                  <button
-                    type="button"
-                    onClick={() => setPreviewOpen(true)}
-                    title="ดูตัวอย่างบนมือถือ"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold text-(--on-surface-variant) border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:text-(--primary) transition-all bg-white"
-                  >
-                    <span className="material-symbols-outlined text-base">phone_iphone</span>
-                    <span className="hidden sm:inline">Preview</span>
-                  </button>
                   <button
                     type="button"
                     onClick={() => toggleFreeDay(currentDay.id, !currentDay.isFreeDay)}
@@ -1003,33 +978,6 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
         }}
       />
 
-      {/* ═══ Mobile Preview Drawer ═══ */}
-      <PreviewDrawer
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        title={tripTitle}
-        startDate={startDate}
-        endDate={endDate}
-        totalDays={totalTripDays}
-        travelersCount={travelersCount}
-        coverImageUrl={null}
-        airlineName={null}
-        accommodationsCount={accommodations.length}
-        countdownDays={startDate ? Math.max(0, Math.ceil((new Date(startDate).getTime() - Date.now()) / 86400000)) : 0}
-        days={days.map((d) => ({
-          id: d.id,
-          title: d.title ?? "",
-          date: d.date ?? null,
-          coverImageUrl: d.coverImageUrl ?? null,
-          activities: d.activities.map((a) => ({
-            id: a.id,
-            time: a.time ?? null,
-            name: a.name,
-            description: a.description ?? null,
-            emoji: a.emoji ?? null,
-          })),
-        }))}
-      />
 
       {/* ═══ Confirm Dialog ═══ */}
       <ConfirmDialog

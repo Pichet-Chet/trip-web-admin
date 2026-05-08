@@ -165,7 +165,7 @@ export default function MyTripsPage(): React.ReactNode {
                 <p className="text-[11px] text-(--on-surface-variant) mt-0.5">อัปเกรดแพลนเพื่อสร้างทริปเพิ่ม</p>
               </div>
             ) : (
-              <Link
+              <a
                 href={ROUTES.tripNew}
                 className="group rounded-2xl border-2 border-dashed border-(--outline-variant)/30 hover:border-(--primary)/40 flex flex-col items-center justify-center min-h-70 transition-all duration-300 hover:bg-(--primary)/3"
               >
@@ -174,7 +174,7 @@ export default function MyTripsPage(): React.ReactNode {
                 </div>
                 <p className="font-bold text-(--on-surface) text-sm">สร้างทริปใหม่</p>
                 <p className="text-[11px] text-(--on-surface-variant) mt-0.5">เริ่มต้นวางแผนทริปถัดไป</p>
-              </Link>
+              </a>
             )}
 
             {/* Trip Cards */}
@@ -262,9 +262,9 @@ export default function MyTripsPage(): React.ReactNode {
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
             <p className="text-(--outline) mb-6">ยังไม่มีทริป</p>
-            <Link href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
+            <a href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
-            </Link>
+            </a>
           </div>
         )}
       </div>

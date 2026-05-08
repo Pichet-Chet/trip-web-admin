@@ -98,7 +98,7 @@ export function TransportSection({
               ))}
             </div>
             {segments.length > 1 && (
-              <IconButton icon="close" variant="danger" size="sm" onClick={() => onRemove(seg.id)} />
+              <IconButton icon="delete" variant="danger" size="sm" onClick={() => onRemove(seg.id)} />
             )}
           </div>
 

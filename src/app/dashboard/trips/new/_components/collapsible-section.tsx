@@ -24,11 +24,11 @@ export function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="rounded-2xl border border-(--outline-variant) bg-(--surface) overflow-hidden">
+    <div className="rounded-3xl border border-(--outline-variant)/30 bg-white shadow-sm overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-(--surface-variant)/40 transition-colors"
+        className="w-full flex items-center gap-3 px-6 py-5 text-left transition-colors"
         aria-expanded={open}
       >
         <IconWrapper icon={icon} size="md" />
@@ -53,7 +53,7 @@ export function CollapsibleSection({
         </span>
       </button>
 
-      {open && <div className="px-5 pb-5 space-y-6">{children}</div>}
+      {open && <div className="px-6 pb-6 pt-2 space-y-6">{children}</div>}
     </div>
   );
 }

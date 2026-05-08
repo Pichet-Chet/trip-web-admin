@@ -22,8 +22,8 @@ export function EmergencyContactCard({
 }: EmergencyContactCardProps): React.ReactNode {
   return (
     <div className="bg-white p-4 md:p-5 rounded-2xl border border-(--outline-variant)/30 shadow-sm">
-      <div className="flex gap-3 items-start">
-        <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 shrink-0 mt-0.5">
+      <div className="flex gap-3 items-center">
+        <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 shrink-0">
           <span className="material-symbols-outlined">emergency</span>
         </div>
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -43,7 +43,7 @@ export function EmergencyContactCard({
           />
         </div>
         {showRemove && (
-          <IconButton icon="close" variant="danger" size="sm" onClick={onRemove} />
+          <IconButton icon="delete" variant="danger" size="sm" onClick={onRemove} />
         )}
       </div>
       {contact.note && (

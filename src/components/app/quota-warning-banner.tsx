@@ -1,47 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { api, ApiError } from "@/lib/api";
-
-interface UsageResponse {
-  tier: string | null;
-  tripQuotaUsed: number;
-  tripQuotaLimit: number;
-  remainingTrips: number;
-  creditsTotal: number;
-  creditsUsed: number;
-  creditsRemaining: number;
-  hasActiveSubscription: boolean;
-  subscriptionExpiresAt: string | null;
-}
+import { useState } from "react";
+import { useDashboard, type UsageData } from "@/lib/contexts/dashboard-context";
 
 const DISMISS_KEY = "quota_warning_dismissed_at";
 const DISMISS_HOURS = 24;
 
-/**
- * Proactive quota warning. Three triggers:
- *   - Trip quota used ≥ 80% (free tier only)
- *   - Subscription expiring within 7 days
- *   - All credits exhausted (no subscription)
- *
- * Dismissable for 24h via localStorage; reappears after that.
- */
 export function QuotaWarningBanner(): React.ReactNode {
-  const [usage, setUsage] = useState<UsageResponse | null>(null);
-  const [dismissed, setDismissed] = useState(true);
-
-  useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem(DISMISS_KEY) : null;
-    if (stored) {
-      const ts = Number(stored);
-      if (!Number.isNaN(ts) && Date.now() - ts < DISMISS_HOURS * 3600_000) return;
-    }
-    setDismissed(false);
-    api.get<UsageResponse>("/admin/usage")
-      .then(setUsage)
-      .catch((err) => { if (!(err instanceof ApiError)) console.error(err); });
-  }, []);
+  const { usage } = useDashboard();
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem(DISMISS_KEY);
+    if (!stored) return false;
+    const ts = Number(stored);
+    return !Number.isNaN(ts) && Date.now() - ts < DISMISS_HOURS * 3600_000;
+  });
 
   function dismiss() {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
@@ -76,7 +50,7 @@ export function QuotaWarningBanner(): React.ReactNode {
   );
 }
 
-function analyzeUsage(u: UsageResponse): {
+function analyzeUsage(u: UsageData): {
   warning: boolean;
   message: string;
   action?: string;
