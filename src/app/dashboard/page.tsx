@@ -8,6 +8,7 @@ import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog, Operato
 import { api } from "@/lib/api";
 import { subscribe, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { TRIP_STATUS_CONFIG, tripStatusLabel } from "@/lib/trip-status";
 
 type FilterTab = "all" | "draft" | "published" | "active";
 
@@ -24,6 +25,7 @@ interface Trip {
   followerCount: number;
   viewCount: number;
   createdAt: string;
+  hasRejectionItems: boolean;
 }
 
 interface Usage {
@@ -128,7 +130,7 @@ function MemberDashboard({ user, onUnlock }: { user: UserInfo | null; onUnlock: 
                     </div>
                   )}
                   <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm">
-                    {trip.status === "Published" ? "เผยแพร่" : trip.status}
+                    {tripStatusLabel(trip.status)}
                   </span>
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
@@ -241,6 +243,33 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
           <span className="material-symbols-outlined text-red-500 mt-0.5 shrink-0">error</span>
           <p className="text-sm text-red-700 flex-1">{apiError}</p>
           <button onClick={() => setApiError("")} className="text-red-400 hover:text-red-600"><span className="material-symbols-outlined text-lg">close</span></button>
+        </div>
+      )}
+
+      {/* Rejection alert banner */}
+      {trips.some((t) => t.hasRejectionItems) && (
+        <div className="flex items-start gap-4 p-5 bg-red-50 border-2 border-red-200 rounded-2xl">
+          <span className="material-symbols-outlined text-red-500 text-2xl shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-red-800 text-sm">
+              {trips.filter((t) => t.hasRejectionItems).length === 1
+                ? "มี 1 ทริปที่ไม่ผ่านการตรวจสอบ"
+                : `มี ${trips.filter((t) => t.hasRejectionItems).length} ทริปที่ไม่ผ่านการตรวจสอบ`}
+            </p>
+            <p className="text-xs text-red-600 mt-0.5">ทีมงานได้แจ้งรายละเอียดที่ต้องแก้ไข กรุณาเปิดทริปเพื่อดูรายการ</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {trips.filter((t) => t.hasRejectionItems).map((t) => (
+                <Link
+                  key={t.id}
+                  href={`/dashboard/trips/${t.id}/preview`}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xs">chevron_right</span>
+                  {t.title}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -380,8 +409,10 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
           <div className="grid grid-cols-1 gap-6">
             {sortedTrips.map((trip) => {
               const isDraft = trip.status === "Draft";
+              const isRejected = isDraft && trip.hasRejectionItems;
+              const effectiveStatus = isRejected ? "rejected" : trip.status.toLowerCase();
               return (
-                <div key={trip.id} className="group bg-(--surface-container-lowest) hover:bg-white rounded-3xl p-4 md:p-6 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 border border-(--outline-variant)/30 hover:border-(--primary)/30 hover:shadow-2xl hover:shadow-(--primary)/5">
+                <div key={trip.id} className={`group bg-(--surface-container-lowest) hover:bg-white rounded-3xl p-4 md:p-6 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 border hover:shadow-2xl ${isRejected ? "border-red-200 hover:border-red-300 hover:shadow-red-100/50" : "border-(--outline-variant)/30 hover:border-(--primary)/30 hover:shadow-(--primary)/5"}`}>
                   <div className={`w-full sm:w-48 h-40 sm:h-32 rounded-2xl overflow-hidden shrink-0 ${isDraft ? "grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" : ""}`}>
                     {trip.coverImageUrl ? (
                       <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={trip.coverImageUrl} alt={trip.title} />
@@ -392,7 +423,16 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center w-full">
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <StatusBadge status={trip.status.toLowerCase() as "draft" | "published" | "unpublished"} />
+                        <StatusBadge status={effectiveStatus} config={TRIP_STATUS_CONFIG} />
+                        {isRejected && (
+                          <Link
+                            href={`/dashboard/trips/${trip.id}/preview`}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                            ดูรายการที่ต้องแก้ไข
+                          </Link>
+                        )}
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${trip.scope === "international" ? "bg-purple-50 text-purple-600" : "bg-emerald-50 text-emerald-600"}`}>
                           {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}
                         </span>

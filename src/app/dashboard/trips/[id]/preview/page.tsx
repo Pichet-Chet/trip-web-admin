@@ -58,6 +58,7 @@ interface TripDetail {
   telegramGroupUrl?: string | null;
   publishedQuotaSource: string | null;
   submittedAt: string | null;
+  rejectionItems?: RejectionItem[];
 }
 
 interface DayDetail {
@@ -119,6 +120,15 @@ interface ChecklistItem {
   label: string;
   isRequired: boolean;
   sortOrder: number;
+}
+
+interface RejectionItem {
+  id: string;
+  itemId: string;
+  itemLabel: string;
+  reason: string;
+  staffName: string;
+  createdAt: string;
 }
 
 interface SubmitReviewResponse {
@@ -502,6 +512,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
               <div className={`rounded-3xl p-6 md:p-8 shadow-sm border ${
                 isPendingReview ? "bg-orange-50 border-orange-200"
                   : isUnpublished ? "bg-rose-50 border-rose-200"
+                  : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 ? "bg-red-50 border-red-200"
                   : "bg-white border-(--outline-variant)/30"
               }`}>
                 <div className="flex items-start gap-4">
@@ -510,12 +521,14 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                     isPublished ? "bg-(--primary-container) text-(--on-primary-container)"
                     : isPendingReview ? "bg-orange-100 text-orange-600"
                     : isUnpublished ? "bg-rose-100 text-rose-600"
+                    : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 ? "bg-red-100 text-red-600"
                     : "bg-(--surface-variant) text-(--on-surface-variant)"
                   }`}>
                     <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
                       {isPublished ? "check_circle"
                         : isPendingReview ? "hourglass_empty"
                         : isUnpublished ? "block"
+                        : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 ? "cancel"
                         : "edit_note"}
                     </span>
                   </div>
@@ -527,10 +540,12 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                       <h3 className={`font-bold text-lg leading-tight ${
                         isPendingReview ? "text-orange-800"
                         : isUnpublished ? "text-rose-800"
+                        : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 ? "text-red-800"
                         : "text-(--on-surface)"
                       }`}>
                         {isPublished ? "เผยแพร่แล้ว"
                           : isPendingReview ? "รอตรวจสอบ"
+                          : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 ? "ไม่ผ่านการตรวจสอบ"
                           : isDraft ? "ฉบับร่าง"
                           : "ยกเลิกเผยแพร่แล้ว"}
                       </h3>
@@ -554,10 +569,13 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                     <p className={`text-sm mt-0.5 ${
                       isPendingReview ? "text-orange-700"
                       : isUnpublished ? "text-rose-700"
+                      : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 ? "text-red-700"
                       : "text-(--on-surface-variant)"
                     }`}>
                       {isPublished ? "ทุกคนที่มีลิงก์สามารถเข้าดูได้"
                         : isPendingReview ? "ทีมงานกำลังตรวจสอบ จะแจ้งผลทาง email โดยเร็ว"
+                        : isDraft && trip.rejectionItems && trip.rejectionItems.length > 0
+                          ? "ทริปถูกส่งกลับ กรุณาแก้ไขตามรายการที่แจ้งและส่งตรวจสอบใหม่"
                         : isDraft ? "ยังไม่เผยแพร่ มีแค่คุณที่เห็น"
                         : "ลูกทริปไม่สามารถเข้าดูได้จนกว่าจะส่งตรวจสอบใหม่"}
                     </p>
@@ -615,6 +633,51 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                   ))}
                 </div>
               </div>
+
+              {/* Rejection items panel — shown when trip was rejected (Draft + rejectionItems) */}
+              {isDraft && trip.rejectionItems && trip.rejectionItems.length > 0 && (
+                <div className="bg-red-50 rounded-3xl border border-red-200 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-red-100 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-red-500 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-red-800 text-sm">ทริปไม่ผ่านการตรวจสอบ</h3>
+                      <p className="text-xs text-red-600 mt-0.5">กรุณาแก้ไขรายการด้านล่างแล้วส่งตรวจสอบใหม่</p>
+                    </div>
+                    <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full shrink-0">
+                      {trip.rejectionItems.length} รายการ
+                    </span>
+                  </div>
+                  <div className="divide-y divide-red-100">
+                    {trip.rejectionItems.map((item) => {
+                      const ITEM_ICONS: Record<string, string> = {
+                        cover: "image", basic: "info", transport: "flight",
+                        hotel: "hotel", emergency: "emergency", notes: "sticky_note_2", program: "event_note",
+                      };
+                      const ITEM_FIX_HREF: Record<string, string> = {
+                        cover: `/dashboard/trips/new?id=${id}`,
+                        basic: `/dashboard/trips/new?id=${id}`,
+                      };
+                      const fixHref = ITEM_FIX_HREF[item.itemId] ?? ROUTES.tripEdit(id);
+                      return (
+                        <div key={item.id} className="px-6 py-4 flex items-start gap-3">
+                          <span className="material-symbols-outlined text-red-400 text-lg shrink-0 mt-0.5">{ITEM_ICONS[item.itemId] ?? "error"}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-red-800">{item.itemLabel}</p>
+                            <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{item.reason}</p>
+                          </div>
+                          <Link
+                            href={fixHref}
+                            className="shrink-0 flex items-center gap-1 text-xs font-bold text-red-700 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                          >
+                            แก้ไข
+                            <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Transport segments — only when data present */}
               {trip.airlineInfo.length > 0 && trip.airlineInfo.some((a) => a.departureAirport || a.airline) && (

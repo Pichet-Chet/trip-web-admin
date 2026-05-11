@@ -91,6 +91,7 @@ export default function NewTripPage(): React.ReactNode {
   // ─── Draft state (URL/UI, not part of the form) ───
   const [draftId, setDraftId] = useState<string | null>(searchParams.get("id"));
   const [tripStatus, setTripStatus] = useState("");
+  const [rejectionItems, setRejectionItems] = useState<{ itemId: string; itemLabel: string; reason: string }[]>([]);
 
 
   // ─── Auto-save state ───
@@ -260,6 +261,7 @@ export default function NewTripPage(): React.ReactNode {
       travelersCount?: number; language?: string;
       coverImageUrl?: string | null; importantNotes?: string | null;
       lineGroupUrl?: string | null; whatsappGroupUrl?: string | null; telegramGroupUrl?: string | null;
+      rejectionItems?: { itemId: string; itemLabel: string; reason: string }[];
     };
     type AirlineDto = {
       id: string; type: string; transportType: string;
@@ -288,6 +290,7 @@ export default function NewTripPage(): React.ReactNode {
         const trip = await api.get<TripDraftDto>(`/admin/trips/${draftId}`);
         setTripStatus(trip.status || "");
         setDateChangeCount(trip.dateChangeCount || 0);
+        setRejectionItems(trip.rejectionItems ?? []);
 
         // Load max date changes from system config
         try {
@@ -816,6 +819,27 @@ export default function NewTripPage(): React.ReactNode {
           <Banner variant="danger" title="เกิดข้อผิดพลาด" onDismiss={() => setApiError(null)} className="mb-6">
             {apiError}
           </Banner>
+        )}
+
+        {/* Rejection items banner — shown when trip was sent back by staff */}
+        {tripStatus === "Draft" && rejectionItems.length > 0 && (
+          <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-3 border-b border-red-100">
+              <span className="material-symbols-outlined text-red-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+              <p className="font-bold text-red-800 text-sm flex-1">ทริปไม่ผ่านการตรวจสอบ — กรุณาแก้ไขรายการด้านล่าง</p>
+            </div>
+            <div className="divide-y divide-red-100">
+              {rejectionItems.map((item, i) => (
+                <div key={i} className="flex items-start gap-3 px-5 py-3">
+                  <span className="material-symbols-outlined text-red-400 text-base shrink-0 mt-0.5">error</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-red-800">{item.itemLabel}</p>
+                    <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{item.reason}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Template picker shortcut — only shown when no draft exists yet */}
