@@ -25,6 +25,7 @@ export interface UserInfo {
   companyId: string;
   companyName: string;
   accountType: string;
+  isOperator: boolean;
   companies: CompanyInfo[];
 }
 
@@ -39,10 +40,8 @@ export interface CompanyInfo {
 export interface RegisterPayload {
   firstName: string;
   lastName: string;
-  companyName: string;
   email: string;
   password: string;
-  accountType: string;
   termsReadAt: string;
   privacyReadAt: string;
 }
@@ -228,6 +227,7 @@ export function setAccessToken(token: string): void {
     companyId: payload.company_id ?? "",
     companyName: "",
     accountType: payload.account_type ?? "",
+    isOperator: (payload.account_type ?? "member").toLowerCase() !== "member",
     companies: [],
   };
   notify();

@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { FilterTabs, ConfirmDialog, useToast, EmptyState } from "@/components/shared";
+import { FilterTabs, ConfirmDialog, useToast, EmptyState, OperatorUnlockModal } from "@/components/shared";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { getUser } from "@/lib/auth";
 
 type FilterTab = "all" | "draft" | "pending_review" | "published" | "unpublished" | "archived";
 
@@ -52,9 +53,19 @@ export default function MyTripsPage(): React.ReactNode {
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
   const [quotaFull, setQuotaFull] = useState(false);
   const [cloning, setCloning] = useState<string | null>(null);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
   const { toast } = useToast();
   const { confirm } = useConfirm();
   const router = useRouter();
+
+  function handleCreateTrip() {
+    const user = getUser();
+    if (!user?.isOperator) {
+      setShowUnlockModal(true);
+      return;
+    }
+    router.push(ROUTES.tripNew);
+  }
 
   async function handleClone(trip: Trip) {
     if (cloning) return;
@@ -165,16 +176,16 @@ export default function MyTripsPage(): React.ReactNode {
                 <p className="text-[11px] text-(--on-surface-variant) mt-0.5">อัปเกรดแพลนเพื่อสร้างทริปเพิ่ม</p>
               </div>
             ) : (
-              <a
-                href={ROUTES.tripNew}
-                className="group rounded-2xl border-2 border-dashed border-(--outline-variant)/30 hover:border-(--primary)/40 flex flex-col items-center justify-center min-h-70 transition-all duration-300 hover:bg-(--primary)/3"
+              <button
+                onClick={handleCreateTrip}
+                className="group rounded-2xl border-2 border-dashed border-(--outline-variant)/30 hover:border-(--primary)/40 flex flex-col items-center justify-center min-h-70 transition-all duration-300 hover:bg-(--primary)/3 w-full"
               >
                 <div className="w-12 h-12 rounded-xl bg-(--primary)/8 flex items-center justify-center text-(--primary) group-hover:scale-110 transition-transform mb-3">
                   <span className="material-symbols-outlined text-2xl">add</span>
                 </div>
                 <p className="font-bold text-(--on-surface) text-sm">สร้างทริปใหม่</p>
                 <p className="text-[11px] text-(--on-surface-variant) mt-0.5">เริ่มต้นวางแผนทริปถัดไป</p>
-              </a>
+              </button>
             )}
 
             {/* Trip Cards */}
@@ -262,9 +273,9 @@ export default function MyTripsPage(): React.ReactNode {
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
             <p className="text-(--outline) mb-6">ยังไม่มีทริป</p>
-            <a href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
+            <button onClick={handleCreateTrip} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
-            </a>
+            </button>
           </div>
         )}
       </div>
@@ -287,6 +298,15 @@ export default function MyTripsPage(): React.ReactNode {
         description="ทริปและข้อมูลทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้"
         confirmLabel="ลบทริป"
         variant="danger"
+      />
+
+      <OperatorUnlockModal
+        open={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        onSuccess={() => {
+          setShowUnlockModal(false);
+          router.push(ROUTES.tripNew);
+        }}
       />
     </>
   );
