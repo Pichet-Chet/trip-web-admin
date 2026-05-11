@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog } from "@/components/shared";
+import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog, OperatorUnlockModal } from "@/components/shared";
 import { api } from "@/lib/api";
 import { subscribe, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -38,17 +39,149 @@ interface Usage {
   hasActiveSubscription: boolean;
 }
 
-export default function DashboardPage(): React.ReactNode {
-  usePageTitle("Dashboard");
-  const [user, setUser] = useState<UserInfo | null>(null);
+interface FollowedTrip {
+  id: string;
+  title: string;
+  destination: string;
+  startDate: string | null;
+  endDate: string | null;
+  coverImageUrl: string | null;
+  status: string;
+  operatorName: string;
+  operatorLogoUrl: string | null;
+  followerCount: number;
+}
+
+// ─── Member dashboard ────────────────────────────────────────────────────────
+
+function MemberDashboard({ user, onUnlock }: { user: UserInfo | null; onUnlock: () => void }) {
+  const [followed, setFollowed] = useState<FollowedTrip[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get<FollowedTrip[]>("/admin/followers/following")
+      .then(setFollowed)
+      .catch(() => {/* silently ignore */})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="p-4 md:p-8 space-y-10">
+      {/* Greeting + Upgrade CTA */}
+      <section className="relative overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-indigo-50" />
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute -left-10 -bottom-20 w-72 h-72 rounded-full bg-indigo-200/30 blur-3xl" />
+        <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center gap-8">
+          <div className="flex-1">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-(--on-surface) mb-2">
+              สวัสดี {user?.firstName || ""} 👋
+            </h2>
+            <p className="text-(--on-surface-variant) max-w-lg">
+              คุณกำลังติดตามทริปและสถานที่ที่น่าสนใจ อยากจัดทริปเองด้วยไหม?
+            </p>
+          </div>
+          <div className="shrink-0">
+            <button
+              onClick={onUnlock}
+              className="flex items-center gap-3 bg-(--primary) text-white px-7 py-4 rounded-full font-bold text-sm shadow-lg hover:brightness-110 transition-all"
+            >
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>flight_takeoff</span>
+              เริ่มสร้างทริป
+            </button>
+            <p className="text-[11px] text-(--on-surface-variant) mt-2 text-center">ฟรีสูงสุด 3 ทริป</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Followed trips */}
+      <section className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-black text-(--on-surface)">ทริปที่ติดตาม</h3>
+          <Link href="/dashboard/following" className="text-xs font-bold text-(--primary) hover:underline flex items-center gap-1">
+            ดูทั้งหมด <span className="material-symbols-outlined text-sm">arrow_forward</span>
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="text-(--outline) animate-pulse text-sm">กำลังโหลด...</div>
+        ) : followed.length === 0 ? (
+          <EmptyState
+            icon="bookmark"
+            title="ยังไม่ได้ติดตามทริปไหน"
+            description="ค้นหาทริปที่น่าสนใจแล้วกด Follow เพื่อติดตามอัปเดต"
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {followed.slice(0, 6).map((trip) => (
+              <Link
+                key={trip.id}
+                href={`/t/${trip.id}`}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-(--outline-variant)/60 transition-all duration-300 overflow-hidden flex flex-col"
+              >
+                <div className="relative aspect-16/10 overflow-hidden">
+                  {trip.coverImageUrl ? (
+                    <img src={trip.coverImageUrl} alt={trip.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <div className="w-full h-full bg-linear-to-br from-(--surface-variant) to-(--outline-variant)/40 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-4xl text-(--outline-variant)">landscape</span>
+                    </div>
+                  )}
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm">
+                    {trip.status === "Published" ? "เผยแพร่" : trip.status}
+                  </span>
+                </div>
+                <div className="p-4 flex-1 flex flex-col">
+                  <h4 className="font-bold text-[15px] text-(--on-surface) leading-snug line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h4>
+                  <p className="text-[12px] text-(--outline) mt-1">{trip.destination}</p>
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-(--outline-variant)/20">
+                    <div className="w-5 h-5 rounded-full bg-(--primary-container) flex items-center justify-center text-[9px] font-bold text-(--on-primary-container) shrink-0">
+                      {trip.operatorName.charAt(0)}
+                    </div>
+                    <span className="text-[11px] text-(--on-surface-variant) truncate">{trip.operatorName}</span>
+                    <span className="ml-auto text-[11px] text-(--outline) flex items-center gap-0.5">
+                      <span className="material-symbols-outlined text-[13px]">bookmark</span>
+                      {trip.followerCount}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Quick links */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { href: "/dashboard/following", icon: "bookmark", label: "ทริปที่ติดตาม" },
+          { href: "/dashboard/saved", icon: "favorite", label: "สถานที่บันทึก" },
+          { href: ROUTES.profile, icon: "person", label: "โปรไฟล์" },
+          { href: "/dashboard/support/tickets", icon: "support_agent", label: "ตั๋วสนับสนุน" },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center gap-2 p-5 bg-white rounded-2xl border border-(--outline-variant)/30 hover:border-(--primary)/30 hover:shadow-md transition-all group"
+          >
+            <span className="material-symbols-outlined text-2xl text-(--on-surface-variant) group-hover:text-(--primary) transition-colors">{item.icon}</span>
+            <span className="text-xs font-bold text-(--on-surface-variant) group-hover:text-(--primary) transition-colors text-center">{item.label}</span>
+          </Link>
+        ))}
+      </section>
+    </div>
+  );
+}
+
+// ─── Operator dashboard ──────────────────────────────────────────────────────
+
+function OperatorDashboard({ user }: { user: UserInfo | null }) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>("all");
   const [apiError, setApiError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
-
-  useEffect(() => subscribe(setUser), []);
 
   useEffect(() => {
     Promise.all([
@@ -78,20 +211,15 @@ export default function DashboardPage(): React.ReactNode {
 
   const showOnboarding = !loading && trips.length === 0;
   const hasProfile = !!(user?.companyName);
-  // Effective capacity = free quota + purchased credits. Subscription stays at 0% (visualised
-  // as "full ring of capacity available") since the denominator is unbounded.
   const quotaPercent = usage && !usage.hasActiveSubscription
     ? Math.min(100, Math.round(((usage.tripQuotaUsed + usage.creditsUsed) / Math.max(1, usage.tripQuotaLimit + usage.creditsTotal)) * 100))
     : 0;
-  // Quota "full" only when free + credits + subscription all exhausted
   const quotaFull = usage
     ? usage.remainingTrips <= 0 && (usage.creditsRemaining ?? 0) <= 0 && !usage.hasActiveSubscription
     : false;
 
-  // Sort trips by createdAt desc
   const sortedTrips = [...filteredTrips].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Refresh usage after trip changes
   async function refreshUsage() {
     try {
       const u = await api.get<Usage>("/admin/usage");
@@ -108,7 +236,6 @@ export default function DashboardPage(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 space-y-12">
 
-      {/* API Error */}
       {apiError && (
         <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
           <span className="material-symbols-outlined text-red-500 mt-0.5 shrink-0">error</span>
@@ -117,7 +244,7 @@ export default function DashboardPage(): React.ReactNode {
         </div>
       )}
 
-      {/* ═══ Onboarding (0 trips) ═══ */}
+      {/* Onboarding (0 trips) */}
       {showOnboarding && (
         <section className="relative overflow-hidden rounded-2xl">
           <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-indigo-50" />
@@ -134,32 +261,31 @@ export default function DashboardPage(): React.ReactNode {
                 { step: 2, title: "สร้างทริปแรก", desc: "เลือกในประเทศหรือต่างประเทศ ใส่ข้อมูลการเดินทาง ที่พัก กิจกรรม", href: ROUTES.tripNew, done: trips.length > 0 },
                 { step: 3, title: "แชร์ให้ลูกทริป", desc: "เผยแพร่ทริป แล้วส่งลิงก์หรือ QR Code ให้ลูกทริปเปิดดู", href: "#", done: trips.some(t => t.status === "Published") },
               ].map((s) => (
-                  <Link
-                    key={s.step}
-                    href={s.href}
-                    className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
-                      s.done ? "bg-white/60 border-transparent" : "bg-white border-(--primary)/20 shadow-sm hover:shadow-md"
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
-                      s.done ? "bg-green-500 text-white" : "bg-(--primary) text-white"
-                    }`}>
-                      {s.done ? <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check</span> : s.step}
-                    </div>
-                    <div>
-                      <p className={`font-bold ${s.done ? "text-(--on-surface-variant) line-through" : "text-(--on-surface)"}`}>{s.title}</p>
-                      <p className={`text-sm mt-0.5 ${s.done ? "text-(--outline-variant)" : "text-(--on-surface-variant)"}`}>{s.desc}</p>
-                    </div>
-                  </Link>
+                <Link
+                  key={s.step}
+                  href={s.href}
+                  className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
+                    s.done ? "bg-white/60 border-transparent" : "bg-white border-(--primary)/20 shadow-sm hover:shadow-md"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
+                    s.done ? "bg-green-500 text-white" : "bg-(--primary) text-white"
+                  }`}>
+                    {s.done ? <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check</span> : s.step}
+                  </div>
+                  <div>
+                    <p className={`font-bold ${s.done ? "text-(--on-surface-variant) line-through" : "text-(--on-surface)"}`}>{s.title}</p>
+                    <p className={`text-sm mt-0.5 ${s.done ? "text-(--outline-variant)" : "text-(--on-surface-variant)"}`}>{s.desc}</p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* ═══ Hero Bento ═══ */}
+      {/* Hero Bento */}
       <section className="grid grid-cols-12 gap-6 lg:h-105">
-        {/* Large CTA Card */}
         <div className="col-span-12 lg:col-span-7 relative overflow-hidden rounded-[2.5rem] bg-(--primary) group cursor-pointer shadow-2xl shadow-(--primary)/10 aspect-video lg:aspect-auto">
           <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-blue-700 to-indigo-900" />
           <div className="absolute inset-0 bg-linear-to-tr from-(--primary) via-(--primary)/40 to-transparent" />
@@ -173,17 +299,15 @@ export default function DashboardPage(): React.ReactNode {
                 โควต้าเต็ม — อัปเกรดแพลน
               </Link>
             ) : (
-              <a href={ROUTES.tripNew} className="w-fit bg-white text-(--primary) px-6 md:px-8 py-3 md:py-4 rounded-full font-extrabold text-sm md:text-lg flex items-center gap-3 hover:bg-(--primary-container) transition-colors shadow-xl">
+              <Link href={ROUTES.tripNew} className="w-fit bg-white text-(--primary) px-6 md:px-8 py-3 md:py-4 rounded-full font-extrabold text-sm md:text-lg flex items-center gap-3 hover:bg-(--primary-container) transition-colors shadow-xl">
                 <span className="material-symbols-outlined">add_circle</span>
                 สร้างทริปใหม่
-              </a>
+              </Link>
             )}
           </div>
         </div>
 
-        {/* Membership + Stats */}
         <div className="col-span-12 lg:col-span-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
-          {/* Membership Card */}
           <Link href={ROUTES.usage} className="group relative bg-slate-900 rounded-4xl p-6 md:p-8 flex flex-col justify-between text-white shadow-xl overflow-hidden min-h-48">
             <div className="relative z-10">
               <div className="flex justify-between items-start">
@@ -212,7 +336,6 @@ export default function DashboardPage(): React.ReactNode {
             <div className="absolute -right-8 -top-8 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl" />
           </Link>
 
-          {/* Trip Count Stat */}
           <div className="bg-white rounded-4xl p-6 md:p-8 flex flex-col justify-between shadow-sm border border-(--outline-variant)/30">
             <div className="flex justify-between items-start mb-4 lg:mb-0">
               <span className="text-(--outline) text-xs font-bold uppercase tracking-wider">ทริปทั้งหมด</span>
@@ -235,7 +358,7 @@ export default function DashboardPage(): React.ReactNode {
         </div>
       </section>
 
-      {/* ═══ Trip Management ═══ */}
+      {/* Trip Management */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <h3 className="text-2xl md:text-3xl font-black text-(--on-surface)">ทริปของคุณ</h3>
@@ -317,14 +440,14 @@ export default function DashboardPage(): React.ReactNode {
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
             <p className="text-(--outline) mb-6">ยังไม่มีทริป — สร้างทริปแรกกันเลย!</p>
-            <a href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
+            <Link href={ROUTES.tripNew} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
               <span className="material-symbols-outlined">add</span> สร้างทริป
-            </a>
+            </Link>
           </div>
         )}
       </section>
 
-      {/* ═══ Usage Insights ═══ */}
+      {/* Usage Insights */}
       {usage && (
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="col-span-1 bg-(--surface-container-lowest) rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-(--outline-variant)/30 flex flex-col justify-center text-center">
@@ -355,7 +478,6 @@ export default function DashboardPage(): React.ReactNode {
         </section>
       )}
 
-      {/* Delete Confirm Dialog */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -376,5 +498,45 @@ export default function DashboardPage(): React.ReactNode {
         variant="danger"
       />
     </div>
+  );
+}
+
+// ─── Root page ───────────────────────────────────────────────────────────────
+
+export default function DashboardPage(): React.ReactNode {
+  usePageTitle("Dashboard");
+  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+
+  useEffect(() => subscribe(setUser), []);
+
+  // Still loading user info
+  if (user === null) return (
+    <div className="p-8 flex items-center justify-center min-h-[50vh]">
+      <div className="text-(--outline) animate-pulse">กำลังโหลด...</div>
+    </div>
+  );
+
+  return (
+    <>
+      {user.isOperator ? (
+        <OperatorDashboard user={user} />
+      ) : (
+        <MemberDashboard
+          user={user}
+          onUnlock={() => setShowUnlockModal(true)}
+        />
+      )}
+
+      <OperatorUnlockModal
+        open={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        onSuccess={() => {
+          setShowUnlockModal(false);
+          router.push(ROUTES.tripNew);
+        }}
+      />
+    </>
   );
 }

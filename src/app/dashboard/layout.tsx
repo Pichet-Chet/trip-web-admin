@@ -179,7 +179,7 @@ export default function DashboardLayout({
 
           {/* Global Footer */}
           <footer className="border-t border-slate-100 px-4 md:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
-            <p>&copy; 2569 Trip Admin · v0.1.0</p>
+            <p>&copy; 2569 TripApp · v0.1.0</p>
             <div className="flex items-center gap-4">
               <a href="/dashboard/terms" className="hover:text-slate-600 transition-colors">เงื่อนไขการใช้งาน</a>
               <a href="/dashboard/privacy" className="hover:text-slate-600 transition-colors">นโยบายความเป็นส่วนตัว</a>
