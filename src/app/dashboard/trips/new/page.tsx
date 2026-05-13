@@ -92,6 +92,9 @@ export default function NewTripPage(): React.ReactNode {
   const [draftId, setDraftId] = useState<string | null>(searchParams.get("id"));
   const [tripStatus, setTripStatus] = useState("");
   const [rejectionItems, setRejectionItems] = useState<{ itemId: string; itemLabel: string; reason: string }[]>([]);
+  const [hasPublishedSnapshot, setHasPublishedSnapshot] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
 
   // ─── Auto-save state ───
@@ -262,6 +265,7 @@ export default function NewTripPage(): React.ReactNode {
       coverImageUrl?: string | null; importantNotes?: string | null;
       lineGroupUrl?: string | null; whatsappGroupUrl?: string | null; telegramGroupUrl?: string | null;
       rejectionItems?: { itemId: string; itemLabel: string; reason: string }[];
+      publishedAt?: string | null;
     };
     type AirlineDto = {
       id: string; type: string; transportType: string;
@@ -291,6 +295,7 @@ export default function NewTripPage(): React.ReactNode {
         setTripStatus(trip.status || "");
         setDateChangeCount(trip.dateChangeCount || 0);
         setRejectionItems(trip.rejectionItems ?? []);
+        setHasPublishedSnapshot(!!trip.publishedAt);
 
         // Load max date changes from system config
         try {
@@ -773,6 +778,21 @@ export default function NewTripPage(): React.ReactNode {
     await saveTrip(true);
   }
 
+  async function handleRestorePublished(): Promise<void> {
+    if (!draftId || restoring) return;
+    setRestoring(true);
+    try {
+      await api.post(`/admin/trips/${draftId}/restore-published`, {});
+      toast.success("กู้คืนข้อมูลสำเร็จ — โหลดข้อมูลล่าสุดที่ Publish แล้ว");
+      window.location.reload();
+    } catch {
+      toast.error("ไม่สามารถกู้คืนข้อมูลได้");
+    } finally {
+      setRestoring(false);
+      setShowRestoreConfirm(false);
+    }
+  }
+
   if (loadingDraft) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-slate-400 animate-pulse">กำลังโหลด draft...</div>
@@ -838,6 +858,59 @@ export default function NewTripPage(): React.ReactNode {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Restore published banner — shown when trip is Draft but has a published snapshot */}
+        {tripStatus === "Draft" && hasPublishedSnapshot && (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3.5">
+            <span className="material-symbols-outlined text-amber-500 text-xl shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-900">ทริปนี้มีข้อมูลที่ Publish ล่าสุดอยู่</p>
+              <p className="text-xs text-amber-700 mt-0.5">หากต้องการยกเลิกการแก้ไขและกลับไปยังข้อมูลที่ Publish ไว้ สามารถกู้คืนได้</p>
+            </div>
+            <button
+              onClick={() => setShowRestoreConfirm(true)}
+              className="shrink-0 flex items-center gap-1.5 rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100 transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">restore</span>
+              กู้คืน
+            </button>
+          </div>
+        )}
+
+        {/* Restore confirmation modal */}
+        {showRestoreConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 mx-auto mb-5">
+                <span className="material-symbols-outlined text-amber-500 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>restore</span>
+              </div>
+              <h3 className="text-center text-lg font-bold text-slate-900 mb-2">กู้คืนข้อมูลที่ Publish ล่าสุด?</h3>
+              <p className="text-center text-sm text-slate-500 mb-8 leading-relaxed">
+                การดำเนินการนี้จะแทนที่ข้อมูล Draft ปัจจุบันทั้งหมดด้วยข้อมูลที่ Publish ล่าสุด<br />
+                <span className="font-semibold text-slate-700">ข้อมูลที่แก้ไขไว้จะหายทั้งหมด</span>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowRestoreConfirm(false)}
+                  disabled={restoring}
+                  className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleRestorePublished}
+                  disabled={restoring}
+                  className="flex-1 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {restoring
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />กำลังกู้คืน...</>
+                    : <><span className="material-symbols-outlined text-sm">restore</span>กู้คืนเลย</>
+                  }
+                </button>
+              </div>
             </div>
           </div>
         )}
