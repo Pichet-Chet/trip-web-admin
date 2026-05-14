@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FormInput, FormTextarea, IconButton, TimePicker } from "@/components/shared";
 import { ImageUpload } from "@/components/media/image-upload";
+import { PlaceAutocompleteInput, type PlaceResult } from "./place-autocomplete-input";
 import type { TripActivity } from "@/types";
 
 const ACTIVITY_TYPES = [
@@ -51,6 +52,8 @@ interface ActivityEditorCardProps {
   onRequestExpand?: () => void;
   /** Override "ย่อ" button (e.g. close the bottom sheet that hosts this card). */
   onCollapse?: () => void;
+  googleMapsApiKey?: string | null;
+  onPlaceSelect?: (patch: Partial<TripActivity>) => void;
 }
 
 /**
@@ -61,6 +64,7 @@ interface ActivityEditorCardProps {
 export function ActivityEditorCard({
   activity, onLocalChange, onCommit, onImagesChange, onRemove,
   defaultExpanded = false, onRequestExpand, onCollapse,
+  googleMapsApiKey, onPlaceSelect,
 }: ActivityEditorCardProps): React.ReactNode {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -200,29 +204,60 @@ export function ActivityEditorCard({
           {/* Location fields */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest px-1 block">สถานที่</label>
-            <FormInput
-              placeholder="ชื่อสถานที่ / สถานที่ตั้ง"
+            <PlaceAutocompleteInput
               value={activity.placeName ?? ""}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (/^https?:\/\//i.test(v.trim())) {
-                  onLocalChange({ mapsLink: v.trim() });
-                  onCommit("mapsLink", v.trim());
-                  return;
-                }
-                onLocalChange({ placeName: v });
+              apiKey={googleMapsApiKey ?? null}
+              onPlaceSelect={(result: PlaceResult) => {
+                onLocalChange({ placeName: result.placeName, lat: result.lat, lng: result.lng, mapsLink: result.mapsLink });
+                onPlaceSelect?.({ placeName: result.placeName, lat: result.lat, lng: result.lng, mapsLink: result.mapsLink });
               }}
+              onTextChange={(v) => onLocalChange({ placeName: v })}
               onBlur={() => onCommit("placeName", activity.placeName ?? "")}
-              icon="location_on"
             />
-            <FormInput
-              placeholder="Google Maps link (ถ้ามี)"
-              value={activity.mapsLink ?? ""}
-              onChange={(e) => onLocalChange({ mapsLink: e.target.value })}
-              onBlur={() => onCommit("mapsLink", activity.mapsLink ?? "")}
-              icon="map"
-              type="url"
-            />
+            {/* Mini map preview — shown when lat/lng is known */}
+            {activity.lat && activity.lng && googleMapsApiKey ? (
+              <div className="relative rounded-xl overflow-hidden border border-(--outline-variant)/30 h-40">
+                <iframe
+                  title="map-preview"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${activity.lat},${activity.lng}&zoom=15&language=th`}
+                  allowFullScreen
+                />
+                {activity.mapsLink && (
+                  <a
+                    href={activity.mapsLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-[11px] font-semibold bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow text-(--primary) hover:bg-white transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    Google Maps
+                  </a>
+                )}
+              </div>
+            ) : !activity.mapsLink ? (
+              <FormInput
+                placeholder="Google Maps link (ถ้ามี)"
+                value={activity.mapsLink ?? ""}
+                onChange={(e) => onLocalChange({ mapsLink: e.target.value })}
+                onBlur={() => onCommit("mapsLink", activity.mapsLink ?? "")}
+                icon="map"
+                type="url"
+              />
+            ) : (
+              <a
+                href={activity.mapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-(--primary) hover:underline px-1"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                ดูใน Google Maps
+              </a>
+            )}
           </div>
 
           <FormTextarea

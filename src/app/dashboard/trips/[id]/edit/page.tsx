@@ -228,6 +228,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
   const [accommodations, setAccommodations] = useState<AccommodationApi[]>([]);
   const [addingActivity, setAddingActivity] = useState(false);
   const [activeSheetActivity, setActiveSheetActivity] = useState<TripActivity | null>(null);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
 
   /* Mobile detection — true when viewport < 640px (sm breakpoint). */
   const [isMobile, setIsMobile] = useState(false);
@@ -344,7 +345,13 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     let cancelled = false;
     (async () => {
       try {
-        await loadTrip();
+        const [, platform] = await Promise.all([
+          loadTrip(),
+          api.get<{ googleMapsApiKey?: string | null }>("/staff/platform").catch(() => null),
+        ]);
+        if (!cancelled && platform?.googleMapsApiKey) {
+          setGoogleMapsApiKey(platform.googleMapsApiKey);
+        }
       } catch (err) {
         if (!cancelled) toast.error(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้");
       } finally {
@@ -911,6 +918,17 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                       onImagesChange={(urls) => updateActivityImages(currentDay.id, act.id, urls)}
                       onRemove={() => removeActivity(currentDay.id, act.id)}
                       onRequestExpand={isMobile ? () => setActiveSheetActivity(act) : undefined}
+                      googleMapsApiKey={googleMapsApiKey}
+                      onPlaceSelect={(patch) => {
+                        setDays((prev) => prev.map((d) =>
+                          d.id === currentDay.id
+                            ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, ...patch } : a) }
+                            : d
+                        ));
+                        Object.entries(patch).forEach(([field, value]) =>
+                          updateActivityField(currentDay.id, act.id, field, value as string | null)
+                        );
+                      }}
                     />
                   ))
                 )}
@@ -936,7 +954,6 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
               travelersCount={travelersCount}
               onCoverChange={(url) => handleDayCoverChange(currentDay.id, url)}
             />
-
           </div>
         )}
       </div>
