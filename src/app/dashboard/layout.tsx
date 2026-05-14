@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, createContext, useContext, useCallback, useEffect } from "react";
+import { useState, createContext, useContext, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ToastProvider } from "@/components/shared";
 import { ConfirmProvider } from "@/lib/hooks/use-confirm";
@@ -28,15 +29,30 @@ export default function DashboardLayout({
   const [companies, setCompanies] = useState<CompanyInfo[]>([]);
   const [switching, setSwitching] = useState(false);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
+  const router = useRouter();
+  const wasLoggedIn = useRef(false);
 
-  // Subscribe to auth state changes — fires immediately with current value,
-  // then on every login / logout / refresh / company-switch.
+  // Unified auth subscription — redirects on session drop
   useEffect(() => {
     return subscribe((u) => {
       setUser(u);
       setCompanies(u?.companies ?? []);
+      if (u) {
+        wasLoggedIn.current = true;
+      } else if (wasLoggedIn.current) {
+        router.replace("/login");
+      }
     });
-  }, []);
+  }, [router]);
+
+  const displayUser = user
+    ? { firstName: user.firstName, lastName: user.lastName, email: user.email }
+    : null;
+
+  async function handleLogout() {
+    await logout().catch(() => {});
+    router.replace("/login");
+  }
 
   return (
     <SidebarContext.Provider value={{ openSidebar }}>
@@ -70,11 +86,11 @@ export default function DashboardLayout({
                   className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                 >
                   <div className="text-right hidden sm:block">
-                    <p className="text-sm font-bold text-slate-900 leading-none">{user ? `${user.firstName} ${user.lastName}` : "..."}</p>
-                    <p className="text-[10px] text-slate-400">{user?.companyName || ""}</p>
+                    <p className="text-sm font-bold text-slate-900 leading-none">{displayUser ? `${displayUser.firstName} ${displayUser.lastName}` : "..."}</p>
+                    <p className="text-[10px] text-slate-400">{user?.companyName || (user && !user.isOperator ? "สมาชิก" : "")}</p>
                   </div>
                   <div className="w-9 h-9 rounded-full bg-(--primary) flex items-center justify-center text-white text-sm font-bold">
-                    {user?.firstName?.charAt(0) || "?"}
+                    {displayUser?.firstName?.charAt(0) || "?"}
                   </div>
                 </button>
                 {/* Profile Dropdown */}
@@ -83,8 +99,8 @@ export default function DashboardLayout({
                     <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setProfileOpen(false)} />
                     <div className="absolute right-0 top-14 z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
                       <div className="p-4 border-b border-slate-100">
-                        <p className="font-bold text-slate-900">{user ? `${user.firstName} ${user.lastName}` : ""}</p>
-                        <p className="text-xs text-slate-400">{user?.email}</p>
+                        <p className="font-bold text-slate-900">{displayUser ? `${displayUser.firstName} ${displayUser.lastName}` : ""}</p>
+                        <p className="text-xs text-slate-400">{displayUser?.email}</p>
                       </div>
                       {/* Company Switcher */}
                       {companies.length > 1 && (
@@ -144,7 +160,7 @@ export default function DashboardLayout({
                         </a>
                       </nav>
                       <div className="border-t border-slate-100 py-2">
-                        <button onClick={logout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors w-full text-left">
+                        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors w-full text-left">
                           <span className="material-symbols-outlined text-lg">logout</span>
                           ออกจากระบบ
                         </button>

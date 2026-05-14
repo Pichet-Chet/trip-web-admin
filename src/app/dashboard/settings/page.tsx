@@ -1,23 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { FormInput, FormTextarea, Modal, SectionHeader, ConfirmDialog, useToast } from "@/components/shared";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormInput, FormTextarea, Modal, SectionHeader, useToast } from "@/components/shared";
 import { NotificationPreferencesSection } from "@/components/settings/notification-preferences-section";
 import { SecuritySection } from "@/components/settings/security-section";
 import { TwoFactorSection } from "@/components/settings/two-factor-section";
 import { EmailChangeSection } from "@/components/settings/email-change-section";
+import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
 import { api, ApiError } from "@/lib/api";
-import { subscribe, logout, type UserInfo } from "@/lib/auth";
+import { subscribe, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 export default function SettingsPage(): React.ReactNode {
   usePageTitle("ตั้งค่าบัญชี");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [user, setUser] = useState<UserInfo | null>(null);
   useEffect(() => subscribe(setUser), []);
+
+  const isOperator = user?.isOperator ?? false;
+
+  useEffect(() => {
+    const linked = searchParams.get("linked");
+    if (linked === "google") {
+      toast.success("เชื่อมต่อ Google สำเร็จ");
+      router.replace("/dashboard/settings");
+    } else if (linked === "line") {
+      toast.success("เชื่อมต่อ LINE สำเร็จ");
+      router.replace("/dashboard/settings");
+    }
+  }, [searchParams, router, toast]);
 
   // Change password
   const [oldPassword, setOldPassword] = useState("");
@@ -52,10 +67,7 @@ export default function SettingsPage(): React.ReactNode {
     }
     setPwSaving(true);
     try {
-      await api.post("/admin/me/change-password", {
-        oldPassword,
-        newPassword,
-      });
+      await api.post("/admin/me/change-password", { oldPassword, newPassword });
       toast.success("เปลี่ยนรหัสผ่านเรียบร้อย");
       setOldPassword("");
       setNewPassword("");
@@ -80,7 +92,7 @@ export default function SettingsPage(): React.ReactNode {
       URL.revokeObjectURL(url);
       toast.success("ส่งออกข้อมูลเรียบร้อย");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "ส่งออกข้อมูลไม่สำเร็จ");
+      toast.error((err as Error).message || "ส่งออกข้อมูลไม่สำเร็จ");
     } finally {
       setExporting(false);
     }
@@ -94,15 +106,11 @@ export default function SettingsPage(): React.ReactNode {
     }
     setDeleting(true);
     try {
-      await api.delete("/admin/me", {
-        password: deletePassword,
-        reason: deleteReason.trim() || undefined,
-      });
-      await logout().catch(() => {});
+      await api.delete("/admin/me", { password: deletePassword, reason: deleteReason.trim() || undefined });
       toast.success("ลบบัญชีเรียบร้อย");
       router.push("/login");
     } catch (err) {
-      setDeleteError(err instanceof ApiError ? err.message : "ลบบัญชีไม่สำเร็จ");
+      setDeleteError((err as Error).message || "ลบบัญชีไม่สำเร็จ");
       setDeleting(false);
     }
   }
@@ -114,7 +122,14 @@ export default function SettingsPage(): React.ReactNode {
         <p className="text-(--on-surface-variant) mt-2 text-sm">จัดการบัญชี รหัสผ่าน และสิทธิ์ข้อมูลส่วนบุคคล (PDPA)</p>
       </div>
 
-      <EmailChangeSection />
+      {/* Social accounts — available for all user types */}
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">
+        <SectionHeader title="บัญชีที่เชื่อมต่อ" variant="bar" />
+        <ConnectedAccountsSection isOperator={isOperator} />
+      </div>
+
+      {/* Operator-only sections */}
+      {isOperator && <EmailChangeSection />}
 
       {/* Password */}
       <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-6">
@@ -157,11 +172,11 @@ export default function SettingsPage(): React.ReactNode {
         </div>
       </div>
 
-      <TwoFactorSection />
+      {isOperator && <TwoFactorSection />}
 
-      <SecuritySection />
+      {isOperator && <SecuritySection />}
 
-      <NotificationPreferencesSection />
+      {isOperator && <NotificationPreferencesSection />}
 
       {/* Export Data — PDPA */}
       <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">

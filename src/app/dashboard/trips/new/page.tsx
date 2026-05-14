@@ -121,6 +121,7 @@ export default function NewTripPage(): React.ReactNode {
   const [maxDateChanges, setMaxDateChanges] = useState(99);
   const [loading, setLoading] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(!!draftId);
+  const [reloadKey, setReloadKey] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -367,7 +368,7 @@ export default function NewTripPage(): React.ReactNode {
         setLoadingDraft(false);
       }
     })();
-  }, [draftId, reset]);
+  }, [draftId, reset, reloadKey]);
 
   const selectScope = useCallback((scope: TripScopeLocal): void => {
     setValue("scope", scope, { shouldDirty: true });
@@ -784,7 +785,8 @@ export default function NewTripPage(): React.ReactNode {
     try {
       await api.post(`/admin/trips/${draftId}/restore-published`, {});
       toast.success("กู้คืนข้อมูลสำเร็จ — โหลดข้อมูลล่าสุดที่ Publish แล้ว");
-      window.location.reload();
+      setLoadingDraft(true);
+      setReloadKey((k) => k + 1);
     } catch {
       toast.error("ไม่สามารถกู้คืนข้อมูลได้");
     } finally {

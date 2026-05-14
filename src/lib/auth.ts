@@ -1,5 +1,7 @@
 import { api } from "./api";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+
 // === Types ===
 
 export interface AuthResponse {
@@ -25,6 +27,7 @@ export interface UserInfo {
   companyId: string;
   companyName: string;
   accountType: string;
+  /** true when account_type != "member" — can manage trips / use operator features */
   isOperator: boolean;
   companies: CompanyInfo[];
 }
@@ -117,13 +120,30 @@ export async function switchCompany(companyId: string): Promise<AuthResponse> {
 
 export async function logout(): Promise<void> {
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/auth/logout`, {
+    await fetch(`${API_URL}/admin/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
   } catch { /* ignore */ }
   clearMemory();
   window.location.href = "/login";
+}
+
+/**
+ * Called by OAuth callback pages (google-callback, line-callback) after
+ * exchanging the code for a unified "user" token. Stores the result in
+ * the same in-memory store used by email/password login.
+ */
+export function setSocialLoginResult(data: AuthResponse): void {
+  setMemory(data);
+}
+
+/**
+ * isAuthenticated — returns true if any valid session exists (in-memory token).
+ * Replaces the old isAuthenticated() from client-auth.ts.
+ */
+export function isAuthenticated(): boolean {
+  return !!accessToken;
 }
 
 export function getUser(): UserInfo | null {
@@ -158,7 +178,7 @@ export async function refreshAuth(): Promise<boolean> {
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/auth/refresh`, {
+      const res = await fetch(`${API_URL}/admin/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
@@ -227,7 +247,7 @@ export function setAccessToken(token: string): void {
     companyId: payload.company_id ?? "",
     companyName: "",
     accountType: payload.account_type ?? "",
-    isOperator: (payload.account_type ?? "member").toLowerCase() !== "member",
+    isOperator: payload.is_operator === "true" || (payload.account_type ?? "member").toLowerCase() !== "member",
     companies: [],
   };
   notify();
@@ -242,6 +262,7 @@ interface JwtPayload {
   role?: string;
   company_id?: string;
   account_type?: string;
+  is_operator?: string;
   impersonating?: string;
   impersonated_by?: string;
 }

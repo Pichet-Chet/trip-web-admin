@@ -10,17 +10,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }): React.Re
 
   useEffect(() => {
     async function check() {
-      if (isLoggedIn()) {
-        setChecked(true);
-        return;
-      }
-      // ลอง refresh — ถ้ามี refresh_token cookie จะได้ access token ใหม่
+      if (isLoggedIn()) { setChecked(true); return; }
       const ok = await refreshAuth();
-      if (ok) {
-        setChecked(true);
-      } else {
-        router.replace("/login");
-      }
+      if (ok) { setChecked(true); return; }
+      router.replace("/login");
     }
     check();
   }, [router]);

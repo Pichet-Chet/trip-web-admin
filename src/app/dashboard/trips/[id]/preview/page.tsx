@@ -164,6 +164,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const { languages: availableLanguages } = useLanguages();
   const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
+  const [removingLang, setRemovingLang] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [unpublishing, setUnpublishing] = useState(false);
@@ -247,6 +248,21 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       setCancelling(false);
     }
   }, [id, toast]);
+
+  /* ─── Remove supported language ─── */
+  const handleRemoveLang = useCallback(async (code: string) => {
+    setRemovingLang(code);
+    const updated = supportedLangs.filter((c) => c !== code);
+    try {
+      await api.put(`/admin/trips/${id}/translations/supported`, { languageCodes: updated });
+      setSupportedLangs(updated);
+      toast.success("ลบภาษาแล้ว");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "ไม่สามารถลบภาษาได้");
+    } finally {
+      setRemovingLang(null);
+    }
+  }, [id, supportedLangs, toast]);
 
   /* ─── Unpublish ─── */
   const handleUnpublish = useCallback(async () => {
@@ -832,10 +848,23 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
                     <div className="flex flex-wrap gap-2">
                       {supportedLangs.map((code) => {
                         const lang = availableLanguages.find((l) => l.code === code);
+                        const isRemoving = removingLang === code;
                         return (
-                          <span key={code} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full bg-(--primary-container) text-(--on-primary-container) font-semibold">
+                          <span key={code} className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full font-semibold transition-opacity ${isRemoving ? "opacity-50 bg-(--surface-variant) text-(--on-surface-variant)" : "bg-(--primary-container) text-(--on-primary-container)"}`}>
                             {lang?.flag && <span>{lang.flag}</span>}
                             {lang?.nameNative ?? code.toUpperCase()}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveLang(code)}
+                              disabled={removingLang !== null}
+                              className="ml-0.5 w-4 h-4 rounded-full flex items-center justify-center hover:bg-black/10 transition-colors disabled:cursor-not-allowed"
+                              title={`ลบภาษา ${lang?.nameNative ?? code}`}
+                            >
+                              {isRemoving
+                                ? <span className="material-symbols-outlined text-[12px]">progress_activity</span>
+                                : <span className="material-symbols-outlined text-[12px]">close</span>
+                              }
+                            </button>
                           </span>
                         );
                       })}
