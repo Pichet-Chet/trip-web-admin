@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import {
@@ -137,12 +137,22 @@ function fmtAmount(amount: number, currency: string) {
 export default function FollowingDetailPage(): React.ReactNode {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [trip, setTrip] = useState<TripPublicResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState(0);
-  const [activeTab, setActiveTab] = useState("itinerary");
+  const [selectedDay, setSelectedDay] = useState(Math.max(0, parseInt(searchParams.get("day") ?? "0", 10)));
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") ?? "itinerary");
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    router.replace(`?tab=${tab}&day=${selectedDay}`, { scroll: false });
+  };
+  const handleDayChange = (i: number) => {
+    setSelectedDay(i);
+    router.replace(`?tab=${activeTab}&day=${i}`, { scroll: false });
+  };
 
   // Live itinerary (lat/lng from live table, not published snapshot)
   const [liveDays, setLiveDays] = useState<LiveDay[] | null>(null);
@@ -391,8 +401,8 @@ export default function FollowingDetailPage(): React.ReactNode {
     <div className="min-h-screen bg-(--surface-container-lowest)">
 
       {/* Sticky header */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-(--outline-variant)/20 px-4 md:px-8 py-3 flex items-center gap-2">
-        <IconButton icon="arrow_back" variant="ghost" onClick={() => router.back()} />
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-(--outline-variant)/20 px-4 md:px-8 py-3 flex items-center gap-2">
+        <IconButton icon="arrow_back" variant="ghost" onClick={() => router.back()} aria-label="กลับ" />
         <div className="flex-1 min-w-0">
           <h1 className="font-bold text-sm md:text-base text-(--on-surface) truncate">{trip.title}</h1>
           <p className="text-xs text-(--on-surface-variant) truncate">{trip.destination}</p>
@@ -405,17 +415,17 @@ export default function FollowingDetailPage(): React.ReactNode {
             copiedLabel="คัดลอกแล้ว!"
             variant="icon"
           />
-          <IconButton icon="qr_code_2" variant="ghost" onClick={() => setShowQR(true)} />
+          <IconButton icon="qr_code_2" variant="ghost" onClick={() => setShowQR(true)} aria-label="แสดง QR Code" />
         </div>
-      </div>
+      </header>
 
-      <div className="p-4 md:p-8">
+      <main className="p-4 md:p-8">
 
         {/* Cover + meta */}
         <div className="rounded-2xl overflow-hidden bg-white shadow-sm mb-6">
           {trip.coverImageUrl ? (
             <div className="relative aspect-[21/9] md:aspect-[3/1]">
-              <img src={trip.coverImageUrl} alt={trip.title} className="w-full h-full object-cover" />
+              <img src={trip.coverImageUrl} alt={trip.title} className="w-full h-full object-cover" width={1200} height={400} loading="lazy" />
               <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
                 <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow">{trip.title}</h2>
@@ -430,23 +440,23 @@ export default function FollowingDetailPage(): React.ReactNode {
           )}
           <div className="px-5 md:px-8 py-4 flex flex-wrap gap-3 border-t border-(--outline-variant)/20">
             <div className="flex items-center gap-2 text-sm text-(--on-surface-variant)">
-              <span className="material-symbols-outlined text-lg text-(--primary)">calendar_today</span>
+              <span className="material-symbols-outlined text-lg text-(--primary)" aria-hidden="true">calendar_today</span>
               <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-(--on-surface-variant)">
-              <span className="material-symbols-outlined text-lg text-(--primary)">group</span>
+              <span className="material-symbols-outlined text-lg text-(--primary)" aria-hidden="true">group</span>
               <span>{trip.travelersCount} คน</span>
             </div>
             {trip.company?.name && (
               <div className="flex items-center gap-2 text-sm text-(--on-surface-variant)">
-                <span className="material-symbols-outlined text-lg text-(--primary)">business</span>
+                <span className="material-symbols-outlined text-lg text-(--primary)" aria-hidden="true">business</span>
                 <span>{trip.company.name}</span>
               </div>
             )}
             {tripStatus === "upcoming" && getDaysUntil(trip.startDate) > 0 && (
               <span className="text-xs font-bold text-(--primary) flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">timer</span>
-                อีก {getDaysUntil(trip.startDate)} วัน
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">timer</span>
+                อีก <span className="tabular-nums">{getDaysUntil(trip.startDate)}</span> วัน
               </span>
             )}
           </div>
@@ -454,23 +464,27 @@ export default function FollowingDetailPage(): React.ReactNode {
 
         {/* Tabs */}
         <div className="mb-6">
-          <Tabs items={tabItems} value={activeTab} onChange={setActiveTab} />
+          <Tabs items={tabItems} value={activeTab} onChange={handleTabChange} />
         </div>
 
         {/* ── Itinerary tab ── */}
-        {activeTab === "itinerary" && trip.days.length > 0 && (
+        {activeTab === "itinerary" && (
+          trip.days.length === 0 ? (
+            <EmptyState icon="map" title="ยังไม่มีแผนการเดินทาง" description="ผู้ประกอบการยังไม่ได้เพิ่มข้อมูลแผนการเดินทาง" />
+          ) : (
           <div className="flex gap-8 items-start -mx-4 md:-mx-8 px-4 md:px-8">
 
             {/* ── Left: activity list (normal page flow) ── */}
             <div ref={setLeftPanelEl} className="w-[360px] xl:w-[420px] shrink-0 pb-8">
 
               {/* Day pills */}
-              <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
                 {trip.days.map((d, i) => (
                   <button
                     key={d.id}
-                    onClick={() => setSelectedDay(i)}
-                    className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-2xl border transition-all ${
+                    onClick={() => handleDayChange(i)}
+                    aria-label={`วันที่ ${d.dayNumber}${d.date ? ` - ${d.date}` : ''}`}
+                    className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-2xl border transition-colors focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:outline-none ${
                       selectedDay === i
                         ? "bg-(--primary) text-white border-(--primary) shadow-md"
                         : "bg-white text-(--on-surface-variant) border-(--outline-variant)/30 hover:border-(--primary)/30"
@@ -491,7 +505,7 @@ export default function FollowingDetailPage(): React.ReactNode {
                 <div className="mb-4 rounded-2xl overflow-hidden bg-white shadow-sm border border-(--outline-variant)/20">
                   {currentDay.coverImageUrl && (
                     <div className="relative h-36">
-                      <img src={currentDay.coverImageUrl} alt={currentDay.title ?? ""} className="w-full h-full object-cover" />
+                      <img src={currentDay.coverImageUrl} alt={currentDay.title ?? ""} className="w-full h-full object-cover" width={400} height={144} loading="lazy" />
                       <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
                       <div className="absolute bottom-0 left-0 p-4">
                         <p className="text-white font-bold text-base">{currentDay.title}</p>
@@ -529,7 +543,7 @@ export default function FollowingDetailPage(): React.ReactNode {
                                   <div className="w-px flex-1 bg-(--outline-variant)/25" />
                                   {travelTimes[idx] && (
                                     <div className="flex items-center gap-0.5 my-1 text-[10px] text-(--outline) whitespace-nowrap">
-                                      <span className="material-symbols-outlined text-[11px]">directions_car</span>
+                                      <span className="material-symbols-outlined text-[11px]" aria-hidden="true">directions_car</span>
                                       {travelTimes[idx]}
                                     </div>
                                   )}
@@ -547,9 +561,17 @@ export default function FollowingDetailPage(): React.ReactNode {
                               <div className="flex gap-2 items-start">
                                 <div className="flex-1 min-w-0">
                                   <p className="font-semibold text-(--on-surface) text-sm leading-snug">{a.name}</p>
+                                  {a.type && ACTIVITY_TYPE_ICON[a.type.toLowerCase()] && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] text-(--outline) mt-0.5">
+                                      <span className="material-symbols-outlined text-[11px]" aria-hidden="true">
+                                        {ACTIVITY_TYPE_ICON[a.type.toLowerCase()]}
+                                      </span>
+                                      {a.type}
+                                    </span>
+                                  )}
                                   {a.placeName && a.placeName !== a.name && (
                                     <p className="text-xs text-(--on-surface-variant) mt-0.5 flex items-center gap-1">
-                                      <span className="material-symbols-outlined text-[13px]">location_on</span>
+                                      <span className="material-symbols-outlined text-[13px]" aria-hidden="true">location_on</span>
                                       {a.placeName}
                                     </p>
                                   )}
@@ -561,7 +583,7 @@ export default function FollowingDetailPage(): React.ReactNode {
                                   {a.mapsLink && (
                                     <a href={a.mapsLink} target="_blank" rel="noreferrer"
                                        className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#4285F4] hover:underline">
-                                      <span className="material-symbols-outlined text-[13px]">map</span>
+                                      <span className="material-symbols-outlined text-[13px]" aria-hidden="true">map</span>
                                       Google Maps
                                     </a>
                                   )}
@@ -571,6 +593,9 @@ export default function FollowingDetailPage(): React.ReactNode {
                                     src={a.imageUrl}
                                     alt={a.name}
                                     className="w-20 h-20 rounded-xl object-cover shrink-0"
+                                    width={80}
+                                    height={80}
+                                    loading="lazy"
                                   />
                                 )}
                               </div>
@@ -591,9 +616,9 @@ export default function FollowingDetailPage(): React.ReactNode {
               {(mapActivities.length > 0 || (trip.days[selectedDay]?.activities ?? []).some(a => a.mapsLink)) && (
                 <button
                   onClick={() => setShowMapMobile(true)}
-                  className="lg:hidden w-full flex items-center justify-center gap-2 py-3 bg-[#4285F4] text-white rounded-2xl font-semibold text-sm shadow-md"
+                  className="lg:hidden w-full flex items-center justify-center gap-2 py-3 bg-[#4285F4] text-white rounded-2xl font-semibold text-sm shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
                 >
-                  <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
+                  <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">map</span>
                   ดูแผนที่
                   {mapActivities.length > 0 && <span className="text-white/70 text-xs">({mapActivities.length} จุด)</span>}
                 </button>
@@ -614,11 +639,11 @@ export default function FollowingDetailPage(): React.ReactNode {
                       <div className="p-5 space-y-2">
                         <p className="text-sm font-semibold text-(--on-surface) mb-3">แผนที่ Day {currentDay?.dayNumber}</p>
                         <p className="text-xs text-(--outline) flex items-center gap-1.5 mb-4 bg-(--surface-container) rounded-xl px-3 py-2">
-                          <span className="material-symbols-outlined text-sm">info</span>
+                          <span className="material-symbols-outlined text-sm" aria-hidden="true">info</span>
                           ไม่มีพิกัด GPS — กดเปิดแต่ละจุดผ่าน Google Maps
                         </p>
                         {dayActs.map((a, i) => (
-                          <a key={i} href={a.mapsLink!} target="_blank" rel="noreferrer"
+                          <a key={a.mapsLink ?? i} href={a.mapsLink!} target="_blank" rel="noreferrer"
                              className="flex items-center gap-3 p-3 bg-(--surface-container) rounded-xl hover:bg-(--surface-container-high) transition-colors group">
                             <div className="w-9 h-9 rounded-xl bg-[#4285F4] flex items-center justify-center shrink-0 text-white text-xs font-bold">
                               {i + 1}
@@ -628,7 +653,7 @@ export default function FollowingDetailPage(): React.ReactNode {
                               <p className="text-sm font-medium text-(--on-surface) truncate">{a.name}</p>
                               {a.placeName && <p className="text-xs text-(--on-surface-variant) truncate">{a.placeName}</p>}
                             </div>
-                            <span className="material-symbols-outlined text-sm text-(--outline) group-hover:text-(--primary)">open_in_new</span>
+                            <span className="material-symbols-outlined text-sm text-(--outline) group-hover:text-(--primary)" aria-hidden="true">open_in_new</span>
                           </a>
                         ))}
                       </div>
@@ -642,6 +667,7 @@ export default function FollowingDetailPage(): React.ReactNode {
               })()}
             </div>
           </div>
+          )
         )}
 
         {/* Mobile map modal */}
@@ -651,8 +677,8 @@ export default function FollowingDetailPage(): React.ReactNode {
             <div className="bg-white rounded-t-3xl h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-3 border-b border-(--outline-variant)/20">
                 <p className="font-bold text-(--on-surface) text-sm">แผนที่ Day {currentDay?.dayNumber}</p>
-                <button onClick={() => setShowMapMobile(false)} className="w-8 h-8 rounded-full bg-(--surface-container) flex items-center justify-center">
-                  <span className="material-symbols-outlined text-lg">close</span>
+                <button onClick={() => setShowMapMobile(false)} aria-label="ปิดแผนที่" className="w-8 h-8 rounded-full bg-(--surface-container) flex items-center justify-center focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:outline-none">
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">close</span>
                 </button>
               </div>
               <div className="flex-1">
@@ -750,13 +776,13 @@ export default function FollowingDetailPage(): React.ReactNode {
         {trip.importantNotes && activeTab === "itinerary" && (
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+              <span className="material-symbols-outlined text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">info</span>
               <h3 className="font-semibold text-amber-800 text-sm">หมายเหตุสำคัญ</h3>
             </div>
             <p className="text-sm text-amber-700 whitespace-pre-line">{trip.importantNotes}</p>
           </div>
         )}
-      </div>
+      </main>
 
       {/* ── Expense Form Drawer ── */}
       <Drawer
