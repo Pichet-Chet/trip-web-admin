@@ -95,13 +95,13 @@ function getDaysUntil(start: string): number {
   return Math.ceil((new Date(start + "T00:00:00").getTime() - Date.now()) / 86_400_000);
 }
 
-const ACTIVITY_TYPE_ICON: Record<string, string> = {
-  attraction: "place",
-  restaurant: "restaurant",
-  hotel: "hotel",
-  transport: "directions_bus",
-  shopping: "shopping_bag",
-  other: "radio_button_unchecked",
+const ACTIVITY_TYPE_META: Record<string, { icon: string; label: string }> = {
+  attraction: { icon: "place",         label: "สถานที่ท่องเที่ยว" },
+  restaurant: { icon: "restaurant",    label: "ร้านอาหาร" },
+  hotel:      { icon: "hotel",         label: "ที่พัก" },
+  transport:  { icon: "directions_bus",label: "การเดินทาง" },
+  shopping:   { icon: "shopping_bag",  label: "ช้อปปิ้ง" },
+  other:      { icon: "category",      label: "อื่น ๆ" },
 };
 
 const MARKER_COLOR: Record<string, string> = {
@@ -274,7 +274,7 @@ export default function FollowingDetailPage(): React.ReactNode {
   // Prefer live itinerary for coordinates (always current), fall back to published snapshot
   const sourceDays = liveDays ?? trip?.days ?? [];
 
-  const toMapActivity = (a: { name: string; lat: number | null; lng: number | null; time?: string | null; type?: string | null; description?: string | null; placeName?: string | null; mapsLink?: string | null }): MapActivity => ({
+  const toMapActivity = (a: { name: string; lat: number | null; lng: number | null; time?: string | null; type?: string | null; description?: string | null; placeName?: string | null; mapsLink?: string | null; imageUrl?: string | null }): MapActivity => ({
     name: a.name,
     lat: a.lat!,
     lng: a.lng!,
@@ -283,6 +283,7 @@ export default function FollowingDetailPage(): React.ReactNode {
     description: a.description ?? undefined,
     placeName: a.placeName ?? undefined,
     mapsLink: a.mapsLink ?? undefined,
+    imageUrl: a.imageUrl ?? undefined,
   });
 
   const allMapActivities = useMemo((): MapActivity[] =>
@@ -524,80 +525,98 @@ export default function FollowingDetailPage(): React.ReactNode {
 
                   {/* Activities */}
                   {currentDay.activities.length > 0 ? (
-                    <div className="p-4 space-y-1">
+                    <div className="px-4 pt-2 pb-4">
                       {currentDay.activities.map((a, idx) => {
-                        const color = MARKER_COLOR[a.type?.toLowerCase() ?? "other"] ?? MARKER_COLOR.other;
+                        const typeKey = a.type?.toLowerCase() ?? "other";
+                        const typeMeta = ACTIVITY_TYPE_META[typeKey] ?? ACTIVITY_TYPE_META.other;
                         const hasPin = !!(a.lat && a.lng);
+                        const color = "#1978e5";
+                        const isLast = idx === currentDay.activities.length - 1;
                         return (
-                          <div key={a.id ?? idx} className="flex gap-3 py-3">
-                            {/* Timeline */}
-                            <div className="flex flex-col items-center shrink-0 pt-0.5">
+                          <div key={a.id ?? idx} className="flex gap-3">
+                            {/* Timeline column */}
+                            <div className="flex flex-col items-center shrink-0 pt-3">
                               <div
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                                style={{ backgroundColor: hasPin ? color : "#cbd5e1" }}
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
+                                style={{ backgroundColor: hasPin ? color : "#e2e8f0" }}
                               >
-                                {idx + 1}
+                                {a.emoji ?? idx + 1}
                               </div>
-                              {idx < currentDay.activities.length - 1 && (
-                                <div className="flex flex-col items-center mt-2 flex-1 min-h-[24px]">
-                                  <div className="w-px flex-1 bg-(--outline-variant)/25" />
+                              {!isLast && (
+                                <div className="flex flex-col items-center flex-1 min-h-[32px] mt-1">
+                                  <div className="w-px flex-1 bg-(--outline-variant)/50" />
                                   {travelTimes[idx] && (
-                                    <div className="flex items-center gap-0.5 my-1 text-[10px] text-(--outline) whitespace-nowrap">
+                                    <div className="flex items-center gap-0.5 my-1 px-1.5 py-0.5 rounded-full bg-(--surface-variant) text-[10px] text-(--on-surface-variant) whitespace-nowrap">
                                       <span className="material-symbols-outlined text-[11px]" aria-hidden="true">directions_car</span>
                                       {travelTimes[idx]}
                                     </div>
                                   )}
-                                  <div className="w-px flex-1 bg-(--outline-variant)/25" />
+                                  <div className="w-px flex-1 bg-(--outline-variant)/50" />
                                 </div>
                               )}
                             </div>
-                            {/* Content */}
-                            <div className="flex-1 min-w-0 pb-2">
-                              {a.time && (
-                                <span className="text-xs font-bold text-(--outline) tabular-nums mb-1 block">
-                                  {a.time}
-                                </span>
-                              )}
-                              <div className="flex gap-2 items-start">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-(--on-surface) text-sm leading-snug">{a.name}</p>
-                                  {a.type && ACTIVITY_TYPE_ICON[a.type.toLowerCase()] && (
-                                    <span className="inline-flex items-center gap-0.5 text-[10px] text-(--outline) mt-0.5">
-                                      <span className="material-symbols-outlined text-[11px]" aria-hidden="true">
-                                        {ACTIVITY_TYPE_ICON[a.type.toLowerCase()]}
-                                      </span>
-                                      {a.type}
-                                    </span>
-                                  )}
-                                  {a.placeName && a.placeName !== a.name && (
-                                    <p className="text-xs text-(--on-surface-variant) mt-0.5 flex items-center gap-1">
-                                      <span className="material-symbols-outlined text-[13px]" aria-hidden="true">location_on</span>
-                                      {a.placeName}
-                                    </p>
-                                  )}
-                                  {a.description && (
-                                    <p className="text-xs text-(--on-surface-variant) mt-1.5 leading-relaxed line-clamp-2">
-                                      {a.description}
-                                    </p>
-                                  )}
-                                  {a.mapsLink && (
-                                    <a href={a.mapsLink} target="_blank" rel="noreferrer"
-                                       className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#4285F4] hover:underline">
-                                      <span className="material-symbols-outlined text-[13px]" aria-hidden="true">map</span>
-                                      Google Maps
-                                    </a>
-                                  )}
-                                </div>
+
+                            {/* Card */}
+                            <div className={`flex-1 min-w-0 ${isLast ? "pb-2" : "pb-1"}`}>
+                              <div className="rounded-xl border border-(--outline-variant)/40 bg-(--surface) overflow-hidden mt-2 mb-1">
                                 {a.imageUrl && (
                                   <img
                                     src={a.imageUrl}
                                     alt={a.name}
-                                    className="w-20 h-20 rounded-xl object-cover shrink-0"
-                                    width={80}
-                                    height={80}
+                                    className="w-full h-32 object-cover"
+                                    width={320}
+                                    height={128}
                                     loading="lazy"
                                   />
                                 )}
+                                <div className="p-3">
+                                  {/* Time + name */}
+                                  {a.time && (
+                                    <p className="text-[11px] font-bold tabular-nums mb-0.5" style={{ color }}>
+                                      {a.time}
+                                    </p>
+                                  )}
+                                  <p className="font-semibold text-(--on-surface) text-sm leading-snug">{a.name}</p>
+
+                                  {/* Type badge */}
+                                  <span
+                                    className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                                    style={{ backgroundColor: `${color}18`, color }}
+                                  >
+                                    <span className="material-symbols-outlined text-[11px]" aria-hidden="true">{typeMeta.icon}</span>
+                                    {typeMeta.label}
+                                  </span>
+
+                                  {/* Place name */}
+                                  {a.placeName && a.placeName !== a.name && (
+                                    <p className="flex items-center gap-1 mt-2 text-xs font-medium text-(--on-surface-variant)">
+                                      <span className="material-symbols-outlined text-[13px] text-(--outline)" aria-hidden="true">location_on</span>
+                                      {a.placeName}
+                                    </p>
+                                  )}
+
+                                  {/* Description */}
+                                  {a.description && (
+                                    <p className="mt-1.5 text-[11px] text-(--outline) leading-relaxed line-clamp-2">
+                                      {a.description}
+                                    </p>
+                                  )}
+
+                                  {/* Maps link chip */}
+                                  {a.mapsLink && (
+                                    <a
+                                      href={a.mapsLink}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1.5 mt-2.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white focus-visible:ring-2 focus-visible:ring-offset-1"
+                                      style={{ backgroundColor: "#4285F4" }}
+                                      aria-label={`เปิด ${a.name} ใน Google Maps`}
+                                    >
+                                      <span className="material-symbols-outlined text-[12px]" aria-hidden="true">map</span>
+                                      Google Maps
+                                    </a>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
