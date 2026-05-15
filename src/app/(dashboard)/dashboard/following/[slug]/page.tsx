@@ -159,6 +159,9 @@ export default function FollowingDetailPage(): React.ReactNode {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [showMapMobile, setShowMapMobile] = useState(false);
+  const [travelTimes, setTravelTimes] = useState<(string | null)[]>([]);
+  const [leftPanelEl, setLeftPanelEl] = useState<HTMLDivElement | null>(null);
+  const [mapHeight, setMapHeight] = useState(600);
 
   const defaultForm = (): ExpenseFormState => ({
     paidByFollowerId: "",
@@ -173,6 +176,55 @@ export default function FollowingDetailPage(): React.ReactNode {
   const [form, setForm] = useState<ExpenseFormState>(defaultForm());
 
   usePageTitle(trip?.title ?? "รายละเอียดทริป");
+
+  // Compute driving travel times between consecutive pinned activities
+  useEffect(() => {
+    setTravelTimes([]);
+    if (!googleMapsApiKey) return;
+    const acts = (liveDays ?? trip?.days ?? [])[selectedDay]?.activities ?? [];
+    const pinned = acts.map((a) => (a.lat && a.lng ? { lat: a.lat, lng: a.lng } : null));
+    const origins: { lat: number; lng: number }[] = [];
+    const destinations: { lat: number; lng: number }[] = [];
+    const idxMap: number[] = [];
+    for (let i = 0; i < acts.length - 1; i++) {
+      const from = pinned[i], to = pinned[i + 1];
+      if (from && to) { origins.push(from); destinations.push(to); idxMap.push(i); }
+    }
+    if (origins.length === 0) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const compute = (g: any) => {
+      new g.maps.DistanceMatrixService().getDistanceMatrix(
+        { origins, destinations, travelMode: "DRIVING" },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (result: any, status: string) => {
+          if (status !== "OK") return;
+          const times: (string | null)[] = new Array(acts.length - 1).fill(null);
+          idxMap.forEach((actIdx, i) => {
+            const el = result.rows[i]?.elements[i];
+            if (el?.status === "OK") times[actIdx] = el.duration.text;
+          });
+          setTravelTimes(times);
+        }
+      );
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.google?.maps) { compute(w.google); return; }
+    if (w._gmapsLoading) { w._gmapsLoading.then(() => compute(w.google)); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDay, googleMapsApiKey, liveDays, trip]);
+
+  // Sync map height to left panel content height (callback ref fires after DOM mount)
+  useEffect(() => {
+    if (!leftPanelEl) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setMapHeight(Math.min(entry.contentRect.height, window.innerHeight - 73));
+    });
+    observer.observe(leftPanelEl);
+    return () => observer.disconnect();
+  }, [leftPanelEl]);
 
   useEffect(() => {
     Promise.all([
@@ -212,11 +264,22 @@ export default function FollowingDetailPage(): React.ReactNode {
   // Prefer live itinerary for coordinates (always current), fall back to published snapshot
   const sourceDays = liveDays ?? trip?.days ?? [];
 
+  const toMapActivity = (a: { name: string; lat: number | null; lng: number | null; time?: string | null; type?: string | null; description?: string | null; placeName?: string | null; mapsLink?: string | null }): MapActivity => ({
+    name: a.name,
+    lat: a.lat!,
+    lng: a.lng!,
+    time: a.time ?? undefined,
+    type: a.type,
+    description: a.description ?? undefined,
+    placeName: a.placeName ?? undefined,
+    mapsLink: a.mapsLink ?? undefined,
+  });
+
   const allMapActivities = useMemo((): MapActivity[] =>
     sourceDays.flatMap((d) =>
       d.activities
         .filter((a) => a.lat != null && a.lng != null)
-        .map((a) => ({ name: a.name, lat: a.lat!, lng: a.lng!, time: a.time ?? undefined, type: a.type }))
+        .map(toMapActivity)
     ), [sourceDays]);
 
   const dayMapActivities = useMemo((): MapActivity[] => {
@@ -224,7 +287,7 @@ export default function FollowingDetailPage(): React.ReactNode {
     if (!day) return [];
     return day.activities
       .filter((a) => a.lat != null && a.lng != null)
-      .map((a) => ({ name: a.name, lat: a.lat!, lng: a.lng!, time: a.time ?? undefined, type: a.type }));
+      .map(toMapActivity);
   }, [sourceDays, selectedDay]);
 
   const mapActivities = dayMapActivities.length > 0 ? dayMapActivities : allMapActivities;
@@ -396,10 +459,10 @@ export default function FollowingDetailPage(): React.ReactNode {
 
         {/* ── Itinerary tab ── */}
         {activeTab === "itinerary" && trip.days.length > 0 && (
-          <div className="flex gap-6 items-start -mx-4 md:-mx-8 px-4 md:px-8">
+          <div className="flex gap-8 items-start -mx-4 md:-mx-8 px-4 md:px-8">
 
             {/* ── Left: activity list (normal page flow) ── */}
-            <div className="w-[360px] xl:w-[420px] shrink-0 pb-8">
+            <div ref={setLeftPanelEl} className="w-[360px] xl:w-[420px] shrink-0 pb-8">
 
               {/* Day pills */}
               <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
@@ -452,47 +515,65 @@ export default function FollowingDetailPage(): React.ReactNode {
                         const color = MARKER_COLOR[a.type?.toLowerCase() ?? "other"] ?? MARKER_COLOR.other;
                         const hasPin = !!(a.lat && a.lng);
                         return (
-                          <div key={a.id ?? idx} className="flex gap-4 py-3">
+                          <div key={a.id ?? idx} className="flex gap-3 py-3">
                             {/* Timeline */}
                             <div className="flex flex-col items-center shrink-0 pt-0.5">
                               <div
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
                                 style={{ backgroundColor: hasPin ? color : "#cbd5e1" }}
                               >
                                 {idx + 1}
                               </div>
                               {idx < currentDay.activities.length - 1 && (
-                                <div className="w-px flex-1 min-h-[20px] bg-(--outline-variant)/25 mt-2" />
+                                <div className="flex flex-col items-center mt-2 flex-1 min-h-[24px]">
+                                  <div className="w-px flex-1 bg-(--outline-variant)/25" />
+                                  {travelTimes[idx] && (
+                                    <div className="flex items-center gap-0.5 my-1 text-[10px] text-(--outline) whitespace-nowrap">
+                                      <span className="material-symbols-outlined text-[11px]">directions_car</span>
+                                      {travelTimes[idx]}
+                                    </div>
+                                  )}
+                                  <div className="w-px flex-1 bg-(--outline-variant)/25" />
+                                </div>
                               )}
                             </div>
                             {/* Content */}
                             <div className="flex-1 min-w-0 pb-2">
-                              <div className="flex items-center gap-2 mb-1">
-                                {a.time && (
-                                  <span className="text-xs font-bold text-white bg-(--on-surface)/60 px-2 py-0.5 rounded-full tabular-nums">
-                                    {a.time}
-                                  </span>
+                              {a.time && (
+                                <span className="text-xs font-bold text-(--outline) tabular-nums mb-1 block">
+                                  {a.time}
+                                </span>
+                              )}
+                              <div className="flex gap-2 items-start">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-(--on-surface) text-sm leading-snug">{a.name}</p>
+                                  {a.placeName && a.placeName !== a.name && (
+                                    <p className="text-xs text-(--on-surface-variant) mt-0.5 flex items-center gap-1">
+                                      <span className="material-symbols-outlined text-[13px]">location_on</span>
+                                      {a.placeName}
+                                    </p>
+                                  )}
+                                  {a.description && (
+                                    <p className="text-xs text-(--on-surface-variant) mt-1.5 leading-relaxed line-clamp-2">
+                                      {a.description}
+                                    </p>
+                                  )}
+                                  {a.mapsLink && (
+                                    <a href={a.mapsLink} target="_blank" rel="noreferrer"
+                                       className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#4285F4] hover:underline">
+                                      <span className="material-symbols-outlined text-[13px]">map</span>
+                                      Google Maps
+                                    </a>
+                                  )}
+                                </div>
+                                {a.imageUrl && (
+                                  <img
+                                    src={a.imageUrl}
+                                    alt={a.name}
+                                    className="w-20 h-20 rounded-xl object-cover shrink-0"
+                                  />
                                 )}
                               </div>
-                              <p className="font-semibold text-(--on-surface) text-sm leading-snug">{a.name}</p>
-                              {a.placeName && a.placeName !== a.name && (
-                                <p className="text-xs text-(--on-surface-variant) mt-1 flex items-center gap-1">
-                                  <span className="material-symbols-outlined text-[13px]">location_on</span>
-                                  {a.placeName}
-                                </p>
-                              )}
-                              {a.description && (
-                                <p className="text-xs text-(--on-surface-variant) mt-1.5 leading-relaxed line-clamp-3">
-                                  {a.description}
-                                </p>
-                              )}
-                              {a.mapsLink && (
-                                <a href={a.mapsLink} target="_blank" rel="noreferrer"
-                                   className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#4285F4] hover:underline">
-                                  <span className="material-symbols-outlined text-[13px]">map</span>
-                                  Google Maps
-                                </a>
-                              )}
                             </div>
                           </div>
                         );
@@ -520,7 +601,7 @@ export default function FollowingDetailPage(): React.ReactNode {
             </div>
 
             {/* ── Right: sticky Google Map ── */}
-            <div className="hidden lg:block flex-1 min-w-0 sticky top-[57px] h-[calc(100vh-57px)]">
+            <div className="hidden lg:block flex-1 min-w-0 sticky top-[73px]" style={{ height: `${mapHeight}px` }}>
               {mapActivities.length > 0 && googleMapsApiKey ? (
                 <div className="h-full overflow-hidden rounded-2xl shadow-md">
                   <TripDayMapLazy activities={mapActivities} height="100%" apiKey={googleMapsApiKey} />
