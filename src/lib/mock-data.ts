@@ -33,6 +33,7 @@ export type Activity = {
   placeName: string;
   mapsLink: string;
   imageUrl: string;
+  imageUrls?: string[];
   emoji: string;
   sortOrder: number;
   isNew?: boolean;
@@ -82,6 +83,13 @@ export type Changelog = {
   acknowledgedAt: string | null;
 };
 
+export type ChecklistItem = {
+  id: string;
+  label: string;
+  isRequired: boolean;
+  sortOrder: number;
+};
+
 export type TripPlan = {
   id: string;
   title: string;
@@ -95,6 +103,7 @@ export type TripPlan = {
   airlineInfo: AirlineInfo[];
   accommodations: Accommodation[];
   emergencyContacts: EmergencyContact[];
+  checklistItems: ChecklistItem[];
   notes: string;
   status: "draft" | "published" | "unpublished";
   days: Day[];

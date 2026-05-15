@@ -1,0 +1,304 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormInput, FormTextarea, Modal, SectionHeader, useToast } from "@/components/shared";
+import { NotificationPreferencesSection } from "@/components/settings/notification-preferences-section";
+import { SecuritySection } from "@/components/settings/security-section";
+import { TwoFactorSection } from "@/components/settings/two-factor-section";
+import { EmailChangeSection } from "@/components/settings/email-change-section";
+import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
+import { api, ApiError } from "@/lib/api";
+import { subscribe, type UserInfo } from "@/lib/auth";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
+
+export default function SettingsPage(): React.ReactNode {
+  usePageTitle("ตั้งค่าบัญชี");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+
+  const [user, setUser] = useState<UserInfo | null>(null);
+  useEffect(() => subscribe(setUser), []);
+
+  const isOperator = user?.isOperator ?? false;
+
+  useEffect(() => {
+    const linked = searchParams.get("linked");
+    if (linked === "google") {
+      toast.success("เชื่อมต่อ Google สำเร็จ");
+      router.replace("/dashboard/settings");
+    } else if (linked === "line") {
+      toast.success("เชื่อมต่อ LINE สำเร็จ");
+      router.replace("/dashboard/settings");
+    }
+  }, [searchParams, router, toast]);
+
+  // Change password
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+
+  // Export
+  const [exporting, setExporting] = useState(false);
+
+  // Delete
+  const [showDelete, setShowDelete] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleChangePassword() {
+    setPwError("");
+    if (!oldPassword || !newPassword) {
+      setPwError("กรุณากรอกรหัสผ่านให้ครบ");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwError("รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError("รหัสผ่านยืนยันไม่ตรงกัน");
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await api.post("/admin/me/change-password", { oldPassword, newPassword });
+      toast.success("เปลี่ยนรหัสผ่านเรียบร้อย");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPwError(err instanceof ApiError ? err.message : "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    } finally {
+      setPwSaving(false);
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const data = await api.get<unknown>("/admin/me/export");
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `tripapp-export-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("ส่งออกข้อมูลเรียบร้อย");
+    } catch (err) {
+      toast.error((err as Error).message || "ส่งออกข้อมูลไม่สำเร็จ");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleteError("");
+    if (!deletePassword) {
+      setDeleteError("กรุณากรอกรหัสผ่านเพื่อยืนยัน");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.delete("/admin/me", { password: deletePassword, reason: deleteReason.trim() || undefined });
+      toast.success("ลบบัญชีเรียบร้อย");
+      router.push("/login");
+    } catch (err) {
+      setDeleteError((err as Error).message || "ลบบัญชีไม่สำเร็จ");
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">ตั้งค่าบัญชี</h1>
+        <p className="text-(--on-surface-variant) mt-2 text-sm">จัดการบัญชี รหัสผ่าน และสิทธิ์ข้อมูลส่วนบุคคล (PDPA)</p>
+      </div>
+
+      {/* Social accounts — available for all user types */}
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">
+        <SectionHeader title="บัญชีที่เชื่อมต่อ" variant="bar" />
+        <ConnectedAccountsSection isOperator={isOperator} />
+      </div>
+
+      {/* Operator-only sections */}
+      {isOperator && <EmailChangeSection />}
+
+      {/* Password */}
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-6">
+        <SectionHeader title="รหัสผ่าน" variant="bar" />
+        <div className="space-y-4">
+          <FormInput
+            label="รหัสผ่านปัจจุบัน"
+            type="password"
+            placeholder="••••••••"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+          />
+          <FormInput
+            label="รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)"
+            type="password"
+            placeholder="••••••••"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <FormInput
+            label="ยืนยันรหัสผ่านใหม่"
+            type="password"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+          {pwError && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+              <p className="text-sm text-red-700">{pwError}</p>
+            </div>
+          )}
+          <button
+            onClick={handleChangePassword}
+            disabled={pwSaving}
+            className="px-6 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:opacity-95 transition-colors disabled:opacity-50"
+          >
+            {pwSaving ? "กำลังบันทึก..." : "เปลี่ยนรหัสผ่าน"}
+          </button>
+        </div>
+      </div>
+
+      {isOperator && <TwoFactorSection />}
+
+      {isOperator && <SecuritySection />}
+
+      {isOperator && <NotificationPreferencesSection />}
+
+      {/* Export Data — PDPA */}
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">
+        <SectionHeader title="ข้อมูลของฉัน (PDPA)" variant="bar" />
+        <p className="text-sm text-(--on-surface-variant)">
+          ดูสรุปข้อมูลทั้งหมดที่ TripApp เก็บเกี่ยวกับคุณ พร้อมตัวเลือกดาวน์โหลด JSON —
+          ตามสิทธิ์ที่บัญญัติใน PDPA / GDPR (มาตรา 30)
+        </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <a
+            href="/dashboard/my-data"
+            className="px-6 py-3 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 inline-flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">description</span>
+            ดูข้อมูลของฉัน
+          </a>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="px-6 py-3 border border-(--outline-variant)/30 text-(--on-surface) rounded-xl text-sm font-bold hover:bg-(--surface-container-low) transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">download</span>
+            {exporting ? "กำลังเตรียมไฟล์..." : "ดาวน์โหลด JSON ทันที"}
+          </button>
+        </div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="bg-white rounded-2xl border border-red-200 p-6 space-y-4">
+        <h3 className="text-lg font-bold text-red-600">ลบบัญชี</h3>
+        <p className="text-sm text-(--on-surface-variant) leading-relaxed">
+          เมื่อลบบัญชีแล้ว ข้อมูลส่วนตัวของคุณจะถูก anonymize ทันที (ชื่อ, อีเมล, เบอร์โทร)
+          ระบบจะคงเฉพาะประวัติทางการเงินและ audit logs เท่านั้นตามกฎหมายบัญชีไทย (5 ปี).
+          <strong className="text-red-600"> หากคุณเป็นเจ้าของบริษัทเพียงคนเดียว ต้องโอนความเป็นเจ้าของก่อน</strong>
+        </p>
+        <button
+          onClick={() => setShowDelete(true)}
+          className="px-6 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors"
+        >
+          ลบบัญชีของฉัน
+        </button>
+      </div>
+
+      {showDelete && (
+        <DeleteAccountModal
+          onClose={() => { if (!deleting) { setShowDelete(false); setDeletePassword(""); setDeleteReason(""); setDeleteError(""); } }}
+          onConfirm={handleDelete}
+          password={deletePassword}
+          setPassword={setDeletePassword}
+          reason={deleteReason}
+          setReason={setDeleteReason}
+          error={deleteError}
+          deleting={deleting}
+        />
+      )}
+    </div>
+  );
+}
+
+interface DeleteModalProps {
+  onClose: () => void;
+  onConfirm: () => void;
+  password: string;
+  setPassword: (s: string) => void;
+  reason: string;
+  setReason: (s: string) => void;
+  error: string;
+  deleting: boolean;
+}
+
+function DeleteAccountModal({ onClose, onConfirm, password, setPassword, reason, setReason, error, deleting }: DeleteModalProps): React.ReactNode {
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      blocking={deleting}
+      title="ลบบัญชีถาวร?"
+      subtitle="ข้อมูลส่วนตัวจะถูก anonymize ทันที — กรุณายืนยันด้วยรหัสผ่าน"
+      footer={
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={deleting}
+            className="flex-1 py-3 border border-(--outline-variant)/30 text-(--on-surface) rounded-xl text-sm font-bold hover:bg-(--surface-container-low) disabled:opacity-50"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 disabled:opacity-50"
+          >
+            {deleting ? "กำลังลบ..." : "ลบบัญชีถาวร"}
+          </button>
+        </div>
+      }
+    >
+      <div className="px-6 py-5 space-y-5">
+        <FormInput
+          label="รหัสผ่าน"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <FormTextarea
+          label="เหตุผล (ไม่บังคับ)"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="ช่วยให้เราพัฒนาบริการดีขึ้น"
+          rows={3}
+          maxLength={500}
+        />
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <span className="material-symbols-outlined text-red-500 text-sm mt-0.5">error</span>
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}

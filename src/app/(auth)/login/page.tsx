@@ -1,20 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
 import { useToast } from "@/components/shared";
-import { login, verifyTwoFactor } from "@/lib/auth";
+import { login, verifyTwoFactor, refreshAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type Errors = Record<string, string>;
 
 export default function LoginPage(): React.ReactNode {
+  return (
+    <Suspense>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent(): React.ReactNode {
   usePageTitle("เข้าสู่ระบบ");
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  function resolveNextUrl(): string {
+    const next = searchParams.get("next");
+    if (!next) return ROUTES.dashboard;
+    // Only allow relative paths (same origin) — no cross-origin redirects
+    if (next.startsWith("/")) return next;
+    return ROUTES.dashboard;
+  }
+
+  function redirectAfterLogin() {
+    const dest = resolveNextUrl();
+    router.push(dest);
+  }
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
@@ -32,6 +54,13 @@ export default function LoginPage(): React.ReactNode {
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const [twoFaCode, setTwoFaCode] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
+
+  // Redirect to dashboard if already authenticated (must call refreshAuth to check httpOnly cookie)
+  useEffect(() => {
+    refreshAuth().then((ok) => {
+      if (ok) router.replace(ROUTES.dashboard);
+    });
+  }, [router]);
 
   // Block countdown timer
   useEffect(() => {
@@ -55,7 +84,7 @@ export default function LoginPage(): React.ReactNode {
         code: twoFaCode.trim(),
         isBackupCode: useBackupCode,
       });
-      router.push(ROUTES.dashboard);
+      redirectAfterLogin();
     } catch (err) {
       setApiError(err instanceof ApiError ? err.message : "รหัสไม่ถูกต้อง");
     } finally {
@@ -115,7 +144,7 @@ export default function LoginPage(): React.ReactNode {
         setChallengeToken(res.challengeToken);
         return;
       }
-      router.push(ROUTES.dashboard);
+      redirectAfterLogin();
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่";
 

@@ -25,10 +25,30 @@ export function getLangMeta(code: string): TripTranslations {
   return TRIP_LANGUAGES[code.toLowerCase()] ?? { label: code.toUpperCase(), flag: "🌐" };
 }
 
+const LANG_LOCALE: Record<string, string> = {
+  th: "th-TH",
+  en: "en-US",
+  ja: "ja-JP",
+  ko: "ko-KR",
+  "zh-cn": "zh-CN",
+  "zh-tw": "zh-TW",
+  de: "de-DE",
+  fr: "fr-FR",
+  es: "es-ES",
+  ru: "ru-RU",
+  ar: "ar-SA",
+};
+
+export function getLangLocale(code: string): string {
+  return LANG_LOCALE[code.toLowerCase()] ?? "en-US";
+}
+
 // UI strings per language
 export type UIStrings = {
   followTrip: string;
   scrollDown: string;
+  daysToGo: (n: number) => string;
+  onTrip: string;
   travelers: string;
   hotels: string;
   days: string;
@@ -48,13 +68,38 @@ export type UIStrings = {
   acknowledge: string;
   tripUpdate: string;
   map: string;
+  // Immigration mode
+  immTitle: string;
+  immSubtitle: string;
+  immConfirmed: string;
+  immTourOperator: string;
+  immDates: string;
+  immDestination: string;
+  immFlight: string;
+  immDeparture: string;
+  immReturn: string;
+  immAccommodation: string;
+  immTel: string;
+  immDailySchedule: string;
+  immDaysTotal: string;
+  immOfficial: string;
+  immBackToTrip: string;
+  immSavePdf: string;
 };
 
 export const UI_STRINGS: Record<string, UIStrings> = {
   th: {
     followTrip: "เข้าร่วมทริปนี้",
     scrollDown: "เลื่อนลงเพื่อดูรายละเอียด",
+    daysToGo: (n) => `อีก ${n} วัน!`,
+    onTrip: "กำลังเดินทาง!",
     travelers: "คน",
+    immTitle: "แผนการเดินทาง", immSubtitle: "สำหรับยื่นตรวจคนเข้าเมือง / วีซ่า",
+    immConfirmed: "ยืนยันแล้ว", immTourOperator: "บริษัททัวร์", immDates: "วันเดินทาง",
+    immDestination: "จุดหมาย", immFlight: "ข้อมูลเที่ยวบิน", immDeparture: "ขาไป",
+    immReturn: "ขากลับ", immAccommodation: "ที่พัก", immTel: "โทร",
+    immDailySchedule: "กำหนดการรายวัน", immDaysTotal: "วัน", immOfficial: "เอกสารทางการ",
+    immBackToTrip: "← กลับหน้าทริป", immSavePdf: "บันทึก PDF",
     hotels: "ที่พัก",
     days: "วัน",
     activities: "กิจกรรม",
@@ -77,7 +122,15 @@ export const UI_STRINGS: Record<string, UIStrings> = {
   en: {
     followTrip: "Join this Trip",
     scrollDown: "Scroll to explore",
+    daysToGo: (n) => `${n} days to go!`,
+    onTrip: "On the trip!",
     travelers: "Travelers",
+    immTitle: "Travel Itinerary", immSubtitle: "For Immigration & Visa Application Purposes",
+    immConfirmed: "Confirmed", immTourOperator: "Tour Operator", immDates: "Travel Dates",
+    immDestination: "Destination", immFlight: "Flight Details", immDeparture: "Departure",
+    immReturn: "Return", immAccommodation: "Accommodation", immTel: "Tel",
+    immDailySchedule: "Daily Activity Schedule", immDaysTotal: "Days Total", immOfficial: "Official",
+    immBackToTrip: "← Back to Trip", immSavePdf: "Save as PDF",
     hotels: "Hotels",
     days: "Days",
     activities: "Activities",
@@ -100,7 +153,15 @@ export const UI_STRINGS: Record<string, UIStrings> = {
   ja: {
     followTrip: "このトリップに参加",
     scrollDown: "下にスクロールして詳細を見る",
+    daysToGo: (n) => `あと${n}日！`,
+    onTrip: "旅行中！",
     travelers: "人",
+    immTitle: "旅行日程表", immSubtitle: "入国審査・ビザ申請用",
+    immConfirmed: "確認済み", immTourOperator: "ツアーオペレーター", immDates: "旅行期間",
+    immDestination: "目的地", immFlight: "フライト情報", immDeparture: "出発",
+    immReturn: "帰国", immAccommodation: "宿泊先", immTel: "電話",
+    immDailySchedule: "日別スケジュール", immDaysTotal: "日間", immOfficial: "公式",
+    immBackToTrip: "← 旅程に戻る", immSavePdf: "PDFで保存",
     hotels: "ホテル",
     days: "日間",
     activities: "アクティビティ",

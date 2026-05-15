@@ -5,7 +5,7 @@
  */
 
 import { api } from "./client-api";
-import type { TripPlan, Activity, Day, AirlineInfo, Accommodation, EmergencyContact } from "./mock-data";
+import type { TripPlan, Activity, Day, AirlineInfo, Accommodation, EmergencyContact, ChecklistItem } from "./mock-data";
 
 interface ApiActivity {
   id: string;
@@ -18,6 +18,7 @@ interface ApiActivity {
   lng: number | null;
   mapsLink: string | null;
   imageUrl: string | null;
+  imageUrls: string[] | null;
   emoji: string | null;
 }
 
@@ -64,6 +65,13 @@ interface ApiCompany {
   lineId: string | null;
 }
 
+interface ApiChecklistItem {
+  id: string;
+  label: string;
+  isRequired: boolean;
+  sortOrder: number;
+}
+
 export interface TripPublicResponse {
   id: string;
   title: string;
@@ -77,6 +85,7 @@ export interface TripPublicResponse {
   airlineInfo: ApiAirline[];
   accommodations: ApiAccommodation[];
   emergencyContacts: ApiEmergencyContact[];
+  checklistItems: ApiChecklistItem[];
   importantNotes: string | null;
   viewCount: number;
   showWatermark: boolean;
@@ -92,6 +101,7 @@ const VALID_TYPES = new Set<Activity["type"]>([
 
 function mapActivity(a: ApiActivity, idx: number): Activity {
   const t = a.type?.toLowerCase() as Activity["type"] | undefined;
+  const urls = a.imageUrls?.filter(Boolean) ?? [];
   return {
     id: a.id,
     time: a.time ?? "",
@@ -100,7 +110,8 @@ function mapActivity(a: ApiActivity, idx: number): Activity {
     type: t && VALID_TYPES.has(t) ? t : ACTIVITY_TYPE_FALLBACK,
     placeName: a.placeName ?? "",
     mapsLink: a.mapsLink ?? "",
-    imageUrl: a.imageUrl ?? "",
+    imageUrl: a.imageUrl ?? urls[0] ?? "",
+    imageUrls: urls,
     emoji: a.emoji ?? "",
     sortOrder: idx,
   };
@@ -166,6 +177,12 @@ export function mapTripResponse(r: TripPublicResponse): TripPlan {
     airlineInfo: r.airlineInfo.map(mapAirline),
     accommodations: r.accommodations.map(mapAccommodation),
     emergencyContacts: r.emergencyContacts.map(mapEmergency),
+    checklistItems: (r.checklistItems ?? []).map((c): ChecklistItem => ({
+      id: c.id,
+      label: c.label,
+      isRequired: c.isRequired,
+      sortOrder: c.sortOrder,
+    })),
     notes: r.importantNotes ?? "",
     status: "published",
     days: r.days.map(mapDay),
@@ -206,6 +223,17 @@ export async function fetchChangelog(slug: string) {
   return api.get<PublicChangelog[]>(`/client/t/${encodeURIComponent(slug)}/changelog`);
 }
 
+export interface FaqCategory {
+  code: string;
+  labelTh: string;
+  labelEn: string;
+  items: { id: string; question: string; answerHtml: string }[];
+}
+
+export async function fetchFaq() {
+  return api.get<FaqCategory[]>("/client/faq");
+}
+
 export async function trackView(slug: string) {
   try {
     await api.post(`/client/t/${encodeURIComponent(slug)}/view`);
@@ -222,6 +250,10 @@ export interface FollowWebPushPayload {
 
 export async function followWebPush(payload: FollowWebPushPayload) {
   return api.authPost<{ id: string }>("/client/follow/web-push", payload);
+}
+
+export async function followMember(tripId: string) {
+  return api.authPost<{ id: string; channel: string; status: string; followedAt: string }>("/client/follow/member", { tripId });
 }
 
 export interface RatingSummary {

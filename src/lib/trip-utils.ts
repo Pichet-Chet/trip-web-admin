@@ -68,6 +68,30 @@ export function getActivityTypeStyle(type: string): { bg: string; text: string; 
   return ACTIVITY_TYPE_STYLES[type as ActivityType] ?? ACTIVITY_TYPE_STYLES.other;
 }
 
+const ACTIVITY_TYPE_EMOJI: Record<string, string> = {
+  attraction: "🏛️",
+  restaurant: "🍽️",
+  hotel:      "🏨",
+  transport:  "🚌",
+  shopping:   "🛍️",
+  other:      "📌",
+};
+
+export function getActivityEmoji(emoji: string | undefined, type: string): string {
+  if (emoji?.trim()) return emoji;
+  return ACTIVITY_TYPE_EMOJI[type] ?? "📌";
+}
+
+const DAY_EMOJIS = ["🌅", "🗺️", "🏖️", "🌆", "🌄", "🎭", "🏔️", "✨"];
+
+/** Returns the first emoji from subtitle, or a sequential travel emoji by day index. */
+export function getDayEmoji(subtitle: string | undefined, dayIndex: number): string {
+  const first = subtitle?.trim().split(" ")[0] ?? "";
+  // Check if it's actually an emoji (non-ASCII or emoji char)
+  if (first && !/^[a-zA-Z0-9]/.test(first)) return first;
+  return DAY_EMOJIS[dayIndex % DAY_EMOJIS.length] ?? "📅";
+}
+
 // Map provider detection & route URL builder
 export type MapProvider = "google" | "baidu" | "amap" | "apple" | "unknown";
 
