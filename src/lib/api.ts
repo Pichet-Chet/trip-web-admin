@@ -15,6 +15,10 @@ class ApiError extends Error {
   }
 }
 
+function tryParseJson<T>(text: string): T | null {
+  try { return JSON.parse(text) as T; } catch { return null; }
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {}
@@ -49,8 +53,13 @@ async function request<T>(
         headers,
         credentials: "include",
       });
+      if (!retryRes.ok) {
+        const text = await retryRes.text();
+        const parsed = text ? tryParseJson<ApiResponse<T>>(text) : null;
+        throw new ApiError(parsed?.error || `HTTP ${retryRes.status}`, retryRes.status);
+      }
       const retryJson: ApiResponse<T> = await retryRes.json();
-      if (!retryJson.success || !retryRes.ok) {
+      if (!retryJson.success) {
         throw new ApiError(retryJson.error || "Something went wrong", retryRes.status);
       }
       return retryJson.data as T;
@@ -60,9 +69,15 @@ async function request<T>(
     throw new ApiError("Session หมดอายุ กรุณาเข้าสู่ระบบใหม่", 401);
   }
 
+  if (!res.ok) {
+    const text = await res.text();
+    const parsed = text ? tryParseJson<ApiResponse<T>>(text) : null;
+    throw new ApiError(parsed?.error || `HTTP ${res.status}`, res.status);
+  }
+
   const json: ApiResponse<T> = await res.json();
 
-  if (!json.success || !res.ok) {
+  if (!json.success) {
     throw new ApiError(json.error || "Something went wrong", res.status);
   }
 

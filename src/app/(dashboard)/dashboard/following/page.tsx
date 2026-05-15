@@ -154,7 +154,7 @@ export default function FollowingPage(): React.ReactNode {
             return (
               <Link
                 key={trip.tripId}
-                href={`/t/${trip.slug}`}
+                href={`/dashboard/following/${trip.slug}`}
                 className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
               >
                 <div className="relative aspect-video overflow-hidden bg-slate-100">

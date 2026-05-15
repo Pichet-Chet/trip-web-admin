@@ -470,6 +470,25 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     }
   }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
 
+  const updateActivityPatch = useCallback(async (dayId: string, actId: string, patch: Record<string, unknown>) => {
+    setDays((prev) =>
+      prev.map((d) =>
+        d.id === dayId
+          ? { ...d, activities: d.activities.map((a) => a.id === actId ? { ...a, ...patch } : a) }
+          : d
+      )
+    );
+    beginAutoSave();
+    try {
+      await api.put(`/admin/days/${dayId}/activities/${actId}`, patch);
+      endAutoSave(true);
+    } catch {
+      endAutoSave(false);
+      toast.error("ไม่สามารถบันทึกกิจกรรมได้ กำลังโหลดข้อมูลล่าสุด...");
+      await rollbackOnFailure();
+    }
+  }, [toast, rollbackOnFailure, beginAutoSave, endAutoSave]);
+
   const updateActivityImages = useCallback(async (dayId: string, actId: string, urls: string[]) => {
     setDays((prev) =>
       prev.map((d) =>
@@ -925,9 +944,7 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
                             ? { ...d, activities: d.activities.map((a) => a.id === act.id ? { ...a, ...patch } : a) }
                             : d
                         ));
-                        Object.entries(patch).forEach(([field, value]) =>
-                          updateActivityField(currentDay.id, act.id, field, value as string | null)
-                        );
+                        updateActivityPatch(currentDay.id, act.id, patch);
                       }}
                     />
                   ))

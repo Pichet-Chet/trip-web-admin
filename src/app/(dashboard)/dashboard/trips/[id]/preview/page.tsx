@@ -181,6 +181,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [togglingApproval, setTogglingApproval] = useState(false);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
 
   // Load username from auth
   useEffect(() => {
@@ -205,14 +206,16 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
     let cancelled = false;
     (async () => {
       try {
-        const [data, suppResp] = await Promise.all([
+        const [data, suppResp, platform] = await Promise.all([
           api.get<TripDetail>(`/admin/trips/${id}`),
           api.get<{ languageCodes: string[] }>(`/admin/trips/${id}/translations/supported`).catch(() => ({ languageCodes: [] })),
+          api.get<{ googleMapsApiKey?: string | null }>("/staff/platform").catch(() => null),
         ]);
         if (!cancelled) {
           setTrip(data);
           setSupportedLangs(suppResp.languageCodes ?? []);
           setRequiresApproval(data.requiresApproval ?? false);
+          if (platform?.googleMapsApiKey) setGoogleMapsApiKey(platform.googleMapsApiKey);
         }
       } catch (err) {
         if (!cancelled) toast.error(err instanceof ApiError ? err.message : "ไม่สามารถโหลดข้อมูลทริปได้");
@@ -1119,14 +1122,14 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
               )}
 
               {/* Map card — only when the active day has locatable activities */}
-              {mapActivities.length > 0 && (
+              {mapActivities.length > 0 && googleMapsApiKey && (
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-(--outline-variant)/30">
                   <h3 className="font-bold text-(--on-surface) mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-(--primary)">map</span>
                     แผนที่วันที่ {(days[previewDay]?.dayNumber ?? previewDay + 1)}
                     <span className="ml-auto text-xs font-normal text-(--on-surface-variant)">{mapActivities.length} จุด</span>
                   </h3>
-                  <TripDayMapLazy activities={mapActivities} />
+                  <TripDayMapLazy activities={mapActivities} apiKey={googleMapsApiKey} />
                 </div>
               )}
 
