@@ -194,7 +194,7 @@ export default function FollowingDetailPage(): React.ReactNode {
   const [showMapMobile, setShowMapMobile] = useState(false);
   const [travelTimes, setTravelTimes] = useState<(string | null)[]>([]);
   const [leftPanelEl, setLeftPanelEl] = useState<HTMLDivElement | null>(null);
-  const [mapHeight, setMapHeight] = useState(600);
+  const [mapHeight, setMapHeight] = useState(450);
 
   const defaultForm = (): ExpenseFormState => ({
     paidByFollowerId: "",
@@ -253,7 +253,7 @@ export default function FollowingDetailPage(): React.ReactNode {
   useEffect(() => {
     if (!leftPanelEl) return;
     const observer = new ResizeObserver(([entry]) => {
-      setMapHeight(Math.min(entry.contentRect.height, window.innerHeight - 73));
+      setMapHeight(Math.min(entry.contentRect.height, window.innerHeight * 0.9));
     });
     observer.observe(leftPanelEl);
     return () => observer.disconnect();
