@@ -56,6 +56,26 @@ interface Expense {
   participants: ExpenseParticipant[];
 }
 
+interface BalanceSummary {
+  followerId: string;
+  displayName: string;
+  netBalance: number;
+  totalPaid: number;
+  totalOwed: number;
+}
+interface SettlementTransaction {
+  fromFollowerId: string;
+  fromName: string;
+  toFollowerId: string;
+  toName: string;
+  amount: number;
+  currency: string;
+}
+interface SettlementResponse {
+  balances: BalanceSummary[];
+  transactions: SettlementTransaction[];
+}
+
 interface ExpenseFormState {
   paidByFollowerId: string;
   amount: string;
@@ -166,8 +186,11 @@ export default function FollowingDetailPage(): React.ReactNode {
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [settlement, setSettlement] = useState<SettlementResponse | null>(null);
+  const [settlementLoading, setSettlementLoading] = useState(false);
   const [showMapMobile, setShowMapMobile] = useState(false);
   const [travelTimes, setTravelTimes] = useState<(string | null)[]>([]);
   const [leftPanelEl, setLeftPanelEl] = useState<HTMLDivElement | null>(null);
@@ -266,6 +289,15 @@ export default function FollowingDetailPage(): React.ReactNode {
       .finally(() => setExpensesLoading(false));
   }, [activeTab, tripId]);
 
+  useEffect(() => {
+    if (activeTab !== "settlement" || !tripId) return;
+    setSettlementLoading(true);
+    api.get<SettlementResponse>(`/member/trips/${tripId}/expenses/settlement`)
+      .then(setSettlement)
+      .catch(() => setSettlement(null))
+      .finally(() => setSettlementLoading(false));
+  }, [activeTab, tripId]);
+
   const tripStatus = useMemo(() =>
     trip ? deriveStatus(trip.startDate, trip.endDate) : "upcoming",
     [trip]
@@ -306,6 +338,22 @@ export default function FollowingDetailPage(): React.ReactNode {
 
   // ─── Expense form ───────────────────────────────────────────────────
 
+  function openEdit(e: Expense) {
+    setEditingId(e.id);
+    setForm({
+      paidByFollowerId: e.paidByFollowerId,
+      amount: String(e.amount),
+      currency: e.currency,
+      description: e.description,
+      occurredOn: e.occurredOn,
+      splitMode: e.splitMode as "equal" | "shares" | "exact",
+      selectedParticipants: e.participants.map((p) => p.followerId),
+      exactAmounts: Object.fromEntries(e.participants.map((p) => [p.followerId, String(p.share)])),
+    });
+    setFormError(null);
+    setShowForm(true);
+  }
+
   function toggleParticipant(id: string) {
     setForm((f) => ({
       ...f,
@@ -340,7 +388,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
     setSubmitting(true);
     try {
-      const created = await api.post<Expense>(`/member/trips/${tripId}/expenses`, {
+      const body = {
         paidByFollowerId: form.paidByFollowerId,
         amount,
         currency: form.currency,
@@ -348,8 +396,15 @@ export default function FollowingDetailPage(): React.ReactNode {
         occurredOn: form.occurredOn,
         splitMode: form.splitMode,
         participants,
-      });
-      setExpenses((prev) => [...prev, created]);
+      };
+      if (editingId) {
+        const updated = await api.put<Expense>(`/member/trips/${tripId}/expenses/${editingId}`, body);
+        setExpenses((prev) => prev.map((e) => (e.id === editingId ? updated : e)));
+      } else {
+        const created = await api.post<Expense>(`/member/trips/${tripId}/expenses`, body);
+        setExpenses((prev) => [...prev, created]);
+      }
+      setEditingId(null);
       setForm(defaultForm());
       setShowForm(false);
     } catch (err) {
@@ -392,6 +447,7 @@ export default function FollowingDetailPage(): React.ReactNode {
   const tabItems: TabItem[] = [
     { id: "itinerary", label: "แผนการเดินทาง", icon: "map" },
     { id: "expenses",  label: "ค่าใช้จ่าย",    icon: "receipt_long" },
+    { id: "settlement", label: "คำนวณหนี้",     icon: "calculate" },
   ];
 
   const memberOptions: SelectOption[] = members.map((m) => ({ label: m.displayName, value: m.id }));
@@ -740,7 +796,7 @@ export default function FollowingDetailPage(): React.ReactNode {
                   <Button
                     variant="primary"
                     icon="add"
-                    onClick={() => { setForm(defaultForm()); setFormError(null); setShowForm(true); }}
+                    onClick={() => { setEditingId(null); setForm(defaultForm()); setFormError(null); setShowForm(true); }}
                   >
                     บันทึกค่าใช้จ่าย
                   </Button>
@@ -765,12 +821,8 @@ export default function FollowingDetailPage(): React.ReactNode {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="font-black text-(--on-surface) text-sm">{fmtAmount(e.amount, e.currency)}</span>
-                            <IconButton
-                              icon="delete"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeleteTarget(e.id)}
-                            />
+                            <IconButton icon="edit" variant="ghost" size="sm" onClick={() => openEdit(e)} />
+                            <IconButton icon="delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(e.id)} />
                           </div>
                         </div>
                         {e.participants.length > 0 && (
@@ -791,6 +843,65 @@ export default function FollowingDetailPage(): React.ReactNode {
           </div>
         )}
 
+        {/* ── Settlement tab ── */}
+        {activeTab === "settlement" && (
+          <div className="space-y-4">
+            {settlementLoading ? (
+              <div className="py-16 flex justify-center"><Spinner size="lg" /></div>
+            ) : !settlement || settlement.balances.length === 0 ? (
+              <EmptyState icon="calculate" title="ยังไม่มีข้อมูล" description="เพิ่มค่าใช้จ่ายก่อนเพื่อคำนวณหนี้" />
+            ) : (
+              <div className="space-y-6">
+                <section className="bg-white rounded-2xl shadow-sm p-5">
+                  <h2 className="text-sm font-bold text-(--on-surface) mb-4">ยอดคงค้างต่อคน</h2>
+                  <div className="space-y-2">
+                    {settlement.balances.map((b) => (
+                      <div key={b.followerId} className="flex items-center gap-3">
+                        <Avatar name={b.displayName} size="sm" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-(--on-surface) truncate">{b.displayName}</p>
+                          <p className="text-[11px] text-(--on-surface-variant)">
+                            จ่าย {fmtAmount(b.totalPaid, "THB")} · แชร์ {fmtAmount(b.totalOwed, "THB")}
+                          </p>
+                        </div>
+                        <span className={`text-sm font-bold shrink-0 ${b.netBalance > 0.005 ? "text-emerald-600" : b.netBalance < -0.005 ? "text-rose-600" : "text-(--on-surface-variant)"}`}>
+                          {b.netBalance > 0.005 ? "+" : ""}{fmtAmount(b.netBalance, "THB")}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="bg-white rounded-2xl shadow-sm p-5">
+                  <h2 className="text-sm font-bold text-(--on-surface) mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base text-(--primary)">swap_horiz</span>
+                    วิธีชำระให้จบ ({settlement.transactions.length} รายการ)
+                  </h2>
+                  {settlement.transactions.length === 0 ? (
+                    <p className="text-sm text-emerald-600 font-semibold flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      ทุกคนสะอาดแล้ว ไม่มีหนี้ค้าง
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {settlement.transactions.map((t, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 bg-(--surface-container-low) rounded-xl">
+                          <span className="text-sm font-semibold text-(--on-surface) truncate flex-1">{t.fromName}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-bold text-(--primary)">{fmtAmount(t.amount, t.currency)}</span>
+                            <span className="material-symbols-outlined text-base text-(--on-surface-variant)">arrow_forward</span>
+                          </div>
+                          <span className="text-sm font-semibold text-(--on-surface) truncate flex-1 text-right">{t.toName}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Important notes */}
         {trip.importantNotes && activeTab === "itinerary" && (
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
@@ -806,15 +917,15 @@ export default function FollowingDetailPage(): React.ReactNode {
       {/* ── Expense Form Drawer ── */}
       <Drawer
         open={showForm}
-        onClose={() => setShowForm(false)}
-        title="บันทึกค่าใช้จ่าย"
+        onClose={() => { setShowForm(false); setEditingId(null); }}
+        title={editingId ? "แก้ไขค่าใช้จ่าย" : "บันทึกค่าใช้จ่าย"}
         footer={
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => setShowForm(false)}>
+            <Button variant="outline" className="flex-1" onClick={() => { setShowForm(false); setEditingId(null); }}>
               ยกเลิก
             </Button>
             <Button variant="primary" className="flex-1" loading={submitting} onClick={submitExpense}>
-              บันทึก
+              {editingId ? "บันทึก" : "เพิ่มรายการ"}
             </Button>
           </div>
         }

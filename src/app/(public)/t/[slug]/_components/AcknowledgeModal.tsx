@@ -7,7 +7,7 @@ import { acknowledgeChangelog } from "@/lib/trip-api";
 
 interface AcknowledgeModalProps {
   slug: string;
-  followerId: string;
+  followerId?: string;
   pending: PendingChangelog;
   onDone: () => void;
 }

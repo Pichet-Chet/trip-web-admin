@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, useMemo, useCallback } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
@@ -19,6 +19,9 @@ import {
   Avatar,
   Button,
   IconButton,
+  ProgressBar,
+  StatCard,
+  StatusBadge,
 } from "@/components/shared";
 import type { SelectOption } from "@/components/shared";
 import { ROUTES } from "@/constants/routes";
@@ -296,8 +299,6 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
     } finally { setProcessingJoin(null); }
   }
 
-  const pendingCount = useMemo(() => changelogs.filter((l) => !l.notiSent).length, [changelogs]);
-
   async function handleSend(logId: string, mode: "send" | "resend") {
     setSending(logId);
     try {
@@ -440,14 +441,10 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
               {followers.length} ผู้ติดตาม
             </span>
 
-            {/* รอแจ้งเตือน */}
-            <span className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-              pendingCount > 0
-                ? "bg-amber-100 text-amber-700"
-                : "bg-(--surface-variant) text-(--on-surface-variant)"
-            }`}>
-              <span className="material-symbols-outlined text-sm">schedule_send</span>
-              {pendingCount} รอแจ้งเตือน
+            {/* แจ้งเตือนแล้ว */}
+            <span className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-(--surface-variant) text-(--on-surface-variant)">
+              <span className="material-symbols-outlined text-sm">notifications_active</span>
+              {changelogs.filter((l) => l.notiSent).length} แจ้งเตือนแล้ว
             </span>
 
             {/* คำขอเข้าร่วม */}
@@ -494,13 +491,13 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             >
               <span className="material-symbols-outlined text-base">history</span>
               ประวัติ
-              {pendingCount > 0 && (
+              {changelogs.length > 0 && (
                 <span className={`inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold rounded-full ${
                   activeTab === "changelog"
                     ? "bg-white/30 text-white"
-                    : "bg-amber-100 text-amber-700"
+                    : "bg-(--surface-variant) text-(--on-surface-variant)"
                 }`}>
-                  {pendingCount}
+                  {changelogs.length}
                 </span>
               )}
             </button>
@@ -578,7 +575,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
               <EmptyState
                 icon="history"
                 title="ยังไม่มีการเปลี่ยนแปลง"
-                description="เมื่อแก้ไขข้อมูลทริปที่เผยแพร่แล้ว ระบบจะบันทึกประวัติและให้คุณส่งการแจ้งเตือนผู้ติดตามได้"
+                description="เมื่อเผยแพร่ทริปอีกครั้งหลังแก้ไข ระบบจะสร้างประวัติการเปลี่ยนแปลงและแจ้งเตือนผู้ติดตามอัตโนมัติ"
               />
             ) : (
               changelogs.map((log) => (
@@ -613,46 +610,28 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                       ))}
                     </ul>
 
-                    <div className="flex flex-wrap gap-2 pt-3 border-t border-(--outline-variant)/20">
-                      {!log.notiSent ? (
+                    {log.notiSent && (
+                      <div className="flex flex-wrap gap-2 pt-3 border-t border-(--outline-variant)/20">
                         <Button
-                          onClick={() => setConfirmAction({ logId: log.id, mode: "send" })}
-                          disabled={sending === log.id || followers.length === 0}
-                          icon="send"
+                          variant="secondary"
+                          onClick={() => openReceipts(log)}
+                          icon="visibility"
                           iconPosition="left"
                         >
-                          ส่งการแจ้งเตือน
-                          {followers.length > 0 && ` (${followers.length})`}
+                          ดูสถานะการอ่าน
                         </Button>
-                      ) : (
-                        <>
-                          <Button
-                            variant="secondary"
-                            onClick={() => openReceipts(log)}
-                            icon="visibility"
-                            iconPosition="left"
-                          >
-                            ดูสถานะการอ่าน
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            onClick={() => setConfirmAction({ logId: log.id, mode: "resend" })}
-                            disabled={sending === log.id}
-                            icon="replay"
-                            iconPosition="left"
-                            className="text-amber-700 hover:bg-amber-100"
-                          >
-                            ส่งซ้ำให้ผู้ที่ยังไม่อ่าน
-                            {typeof log.unreadCount === "number" && log.unreadCount > 0 && ` (${log.unreadCount})`}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-
-                    {!log.notiSent && followers.length === 0 && (
-                      <p className="text-[11px] text-(--outline) mt-2">
-                        ยังไม่มีผู้ติดตามให้แจ้งเตือน
-                      </p>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setConfirmAction({ logId: log.id, mode: "resend" })}
+                          disabled={sending === log.id}
+                          icon="replay"
+                          iconPosition="left"
+                          className="text-amber-700 hover:bg-amber-100"
+                        >
+                          ส่งซ้ำให้ผู้ที่ยังไม่อ่าน
+                          {typeof log.unreadCount === "number" && log.unreadCount > 0 && ` (${log.unreadCount})`}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </article>
@@ -915,18 +894,15 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
         open={!!confirmAction}
         onClose={() => setConfirmAction(null)}
         onConfirm={() => confirmAction && handleSend(confirmAction.logId, confirmAction.mode)}
-        title={confirmAction?.mode === "send" ? "ส่งการแจ้งเตือนหรือไม่?" : "ส่งซ้ำให้ผู้ที่ยังไม่อ่านหรือไม่?"}
+        title="ส่งซ้ำให้ผู้ที่ยังไม่อ่านหรือไม่?"
         description={(() => {
           if (!confirmAction) return "";
-          if (confirmAction.mode === "send") {
-            return `จะส่งแจ้งเตือนถึงผู้ติดตาม ${followers.length} คน — ตรวจสอบให้แน่ใจว่าข้อมูลทริปอัปเดตเรียบร้อย`;
-          }
           const unread = changelogs.find((l) => l.id === confirmAction.logId)?.unreadCount;
           return typeof unread === "number"
             ? `ระบบจะส่งซ้ำเฉพาะผู้ที่ยังไม่ได้กดยืนยันการอ่าน (${unread} คน)`
             : "ระบบจะส่งเฉพาะผู้ที่ยังไม่ได้กดยืนยันการอ่าน";
         })()}
-        confirmLabel={confirmAction?.mode === "send" ? "ส่ง" : "ส่งซ้ำ"}
+        confirmLabel="ส่งซ้ำ"
       />
 
       <Modal
@@ -940,41 +916,68 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
           <div className="p-12 text-center text-(--outline) animate-pulse">กำลังโหลด...</div>
         ) : receiptData ? (
           <>
-            <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-(--outline-variant)/20 bg-(--surface-container-low)">
-              <div>
-                <p className="text-[10px] text-(--outline) uppercase">ทั้งหมด</p>
-                <p className="text-2xl font-bold text-(--on-surface)">{receiptData.totalFollowers}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-emerald-600 uppercase">อ่านแล้ว</p>
-                <p className="text-2xl font-bold text-emerald-600">{receiptData.acknowledgedCount}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-amber-600 uppercase">ยังไม่อ่าน</p>
-                <p className="text-2xl font-bold text-amber-600">{receiptData.unreadCount}</p>
+            <div className="px-5 pt-5 pb-4 border-b border-(--outline-variant)/20 bg-(--surface-container-low)">
+              <ProgressBar
+                value={receiptData.acknowledgedCount}
+                max={receiptData.totalFollowers}
+                label={`อ่านแล้ว ${receiptData.acknowledgedCount}/${receiptData.totalFollowers} คน`}
+                showValue
+                size="lg"
+                color={receiptData.totalFollowers > 0 && receiptData.acknowledgedCount === receiptData.totalFollowers ? "emerald" : "primary"}
+                animated
+              />
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <StatCard
+                  icon="group"
+                  iconColor="blue"
+                  title="ทั้งหมด"
+                  value={receiptData.totalFollowers}
+                  suffix="คน"
+                  variant="compact"
+                />
+                <StatCard
+                  icon="done_all"
+                  iconColor="emerald"
+                  title="อ่านแล้ว"
+                  value={receiptData.acknowledgedCount}
+                  suffix="คน"
+                  variant="compact"
+                  tone="emerald"
+                />
+                <StatCard
+                  icon="schedule"
+                  iconColor="amber"
+                  title="ยังไม่อ่าน"
+                  value={receiptData.unreadCount}
+                  suffix="คน"
+                  variant="compact"
+                  tone="amber"
+                />
               </div>
             </div>
-            <ul className="divide-y divide-(--outline-variant)/20">
+            <ul className="divide-y divide-(--outline-variant)/20 max-h-[400px] overflow-y-auto">
               {receiptData.receipts.map((r) => (
                 <li key={r.followerId} className="px-5 py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar name={r.displayName} size="sm" />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-(--on-surface) truncate">{r.displayName}</p>
-                      <p className="text-[11px] text-(--outline)">
-                        {channelLabel(r.channel)}
-                        {r.acknowledged && r.acknowledgedAt && ` · อ่านเมื่อ ${formatThaiDateTime(r.acknowledgedAt)}`}
-                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <ChannelBadge channel={r.channel.toLowerCase().includes("line") ? "line" : "web_push"} />
+                        {r.acknowledged && r.acknowledgedAt && (
+                          <span className="text-[11px] text-(--outline)">อ่านเมื่อ {formatThaiDateTime(r.acknowledgedAt)}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {r.acknowledged ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                      <span className="material-symbols-outlined text-sm">done_all</span>
-                      อ่านแล้ว
-                    </span>
-                  ) : (
-                    <span className="text-[11px] font-bold text-amber-600">ยังไม่อ่าน</span>
-                  )}
+                  <StatusBadge
+                    status={r.acknowledged ? "read" : "unread"}
+                    config={{
+                      read: { label: "อ่านแล้ว", tone: "emerald" },
+                      unread: { label: "ยังไม่อ่าน", tone: "amber" },
+                    }}
+                    variant="pill"
+                  />
                 </li>
               ))}
             </ul>

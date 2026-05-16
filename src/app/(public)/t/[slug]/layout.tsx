@@ -36,18 +36,19 @@ export default function TripLayout({ children, params }: LayoutProps): React.JSX
       .catch(() => {});
 
     // Check if follower has pending changelogs to acknowledge
-    const storedFollowerId = localStorage.getItem(`follower_id_${slug}`);
-    if (storedFollowerId) {
-      setFollowerId(storedFollowerId);
-      fetchPendingChangelogs(slug, storedFollowerId)
-        .then((p) => {
-          if (p.changelogs.length > 0) {
-            setPending(p);
-            setShowAckModal(true);
-          }
-        })
-        .catch(() => {});
-    }
+    // Authenticated users: API resolves follower from token (no followerId needed)
+    // Anonymous users: fallback to localStorage followerId
+    const storedFollowerId = localStorage.getItem(`follower_id_${slug}`) ?? undefined;
+    if (storedFollowerId) setFollowerId(storedFollowerId);
+
+    fetchPendingChangelogs(slug, storedFollowerId)
+      .then((p) => {
+        if (p.changelogs.length > 0) {
+          setPending(p);
+          setShowAckModal(true);
+        }
+      })
+      .catch(() => {});
   }, [slug]);
 
   useEffect(() => {
@@ -145,10 +146,10 @@ export default function TripLayout({ children, params }: LayoutProps): React.JSX
       )}
 
       {/* Acknowledge Modal */}
-      {showAckModal && pending && followerId && (
+      {showAckModal && pending && (
         <AcknowledgeModal
           slug={slug}
-          followerId={followerId}
+          followerId={followerId ?? undefined}
           pending={pending}
           onDone={() => setShowAckModal(false)}
         />

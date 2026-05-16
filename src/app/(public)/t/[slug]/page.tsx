@@ -138,6 +138,7 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
             setJoinPending(true);
           } else {
             localStorage.setItem(`followed_${trip.slug}`, "1");
+            localStorage.setItem(`follower_id_${trip.slug}`, result.id);
             setIsFollowing(true);
           }
         })
@@ -165,6 +166,7 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
         setJoinPending(true);
       } else {
         localStorage.setItem(`followed_${trip.slug}`, "1");
+        localStorage.setItem(`follower_id_${trip.slug}`, result.id);
         setIsFollowing(true);
       }
     } catch (e: unknown) {

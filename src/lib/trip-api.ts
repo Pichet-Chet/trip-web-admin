@@ -229,16 +229,17 @@ export interface PendingChangelog {
   changelogs: PublicChangelog[];
 }
 
-export async function fetchPendingChangelogs(slug: string, followerId: string) {
+export async function fetchPendingChangelogs(slug: string, followerId?: string) {
+  const params = followerId ? `?followerId=${encodeURIComponent(followerId)}` : "";
   return api.get<PendingChangelog>(
-    `/client/t/${encodeURIComponent(slug)}/changelog/pending?followerId=${encodeURIComponent(followerId)}`
+    `/client/t/${encodeURIComponent(slug)}/changelog/pending${params}`
   );
 }
 
-export async function acknowledgeChangelog(changelogId: string, followerId: string) {
+export async function acknowledgeChangelog(changelogId: string, followerId?: string) {
   return api.post<{ id: string; acknowledgedAt: string }>(
     `/client/acknowledge/${encodeURIComponent(changelogId)}`,
-    { followerId }
+    followerId ? { followerId } : {}
   );
 }
 
