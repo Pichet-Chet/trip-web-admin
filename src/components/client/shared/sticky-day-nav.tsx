@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { cn } from "@/lib/trip-utils";
-import type { Day } from "@/lib/mock-data";
+import type { Day } from "@/lib/types/trip";
 
 type StickyDayNavProps = {
   days: Day[];

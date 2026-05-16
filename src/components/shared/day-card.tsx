@@ -3,7 +3,7 @@
 import { cn, getDayGradientClass, formatDateShort, detectMapProviderFromActivities, buildRouteUrl, getRouteButtonLabel } from "@/lib/trip-utils";
 
 import { ActivityItem } from "@/components/shared/activity-item";
-import type { Day } from "@/lib/mock-data";
+import type { Day } from "@/lib/types/trip";
 
 type DayCardProps = {
   day: Day;

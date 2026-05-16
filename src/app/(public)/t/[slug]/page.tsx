@@ -8,10 +8,10 @@ import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { isAuthenticated, getUser, logout, refreshAuth } from "@/lib/auth";
 import { followMember } from "@/lib/trip-api";
-import type { TripPlan } from "@/lib/mock-data";
+import type { TripPlan } from "@/lib/types/trip";
 import { formatDateRange, getTripDuration, getDaysUntil, detectMapProvider, detectMapProviderFromActivities, buildRouteUrl, getMapProviderLabel, getActivityTypeStyle, getDayEmoji, getActivityEmoji } from "@/lib/utils";
 import { getLangMeta, getUiStrings, getLangLocale, type TripLang } from "@/lib/i18n-trip";
-import type { Day, Activity } from "@/lib/mock-data";
+import type { Day, Activity } from "@/lib/types/trip";
 
 interface TripViewPageProps {
   params: Promise<{ slug: string }>;

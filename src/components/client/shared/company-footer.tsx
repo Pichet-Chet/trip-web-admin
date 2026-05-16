@@ -13,7 +13,7 @@ function Globe({ className }: { className?: string }) {
     </svg>
   );
 }
-import type { Company } from "@/lib/mock-data";
+import type { Company } from "@/lib/types/trip";
 
 type CompanyFooterProps = {
   company: Company;

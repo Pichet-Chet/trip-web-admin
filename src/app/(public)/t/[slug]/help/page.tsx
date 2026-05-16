@@ -5,7 +5,7 @@ import Link from "next/link";
 import { fetchTripBySlug, fetchFaq } from "@/lib/trip-api";
 import type { FaqCategory } from "@/lib/trip-api";
 import { ApiError } from "@/lib/api";
-import type { TripPlan } from "@/lib/mock-data";
+import type { TripPlan } from "@/lib/types/trip";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

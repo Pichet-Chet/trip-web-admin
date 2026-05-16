@@ -111,8 +111,8 @@ export type TripPlan = {
   followerCount: number;
   pendingChange: PendingChange | null;
   changelogs: Changelog[];
-  /** H2.1 — Free plan = true, paid plans = false. Renders "Powered by TripApp" badge. */
+  /** Free plan = true, paid plans = false. Renders "Powered by TripApp" badge. */
   showWatermark?: boolean;
-  /** Phase 4.3 — additional language codes this trip has translations for. */
+  /** Additional language codes this trip has translations for. */
   supportedLanguages?: string[];
 };

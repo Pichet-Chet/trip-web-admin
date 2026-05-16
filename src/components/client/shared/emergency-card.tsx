@@ -6,7 +6,7 @@ function Phone({ className }: { className?: string }) {
     </svg>
   );
 }
-import type { EmergencyContact } from "@/lib/mock-data";
+import type { EmergencyContact } from "@/lib/types/trip";
 
 type EmergencyCardProps = {
   contacts: EmergencyContact[];

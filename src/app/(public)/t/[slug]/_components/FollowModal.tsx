@@ -70,14 +70,16 @@ export function FollowModal({ tripId, slug, onClose, defaultName = "" }: FollowM
       const { followWebPush } = await import("@/lib/trip-api");
       const { ApiError } = await import("@/lib/api");
 
+      let result: { id: string };
       try {
-        await followWebPush({ tripId, displayName: name.trim(), subscription });
+        result = await followWebPush({ tripId, displayName: name.trim(), subscription });
       } catch (err) {
         setError(err instanceof ApiError ? err.message : "ไม่สามารถลงทะเบียนได้ กรุณาลองใหม่");
         return;
       }
 
       localStorage.setItem(`followed_${slug}`, "1");
+      localStorage.setItem(`follower_id_${slug}`, result.id);
       window.dispatchEvent(new CustomEvent("trip-followed", { detail: { slug } }));
       setIsSuccess(true);
       setTimeout(() => onClose(), 2000);

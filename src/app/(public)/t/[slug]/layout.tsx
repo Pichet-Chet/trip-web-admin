@@ -3,8 +3,9 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { fetchChangelog, fetchTripBySlug } from "@/lib/trip-api";
+import { fetchChangelog, fetchTripBySlug, fetchPendingChangelogs, type PendingChangelog } from "@/lib/trip-api";
 import { FollowModal } from "./_components/FollowModal";
+import { AcknowledgeModal } from "./_components/AcknowledgeModal";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,9 @@ export default function TripLayout({ children, params }: LayoutProps): React.JSX
   const [unreadCount, setUnreadCount] = useState(0);
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [pending, setPending] = useState<PendingChangelog | null>(null);
+  const [followerId, setFollowerId] = useState<string | null>(null);
+  const [showAckModal, setShowAckModal] = useState(false);
 
   useEffect(() => {
     setIsFollowing(localStorage.getItem(`followed_${slug}`) === "1");
@@ -30,6 +34,20 @@ export default function TripLayout({ children, params }: LayoutProps): React.JSX
     fetchChangelog(slug)
       .then((logs) => setUnreadCount(logs.length))
       .catch(() => {});
+
+    // Check if follower has pending changelogs to acknowledge
+    const storedFollowerId = localStorage.getItem(`follower_id_${slug}`);
+    if (storedFollowerId) {
+      setFollowerId(storedFollowerId);
+      fetchPendingChangelogs(slug, storedFollowerId)
+        .then((p) => {
+          if (p.changelogs.length > 0) {
+            setPending(p);
+            setShowAckModal(true);
+          }
+        })
+        .catch(() => {});
+    }
   }, [slug]);
 
   useEffect(() => {
@@ -124,6 +142,16 @@ export default function TripLayout({ children, params }: LayoutProps): React.JSX
       {/* Follow Modal */}
       {showFollowModal && tripId && (
         <FollowModal tripId={tripId} slug={slug} onClose={() => setShowFollowModal(false)} />
+      )}
+
+      {/* Acknowledge Modal */}
+      {showAckModal && pending && followerId && (
+        <AcknowledgeModal
+          slug={slug}
+          followerId={followerId}
+          pending={pending}
+          onDone={() => setShowAckModal(false)}
+        />
       )}
     </>
   );

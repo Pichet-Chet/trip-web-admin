@@ -10,7 +10,7 @@ function MapIcon({ className }: { className?: string }) {
   );
 }
 import { ActivityItem } from "@/components/client/shared/activity-item";
-import type { Day } from "@/lib/mock-data";
+import type { Day } from "@/lib/types/trip";
 
 type DayCardProps = {
   day: Day;

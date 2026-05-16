@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchTripBySlug } from "@/lib/trip-api";
 import { ApiError } from "@/lib/api";
-import type { TripPlan } from "@/lib/mock-data";
+import type { TripPlan } from "@/lib/types/trip";
 import { formatDateRange, getTripDuration } from "@/lib/utils";
 import { getUiStrings, getLangLocale } from "@/lib/i18n-trip";
 

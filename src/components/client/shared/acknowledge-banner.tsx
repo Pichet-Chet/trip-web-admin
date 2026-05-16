@@ -16,7 +16,7 @@ function Check({ className }: { className?: string }) {
     </svg>
   );
 }
-import type { PendingChange } from "@/lib/mock-data";
+import type { PendingChange } from "@/lib/types/trip";
 
 type AcknowledgeBannerProps = {
   pendingChange: PendingChange;

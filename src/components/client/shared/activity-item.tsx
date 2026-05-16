@@ -7,7 +7,7 @@ function MapPin({ className }: { className?: string }) {
     </svg>
   );
 }
-import type { Activity } from "@/lib/mock-data";
+import type { Activity } from "@/lib/types/trip";
 
 type ActivityItemProps = {
   activity: Activity;

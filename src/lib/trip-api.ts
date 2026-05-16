@@ -1,11 +1,11 @@
 /**
  * Adapter between backend TripPublicResponse and the frontend TripPlan shape
- * defined in lib/mock-data.ts. Keeps the rich UI components untouched while
+ * defined in lib/types/trip.ts. Keeps the rich UI components untouched while
  * letting them consume real data.
  */
 
 import { api } from "./client-api";
-import type { TripPlan, Activity, Day, AirlineInfo, Accommodation, EmergencyContact, ChecklistItem } from "./mock-data";
+import type { TripPlan, Activity, Day, AirlineInfo, Accommodation, EmergencyContact, ChecklistItem } from "./types/trip";
 
 interface ApiActivity {
   id: string;
@@ -221,6 +221,25 @@ export interface PublicChangelog {
 
 export async function fetchChangelog(slug: string) {
   return api.get<PublicChangelog[]>(`/client/t/${encodeURIComponent(slug)}/changelog`);
+}
+
+export interface PendingChangelog {
+  companyName: string;
+  companyLogoUrl: string | null;
+  changelogs: PublicChangelog[];
+}
+
+export async function fetchPendingChangelogs(slug: string, followerId: string) {
+  return api.get<PendingChangelog>(
+    `/client/t/${encodeURIComponent(slug)}/changelog/pending?followerId=${encodeURIComponent(followerId)}`
+  );
+}
+
+export async function acknowledgeChangelog(changelogId: string, followerId: string) {
+  return api.post<{ id: string; acknowledgedAt: string }>(
+    `/client/acknowledge/${encodeURIComponent(changelogId)}`,
+    { followerId }
+  );
 }
 
 export interface FaqCategory {

@@ -2,7 +2,7 @@
 
 import { cn, detectMapProvider, getMapButtonLabel, getActivityTypeStyle } from "@/lib/trip-utils";
 
-import type { Activity } from "@/lib/mock-data";
+import type { Activity } from "@/lib/types/trip";
 import { useState, useCallback, useEffect } from "react";
 
 type ActivityItemProps = {
