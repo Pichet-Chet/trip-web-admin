@@ -28,6 +28,7 @@ async function request<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "Accept-Language": "th",
     ...((options.headers as Record<string, string>) || {}),
   };
 
