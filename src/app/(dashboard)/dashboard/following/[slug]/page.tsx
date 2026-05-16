@@ -22,6 +22,9 @@ import {
   CopyButton,
   QRCodeDisplay,
   Modal,
+  useToast,
+  SectionHeader,
+  Accordion,
 } from "@/components/shared";
 import type { TripPublicResponse } from "@/lib/trip-api";
 
@@ -158,6 +161,7 @@ export default function FollowingDetailPage(): React.ReactNode {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   const [trip, setTrip] = useState<TripPublicResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,6 +211,8 @@ export default function FollowingDetailPage(): React.ReactNode {
     exactAmounts: {},
   });
   const [form, setForm] = useState<ExpenseFormState>(defaultForm());
+  const [formSnapshot, setFormSnapshot] = useState<string>("");
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   usePageTitle(trip?.title ?? "รายละเอียดทริป");
 
@@ -290,12 +296,13 @@ export default function FollowingDetailPage(): React.ReactNode {
   }, [activeTab, tripId]);
 
   useEffect(() => {
-    if (activeTab !== "settlement" || !tripId) return;
+    if (activeTab !== "settlement" || !tripId || settlement) return;
     setSettlementLoading(true);
     api.get<SettlementResponse>(`/member/trips/${tripId}/expenses/settlement`)
       .then(setSettlement)
       .catch(() => setSettlement(null))
       .finally(() => setSettlementLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, tripId]);
 
   const tripStatus = useMemo(() =>
@@ -340,7 +347,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
   function openEdit(e: Expense) {
     setEditingId(e.id);
-    setForm({
+    const f: ExpenseFormState = {
       paidByFollowerId: e.paidByFollowerId,
       amount: String(e.amount),
       currency: e.currency,
@@ -349,9 +356,21 @@ export default function FollowingDetailPage(): React.ReactNode {
       splitMode: e.splitMode as "equal" | "shares" | "exact",
       selectedParticipants: e.participants.map((p) => p.followerId),
       exactAmounts: Object.fromEntries(e.participants.map((p) => [p.followerId, String(p.share)])),
-    });
+    };
+    setForm(f);
+    setFormSnapshot(JSON.stringify(f));
     setFormError(null);
     setShowForm(true);
+  }
+
+  function handleCloseForm() {
+    const isDirty = JSON.stringify(form) !== formSnapshot;
+    if (isDirty && (form.description || form.amount || form.paidByFollowerId)) {
+      setShowDiscardConfirm(true);
+    } else {
+      setShowForm(false);
+      setEditingId(null);
+    }
   }
 
   function toggleParticipant(id: string) {
@@ -400,13 +419,16 @@ export default function FollowingDetailPage(): React.ReactNode {
       if (editingId) {
         const updated = await api.put<Expense>(`/member/trips/${tripId}/expenses/${editingId}`, body);
         setExpenses((prev) => prev.map((e) => (e.id === editingId ? updated : e)));
+        toast.success("อัปเดตเรียบร้อย");
       } else {
         const created = await api.post<Expense>(`/member/trips/${tripId}/expenses`, body);
         setExpenses((prev) => [...prev, created]);
+        toast.success("บันทึกเรียบร้อย");
       }
       setEditingId(null);
       setForm(defaultForm());
       setShowForm(false);
+      setSettlement(null);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "บันทึกไม่สำเร็จ");
     } finally {
@@ -419,6 +441,10 @@ export default function FollowingDetailPage(): React.ReactNode {
     try {
       await api.delete(`/member/trips/${tripId}/expenses/${deleteTarget}`);
       setExpenses((prev) => prev.filter((e) => e.id !== deleteTarget));
+      setSettlement(null);
+      toast.success("ลบเรียบร้อย");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "ลบไม่สำเร็จ");
     } finally {
       setDeleteTarget(null);
     }
@@ -532,16 +558,18 @@ export default function FollowingDetailPage(): React.ReactNode {
           <div className="flex gap-8 items-start -mx-4 md:-mx-8 px-4 md:px-8">
 
             {/* ── Left: activity list (normal page flow) ── */}
-            <div ref={setLeftPanelEl} className="w-[360px] xl:w-[420px] shrink-0 pb-8">
+            <div ref={setLeftPanelEl} className="w-full lg:w-[360px] xl:w-[420px] shrink-0 pb-8">
 
               {/* Day pills */}
-              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide" role="tablist" aria-label="เลือกวัน">
                 {trip.days.map((d, i) => (
                   <button
                     key={d.id}
+                    role="tab"
+                    aria-selected={selectedDay === i}
                     onClick={() => handleDayChange(i)}
                     aria-label={`วันที่ ${d.dayNumber}${d.date ? ` - ${d.date}` : ''}`}
-                    className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-2xl border transition-colors focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:outline-none ${
+                    className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-2xl border cursor-pointer transition-colors motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:outline-none ${
                       selectedDay === i
                         ? "bg-(--primary) text-white border-(--primary) shadow-md"
                         : "bg-white text-(--on-surface-variant) border-(--outline-variant)/30 hover:border-(--primary)/30"
@@ -747,7 +775,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
         {/* Mobile map modal */}
         {showMapMobile && activeTab === "itinerary" && (
-          <div className="fixed inset-0 z-50 bg-black/60 flex flex-col lg:hidden" onClick={() => setShowMapMobile(false)}>
+          <div className="fixed inset-0 z-50 bg-black/60 flex flex-col lg:hidden" role="dialog" aria-modal="true" aria-label="แผนที่" onClick={() => setShowMapMobile(false)}>
             <div className="flex-1" />
             <div className="bg-white rounded-t-3xl h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-3 border-b border-(--outline-variant)/20">
@@ -796,7 +824,7 @@ export default function FollowingDetailPage(): React.ReactNode {
                   <Button
                     variant="primary"
                     icon="add"
-                    onClick={() => { setEditingId(null); setForm(defaultForm()); setFormError(null); setShowForm(true); }}
+                    onClick={() => { setEditingId(null); const f = defaultForm(); setForm(f); setFormSnapshot(JSON.stringify(f)); setFormError(null); setShowForm(true); }}
                   >
                     บันทึกค่าใช้จ่าย
                   </Button>
@@ -804,7 +832,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
                 {/* Expense list */}
                 {expenses.length === 0 ? (
-                  <EmptyState icon="receipt_long" title="ยังไม่มีรายการค่าใช้จ่าย" description="กดบันทึกค่าใช้จ่ายด้านบนเพื่อเริ่มต้น" onAction={() => setShowForm(true)} actionLabel="บันทึกรายการแรก" />
+                  <EmptyState icon="receipt_long" title="ยังไม่มีรายการค่าใช้จ่าย" description="กดบันทึกค่าใช้จ่ายด้านบนเพื่อเริ่มต้น" onAction={() => { const f = defaultForm(); setForm(f); setFormSnapshot(JSON.stringify(f)); setFormError(null); setEditingId(null); setShowForm(true); }} actionLabel="บันทึกรายการแรก" />
                 ) : (
                   <div className="space-y-3">
                     {expenses.map((e) => (
@@ -816,13 +844,20 @@ export default function FollowingDetailPage(): React.ReactNode {
                               <p className="font-semibold text-(--on-surface) text-sm leading-snug">{e.description}</p>
                               <p className="text-xs text-(--on-surface-variant) mt-0.5">
                                 จ่ายโดย {e.paidByName} · {new Date(e.occurredOn + "T00:00:00").toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                                {" · "}
+                                <span className="inline-flex items-center gap-0.5">
+                                  <span className="material-symbols-outlined text-[11px]" aria-hidden="true">
+                                    {e.splitMode === "equal" ? "drag_handle" : e.splitMode === "shares" ? "pie_chart" : "edit_note"}
+                                  </span>
+                                  {e.splitMode === "equal" ? "หารเท่า" : e.splitMode === "shares" ? "ตามสัดส่วน" : "กำหนดเอง"}
+                                </span>
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="font-black text-(--on-surface) text-sm">{fmtAmount(e.amount, e.currency)}</span>
-                            <IconButton icon="edit" variant="ghost" size="sm" onClick={() => openEdit(e)} />
-                            <IconButton icon="delete" variant="ghost" size="sm" onClick={() => setDeleteTarget(e.id)} />
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="font-black text-(--on-surface) text-sm mr-1">{fmtAmount(e.amount, e.currency)}</span>
+                            <IconButton icon="edit" variant="ghost" onClick={() => openEdit(e)} aria-label="แก้ไข" />
+                            <IconButton icon="delete" variant="ghost" onClick={() => setDeleteTarget(e.id)} aria-label="ลบ" />
                           </div>
                         </div>
                         {e.participants.length > 0 && (
@@ -864,7 +899,9 @@ export default function FollowingDetailPage(): React.ReactNode {
                             จ่าย {fmtAmount(b.totalPaid, "THB")} · แชร์ {fmtAmount(b.totalOwed, "THB")}
                           </p>
                         </div>
-                        <span className={`text-sm font-bold shrink-0 ${b.netBalance > 0.005 ? "text-emerald-600" : b.netBalance < -0.005 ? "text-rose-600" : "text-(--on-surface-variant)"}`}>
+                        <span className={`text-sm font-bold shrink-0 flex items-center gap-1 ${b.netBalance > 0.005 ? "text-emerald-600" : b.netBalance < -0.005 ? "text-rose-600" : "text-(--on-surface-variant)"}`}>
+                          {b.netBalance > 0.005 && <span className="material-symbols-outlined text-sm" aria-hidden="true">trending_up</span>}
+                          {b.netBalance < -0.005 && <span className="material-symbols-outlined text-sm" aria-hidden="true">trending_down</span>}
                           {b.netBalance > 0.005 ? "+" : ""}{fmtAmount(b.netBalance, "THB")}
                         </span>
                       </div>
@@ -903,25 +940,101 @@ export default function FollowingDetailPage(): React.ReactNode {
         )}
 
         {/* Important notes */}
-        {trip.importantNotes && activeTab === "itinerary" && (
-          <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">info</span>
-              <h3 className="font-semibold text-amber-800 text-sm">หมายเหตุสำคัญ</h3>
+        {trip.importantNotes && activeTab === "itinerary" && (() => {
+          const lines = trip.importantNotes.split("\n").filter((l) => l.trim());
+          const sections: { title: string; items: string[] }[] = [];
+          let current: { title: string; items: string[] } | null = null;
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("•") && !trimmed.startsWith("-") && trimmed.endsWith(":")) {
+              current = { title: trimmed.replace(/:$/, ""), items: [] };
+              sections.push(current);
+            } else if (current && (trimmed.startsWith("•") || trimmed.startsWith("-"))) {
+              current.items.push(trimmed.replace(/^[•\-]\s*/, ""));
+            } else {
+              current = { title: "", items: [trimmed] };
+              sections.push(current);
+            }
+          }
+          const sectionIcons: Record<string, string> = {
+            "สิ่งที่ต้องเตรียม": "checklist",
+            "นัดหมาย": "schedule",
+            "การแต่งกาย": "checkroom",
+            "อาหาร": "restaurant",
+            "ยา": "medication",
+            "เอกสาร": "description",
+            "ข้อห้าม": "block",
+            "ข้อควรระวัง": "warning",
+          };
+          const getIcon = (title: string) => {
+            for (const [key, icon] of Object.entries(sectionIcons)) {
+              if (title.includes(key)) return icon;
+            }
+            return "sticky_note_2";
+          };
+
+          const accordionItems = sections
+            .filter((sec) => sec.title)
+            .map((sec, i) => ({
+              id: `note-${i}`,
+              title: sec.title,
+              icon: getIcon(sec.title),
+              badge: `${sec.items.length} รายการ`,
+              children: (
+                <ul className="space-y-2">
+                  {sec.items.map((item, j) => (
+                    <li key={j} className="flex items-start gap-2.5 text-sm text-(--on-surface-variant)">
+                      <span className="material-symbols-outlined text-sm text-amber-500 mt-0.5 shrink-0" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">check_circle</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ),
+            }));
+
+          const plainItems = sections.filter((sec) => !sec.title).flatMap((sec) => sec.items);
+
+          return (
+            <div className="mt-6">
+              <SectionHeader
+                title="หมายเหตุสำคัญ"
+                subtitle="กรุณาอ่านก่อนออกเดินทาง"
+                icon="priority_high"
+                variant="icon"
+                color="amber"
+              />
+              <div className="mt-3">
+                {plainItems.length > 0 && (
+                  <div className="mb-3 space-y-1.5">
+                    {plainItems.map((item, i) => (
+                      <p key={i} className="flex items-start gap-2 text-sm text-(--on-surface-variant)">
+                        <span className="material-symbols-outlined text-sm text-(--outline) mt-0.5 shrink-0" aria-hidden="true">arrow_right</span>
+                        <span>{item}</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {accordionItems.length > 0 && (
+                  <Accordion
+                    items={accordionItems}
+                    defaultOpen={accordionItems.map((item) => item.id)}
+                    allowMultiple
+                  />
+                )}
+              </div>
             </div>
-            <p className="text-sm text-amber-700 whitespace-pre-line">{trip.importantNotes}</p>
-          </div>
-        )}
+          );
+        })()}
       </main>
 
       {/* ── Expense Form Drawer ── */}
       <Drawer
         open={showForm}
-        onClose={() => { setShowForm(false); setEditingId(null); }}
+        onClose={handleCloseForm}
         title={editingId ? "แก้ไขค่าใช้จ่าย" : "บันทึกค่าใช้จ่าย"}
         footer={
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => { setShowForm(false); setEditingId(null); }}>
+            <Button variant="outline" className="flex-1" onClick={handleCloseForm}>
               ยกเลิก
             </Button>
             <Button variant="primary" className="flex-1" loading={submitting} onClick={submitExpense}>
@@ -940,7 +1053,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
           {/* Paid by */}
           <SelectPicker
-            label="ผู้จ่าย"
+            label="ผู้จ่าย *"
             options={memberOptions}
             value={form.paidByFollowerId}
             onChange={(v) => setForm((f) => ({ ...f, paidByFollowerId: v as string }))}
@@ -952,7 +1065,7 @@ export default function FollowingDetailPage(): React.ReactNode {
           <div className="flex gap-3">
             <div className="flex-1">
               <FormInput
-                label="จำนวนเงิน"
+                label="จำนวนเงิน *"
                 type="number"
                 value={form.amount}
                 onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
@@ -974,7 +1087,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
           {/* Description */}
           <FormInput
-            label="รายละเอียด"
+            label="รายละเอียด *"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="เช่น อาหารเย็น, ค่าแท็กซี่"
@@ -1004,7 +1117,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
           {/* Participants */}
           <div>
-            <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ผู้ร่วมจ่าย</p>
+            <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ผู้ร่วมจ่าย *</p>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {members.map((m) => {
                 const checked = form.selectedParticipants.includes(m.id);
@@ -1047,6 +1160,17 @@ export default function FollowingDetailPage(): React.ReactNode {
         variant="danger"
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* Discard changes confirm */}
+      <ConfirmDialog
+        open={showDiscardConfirm}
+        title="ยกเลิกการแก้ไข?"
+        description="คุณมีข้อมูลที่ยังไม่ได้บันทึก ต้องการยกเลิกหรือไม่?"
+        confirmLabel="ยกเลิก"
+        variant="danger"
+        onConfirm={() => { setShowDiscardConfirm(false); setShowForm(false); setEditingId(null); }}
+        onClose={() => setShowDiscardConfirm(false)}
       />
 
       {/* QR Code Modal */}
