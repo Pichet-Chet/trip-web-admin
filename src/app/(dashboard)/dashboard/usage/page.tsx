@@ -348,13 +348,16 @@ export default function UsagePage(): React.ReactNode {
         {data.tier !== "subscription" && (
           <Link
             href="/dashboard/upgrade?plan=subscription"
-            className="flex items-center justify-between gap-3 px-5 py-3 rounded-2xl border border-(--outline-variant)/40 hover:border-(--primary)/30 hover:bg-(--primary-container)/15 transition-colors group"
+            className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-white border border-(--outline-variant)/50 hover:border-(--primary)/40 hover:shadow-md transition-all group"
           >
-            <p className="text-sm">
-              <span className="font-bold text-(--on-surface)">Subscription รายเดือน</span>
-              <span className="text-(--on-surface-variant)"> · ทริปไม่จำกัด · ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน</span>
-            </p>
-            <span className="material-symbols-outlined text-(--primary) group-hover:translate-x-0.5 transition-transform flex-shrink-0 text-base">arrow_forward</span>
+            <div className="w-10 h-10 rounded-xl bg-(--primary-container) flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-(--primary) text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-(--on-surface)">Subscription รายเดือน</p>
+              <p className="text-xs text-(--on-surface-variant) mt-0.5">ทริปไม่จำกัด · ฿{priceFor(catalog, "subscription").toLocaleString("th-TH")}/เดือน</p>
+            </div>
+            <span className="material-symbols-outlined text-(--primary) group-hover:translate-x-0.5 transition-transform flex-shrink-0">arrow_forward</span>
           </Link>
         )}
       </section>

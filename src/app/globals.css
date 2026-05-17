@@ -38,6 +38,7 @@
     --surface-container-lowest: #ffffff;
     --surface-bright: #f9f9ff;
 
+    --info: #3b82f6;
     --success: #22c55e;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -89,6 +90,7 @@
   --color-surface-container-high: var(--surface-container-high);
   --color-surface-container-lowest: var(--surface-container-lowest);
   --color-surface-bright: var(--surface-bright);
+  --color-info: var(--info);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);

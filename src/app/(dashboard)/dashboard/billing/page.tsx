@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { Banner, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, PageSkeleton, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
+import { Banner, ConfirmDialog, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, PageSkeleton, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
 import type { StatusConfig } from "@pichetch08/trip-ui";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -165,13 +165,14 @@ function BillingContent(): React.ReactNode {
   }, []);
 
   async function cancelRefundRequest(id: string) {
-    if (!confirm("ยกเลิกคำขอคืนเงินนี้?")) return;
     try {
       await api.post(`/admin/refund-requests/${id}/cancel`, {});
       toast.success("ยกเลิกคำขอเรียบร้อย");
       await loadRefunds();
     } catch (e: unknown) {
       toast.error(e instanceof ApiError ? e.message : "ยกเลิกไม่สำเร็จ");
+    } finally {
+      setCancelRefundId(null);
     }
   }
 
@@ -190,6 +191,7 @@ function BillingContent(): React.ReactNode {
   }
 
   const [rejectedDetail, setRejectedDetail] = useState<MyRefundRequest | null>(null);
+  const [cancelRefundId, setCancelRefundId] = useState<string | null>(null);
 
   // Payment filters
   const [statusFilter, setStatusFilter] = useState<"default" | "all" | "paid" | "refunded" | "failed">("default");
@@ -508,7 +510,7 @@ function BillingContent(): React.ReactNode {
           </div>
         }
       >
-        <div className="px-6 py-5 space-y-4">
+        <div className="space-y-4">
           {tripCounts && tripCounts.totalNotArchived > tripCounts.freeLimit && (
             <Banner variant="warning" title="⚠️ หลังหมดอายุ คุณจะ publish ทริปเพิ่มไม่ได้">
               <p className="text-xs text-amber-800 mt-1">
@@ -746,7 +748,7 @@ function BillingContent(): React.ReactNode {
                     {r.status === "pending" && (
                       <button
                         type="button"
-                        onClick={() => cancelRefundRequest(r.id)}
+                        onClick={() => setCancelRefundId(r.id)}
                         className="shrink-0 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
                         title="ยกเลิกคำขอ (เฉพาะที่ยังรอ review)"
                       >
@@ -786,6 +788,16 @@ function BillingContent(): React.ReactNode {
           </div>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={cancelRefundId !== null}
+        onClose={() => setCancelRefundId(null)}
+        onConfirm={() => cancelRefundId && cancelRefundRequest(cancelRefundId)}
+        title="ยกเลิกคำขอคืนเงิน?"
+        description="คำขอนี้จะถูกยกเลิก คุณสามารถส่งใหม่ได้หากต้องการ"
+        confirmLabel="ยืนยันยกเลิก"
+        variant="danger"
+      />
 
       {refundTarget && (
         <RefundRequestModal
@@ -834,7 +846,7 @@ function BillingContent(): React.ReactNode {
             </div>
           }
         >
-          <div className="px-6 py-5 space-y-4">
+          <div className="space-y-4">
             <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
               <p className="text-xs font-bold text-rose-900 uppercase tracking-wider mb-1">เหตุผลจากทีมงาน</p>
               <p className="text-sm text-rose-800 whitespace-pre-wrap">
@@ -956,13 +968,8 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
         </div>
       }
     >
-      <div className="px-6 py-5 space-y-4">
-        {verdictLoading && (
-          <div className="text-center py-4 text-slate-400 text-sm">
-            <span className="material-symbols-outlined animate-spin text-xl">progress_activity</span>
-            <p className="mt-1">กำลังตรวจสอบสิทธิ์ตามนโยบาย...</p>
-          </div>
-        )}
+      <div className="space-y-4">
+        {verdictLoading && <LoadingState size="section" message="กำลังตรวจสอบสิทธิ์ตามนโยบาย..." />}
 
         {verdict && verdict.status === "eligible" && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1 text-xs">
@@ -1033,7 +1040,7 @@ function RefundRequestModal({ payment, onClose, onSubmitted }: RefundRequestModa
                 id="ack"
                 checked={acknowledged}
                 onChange={e => setAcknowledged(e.target.checked)}
-                className="mt-1 w-4 h-4"
+                className="mt-0.5 w-4 h-4 rounded accent-primary cursor-pointer shrink-0"
               />
               <label htmlFor="ack" className="text-xs text-slate-700 leading-relaxed cursor-pointer">
                 ฉันเข้าใจว่าคำขอจะส่งไปยังทีมงานเพื่อตรวจสอบ ไม่ใช่การคืนเงินทันที — อ่าน{" "}
