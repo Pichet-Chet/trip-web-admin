@@ -9,7 +9,6 @@ import {
   FilterTabs,
   Pagination,
   SelectPicker,
-  StatusBadge,
   TableRowSkeleton,
 } from "@/components/shared";
 import type { StatusConfig } from "@pichetch08/trip-ui";
@@ -135,7 +134,7 @@ export default function SupportTicketsPage() {
   const [page, setPage] = useState(1);
 
   const unreadCount = summary?.unread ?? 0;
-  usePageTitle(unreadCount > 0 ? `(${unreadCount}) Support Tickets` : "Support Tickets");
+  usePageTitle(unreadCount > 0 ? `(${unreadCount}) ตั๋วสนับสนุน` : "ตั๋วสนับสนุน");
 
   const load = useCallback(async (silent = false) => {
     if (!silent) { setLoading(true); setLoadError(false); }
@@ -212,9 +211,9 @@ export default function SupportTicketsPage() {
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ตั๋วสนับสนุน</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">ตั๋วสนับสนุน</h1>
           {data && data.totalCount > 0 && (
-            <p className="text-slate-400 mt-1 text-sm">{data.totalCount.toLocaleString("th-TH")} รายการ</p>
+            <p className="text-(--on-surface-variant) mt-1 text-sm">{data.totalCount.toLocaleString("th-TH")} รายการ</p>
           )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -242,7 +241,7 @@ export default function SupportTicketsPage() {
       />
 
       {/* Secondary filters — responsive grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/40 p-4 md:p-5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
         <div className="md:col-span-3">
           <SelectPicker
             label="ประเภท"
@@ -289,7 +288,7 @@ export default function SupportTicketsPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-3 text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl border border-slate-200 hover:border-red-200 transition-all"
+              className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-3 text-xs font-semibold text-(--on-surface-variant) hover:text-red-600 hover:bg-red-50 rounded-xl border border-(--outline-variant)/40 hover:border-red-200 transition-all"
               title="ล้างตัวกรอง"
             >
               <span className="material-symbols-outlined text-base">filter_alt_off</span>
@@ -301,13 +300,13 @@ export default function SupportTicketsPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/40 overflow-hidden divide-y divide-(--outline-variant)/20">
           {Array.from({ length: 6 }).map((_, i) => <TableRowSkeleton key={i} />)}
         </div>
       ) : loadError ? (
         <ErrorState message="โหลดข้อมูลไม่สำเร็จ — กรุณาตรวจสอบการเชื่อมต่อและลองใหม่" onRetry={() => load()} />
       ) : !data || data.items.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200">
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/40">
           {hasFilters ? (
             <EmptyState
               icon="filter_alt_off"
@@ -329,8 +328,8 @@ export default function SupportTicketsPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <ul className="divide-y divide-slate-100">
+        <div className="bg-white rounded-2xl border border-(--outline-variant)/40 overflow-hidden">
+          <ul className="divide-y divide-(--outline-variant)/20">
             {data.items.map((t) => {
               const statusLabel = STATUS_CONFIG[t.status]?.label ?? t.status;
               const statusDot = STATUS_DOT[t.status] ?? "bg-slate-400";
@@ -355,17 +354,17 @@ export default function SupportTicketsPage() {
                       title={statusLabel}
                       aria-label={`สถานะ: ${statusLabel}`}
                     />
-                    <p className={`flex-1 truncate text-base leading-snug ${t.hasUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
+                    <p className={`flex-1 truncate text-base leading-snug ${t.hasUnread ? "font-bold text-(--on-surface)" : "font-semibold text-(--on-surface)"}`}>
                       {t.subject}
                     </p>
-                    <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400 font-medium">
+                    <div className="flex items-center gap-2 shrink-0 text-xs text-(--outline) font-medium">
                       {t.replyCount > 0 && (
                         <>
                           <span className="inline-flex items-center gap-1" title={`${t.replyCount} ตอบกลับ`}>
                             <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>chat_bubble</span>
                             <span className="tabular-nums">{t.replyCount}</span>
                           </span>
-                          <span className="text-slate-300">·</span>
+                          <span className="text-(--outline-variant)">·</span>
                         </>
                       )}
                       <span className="tabular-nums">{formatRelativeDate(t.updatedAt)}</span>
@@ -374,7 +373,7 @@ export default function SupportTicketsPage() {
 
                   {/* Meta row: type label (with icon) · priority flag (only High) */}
                   <div className="mt-1 ml-[22px] flex items-center gap-x-3 gap-y-1 text-xs flex-wrap">
-                    <span className="inline-flex items-center gap-1 text-slate-500">
+                    <span className="inline-flex items-center gap-1 text-(--on-surface-variant)">
                       <span className={`material-symbols-outlined text-sm leading-none ${typeMeta.tone.split(" ").find((c) => c.startsWith("text-"))}`} style={{ fontVariationSettings: "'FILL' 1" }}>
                         {typeMeta.icon}
                       </span>
@@ -382,7 +381,7 @@ export default function SupportTicketsPage() {
                     </span>
                     {t.priority === "High" && (
                       <>
-                        <span className="text-slate-300">·</span>
+                        <span className="text-(--outline-variant)">·</span>
                         <span className="inline-flex items-center gap-1 text-rose-600 font-semibold" title="สำคัญสูง">
                           <span className="material-symbols-outlined text-sm leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
                           เร่งด่วน
@@ -398,7 +397,7 @@ export default function SupportTicketsPage() {
           </ul>
 
           {totalPages > 1 && data && (
-            <div className="border-t border-slate-100">
+            <div className="border-t border-(--outline-variant)/20">
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}

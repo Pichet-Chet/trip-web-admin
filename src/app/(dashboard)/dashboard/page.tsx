@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog, OperatorUnlockModal } from "@/components/shared";
+import { Badge } from "@pichetch08/trip-ui";
 import { api } from "@/lib/api";
 import { subscribe, type UserInfo } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -426,6 +427,9 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <StatusBadge status={effectiveStatus} config={TRIP_STATUS_CONFIG} />
+                        {isDraft && hasPublishedSnapshot && (
+                          <Badge variant="success" size="sm" icon="public">เผยแพร่อยู่</Badge>
+                        )}
                         {isRejected && (
                           <Link
                             href={`/dashboard/trips/${trip.id}/preview`}
@@ -467,7 +471,7 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
                           <IconButton icon="manage_accounts" variant="ghost" title="จัดการทริป" />
                         </Link>
                       )}
-                      {isDraft && (
+                      {isDraft && !hasPublishedSnapshot && (
                         <button
                           onClick={() => setDeleteTarget(trip)}
                           className="p-2 rounded-xl hover:bg-red-50 text-(--outline-variant) hover:text-red-500 transition-colors"
