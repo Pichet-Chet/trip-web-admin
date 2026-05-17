@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { ErrorState, Pagination, TableRowSkeleton, useToast } from "@/components/shared";
+import { EmptyState, ErrorState, Pagination, TableRowSkeleton, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface NotificationItem {
@@ -78,7 +78,7 @@ export default function NotificationsPage(): React.ReactNode {
       unreadCount: Math.max(0, prev.unreadCount - 1),
       items: prev.items.map((n) => n.id === id ? { ...n, isRead: true } : n),
     });
-    try { await api.put(`/me/notifications/${id}/read`, {}); } catch { /* swallow */ }
+    try { await api.put(`/me/notifications/${id}/read`, {}); } catch { /* non-critical — UI updated optimistically */ }
   }
 
   async function markAllRead() {
@@ -145,12 +145,11 @@ export default function NotificationsPage(): React.ReactNode {
       ) : error ? (
         <ErrorState message={error} onRetry={load} />
       ) : !data || data.items.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-10 text-center">
-          <span className="material-symbols-outlined text-(--outline-variant) text-4xl">notifications_off</span>
-          <p className="mt-3 text-sm text-(--on-surface-variant)">
-            {unreadOnly ? "ไม่มีการแจ้งเตือนที่ยังไม่อ่าน" : "ยังไม่มีการแจ้งเตือน"}
-          </p>
-        </div>
+        <EmptyState
+          icon="notifications_off"
+          title={unreadOnly ? "ไม่มีการแจ้งเตือนที่ยังไม่อ่าน" : "ยังไม่มีการแจ้งเตือน"}
+          description={unreadOnly ? "การแจ้งเตือนทั้งหมดอ่านแล้ว" : "ระบบจะแจ้งเตือนเมื่อมีความเคลื่อนไหวในทริปของคุณ"}
+        />
       ) : (
         <>
           <div className="bg-white rounded-2xl border border-(--outline-variant)/30 divide-y divide-(--outline-variant)/20">

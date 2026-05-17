@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import { ConfirmDialog, ErrorState, StatusBadge } from "@/components/shared";
+import { ConfirmDialog, ErrorState, StatusBadge, useToast } from "@/components/shared";
 import type { StatusConfig } from "@pichetch08/trip-ui";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -144,6 +144,7 @@ function AttachmentGrid({ urls, light = false, onImageClick }: { urls: string[];
 export default function AdminTicketDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { toast } = useToast();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -295,6 +296,7 @@ export default function AdminTicketDetailPage() {
       setTicket((prev) => prev ? { ...prev, replies: [...prev.replies, reply] } : prev);
       setMessage("");
       setAttachments([]);
+      toast.success("ส่งข้อความสำเร็จ");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "ส่งข้อความไม่สำเร็จ");
       setFailedPayload(payload);
@@ -322,6 +324,7 @@ export default function AdminTicketDetailPage() {
     try {
       const res = await api.put<{ id: string; status: string }>(`/admin/support/tickets/${ticket.id}/status`, { status: newStatus });
       setTicket((prev) => prev ? { ...prev, status: res.status } : prev);
+      toast.success("อัปเดตสถานะแล้ว");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "เปลี่ยนสถานะไม่สำเร็จ");
     } finally {
