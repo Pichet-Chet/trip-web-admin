@@ -170,17 +170,21 @@ export default function SavedPage(): React.ReactNode {
 
   return (
     <div className="p-4 md:p-8 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-black text-(--on-surface)">สถานที่บันทึก</h1>
-          {places.length > 0 && (
-            <span className="bg-(--primary)/10 text-(--primary) text-xs font-bold px-2 py-0.5 rounded-full">{places.length}</span>
-          )}
+      {/* Search + Add */}
+      <div className="flex gap-3 items-center">
+        <div className="relative flex-1">
+          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-(--on-surface-variant)/50 text-lg">search</span>
+          <input
+            type="text"
+            placeholder="ค้นหาสถานที่..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-white border border-(--outline-variant)/30 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
+          />
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 bg-(--primary) text-white text-sm font-bold px-4 py-2.5 rounded-full hover:brightness-110 transition-all"
+          className="flex items-center gap-1.5 bg-(--primary) text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:brightness-110 transition-all shrink-0"
         >
           <span className="material-symbols-outlined text-base">add</span>
           เพิ่ม
@@ -193,18 +197,6 @@ export default function SavedPage(): React.ReactNode {
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
-
-      {/* Search */}
-      <div className="relative">
-        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-(--on-surface-variant)/50 text-lg">search</span>
-        <input
-          type="text"
-          placeholder="ค้นหาสถานที่..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-white border border-(--outline-variant)/30 rounded-full pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
-        />
-      </div>
 
       {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto pb-1">
