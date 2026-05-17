@@ -7,6 +7,7 @@ export interface PlaceResult {
   lat: number;
   lng: number;
   mapsLink: string;
+  imageUrl?: string;
 }
 
 interface Prediction {
@@ -121,16 +122,18 @@ export function PlaceAutocompleteInput({ value, apiKey, onPlaceSelect, onTextCha
     setPredictions([]);
 
     placesServiceRef.current.getDetails(
-      { placeId: pred.placeId, fields: ["name", "geometry", "url"] },
+      { placeId: pred.placeId, fields: ["name", "geometry", "url", "photos"] },
       (place, status) => {
         if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place?.geometry?.location) return;
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
+        const photo = place.photos?.[0];
         onPlaceSelect({
           placeName: place.name ?? pred.mainText,
           lat,
           lng,
           mapsLink: place.url ?? `https://www.google.com/maps?q=${lat},${lng}`,
+          imageUrl: photo ? photo.getUrl({ maxWidth: 800, maxHeight: 600 }) : undefined,
         });
       }
     );

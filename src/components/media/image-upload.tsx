@@ -208,15 +208,24 @@ function MultiImageUpload({
 
   const canAdd = values.length < maxImages;
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     e.target.value = "";
     setError("");
+
+    const remaining = maxImages - values.length;
+    const selected = Array.from(files).slice(0, remaining);
+    if (selected.length === 0) return;
+
     setUploading(true);
     try {
-      const url = await uploadFile(file, folder, uploadUrl);
-      onMultiChange([...values, url]);
+      const uploaded: string[] = [];
+      for (const file of selected) {
+        const url = await uploadFile(file, folder, uploadUrl);
+        uploaded.push(url);
+      }
+      onMultiChange([...values, ...uploaded]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการอัปโหลด");
     } finally {
@@ -309,13 +318,18 @@ function MultiImageUpload({
         </p>
       )}
 
-      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFile} className="hidden" />
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={handleFiles} className="hidden" />
 
       <MediaLibraryModal
         open={showLibrary}
         onClose={() => setShowLibrary(false)}
+        multiple
+        maxSelect={maxImages - values.length}
         onSelect={(url) => {
           if (values.length < maxImages) onMultiChange([...values, url]);
+        }}
+        onMultiSelect={(urls) => {
+          onMultiChange([...values, ...urls].slice(0, maxImages));
         }}
         folder={folder}
       />

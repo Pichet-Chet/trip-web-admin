@@ -9,9 +9,13 @@ interface ApiResponse<T> {
 
 class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(message: string, status: number, data: Record<string, any> | null = null) {
     super(message);
     this.status = status;
+    this.data = data;
   }
 }
 
@@ -56,8 +60,8 @@ async function request<T>(
       });
       if (!retryRes.ok) {
         const text = await retryRes.text();
-        const parsed = text ? tryParseJson<ApiResponse<T>>(text) : null;
-        throw new ApiError(parsed?.error || `HTTP ${retryRes.status}`, retryRes.status);
+        const parsed = text ? tryParseJson<ApiResponse<unknown>>(text) : null;
+        throw new ApiError(parsed?.error || `HTTP ${retryRes.status}`, retryRes.status, parsed?.data as Record<string, unknown> | null);
       }
       const retryJson: ApiResponse<T> = await retryRes.json();
       if (!retryJson.success) {
@@ -72,8 +76,8 @@ async function request<T>(
 
   if (!res.ok) {
     const text = await res.text();
-    const parsed = text ? tryParseJson<ApiResponse<T>>(text) : null;
-    throw new ApiError(parsed?.error || `HTTP ${res.status}`, res.status);
+    const parsed = text ? tryParseJson<ApiResponse<unknown>>(text) : null;
+    throw new ApiError(parsed?.error || `HTTP ${res.status}`, res.status, parsed?.data as Record<string, unknown> | null);
   }
 
   const json: ApiResponse<T> = await res.json();

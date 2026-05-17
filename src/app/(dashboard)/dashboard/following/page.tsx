@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -18,6 +18,7 @@ interface FollowedTrip {
   operatorName: string;
   followerCount: number;
   followedAt: string;
+  hasReviewed: boolean;
 }
 
 type TripStatus = "upcoming" | "active" | "completed";
@@ -45,6 +46,40 @@ function formatDateRange(start: string, end: string): string {
 
 function getDaysUntil(start: string): number {
   return Math.ceil((new Date(start + "T00:00:00").getTime() - Date.now()) / 86_400_000);
+}
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:8011";
+
+function CopyLinkButton({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleCopy(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(`${SITE_URL}/t/${slug}`).then(() => {
+      setCopied(true);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      title="คัดลอกลิงก์"
+      className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg transition-all ${
+        copied
+          ? "text-emerald-600 bg-emerald-50"
+          : "text-(--outline) hover:text-(--primary) hover:bg-(--primary-container)/30"
+      }`}
+    >
+      <span className="material-symbols-outlined text-sm">
+        {copied ? "check" : "content_copy"}
+      </span>
+      {copied ? "คัดลอกแล้ว" : "คัดลอก"}
+    </button>
+  );
 }
 
 export default function FollowingPage(): React.ReactNode {
@@ -182,6 +217,12 @@ export default function FollowingPage(): React.ReactNode {
                       อีก {daysUntil} วัน
                     </div>
                   )}
+                  {trip.tripStatus === "completed" && !trip.hasReviewed && (
+                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                      <span className="material-symbols-outlined text-xs">rate_review</span>
+                      รอรีวิว
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <h3 className="font-bold text-[15px] text-(--on-surface) line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h3>
@@ -191,10 +232,13 @@ export default function FollowingPage(): React.ReactNode {
                       <span className="material-symbols-outlined text-sm">calendar_today</span>
                       {formatDateRange(trip.startDate, trip.endDate)}
                     </span>
-                    <span className="text-[11px] text-(--outline) flex items-center gap-0.5">
-                      <span className="material-symbols-outlined text-sm">bookmark</span>
-                      {trip.followerCount}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-(--outline) flex items-center gap-0.5">
+                        <span className="material-symbols-outlined text-sm">bookmark</span>
+                        {trip.followerCount}
+                      </span>
+                      <CopyLinkButton slug={trip.slug} />
+                    </div>
                   </div>
                 </div>
               </Link>

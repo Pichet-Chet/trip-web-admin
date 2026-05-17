@@ -186,6 +186,82 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
 
   const duration = getTripDuration(trip.startDate, trip.endDate);
   const daysUntil = getDaysUntil(trip.startDate);
+  const isEnded = trip.endDate ? new Date(trip.endDate + "T23:59:59") < new Date() : false;
+
+  // Ended trip data: ratings, recommendations, gallery
+  const [ratingSummary, setRatingSummary] = useState<{ count: number; avgOverall: number | null; avgGuide: number | null; avgItinerary: number | null; avgValue: number | null; comments: { items: { imageUrls?: string[] }[]; totalCount: number; hasNext: boolean } } | null>(null);
+  const [recommendations, setRecommendations] = useState<{ id: string; category: string; name: string; description: string | null; imageUrl: string | null; mapsLink: string | null; likeCount: number; createdByName: string }[]>([]);
+  const [totalRecommendations, setTotalRecommendations] = useState(0);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+
+  function getShareUrl() {
+    return `${window.location.origin}/t/${trip.slug}`;
+  }
+
+  function shareToLine() {
+    const url = getShareUrl();
+    const text = `${trip.title} — ${trip.destination}`;
+    window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    setShowShareMenu(false);
+  }
+
+  function shareToFacebook() {
+    const url = getShareUrl();
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank", "noopener,width=600,height=400");
+    setShowShareMenu(false);
+  }
+
+  function shareToX() {
+    const url = getShareUrl();
+    const text = `${trip.title} — ${trip.destination}`;
+    window.open(`https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank", "noopener,width=600,height=400");
+    setShowShareMenu(false);
+  }
+
+  async function copyShareLink() {
+    await navigator.clipboard.writeText(getShareUrl());
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+    setShowShareMenu(false);
+  }
+
+  useEffect(() => {
+    if (!isEnded) return;
+    import("@/lib/api").then(({ api }) => {
+      api.get<typeof ratingSummary>(`/client/t/${trip.slug}/ratings`).then((raw: any) => {
+        if (raw.recentComments && !raw.comments) {
+          raw.comments = { items: raw.recentComments, totalCount: raw.recentComments.length, hasNext: false };
+        }
+        setRatingSummary(raw);
+      }).catch(() => {});
+      api.get<any>(`/client/t/${trip.slug}/recommendations?pageSize=8`).then((data: any) => {
+        if (Array.isArray(data)) { setRecommendations(data); setTotalRecommendations(data.length); }
+        else { setRecommendations(data.items ?? []); setTotalRecommendations(data.totalCount ?? 0); }
+      }).catch(() => {});
+    });
+  }, [isEnded, trip.slug]);
+
+  const galleryPhotos = (() => {
+    if (!isEnded) return [];
+    const photos: { url: string; label: string }[] = [];
+    for (const day of trip.days) {
+      for (const act of day.activities) {
+        if (act.imageUrl) photos.push({ url: act.imageUrl, label: act.name });
+        if ("imageUrls" in act && Array.isArray((act as Record<string, unknown>).imageUrls)) {
+          for (const u of (act as Record<string, unknown>).imageUrls as string[]) photos.push({ url: u, label: act.name });
+        }
+      }
+    }
+    if (ratingSummary?.comments?.items) {
+      for (const c of ratingSummary.comments.items) {
+        if (c.imageUrls) for (const u of c.imageUrls) photos.push({ url: u, label: "รีวิว" });
+      }
+    }
+    const seen = new Set<string>();
+    return photos.filter((p) => { if (seen.has(p.url)) return false; seen.add(p.url); return true; });
+  })();
 
   // ── Simulate "now" for demo: Day 3, 10:30 ──
   // TODO: Replace with real Date when going live
@@ -448,8 +524,10 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
         <div className="relative z-10 flex min-h-[520px] sm:min-h-[600px] flex-col items-center justify-center px-6 text-center">
           {/* Badge */}
           <div className="glass-card mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-sm font-medium text-white/90">{trip.destination} • {daysUntil > 0 ? t.daysToGo(daysUntil) : t.onTrip}</span>
+            <span className={`w-2 h-2 rounded-full ${isEnded ? "bg-slate-400" : "bg-green-400 animate-pulse"}`} />
+            <span className="text-sm font-medium text-white/90">
+              {trip.destination} • {isEnded ? t.tripEnded : daysUntil > 0 ? t.daysToGo(daysUntil) : t.onTrip}
+            </span>
           </div>
 
           {/* Title */}
@@ -478,7 +556,23 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
 
           {/* Join Trip CTA — requires account on platform */}
           <div className="mt-10 flex flex-col items-center gap-3">
-            {isFollowing ? (
+            {isEnded ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+                  <span className="material-symbols-outlined text-white/70 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>event_available</span>
+                  <span className="text-white/80 font-bold text-sm">ทริปนี้สิ้นสุดแล้ว</span>
+                </div>
+                {ratingSummary && ratingSummary.count > 0 && (
+                  <Link
+                    href={`/t/${trip.slug}/rating`}
+                    className="flex items-center gap-1.5 text-amber-300/80 hover:text-amber-200 text-sm font-medium transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    {ratingSummary.avgOverall?.toFixed(1)} คะแนน ({ratingSummary.count} รีวิว)
+                  </Link>
+                )}
+              </div>
+            ) : isFollowing ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-green-500/20 border border-green-400/40 backdrop-blur-sm">
                   <span className="material-symbols-outlined text-green-400 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
@@ -523,6 +617,46 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
                   รับแจ้งเตือนอย่างเดียว
                 </button>
               </>
+            )}
+          </div>
+
+          {/* Share buttons */}
+          <div className="mt-6 relative">
+            <button
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white/80 hover:text-white hover:bg-white/20 active:scale-95 transition-all text-sm font-medium"
+            >
+              <span className="material-symbols-outlined text-base">share</span>
+              แชร์ทริปนี้
+            </button>
+
+            {showShareMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-50 flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-white/95 backdrop-blur-xl shadow-2xl border border-slate-200/60">
+                  <button onClick={shareToLine} title="LINE" className="w-10 h-10 rounded-full bg-[#06C755] flex items-center justify-center hover:opacity-80 active:scale-90 transition-all">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" /></svg>
+                  </button>
+                  <button onClick={shareToFacebook} title="Facebook" className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center hover:opacity-80 active:scale-90 transition-all">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                  </button>
+                  <button onClick={shareToX} title="X (Twitter)" className="w-10 h-10 rounded-full bg-black flex items-center justify-center hover:opacity-80 active:scale-90 transition-all">
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                  </button>
+                  <div className="w-px h-6 bg-slate-200" />
+                  <button onClick={copyShareLink} title="คัดลอกลิงก์" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 active:scale-90 transition-all">
+                    <span className="material-symbols-outlined text-lg text-slate-600">
+                      {shareCopied ? "check" : "link"}
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {shareCopied && !showShareMenu && (
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1.5 rounded-full bg-green-500 text-white text-xs font-bold whitespace-nowrap shadow-lg animate-fade-in">
+                คัดลอกลิงก์แล้ว
+              </div>
             )}
           </div>
 
@@ -587,6 +721,181 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
             ))}
           </div>
         </div>
+
+        {/* ── Rating Summary (ended trips) ── */}
+        {isEnded && ratingSummary && ratingSummary.count > 0 && (
+          <section className="mt-16">
+            <div className="rounded-3xl border border-amber-200/40 bg-warm-white p-6 shadow-ambient sm:p-10">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-xl">
+                  <span className="material-symbols-outlined text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-on-surface sm:text-xl font-headline">รีวิวจากสมาชิก</h3>
+                  <p className="text-xs text-on-surface-variant">{ratingSummary.count} รีวิว</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                {/* Big score */}
+                <div className="text-center shrink-0">
+                  <p className="text-5xl font-extrabold font-headline text-amber-500">
+                    {ratingSummary.avgOverall?.toFixed(1)}
+                  </p>
+                  <div className="flex justify-center gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <span key={s} className={`text-lg ${(ratingSummary.avgOverall ?? 0) >= s ? "text-amber-400" : "text-slate-200"}`}>★</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-1">คะแนนภาพรวม</p>
+                </div>
+
+                {/* Bar breakdown */}
+                <div className="flex-1 w-full space-y-2">
+                  {[
+                    { label: "ภาพรวม", val: ratingSummary.avgOverall },
+                    { label: "ไกด์ / ทีมงาน", val: ratingSummary.avgGuide },
+                    { label: "แผนการเดินทาง", val: ratingSummary.avgItinerary },
+                    { label: "ความคุ้มค่า", val: ratingSummary.avgValue },
+                  ].filter((d) => d.val !== null).map((d) => (
+                    <div key={d.label} className="flex items-center gap-3">
+                      <p className="text-xs text-on-surface-variant w-28 shrink-0">{d.label}</p>
+                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${((d.val ?? 0) / 5) * 100}%` }} />
+                      </div>
+                      <p className="text-xs font-bold text-amber-600 w-8 text-right shrink-0">{d.val?.toFixed(1)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link
+                  href={`/t/${trip.slug}/rating`}
+                  className="inline-flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-amber-500/90 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined text-base">rate_review</span>
+                  ดูรีวิวทั้งหมด
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Photo Gallery (ended trips) ── */}
+        {isEnded && galleryPhotos.length > 0 && (
+          <section className="mt-16">
+            <div className="rounded-3xl border border-outline-variant/20 bg-warm-white p-6 shadow-ambient sm:p-10">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/8 text-xl">
+                  <span className="material-symbols-outlined text-brand-blue" style={{ fontVariationSettings: "'FILL' 1" }}>photo_library</span>
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-brand-blue sm:text-xl font-headline">ภาพบรรยากาศทริป</h3>
+                  <p className="text-xs text-on-surface-variant">{galleryPhotos.length} ภาพ</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                {galleryPhotos.slice(0, 15).map((photo, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setLightboxUrl(photo.url)}
+                    className="group relative aspect-square rounded-xl overflow-hidden hover:shadow-lg transition-all"
+                  >
+                    <img src={photo.url} alt={photo.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-[9px] font-medium text-white truncate">{photo.label}</p>
+                    </div>
+                  </button>
+                ))}
+                {galleryPhotos.length > 15 && (
+                  <div className="aspect-square rounded-xl bg-brand-blue/8 flex flex-col items-center justify-center text-brand-blue">
+                    <span className="text-2xl font-bold">+{galleryPhotos.length - 15}</span>
+                    <span className="text-[10px] font-medium">ภาพเพิ่มเติม</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Recommendations (ended trips) ── */}
+        {isEnded && recommendations.length > 0 && (
+          <section className="mt-10">
+            <div className="rounded-3xl border border-outline-variant/20 bg-warm-white p-6 shadow-ambient sm:p-10">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-xl">
+                  <span className="material-symbols-outlined text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>explore</span>
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-emerald-700 sm:text-xl font-headline">แนะนำโดยสมาชิก</h3>
+                  <p className="text-xs text-on-surface-variant">สถานที่ที่สมาชิกในทริปแนะนำ</p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {recommendations.map((rec) => {
+                  const catStyle: Record<string, { icon: string; color: string }> = {
+                    restaurant: { icon: "restaurant", color: "text-orange-500 bg-orange-50" },
+                    attraction: { icon: "landscape", color: "text-blue-500 bg-blue-50" },
+                    cafe: { icon: "local_cafe", color: "text-amber-600 bg-amber-50" },
+                    shopping: { icon: "shopping_bag", color: "text-pink-500 bg-pink-50" },
+                    other: { icon: "place", color: "text-slate-500 bg-slate-50" },
+                  };
+                  const cat = catStyle[rec.category] ?? catStyle.other;
+                  return (
+                    <div key={rec.id} className="flex gap-3 rounded-2xl bg-white border border-outline-variant/15 p-4 hover:shadow-md transition-all">
+                      {rec.imageUrl ? (
+                        <button type="button" onClick={() => setLightboxUrl(rec.imageUrl)} className="w-16 h-16 rounded-xl overflow-hidden shrink-0 hover:opacity-80 transition-opacity">
+                          <img src={rec.imageUrl} alt={rec.name} className="w-full h-full object-cover" loading="lazy" />
+                        </button>
+                      ) : (
+                        <div className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 ${cat.color}`}>
+                          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-on-surface truncate">{rec.name}</h4>
+                          <span className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${cat.color}`}>
+                            <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                          </span>
+                        </div>
+                        {rec.description && <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-2">{rec.description}</p>}
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[10px] text-on-surface-variant flex items-center gap-0.5">
+                            <span className="material-symbols-outlined text-xs text-rose-400" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+                            {rec.likeCount}
+                          </span>
+                          <span className="text-[10px] text-on-surface-variant">โดย {rec.createdByName}</span>
+                          {rec.mapsLink && (
+                            <a href={rec.mapsLink} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand-blue font-bold flex items-center gap-0.5 hover:underline">
+                              <span className="material-symbols-outlined text-xs">map</span>
+                              แผนที่
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {totalRecommendations > recommendations.length && (
+                <div className="flex justify-center mt-4">
+                  <Link href={`/t/${trip.slug}/recommendations`}
+                    className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:underline">
+                    ดูทั้งหมด ({totalRecommendations})
+                    <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* ── Summary Section ── */}
         <section className="mt-16">
@@ -784,6 +1093,18 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
         </section>
       </main>
 
+      {/* Image lightbox */}
+      {lightboxUrl && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <img src={lightboxUrl} alt="" className="max-w-full max-h-[90vh] rounded-2xl object-contain" />
+            <button onClick={() => setLightboxUrl(null)} className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white shadow-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-on-surface text-lg">close</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

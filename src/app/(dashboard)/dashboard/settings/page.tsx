@@ -6,7 +6,6 @@ import { FormInput, FormTextarea, Modal, SectionHeader, useToast } from "@/compo
 import { NotificationPreferencesSection } from "@/components/settings/notification-preferences-section";
 import { SecuritySection } from "@/components/settings/security-section";
 import { TwoFactorSection } from "@/components/settings/two-factor-section";
-import { EmailChangeSection } from "@/components/settings/email-change-section";
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
 import { api, ApiError } from "@/lib/api";
 import { subscribe, type UserInfo } from "@/lib/auth";
@@ -128,8 +127,16 @@ export default function SettingsPage(): React.ReactNode {
         <ConnectedAccountsSection isOperator={isOperator} />
       </div>
 
-      {/* Operator-only sections */}
-      {isOperator && <EmailChangeSection />}
+      {/* Email (read-only) */}
+      <section>
+        <SectionHeader title="อีเมล" variant="bar" />
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">{user?.email ?? "—"}</p>
+            <p className="text-xs text-slate-400 mt-0.5">อีเมลที่ใช้เข้าสู่ระบบ (ไม่สามารถเปลี่ยนได้)</p>
+          </div>
+        </div>
+      </section>
 
       {/* Password */}
       <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-6">

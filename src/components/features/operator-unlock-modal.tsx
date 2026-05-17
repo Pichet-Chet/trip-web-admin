@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { getUser, setAccessToken } from "@/lib/auth";
+import { FormInput } from "@/components/shared";
 
 type AccountType = "Company" | "FreelanceGuide" | "Personal";
 
@@ -85,18 +86,13 @@ export function OperatorUnlockModal({ open, onSuccess, onClose }: Props) {
           </div>
 
           {/* Display Name */}
-          <div>
-            <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest block mb-2">
-              {accountType === "Company" ? "ชื่อบริษัท" : "ชื่อที่แสดงในทริป"} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => { setDisplayName(e.target.value); setError(""); }}
-              placeholder={accountType === "Company" ? "บริษัท ทัวร์สนุก จำกัด" : accountType === "FreelanceGuide" ? "ไกด์สมชาย" : "กลุ่มเพื่อนซี้"}
-              className="w-full px-4 py-3 rounded-xl border border-(--outline-variant)/40 bg-(--surface-container-low) text-(--on-surface) text-sm focus:outline-none focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 transition"
-            />
-          </div>
+          <FormInput
+            label={accountType === "Company" ? "ชื่อบริษัท" : "ชื่อที่แสดงในทริป"}
+            required
+            value={displayName}
+            onChange={(e) => { setDisplayName(e.target.value); setError(""); }}
+            placeholder={accountType === "Company" ? "บริษัท ทัวร์สนุก จำกัด" : accountType === "FreelanceGuide" ? "ไกด์สมชาย" : "กลุ่มเพื่อนซี้"}
+          />
 
           {error && (
             <p className="text-sm text-red-600 flex items-center gap-2">

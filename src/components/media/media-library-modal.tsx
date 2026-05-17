@@ -28,6 +28,9 @@ interface MediaLibraryModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (url: string) => void;
+  onMultiSelect?: (urls: string[]) => void;
+  multiple?: boolean;
+  maxSelect?: number;
   folder?: string;
 }
 
@@ -37,7 +40,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function MediaLibraryModal({ open, onClose, onSelect }: MediaLibraryModalProps): React.ReactNode {
+export function MediaLibraryModal({ open, onClose, onSelect, onMultiSelect, multiple, maxSelect }: MediaLibraryModalProps): React.ReactNode {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [allCount, setAllCount] = useState(0);
@@ -48,6 +51,7 @@ export function MediaLibraryModal({ open, onClose, onSelect }: MediaLibraryModal
   const [folderCounts, setFolderCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const pageSize = 24;
 
   const selectedItem = items.find((i) => i.id === selectedId);
@@ -82,7 +86,7 @@ export function MediaLibraryModal({ open, onClose, onSelect }: MediaLibraryModal
   }, [page, folder, search]);
 
   useEffect(() => { if (open) load(); }, [open, load]);
-  useEffect(() => { if (open) { setSelectedId(null); setPage(1); setSearch(""); setFolder(""); } }, [open]);
+  useEffect(() => { if (open) { setSelectedId(null); setSelectedIds(new Set()); setPage(1); setSearch(""); setFolder(""); } }, [open]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
   if (!open) return null;
@@ -156,29 +160,43 @@ export function MediaLibraryModal({ open, onClose, onSelect }: MediaLibraryModal
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              {items.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedId(selectedId === item.id ? null : item.id)}
-                  className={`relative group overflow-hidden rounded-xl text-left transition-all ${
-                    selectedId === item.id ? "ring-2 ring-(--primary) ring-offset-2 shadow-lg" : "hover:shadow-md"
-                  }`}
-                >
-                  <div className="aspect-square bg-(--surface-variant)/30">
-                    <img src={item.url} alt={item.altText || item.fileName} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
-                  {selectedId === item.id && (
-                    <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-(--primary) flex items-center justify-center shadow">
-                      <span className="material-symbols-outlined text-white text-sm">check</span>
+              {items.map((item) => {
+                const isSelected = multiple ? selectedIds.has(item.id) : selectedId === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (multiple) {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(item.id)) { next.delete(item.id); }
+                          else if (!maxSelect || next.size < maxSelect) { next.add(item.id); }
+                          return next;
+                        });
+                      } else {
+                        setSelectedId(selectedId === item.id ? null : item.id);
+                      }
+                    }}
+                    className={`relative group overflow-hidden rounded-xl text-left transition-all ${
+                      isSelected ? "ring-2 ring-(--primary) ring-offset-2 shadow-lg" : "hover:shadow-md"
+                    }`}
+                  >
+                    <div className="aspect-square bg-(--surface-variant)/30">
+                      <img src={item.url} alt={item.altText || item.fileName} className="w-full h-full object-cover" loading="lazy" />
                     </div>
-                  )}
-                  <div className="px-2 py-1.5 bg-white">
-                    <p className="text-[10px] font-medium text-(--on-surface) truncate">{item.fileName}</p>
-                    <p className="text-[9px] text-(--on-surface-variant)">{formatSize(item.fileSizeBytes)}</p>
-                  </div>
-                </button>
-              ))}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+                    {isSelected && (
+                      <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-(--primary) flex items-center justify-center shadow">
+                        <span className="material-symbols-outlined text-white text-sm">check</span>
+                      </div>
+                    )}
+                    <div className="px-2 py-1.5 bg-white">
+                      <p className="text-[10px] font-medium text-(--on-surface) truncate">{item.fileName}</p>
+                      <p className="text-[9px] text-(--on-surface-variant)">{formatSize(item.fileSizeBytes)}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -195,7 +213,13 @@ export function MediaLibraryModal({ open, onClose, onSelect }: MediaLibraryModal
         {/* Footer */}
         <div className="flex items-center justify-between px-5 py-3 border-t border-(--outline-variant)/20 bg-(--surface-container-lowest) shrink-0">
           <div className="text-sm text-(--on-surface-variant) min-w-0 truncate">
-            {selectedItem ? (
+            {multiple ? (
+              selectedIds.size > 0 ? (
+                <span className="font-medium">เลือก {selectedIds.size} รูป{maxSelect ? ` (สูงสุด ${maxSelect})` : ""}</span>
+              ) : (
+                <span>เลือกรูปภาพจากคลังสื่อ{maxSelect ? ` (สูงสุด ${maxSelect} รูป)` : ""}</span>
+              )
+            ) : selectedItem ? (
               <span className="font-medium">{selectedItem.fileName} · {selectedItem.width}x{selectedItem.height} · {formatSize(selectedItem.fileSizeBytes)}</span>
             ) : (
               <span>เลือกรูปภาพจากคลังสื่อ</span>
@@ -203,13 +227,29 @@ export function MediaLibraryModal({ open, onClose, onSelect }: MediaLibraryModal
           </div>
           <div className="flex gap-3 shrink-0 ml-4">
             <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-variant) transition-colors">ยกเลิก</button>
-            <button
-              onClick={() => { if (selectedItem) { onSelect(selectedItem.url); onClose(); } }}
-              disabled={!selectedItem}
-              className="px-5 py-2.5 rounded-xl bg-(--primary) text-(--on-primary) text-sm font-bold hover:opacity-90 disabled:opacity-30 transition-all"
-            >
-              เลือกรูปนี้
-            </button>
+            {multiple ? (
+              <button
+                onClick={() => {
+                  if (selectedIds.size > 0 && onMultiSelect) {
+                    const urls = items.filter((i) => selectedIds.has(i.id)).map((i) => i.url);
+                    onMultiSelect(urls);
+                    onClose();
+                  }
+                }}
+                disabled={selectedIds.size === 0}
+                className="px-5 py-2.5 rounded-xl bg-(--primary) text-(--on-primary) text-sm font-bold hover:opacity-90 disabled:opacity-30 transition-all"
+              >
+                เลือก {selectedIds.size > 0 ? `${selectedIds.size} รูป` : "รูป"}
+              </button>
+            ) : (
+              <button
+                onClick={() => { if (selectedItem) { onSelect(selectedItem.url); onClose(); } }}
+                disabled={!selectedItem}
+                className="px-5 py-2.5 rounded-xl bg-(--primary) text-(--on-primary) text-sm font-bold hover:opacity-90 disabled:opacity-30 transition-all"
+              >
+                เลือกรูปนี้
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -154,11 +154,9 @@ function LoginPageContent(): React.ReactNode {
       } else if (msg.startsWith("account_suspended:")) {
         const reason = msg.slice("account_suspended:".length);
         router.push(`/suspended?reason=${encodeURIComponent(reason)}`);
-      } else if (msg.includes("พยายามเข้าสู่ระบบมากเกินไป")) {
+      } else if (err instanceof ApiError && err.data?.retryAfterSeconds) {
         setBlocked(true);
-        // Parse seconds from error message
-        const match = msg.match(/(\d+)\s*วินาที/);
-        setBlockCountdown(match ? parseInt(match[1]) : 1800);
+        setBlockCountdown(Number(err.data.retryAfterSeconds));
         setApiError(msg);
       } else {
         setApiError(msg);
@@ -293,10 +291,10 @@ function LoginPageContent(): React.ReactNode {
             <FormInput label="อีเมล" placeholder="admin@example.com" type="email" icon="mail" value={email} onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((p) => { const n = {...p}; delete n.email; return n; }); }} error={errors.email} required />
             <div>
               <div className="flex justify-between items-center mb-2 px-1">
-                <label className="text-xs font-bold text-(--on-surface-variant) uppercase tracking-widest">รหัสผ่าน <span className="text-red-500">*</span></label>
+                <span />
                 <Link href={ROUTES.forgotPassword} className="text-sm text-(--primary) hover:underline">ลืมรหัสผ่าน?</Link>
               </div>
-              <FormInput placeholder="••••••••" type="password" icon="lock" value={password} onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => { const n = {...p}; delete n.password; return n; }); }} error={errors.password} />
+              <FormInput label="รหัสผ่าน" required placeholder="••••••••" type="password" icon="lock" value={password} onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => { const n = {...p}; delete n.password; return n; }); }} error={errors.password} />
             </div>
             <div className="flex items-center">
               <input className="w-5 h-5 rounded border-(--outline-variant) text-(--primary) focus:ring-(--primary) bg-(--surface-container-low)" id="remember" type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />

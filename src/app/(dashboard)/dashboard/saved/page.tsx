@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { ConfirmDialog, EmptyState, FormInput, Modal, useToast } from "@/components/shared";
 
 interface SavedPlace {
   id: string;
@@ -15,34 +16,37 @@ interface SavedPlace {
 }
 
 const CATEGORIES = [
-  { value: "all", label: "ทั้งหมด", icon: "grid_view" },
-  { value: "attraction", label: "สถานที่ท่องเที่ยว", icon: "photo_camera" },
-  { value: "restaurant", label: "ร้านอาหาร", icon: "restaurant" },
-  { value: "hotel", label: "ที่พัก", icon: "hotel" },
-  { value: "shopping", label: "ช้อปปิ้ง", icon: "shopping_bag" },
-  { value: "transport", label: "การเดินทาง", icon: "directions_bus" },
-  { value: "nature", label: "ธรรมชาติ", icon: "forest" },
-  { value: "other", label: "อื่นๆ", icon: "bookmark" },
+  { value: "all",        label: "ทั้งหมด",            icon: "grid_view" },
+  { value: "restaurant", label: "ร้านอาหาร",           icon: "restaurant" },
+  { value: "cafe",       label: "คาเฟ่",               icon: "coffee" },
+  { value: "attraction", label: "สถานที่ท่องเที่ยว",    icon: "photo_camera" },
+  { value: "hotel",      label: "ที่พัก",               icon: "hotel" },
+  { value: "shopping",   label: "ช้อปปิ้ง",            icon: "shopping_bag" },
+  { value: "transport",  label: "การเดินทาง",           icon: "directions_bus" },
+  { value: "nature",     label: "ธรรมชาติ",             icon: "forest" },
+  { value: "other",      label: "อื่นๆ",               icon: "bookmark" },
 ];
 
 const CAT_COLOR: Record<string, string> = {
-  attraction: "bg-blue-100 text-blue-700",
   restaurant: "bg-orange-100 text-orange-700",
-  hotel: "bg-purple-100 text-purple-700",
-  shopping: "bg-pink-100 text-pink-700",
-  transport: "bg-slate-100 text-slate-600",
-  nature: "bg-green-100 text-green-700",
-  other: "bg-gray-100 text-gray-600",
+  cafe:       "bg-amber-100 text-amber-700",
+  attraction: "bg-blue-100 text-blue-700",
+  hotel:      "bg-purple-100 text-purple-700",
+  shopping:   "bg-pink-100 text-pink-700",
+  transport:  "bg-slate-100 text-slate-600",
+  nature:     "bg-green-100 text-green-700",
+  other:      "bg-gray-100 text-gray-600",
 };
 
 const CAT_ICON: Record<string, string> = {
-  attraction: "photo_camera",
   restaurant: "restaurant",
-  hotel: "hotel",
-  shopping: "shopping_bag",
-  transport: "directions_bus",
-  nature: "forest",
-  other: "bookmark",
+  cafe:       "coffee",
+  attraction: "photo_camera",
+  hotel:      "hotel",
+  shopping:   "shopping_bag",
+  transport:  "directions_bus",
+  nature:     "forest",
+  other:      "bookmark",
 };
 
 function catLabel(c: string) {
@@ -61,6 +65,7 @@ const EMPTY_FORM: FormState = { name: "", location: "", category: "other", note:
 
 export default function SavedPage(): React.ReactNode {
   usePageTitle("สถานที่บันทึก");
+  const { toast } = useToast();
   const [places, setPlaces] = useState<SavedPlace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +76,8 @@ export default function SavedPage(): React.ReactNode {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SavedPlace | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -112,16 +118,28 @@ export default function SavedPage(): React.ReactNode {
 
   async function handleSave() {
     if (!form.name.trim()) { setSaveError("กรุณากรอกชื่อสถานที่"); return; }
+
+    if (form.mapsLink && !/^https?:\/\/.+/.test(form.mapsLink.trim())) {
+      setSaveError("ลิงก์ Google Maps ไม่ถูกต้อง (ต้องขึ้นต้นด้วย https://)");
+      return;
+    }
+
     setSaving(true);
     setSaveError(null);
     try {
       if (editTarget) {
         await api.put(`/admin/me/saved-places/${editTarget.id}`, form);
+        setPlaces((prev) => prev.map((p) =>
+          p.id === editTarget.id
+            ? { ...p, name: form.name, location: form.location || null, category: form.category, note: form.note || null, mapsLink: form.mapsLink || null }
+            : p
+        ));
       } else {
         await api.post("/admin/me/saved-places", form);
+        await load();
       }
       setShowModal(false);
-      await load();
+      toast.success(editTarget ? "แก้ไขสถานที่เรียบร้อย" : "เพิ่มสถานที่เรียบร้อย");
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : "บันทึกไม่สำเร็จ");
     } finally {
@@ -129,13 +147,18 @@ export default function SavedPage(): React.ReactNode {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await api.delete(`/admin/me/saved-places/${id}`);
-      setDeleteId(null);
-      setPlaces((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      // silently ignore
+      await api.delete(`/admin/me/saved-places/${deleteTarget.id}`);
+      setPlaces((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      toast.success("ลบสถานที่เรียบร้อย");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "ลบไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -207,26 +230,29 @@ export default function SavedPage(): React.ReactNode {
 
       {/* Empty */}
       {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 bg-(--primary)/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-(--primary) text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
-          </div>
-          <p className="text-(--on-surface-variant) text-sm">
-            {search || activeCategory !== "all" ? "ไม่พบสถานที่ที่ค้นหา" : "ยังไม่มีสถานที่ที่บันทึกไว้"}
-          </p>
-          {!search && activeCategory === "all" && (
-            <button onClick={openCreate} className="mt-4 text-(--primary) text-sm font-bold hover:underline">
-              + เพิ่มสถานที่แรก
-            </button>
-          )}
-        </div>
+        places.length === 0 ? (
+          <EmptyState
+            icon="bookmark"
+            title="ยังไม่มีสถานที่ที่บันทึกไว้"
+            description="บันทึกสถานที่ที่น่าสนใจเพื่อดูภายหลัง"
+            actionLabel="เพิ่มสถานที่แรก"
+            onAction={openCreate}
+            actionIcon="add"
+          />
+        ) : (
+          <EmptyState
+            icon="search_off"
+            title="ไม่พบสถานที่ที่ค้นหา"
+            description="ลองเปลี่ยนคำค้นหาหรือหมวดหมู่"
+          />
+        )
       )}
 
       {/* List */}
       <div className="space-y-3">
         {filtered.map((place) => (
           <div key={place.id}
-            className="bg-white rounded-2xl border border-(--outline-variant)/20 p-4 flex items-start gap-3 group hover:shadow-sm transition-shadow"
+            className="bg-white rounded-2xl border border-(--outline-variant)/20 p-4 flex items-start gap-3 hover:shadow-sm transition-shadow"
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${CAT_COLOR[place.category] ?? "bg-gray-100 text-gray-600"}`}>
               <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -236,7 +262,8 @@ export default function SavedPage(): React.ReactNode {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <p className="font-bold text-sm text-(--on-surface) truncate">{place.name}</p>
-                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Actions — always visible (mobile-friendly) */}
+                <div className="flex items-center gap-1 shrink-0">
                   {place.mapsLink && (
                     <a href={place.mapsLink} target="_blank" rel="noopener noreferrer"
                       className="p-1.5 rounded-lg hover:bg-blue-50 text-(--primary)" title="เปิด Maps">
@@ -247,7 +274,7 @@ export default function SavedPage(): React.ReactNode {
                     className="p-1.5 rounded-lg hover:bg-(--surface-variant) text-(--on-surface-variant)" title="แก้ไข">
                     <span className="material-symbols-outlined text-base">edit</span>
                   </button>
-                  <button onClick={() => setDeleteId(place.id)}
+                  <button onClick={() => setDeleteTarget(place)}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-red-400" title="ลบ">
                     <span className="material-symbols-outlined text-base">delete</span>
                   </button>
@@ -272,109 +299,109 @@ export default function SavedPage(): React.ReactNode {
       </div>
 
       {/* Create/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="font-bold text-lg text-(--on-surface)">{editTarget ? "แก้ไขสถานที่" : "เพิ่มสถานที่"}</h2>
-
-            {saveError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl">{saveError}</div>
-            )}
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-(--on-surface-variant) mb-1 block">ชื่อสถานที่ *</label>
-                <input type="text" placeholder="เช่น วัดพระแก้ว, ร้าน Yaowarat..."
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full border border-(--outline-variant)/30 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-(--on-surface-variant) mb-1 block">หมวดหมู่</label>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.filter((c) => c.value !== "all").map((cat) => (
-                    <button key={cat.value} type="button"
-                      onClick={() => setForm((f) => ({ ...f, category: cat.value }))}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                        form.category === cat.value ? "bg-(--primary) text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-(--on-surface-variant) mb-1 block">ที่อยู่ / เขต / จังหวัด</label>
-                <input type="text" placeholder="เช่น พระนคร, กรุงเทพฯ"
-                  value={form.location}
-                  onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
-                  className="w-full border border-(--outline-variant)/30 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-(--on-surface-variant) mb-1 block">โน้ต (ส่วนตัว)</label>
-                <textarea placeholder="บันทึกความจำ เวลาเปิด-ปิด ราคา ฯลฯ"
-                  value={form.note}
-                  onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-                  rows={3}
-                  className="w-full border border-(--outline-variant)/30 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20 resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-(--on-surface-variant) mb-1 block">ลิงก์ Google Maps</label>
-                <input type="url" placeholder="https://maps.google.com/..."
-                  value={form.mapsLink}
-                  onChange={(e) => setForm((f) => ({ ...f, mapsLink: e.target.value }))}
-                  className="w-full border border-(--outline-variant)/30 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20"
-                />
-              </div>
+      <Modal
+        open={showModal}
+        onClose={() => { if (!saving) setShowModal(false); }}
+        size="md"
+        blocking={saving}
+        title={editTarget ? "แก้ไขสถานที่" : "เพิ่มสถานที่"}
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowModal(false)}
+              disabled={saving}
+              className="flex-1 border border-(--outline-variant)/30 rounded-full py-3 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) disabled:opacity-50 transition-colors"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1 bg-(--primary) text-white rounded-full py-3 text-sm font-bold hover:brightness-110 disabled:opacity-60 transition-all"
+            >
+              {saving ? "กำลังบันทึก..." : editTarget ? "บันทึก" : "เพิ่มสถานที่"}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-5">
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-xl flex items-start gap-2">
+              <span className="material-symbols-outlined text-red-500 text-sm mt-0.5 shrink-0">error</span>
+              {saveError}
             </div>
+          )}
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowModal(false)}
-                className="flex-1 border border-(--outline-variant)/30 rounded-full py-3 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) transition-colors">
-                ยกเลิก
-              </button>
-              <button onClick={handleSave} disabled={saving}
-                className="flex-1 bg-(--primary) text-white rounded-full py-3 text-sm font-bold hover:brightness-110 disabled:opacity-60 transition-all">
-                {saving ? "กำลังบันทึก..." : editTarget ? "บันทึก" : "เพิ่มสถานที่"}
-              </button>
+          <FormInput
+            label="ชื่อสถานที่"
+            required
+            placeholder="เช่น วัดพระแก้ว, ร้าน Yaowarat..."
+            icon="place"
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          />
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">หมวดหมู่</label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.filter((c) => c.value !== "all").map((cat) => (
+                <button key={cat.value} type="button"
+                  onClick={() => setForm((f) => ({ ...f, category: cat.value }))}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    form.category === cat.value
+                      ? "bg-(--primary) text-white shadow-sm"
+                      : "bg-(--surface-container-low) text-(--on-surface-variant) hover:bg-(--surface-container)"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
+
+          <FormInput
+            label="ที่อยู่ / เขต / จังหวัด"
+            placeholder="เช่น พระนคร, กรุงเทพฯ"
+            icon="location_on"
+            value={form.location}
+            onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+          />
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">โน้ต (ส่วนตัว)</label>
+            <textarea
+              placeholder="บันทึกความจำ เวลาเปิด-ปิด ราคา ฯลฯ"
+              value={form.note}
+              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+              rows={3}
+              className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 px-4 text-sm text-(--on-surface) font-medium placeholder:text-(--outline)/40 focus-visible:bg-(--surface) focus-visible:ring-2 focus-visible:ring-(--primary)/20 focus-visible:border-(--primary) outline-none transition-[border-color,box-shadow,background-color] resize-none"
+            />
+          </div>
+
+          <FormInput
+            label="ลิงก์ Google Maps"
+            type="url"
+            placeholder="https://maps.google.com/..."
+            icon="map"
+            value={form.mapsLink}
+            onChange={(e) => setForm((f) => ({ ...f, mapsLink: e.target.value }))}
+          />
         </div>
-      )}
+      </Modal>
 
       {/* Delete Confirm */}
-      {deleteId && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 text-center space-y-4">
-            <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto">
-              <span className="material-symbols-outlined text-red-500 text-2xl">delete</span>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg">ลบสถานที่?</h3>
-              <p className="text-sm text-(--on-surface-variant) mt-1">ข้อมูลจะหายถาวร ไม่สามารถกู้คืนได้</p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)}
-                className="flex-1 border border-(--outline-variant)/30 rounded-full py-3 text-sm font-bold hover:bg-slate-50 transition-colors">
-                ยกเลิก
-              </button>
-              <button onClick={() => handleDelete(deleteId)}
-                className="flex-1 bg-red-500 text-white rounded-full py-3 text-sm font-bold hover:bg-red-600 transition-all">
-                ลบ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="ลบสถานที่?"
+        description={`"${deleteTarget?.name ?? ""}" จะหายถาวร ไม่สามารถกู้คืนได้`}
+        confirmLabel="ลบ"
+        cancelLabel="ยกเลิก"
+        variant="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 }

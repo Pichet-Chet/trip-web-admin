@@ -49,6 +49,7 @@ export type UIStrings = {
   scrollDown: string;
   daysToGo: (n: number) => string;
   onTrip: string;
+  tripEnded: string;
   travelers: string;
   hotels: string;
   days: string;
@@ -93,6 +94,7 @@ export const UI_STRINGS: Record<string, UIStrings> = {
     scrollDown: "เลื่อนลงเพื่อดูรายละเอียด",
     daysToGo: (n) => `อีก ${n} วัน!`,
     onTrip: "กำลังเดินทาง!",
+    tripEnded: "ทริปสิ้นสุดแล้ว",
     travelers: "คน",
     immTitle: "แผนการเดินทาง", immSubtitle: "สำหรับยื่นตรวจคนเข้าเมือง / วีซ่า",
     immConfirmed: "ยืนยันแล้ว", immTourOperator: "บริษัททัวร์", immDates: "วันเดินทาง",
@@ -124,6 +126,7 @@ export const UI_STRINGS: Record<string, UIStrings> = {
     scrollDown: "Scroll to explore",
     daysToGo: (n) => `${n} days to go!`,
     onTrip: "On the trip!",
+    tripEnded: "Trip completed",
     travelers: "Travelers",
     immTitle: "Travel Itinerary", immSubtitle: "For Immigration & Visa Application Purposes",
     immConfirmed: "Confirmed", immTourOperator: "Tour Operator", immDates: "Travel Dates",
@@ -155,6 +158,7 @@ export const UI_STRINGS: Record<string, UIStrings> = {
     scrollDown: "下にスクロールして詳細を見る",
     daysToGo: (n) => `あと${n}日！`,
     onTrip: "旅行中！",
+    tripEnded: "旅行終了",
     travelers: "人",
     immTitle: "旅行日程表", immSubtitle: "入国審査・ビザ申請用",
     immConfirmed: "確認済み", immTourOperator: "ツアーオペレーター", immDates: "旅行期間",

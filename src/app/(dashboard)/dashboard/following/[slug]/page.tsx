@@ -25,14 +25,20 @@ import {
   useToast,
   SectionHeader,
   Accordion,
+  Card, CardBody,
+  Badge,
+  Divider,
+  Rating,
+  ImageUpload,
 } from "@/components/shared";
 import type { TripPublicResponse } from "@/lib/trip-api";
+import { PlaceAutocompleteInput, type PlaceResult } from "@/app/(dashboard)/dashboard/trips/[id]/edit/_components/place-autocomplete-input";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type TripStatus = "upcoming" | "active" | "completed";
 
-interface TripMember { id: string; displayName: string }
+interface TripMember { id: string; displayName: string; logoUrl: string | null; groupRole: string | null; joinedAt: string; isMe: boolean }
 
 interface LiveActivity {
   id: string; time: string | null; name: string; description: string | null;
@@ -55,6 +61,7 @@ interface Expense {
   description: string;
   occurredOn: string;
   splitMode: string;
+  isPersonal: boolean;
   createdAt: string;
   participants: ExpenseParticipant[];
 }
@@ -79,6 +86,33 @@ interface SettlementResponse {
   transactions: SettlementTransaction[];
 }
 
+interface Recommendation {
+  id: string;
+  category: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+  mapsLink: string | null;
+  googlePlaceId: string | null;
+  createdByFollowerId: string;
+  createdByName: string;
+  likeCount: number;
+  likedByMe: boolean;
+  createdAt: string;
+}
+
+interface SavedPlaceOption {
+  id: string;
+  name: string;
+  location: string | null;
+  category: string;
+  mapsLink: string | null;
+}
+
+type RecommendationCategory = "all" | "restaurant" | "cafe" | "attraction" | "hotel" | "shopping" | "transport" | "nature" | "other";
+
 interface ExpenseFormState {
   paidByFollowerId: string;
   amount: string;
@@ -86,6 +120,7 @@ interface ExpenseFormState {
   description: string;
   occurredOn: string;
   splitMode: "equal" | "shares" | "exact";
+  isPersonal: boolean;
   selectedParticipants: string[];
   exactAmounts: Record<string, string>;
 }
@@ -119,20 +154,24 @@ function getDaysUntil(start: string): number {
 }
 
 const ACTIVITY_TYPE_META: Record<string, { icon: string; label: string }> = {
-  attraction: { icon: "place",         label: "สถานที่ท่องเที่ยว" },
   restaurant: { icon: "restaurant",    label: "ร้านอาหาร" },
+  cafe:       { icon: "coffee",        label: "คาเฟ่" },
+  attraction: { icon: "place",         label: "สถานที่ท่องเที่ยว" },
   hotel:      { icon: "hotel",         label: "ที่พัก" },
-  transport:  { icon: "directions_bus",label: "การเดินทาง" },
   shopping:   { icon: "shopping_bag",  label: "ช้อปปิ้ง" },
+  transport:  { icon: "directions_bus",label: "การเดินทาง" },
+  nature:     { icon: "forest",        label: "ธรรมชาติ" },
   other:      { icon: "category",      label: "อื่น ๆ" },
 };
 
 const MARKER_COLOR: Record<string, string> = {
   restaurant: "#E53935",
-  hotel:      "#8E24AA",
-  transport:  "#1E88E5",
-  shopping:   "#FB8C00",
+  cafe:       "#F57C00",
   attraction: "#00897B",
+  hotel:      "#8E24AA",
+  shopping:   "#FB8C00",
+  transport:  "#1E88E5",
+  nature:     "#43A047",
   other:      "#546E7A",
 };
 
@@ -149,6 +188,18 @@ const CURRENCY_OPTIONS: SelectOption[] = [
   { label: "JPY", value: "JPY" },
   { label: "KRW", value: "KRW" },
   { label: "SGD", value: "SGD" },
+];
+
+const REC_CATEGORIES: { id: RecommendationCategory; label: string; icon: string }[] = [
+  { id: "all",        label: "ทั้งหมด",            icon: "apps" },
+  { id: "restaurant", label: "ร้านอาหาร",           icon: "restaurant" },
+  { id: "cafe",       label: "คาเฟ่",               icon: "coffee" },
+  { id: "attraction", label: "สถานที่ท่องเที่ยว",    icon: "place" },
+  { id: "hotel",      label: "ที่พัก",               icon: "hotel" },
+  { id: "shopping",   label: "ช้อปปิ้ง",            icon: "shopping_bag" },
+  { id: "transport",  label: "การเดินทาง",           icon: "directions_bus" },
+  { id: "nature",     label: "ธรรมชาติ",             icon: "forest" },
+  { id: "other",      label: "อื่น ๆ",               icon: "category" },
 ];
 
 function fmtAmount(amount: number, currency: string) {
@@ -183,6 +234,7 @@ export default function FollowingDetailPage(): React.ReactNode {
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
 
   // Expenses state
+  const [myFollowerId, setMyFollowerId] = useState<string>("");
   const [members, setMembers] = useState<TripMember[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [expensesLoading, setExpensesLoading] = useState(false);
@@ -197,6 +249,24 @@ export default function FollowingDetailPage(): React.ReactNode {
   const [settlementLoading, setSettlementLoading] = useState(false);
   const [showMapMobile, setShowMapMobile] = useState(false);
   const [travelTimes, setTravelTimes] = useState<(string | null)[]>([]);
+
+  // Review state
+  const [myRating, setMyRating] = useState<{ id: string; overallScore: number; guideScore: number | null; itineraryScore: number | null; valueScore: number | null; comment: string | null; imageUrls: string[] } | null | undefined>(undefined);
+  const [ratingAgg, setRatingAgg] = useState<{ count: number; avgOverall: number | null; avgGuide: number | null; avgItinerary: number | null; avgValue: number | null; comments: { items: { comment: string; overallScore: number; createdAt: string; firstName: string; imageUrls: string[] }[]; totalCount: number; hasNext: boolean } } | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ overall: 0, guide: 0, itinerary: 0, value: 0, comment: "", imageUrls: [] as string[] });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recLoading, setRecLoading] = useState(false);
+  const [recCategory, setRecCategory] = useState<RecommendationCategory>("all");
+  const [showRecForm, setShowRecForm] = useState(false);
+  const [recFormError, setRecFormError] = useState<string | null>(null);
+  const [recSubmitting, setRecSubmitting] = useState(false);
+  const [recForm, setRecForm] = useState({ name: "", description: "", category: "restaurant", mapsLink: "", lat: null as number | null, lng: null as number | null, googlePlaceId: "", imageUrl: "" });
+  const [savedPlaces, setSavedPlaces] = useState<SavedPlaceOption[]>([]);
+  const [recDeleteTarget, setRecDeleteTarget] = useState<string | null>(null);
   const [leftPanelEl, setLeftPanelEl] = useState<HTMLDivElement | null>(null);
   const [mapHeight, setMapHeight] = useState(450);
 
@@ -207,6 +277,7 @@ export default function FollowingDetailPage(): React.ReactNode {
     description: "",
     occurredOn: new Date().toISOString().slice(0, 10),
     splitMode: "equal",
+    isPersonal: false,
     selectedParticipants: [],
     exactAmounts: {},
   });
@@ -281,16 +352,27 @@ export default function FollowingDetailPage(): React.ReactNode {
 
   const tripId = trip?.id;
 
+  const [membersLoading, setMembersLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== "members" || !tripId || members.length > 0) return;
+    setMembersLoading(true);
+    api.get<{ myFollowerId: string; totalCount: number; members: TripMember[] }>(`/member/trips/${tripId}/members`)
+      .then((res) => { setMyFollowerId(res.myFollowerId); setMembers(res.members); })
+      .catch(() => {})
+      .finally(() => setMembersLoading(false));
+  }, [activeTab, tripId]);
+
   useEffect(() => {
     if (activeTab !== "expenses" || !tripId) return;
     setExpensesLoading(true);
     setExpensesError(null);
     Promise.all([
-      api.get<TripMember[]>(`/member/trips/${tripId}/expenses/members`),
+      api.get<{ myFollowerId: string; members: TripMember[] }>(`/member/trips/${tripId}/expenses/members`),
       api.get<Expense[]>(`/member/trips/${tripId}/expenses`),
       api.get<LiveDay[]>(`/member/trips/${tripId}/itinerary`),
     ])
-      .then(([m, e, days]) => { setMembers(m); setExpenses(e); setLiveDays(days); })
+      .then(([res, e, days]) => { setMyFollowerId(res.myFollowerId); setMembers(res.members); setExpenses(e); setLiveDays(days); })
       .catch((err) => setExpensesError(err instanceof Error ? err.message : "โหลดข้อมูลไม่สำเร็จ"))
       .finally(() => setExpensesLoading(false));
   }, [activeTab, tripId]);
@@ -303,6 +385,40 @@ export default function FollowingDetailPage(): React.ReactNode {
       .catch(() => setSettlement(null))
       .finally(() => setSettlementLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, tripId]);
+
+  useEffect(() => {
+    if (activeTab !== "recommendations" || !tripId) return;
+    setRecLoading(true);
+    Promise.all([
+      api.get<Recommendation[]>(`/member/trips/${tripId}/recommendations`),
+      api.get<SavedPlaceOption[]>(`/member/trips/${tripId}/recommendations/saved-places`),
+    ])
+      .then(([recs, places]) => { setRecommendations(recs); setSavedPlaces(places); })
+      .catch(() => {})
+      .finally(() => setRecLoading(false));
+  }, [activeTab, tripId]);
+
+  // Review data fetch
+  useEffect(() => {
+    if (activeTab !== "review" || !tripId) return;
+    setReviewLoading(true);
+    Promise.all([
+      api.get<typeof myRating>(`/member/trips/${tripId}/rating/me`),
+      api.get<typeof ratingAgg>(`/member/trips/${tripId}/rating`),
+    ])
+      .then(([mine, agg]: [any, any]) => {
+        setMyRating(mine ?? null);
+        if (agg && (agg as any).recentComments && !agg.comments) {
+          agg.comments = { items: (agg as any).recentComments, totalCount: (agg as any).recentComments.length, hasNext: false };
+        }
+        setRatingAgg(agg);
+        if (mine) {
+          setReviewForm({ overall: mine.overallScore, guide: mine.guideScore ?? 0, itinerary: mine.itineraryScore ?? 0, value: mine.valueScore ?? 0, comment: mine.comment ?? "", imageUrls: mine.imageUrls ?? [] });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setReviewLoading(false));
   }, [activeTab, tripId]);
 
   const tripStatus = useMemo(() =>
@@ -354,6 +470,7 @@ export default function FollowingDetailPage(): React.ReactNode {
       description: e.description,
       occurredOn: e.occurredOn,
       splitMode: e.splitMode as "equal" | "shares" | "exact",
+      isPersonal: e.isPersonal,
       selectedParticipants: e.participants.map((p) => p.followerId),
       exactAmounts: Object.fromEntries(e.participants.map((p) => [p.followerId, String(p.share)])),
     };
@@ -387,12 +504,15 @@ export default function FollowingDetailPage(): React.ReactNode {
     setFormError(null);
 
     const amount = parseFloat(form.amount);
-    if (!form.paidByFollowerId) return setFormError("กรุณาเลือกผู้จ่าย");
+    const effectivePayer = form.isPersonal ? myFollowerId : form.paidByFollowerId;
+    if (!effectivePayer) return setFormError("กรุณาเลือกผู้จ่าย");
     if (isNaN(amount) || amount <= 0) return setFormError("กรุณาระบุจำนวนเงินที่ถูกต้อง");
     if (!form.description.trim()) return setFormError("กรุณาระบุรายละเอียด");
-    if (form.selectedParticipants.length === 0) return setFormError("กรุณาเลือกผู้ร่วมจ่ายอย่างน้อย 1 คน");
 
-    const participants = form.selectedParticipants.map((id) => ({
+    const effectiveParticipants = form.isPersonal ? [myFollowerId] : form.selectedParticipants;
+    if (effectiveParticipants.length === 0) return setFormError("กรุณาเลือกผู้ร่วมจ่ายอย่างน้อย 1 คน");
+
+    const participants = effectiveParticipants.map((id) => ({
       followerId: id,
       share: form.splitMode === "exact"
         ? parseFloat(form.exactAmounts[id] || "0")
@@ -408,12 +528,13 @@ export default function FollowingDetailPage(): React.ReactNode {
     setSubmitting(true);
     try {
       const body = {
-        paidByFollowerId: form.paidByFollowerId,
+        paidByFollowerId: effectivePayer,
         amount,
         currency: form.currency,
         description: form.description.trim(),
         occurredOn: form.occurredOn,
-        splitMode: form.splitMode,
+        splitMode: form.isPersonal ? "equal" : form.splitMode,
+        isPersonal: form.isPersonal,
         participants,
       };
       if (editingId) {
@@ -450,6 +571,92 @@ export default function FollowingDetailPage(): React.ReactNode {
     }
   }
 
+  // ─── Recommendation helpers ──────────────────────────────────────────
+
+  async function submitRecommendation() {
+    if (!tripId) return;
+    setRecFormError(null);
+    if (!recForm.name.trim()) return setRecFormError("กรุณาระบุชื่อสถานที่");
+
+    setRecSubmitting(true);
+    try {
+      const created = await api.post<Recommendation>(`/member/trips/${tripId}/recommendations`, {
+        name: recForm.name.trim(),
+        description: recForm.description.trim() || null,
+        category: recForm.category,
+        mapsLink: recForm.mapsLink.trim() || null,
+        lat: recForm.lat,
+        lng: recForm.lng,
+        googlePlaceId: recForm.googlePlaceId.trim() || null,
+        imageUrl: recForm.imageUrl.trim() || null,
+      });
+      setRecommendations((prev) => [created, ...prev]);
+      setRecForm({ name: "", description: "", category: "restaurant", mapsLink: "", lat: null, lng: null, googlePlaceId: "", imageUrl: "" });
+      setShowRecForm(false);
+      toast.success("เพิ่มรายการแนะนำแล้ว");
+    } catch (err) {
+      setRecFormError(err instanceof Error ? err.message : "บันทึกไม่สำเร็จ");
+    } finally {
+      setRecSubmitting(false);
+    }
+  }
+
+  async function toggleLike(recId: string) {
+    if (!tripId) return;
+    const rec = recommendations.find((r) => r.id === recId);
+    if (!rec) return;
+
+    try {
+      if (rec.likedByMe) {
+        const res = await api.delete<{ liked: boolean; likeCount: number }>(`/member/trips/${tripId}/recommendations/${recId}/like`);
+        setRecommendations((prev) => prev.map((r) => r.id === recId ? { ...r, likedByMe: false, likeCount: res.likeCount } : r));
+      } else {
+        const res = await api.post<{ liked: boolean; likeCount: number }>(`/member/trips/${tripId}/recommendations/${recId}/like`);
+        setRecommendations((prev) => prev.map((r) => r.id === recId ? { ...r, likedByMe: true, likeCount: res.likeCount } : r));
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function confirmDeleteRecommendation() {
+    if (!tripId || !recDeleteTarget) return;
+    try {
+      await api.delete(`/member/trips/${tripId}/recommendations/${recDeleteTarget}`);
+      setRecommendations((prev) => prev.filter((r) => r.id !== recDeleteTarget));
+      toast.success("ลบเรียบร้อย");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "ลบไม่สำเร็จ");
+    } finally {
+      setRecDeleteTarget(null);
+    }
+  }
+
+  function fillFromSavedPlace(place: SavedPlaceOption) {
+    setRecForm((f) => ({
+      ...f,
+      name: place.name,
+      category: ["restaurant", "cafe", "attraction", "shopping"].includes(place.category) ? place.category : "other",
+      mapsLink: place.mapsLink ?? "",
+      lat: null,
+      lng: null,
+      googlePlaceId: "",
+    }));
+  }
+
+  function handlePlaceSelect(result: PlaceResult) {
+    setRecForm((f) => ({
+      ...f,
+      name: result.placeName,
+      lat: result.lat,
+      lng: result.lng,
+      mapsLink: result.mapsLink,
+      imageUrl: result.imageUrl ?? "",
+    }));
+  }
+
+  const filteredRecs = recCategory === "all"
+    ? recommendations
+    : recommendations.filter((r) => r.category === recCategory);
+
   // ─── Loading / error ────────────────────────────────────────────────
 
   if (loading) return (
@@ -472,8 +679,12 @@ export default function FollowingDetailPage(): React.ReactNode {
 
   const tabItems: TabItem[] = [
     { id: "itinerary", label: "แผนการเดินทาง", icon: "map" },
+    { id: "members",   label: "สมาชิก",       icon: "group" },
+    { id: "tripinfo",  label: "เตรียมเดินทาง",  icon: "luggage" },
+    { id: "recommendations", label: "แนะนำ",     icon: "thumb_up" },
     { id: "expenses",  label: "ค่าใช้จ่าย",    icon: "receipt_long" },
     { id: "settlement", label: "คำนวณหนี้",     icon: "calculate" },
+    ...(tripStatus === "completed" ? [{ id: "review", label: "รีวิว", icon: "star" } as TabItem] : []),
   ];
 
   const memberOptions: SelectOption[] = members.map((m) => ({ label: m.displayName, value: m.id }));
@@ -797,6 +1008,345 @@ export default function FollowingDetailPage(): React.ReactNode {
           </div>
         )}
 
+        {/* ── Members tab ── */}
+        {activeTab === "members" && (
+          membersLoading ? (
+            <div className="flex justify-center py-16">
+              <span className="w-8 h-8 border-3 border-(--primary) border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : members.length === 0 ? (
+            <EmptyState icon="group" title="ยังไม่มีสมาชิก" description="ยังไม่มีใครเข้าร่วมทริปนี้" />
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-bold text-(--on-surface)">สมาชิกทั้งหมด ({members.length})</h2>
+              </div>
+              {members.map((m) => {
+                const roleLabels: Record<string, { label: string; color: string }> = {
+                  head_of_group: { label: "หัวหน้ากลุ่ม", color: "bg-amber-100 text-amber-800" },
+                  expense_keeper: { label: "ดูแลค่าใช้จ่าย", color: "bg-emerald-100 text-emerald-800" },
+                  driver: { label: "คนขับ", color: "bg-blue-100 text-blue-800" },
+                };
+                const role = m.groupRole ? roleLabels[m.groupRole] ?? { label: m.groupRole, color: "bg-slate-100 text-slate-700" } : null;
+                return (
+                  <div key={m.id} className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${m.isMe ? "bg-(--primary-container)/20 border-(--primary)/30" : "bg-white border-(--outline-variant)/20"}`}>
+                    {m.logoUrl ? (
+                      <img src={m.logoUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-slate-100" />
+                    ) : (
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${m.isMe ? "bg-(--primary) text-white" : "bg-slate-100 text-slate-500"}`}>
+                        {m.displayName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-(--on-surface) truncate">{m.displayName}</span>
+                        {m.isMe && <span className="text-[10px] font-bold text-(--primary) bg-(--primary-container)/40 px-1.5 py-0.5 rounded-full">ฉัน</span>}
+                        {role && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${role.color}`}>{role.label}</span>}
+                      </div>
+                      <p className="text-xs text-(--outline) mt-0.5">
+                        เข้าร่วมเมื่อ {new Date(m.joinedAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
+
+        {/* ── Trip Info tab ── */}
+        {activeTab === "tripinfo" && (
+          <div className="space-y-6">
+
+            {/* ── Flights / Transport ── */}
+            {trip.airlineInfo.length > 0 && (
+              <section>
+                <SectionHeader title="เที่ยวบิน / การเดินทาง" icon="flight" variant="icon" color="blue" />
+                <div className="mt-3 space-y-3">
+                  {trip.airlineInfo.map((a, i) => {
+                    const isReturn = a.type?.toLowerCase() === "return";
+                    return (
+                      <Card key={i} padding="none">
+                        <CardBody>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Badge variant={isReturn ? "info" : "primary"} icon={isReturn ? "flight_land" : "flight_takeoff"}>
+                              {isReturn ? "ขากลับ" : "ขาไป"}
+                            </Badge>
+                            {a.airline && <span className="text-xs font-semibold text-(--on-surface)">{a.airline}</span>}
+                            {a.flightNumber && <span className="text-xs text-(--on-surface-variant)">({a.flightNumber})</span>}
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            {/* Departure */}
+                            <div className="flex-1 text-center">
+                              <p className="text-lg font-black text-(--on-surface) tabular-nums">{a.departureTime || "--:--"}</p>
+                              <p className="text-xs font-semibold text-(--on-surface-variant) mt-0.5">{a.departureAirport || "ต้นทาง"}</p>
+                            </div>
+
+                            {/* Arrow */}
+                            <div className="flex flex-col items-center gap-1 shrink-0">
+                              <div className="w-16 h-px bg-(--outline-variant)" />
+                              <span className="material-symbols-outlined text-sm text-(--outline)" aria-hidden="true">
+                                {isReturn ? "flight_land" : "flight_takeoff"}
+                              </span>
+                              <div className="w-16 h-px bg-(--outline-variant)" />
+                            </div>
+
+                            {/* Arrival */}
+                            <div className="flex-1 text-center">
+                              <p className="text-lg font-black text-(--on-surface) tabular-nums">{a.arrivalTime || "--:--"}</p>
+                              <p className="text-xs font-semibold text-(--on-surface-variant) mt-0.5">{a.arrivalAirport || "ปลายทาง"}</p>
+                            </div>
+                          </div>
+                        </CardBody>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── Accommodations ── */}
+            {trip.accommodations.length > 0 && (
+              <section>
+                <SectionHeader title="ที่พัก" icon="hotel" variant="icon" color="violet" />
+                <div className="mt-3 space-y-3">
+                  {trip.accommodations.map((acc, i) => (
+                    <Card key={i} padding="none">
+                      <CardBody>
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-violet-600" style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }} aria-hidden="true">hotel</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-(--on-surface) text-sm">{acc.name}</p>
+                            {acc.address && (
+                              <p className="text-xs text-(--on-surface-variant) mt-1 flex items-start gap-1">
+                                <span className="material-symbols-outlined text-xs mt-0.5 shrink-0" aria-hidden="true">location_on</span>
+                                {acc.address}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                              {acc.checkIn && (
+                                <span className="text-xs text-(--on-surface-variant) flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs" aria-hidden="true">login</span>
+                                  เช็คอิน {acc.checkIn}
+                                </span>
+                              )}
+                              {acc.checkOut && (
+                                <span className="text-xs text-(--on-surface-variant) flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs" aria-hidden="true">logout</span>
+                                  เช็คเอาต์ {acc.checkOut}
+                                </span>
+                              )}
+                              {acc.nights > 0 && (
+                                <span className="text-xs text-(--on-surface-variant) flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs" aria-hidden="true">dark_mode</span>
+                                  {acc.nights} คืน
+                                </span>
+                              )}
+                            </div>
+                            {acc.phone && (
+                              <a href={`tel:${acc.phone}`} className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-(--primary)">
+                                <span className="material-symbols-outlined text-xs" aria-hidden="true">call</span>
+                                {acc.phone}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── Emergency Contacts ── */}
+            {trip.emergencyContacts.length > 0 && (
+              <section>
+                <SectionHeader title="เบอร์ฉุกเฉิน" icon="emergency" variant="icon" color="rose" />
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {trip.emergencyContacts.map((ec, i) => (
+                    <Card key={i} padding="none">
+                      <CardBody>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-rose-600" style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }} aria-hidden="true">
+                              {ec.icon && !ec.icon.startsWith("�") ? ec.icon : "call"}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-(--on-surface) text-sm">{ec.name}</p>
+                            <a href={`tel:${ec.phone}`} className="text-xs font-semibold text-(--primary) flex items-center gap-1 mt-0.5">
+                              <span className="material-symbols-outlined text-xs" aria-hidden="true">call</span>
+                              {ec.phone}
+                            </a>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── Checklist ── */}
+            {trip.checklistItems && trip.checklistItems.length > 0 && (
+              <section>
+                <SectionHeader title="สิ่งที่ต้องเตรียม" subtitle="เช็คลิสต์ก่อนออกเดินทาง" icon="checklist" variant="icon" color="amber" />
+                <div className="mt-3">
+                  <Card padding="none">
+                    <CardBody>
+                      <ul className="space-y-2.5">
+                        {trip.checklistItems.map((item) => (
+                          <li key={item.id} className="flex items-start gap-3 text-sm">
+                            <span className="material-symbols-outlined text-base text-(--outline) mt-0.5 shrink-0" aria-hidden="true">check_box_outline_blank</span>
+                            <span className="text-(--on-surface)">
+                              {item.label}
+                              {item.isRequired && <span className="text-rose-500 ml-1 text-xs font-bold">*จำเป็น</span>}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardBody>
+                  </Card>
+                </div>
+              </section>
+            )}
+
+            {/* Empty state if nothing */}
+            {trip.airlineInfo.length === 0 && trip.accommodations.length === 0 && trip.emergencyContacts.length === 0 && (!trip.checklistItems || trip.checklistItems.length === 0) && (
+              <EmptyState icon="info" title="ยังไม่มีข้อมูลทริป" description="ผู้ประกอบการยังไม่ได้เพิ่มข้อมูลเที่ยวบิน ที่พัก หรือเบอร์ฉุกเฉิน" />
+            )}
+          </div>
+        )}
+
+        {/* ── Recommendations tab ── */}
+        {activeTab === "recommendations" && (
+          <div className="space-y-4">
+            {recLoading ? (
+              <div className="py-16 flex justify-center"><Spinner size="lg" /></div>
+            ) : (
+              <>
+                {/* Category filter pills */}
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  {REC_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setRecCategory(cat.id)}
+                      className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors ${
+                        recCategory === cat.id
+                          ? "bg-(--primary) text-white border-(--primary)"
+                          : "bg-white text-(--on-surface-variant) border-(--outline-variant)/30 hover:border-(--primary)/30"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm" style={recCategory === cat.id ? { fontVariationSettings: "'FILL' 1" } : {}} aria-hidden="true">{cat.icon}</span>
+                      {cat.label}
+                      {cat.id === "all" && recommendations.length > 0 && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${recCategory === "all" ? "bg-white/20" : "bg-(--surface-variant)"}`}>
+                          {recommendations.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Add button */}
+                <div className="flex justify-end">
+                  <Button variant="primary" icon="add" onClick={() => { setRecFormError(null); setShowRecForm(true); }}>
+                    แนะนำสถานที่
+                  </Button>
+                </div>
+
+                {/* Recommendation cards */}
+                {filteredRecs.length === 0 ? (
+                  <EmptyState
+                    icon="explore"
+                    title="ยังไม่มีรายการแนะนำ"
+                    description="แนะนำร้านอาหาร คาเฟ่ หรือสถานที่ท่องเที่ยวให้เพื่อนร่วมทริป"
+                    onAction={() => setShowRecForm(true)}
+                    actionLabel="แนะนำสถานที่แรก"
+                  />
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredRecs.map((rec) => {
+                      const catMeta = REC_CATEGORIES.find((c) => c.id === rec.category) ?? REC_CATEGORIES[5];
+                      return (
+                        <Card key={rec.id} padding="none">
+                          {rec.imageUrl && (
+                            <div className="relative aspect-[16/9] overflow-hidden">
+                              <img src={rec.imageUrl} alt={rec.name} className="w-full h-full object-cover" loading="lazy" />
+                              <div className="absolute top-2 left-2">
+                                <Badge variant="default">{catMeta.label}</Badge>
+                              </div>
+                            </div>
+                          )}
+                          <CardBody>
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-(--primary)/10 flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-(--primary)" style={{ fontVariationSettings: "'FILL' 1", fontSize: "20px" }} aria-hidden="true">{catMeta.icon}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-(--on-surface) text-sm leading-snug">{rec.name}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <Badge variant="default">{catMeta.label}</Badge>
+                                </div>
+                                {rec.description && (
+                                  <p className="text-xs text-(--on-surface-variant) mt-1.5 line-clamp-2">{rec.description}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <Divider className="my-3" />
+
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Avatar name={rec.createdByName} size="xs" />
+                                <span className="text-[11px] text-(--on-surface-variant) truncate">{rec.createdByName}</span>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {rec.mapsLink && (
+                                  <button
+                                    onClick={() => window.open(rec.mapsLink!, "_blank", "noopener,noreferrer")}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold text-(--primary) hover:bg-(--primary)/10 transition-colors"
+                                    aria-label="เปิด Google Maps"
+                                  >
+                                    <span className="material-symbols-outlined text-sm" aria-hidden="true">map</span>
+                                    แผนที่
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => toggleLike(rec.id)}
+                                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                                    rec.likedByMe
+                                      ? "bg-rose-50 text-rose-600"
+                                      : "hover:bg-(--surface-variant) text-(--on-surface-variant)"
+                                  }`}
+                                  aria-label={rec.likedByMe ? "เลิกถูกใจ" : "ถูกใจ"}
+                                >
+                                  <span
+                                    className="material-symbols-outlined text-sm"
+                                    style={rec.likedByMe ? { fontVariationSettings: "'FILL' 1" } : {}}
+                                    aria-hidden="true"
+                                  >
+                                    favorite
+                                  </span>
+                                  {rec.likeCount > 0 && <span className="tabular-nums">{rec.likeCount}</span>}
+                                </button>
+                                <IconButton icon="delete" variant="ghost" onClick={() => setRecDeleteTarget(rec.id)} aria-label="ลบ" />
+                              </div>
+                            </div>
+                          </CardBody>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         {/* ── Expenses tab ── */}
         {activeTab === "expenses" && (
           <div className="space-y-4">
@@ -841,7 +1391,15 @@ export default function FollowingDetailPage(): React.ReactNode {
                           <div className="flex items-start gap-3 flex-1 min-w-0">
                             <Avatar name={e.paidByName} size="sm" />
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-(--on-surface) text-sm leading-snug">{e.description}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-semibold text-(--on-surface) text-sm leading-snug">{e.description}</p>
+                                {e.isPersonal && (
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-semibold shrink-0">
+                                    <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">lock</span>
+                                    ส่วนตัว
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-xs text-(--on-surface-variant) mt-0.5">
                                 จ่ายโดย {e.paidByName} · {new Date(e.occurredOn + "T00:00:00").toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
                                 {" · "}
@@ -935,6 +1493,164 @@ export default function FollowingDetailPage(): React.ReactNode {
                   )}
                 </section>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Review tab ── */}
+        {activeTab === "review" && tripStatus === "completed" && (
+          <div className="space-y-6">
+            {reviewLoading ? (
+              <div className="flex justify-center py-12"><Spinner /></div>
+            ) : (
+              <>
+                {/* My review form */}
+                <section className="bg-white rounded-2xl shadow-sm p-5 space-y-5">
+                  <h2 className="text-sm font-bold text-(--on-surface) flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base text-(--primary)" style={{ fontVariationSettings: "'FILL' 1" }}>edit_note</span>
+                    {myRating ? "แก้ไขรีวิวของฉัน" : "ให้คะแนนทริปนี้"}
+                  </h2>
+
+                  {/* Star inputs */}
+                  {([
+                    { key: "overall" as const, label: "คะแนนรวม *" },
+                    { key: "guide" as const, label: "ไกด์ / ผู้นำเที่ยว" },
+                    { key: "itinerary" as const, label: "แผนการเดินทาง" },
+                    { key: "value" as const, label: "ความคุ้มค่า" },
+                  ] as const).map(({ key, label }) => (
+                    <Rating
+                      key={key}
+                      label={label}
+                      value={reviewForm[key]}
+                      onChange={(v: number) => setReviewForm((p) => ({ ...p, [key]: v }))}
+                      size="lg"
+                      showValue
+                    />
+                  ))}
+
+                  {/* Comment */}
+                  <div>
+                    <label className="text-xs font-semibold text-(--on-surface-variant) mb-1.5 block">ความคิดเห็น</label>
+                    <textarea
+                      className="w-full border border-(--outline-variant)/30 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) resize-none"
+                      rows={3}
+                      placeholder="แชร์ประสบการณ์ของคุณ..."
+                      value={reviewForm.comment}
+                      onChange={(e) => setReviewForm((p) => ({ ...p, comment: e.target.value }))}
+                    />
+                  </div>
+
+                  {/* Images */}
+                  <ImageUpload
+                    values={reviewForm.imageUrls}
+                    onMultiChange={(urls: string[]) => setReviewForm((p) => ({ ...p, imageUrls: urls }))}
+                    maxImages={5}
+                    folder={`ratings/${tripId}`}
+                    uploadUrl={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api"}/member/trips/${tripId}/rating/upload`}
+                    label="แนบรูปภาพ"
+                  />
+
+                  <Button
+                    disabled={reviewForm.overall === 0 || reviewSubmitting}
+                    onClick={async () => {
+                      if (reviewForm.overall === 0 || !tripId) return;
+                      setReviewSubmitting(true);
+                      try {
+                        await api.post(`/member/trips/${tripId}/rating`, {
+                          overallScore: reviewForm.overall,
+                          guideScore: reviewForm.guide || null,
+                          itineraryScore: reviewForm.itinerary || null,
+                          valueScore: reviewForm.value || null,
+                          comment: reviewForm.comment.trim() || null,
+                          imageUrls: reviewForm.imageUrls.length > 0 ? reviewForm.imageUrls : null,
+                        });
+                        toast.success(myRating ? "อัปเดตรีวิวแล้ว" : "ส่งรีวิวแล้ว ขอบคุณ!");
+                        // Refresh
+                        const [mine, agg]: [any, any] = await Promise.all([
+                          api.get<typeof myRating>(`/member/trips/${tripId}/rating/me`),
+                          api.get<typeof ratingAgg>(`/member/trips/${tripId}/rating`),
+                        ]);
+                        setMyRating(mine ?? null);
+                        if (agg && (agg as any).recentComments && !agg.comments) {
+                          agg.comments = { items: (agg as any).recentComments, totalCount: (agg as any).recentComments.length, hasNext: false };
+                        }
+                        setRatingAgg(agg);
+                      } catch {
+                        toast.error("ส่งรีวิวไม่สำเร็จ");
+                      } finally {
+                        setReviewSubmitting(false);
+                      }
+                    }}
+                  >
+                    {reviewSubmitting ? "กำลังส่ง..." : myRating ? "อัปเดตรีวิว" : "ส่งรีวิว"}
+                  </Button>
+                </section>
+
+                {/* Aggregated scores */}
+                {ratingAgg && ratingAgg.count > 0 && (
+                  <section className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+                    <h2 className="text-sm font-bold text-(--on-surface) flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      คะแนนจากสมาชิก ({ratingAgg.count} รีวิว)
+                    </h2>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {([
+                        { label: "คะแนนรวม", val: ratingAgg.avgOverall },
+                        { label: "ไกด์", val: ratingAgg.avgGuide },
+                        { label: "แผนเดินทาง", val: ratingAgg.avgItinerary },
+                        { label: "ความคุ้มค่า", val: ratingAgg.avgValue },
+                      ]).map(({ label, val }) => (
+                        <div key={label} className="flex flex-col items-center p-3 rounded-xl bg-(--surface-container-lowest)">
+                          <p className="text-2xl font-black text-(--on-surface)">{val != null ? val.toFixed(1) : "—"}</p>
+                          <p className="text-[10px] text-(--on-surface-variant) mt-0.5">{label}</p>
+                          {val != null && (
+                            <div className="mt-1">
+                              <Rating value={val} readOnly size="sm" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Recent comments */}
+                    {ratingAgg.comments?.items?.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <h3 className="text-xs font-bold text-(--on-surface-variant)">ความคิดเห็นล่าสุด ({ratingAgg.comments?.totalCount ?? 0})</h3>
+                        {ratingAgg.comments.items.map((c, i) => (
+                          <div key={i} className="flex gap-3 p-3 rounded-xl bg-(--surface-container-lowest)">
+                            <Avatar name={c.firstName} size="sm" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-(--on-surface)">{c.firstName}</span>
+                                <Rating value={c.overallScore} readOnly size="sm" />
+                                <span className="text-[10px] text-(--outline)">{new Date(c.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</span>
+                              </div>
+                              <p className="text-xs text-(--on-surface-variant) mt-1 leading-relaxed">{c.comment}</p>
+                              {c.imageUrls?.length > 0 && (
+                                <div className="flex gap-1.5 mt-2 flex-wrap">
+                                  {c.imageUrls.map((url, imgIdx) => (
+                                    <img key={imgIdx} src={url} alt="" className="w-14 h-14 rounded-lg object-cover" loading="lazy" />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {/* Empty state when no reviews yet and user hasn't reviewed */}
+                {ratingAgg && ratingAgg.count === 0 && !myRating && (
+                  <EmptyState
+                    icon="rate_review"
+                    title="ยังไม่มีรีวิว"
+                    description="เป็นคนแรกที่ให้คะแนนและแชร์ประสบการณ์ทริปนี้!"
+                  />
+                )}
+              </>
             )}
           </div>
         )}
@@ -1051,21 +1767,66 @@ export default function FollowingDetailPage(): React.ReactNode {
             </div>
           )}
 
+          {/* Personal toggle — top of form */}
+          <div
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+              form.isPersonal
+                ? "border-(--primary)/40 bg-(--primary)/5"
+                : "border-(--outline-variant)/30 bg-white"
+            }`}
+            onClick={() => {
+              setForm((f) => {
+                const next = !f.isPersonal;
+                return {
+                  ...f,
+                  isPersonal: next,
+                  paidByFollowerId: next ? myFollowerId : f.paidByFollowerId,
+                  selectedParticipants: next ? [myFollowerId] : f.selectedParticipants,
+                  splitMode: next ? "equal" as const : f.splitMode,
+                };
+              });
+            }}
+          >
+            <Checkbox
+              checked={form.isPersonal}
+              onChange={() => {}}
+              label=""
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-(--on-surface)">ค่าใช้จ่ายส่วนตัว</p>
+              <p className="text-[11px] text-(--on-surface-variant)">เฉพาะคุณเท่านั้นที่เห็น ไม่รวมในการคำนวณหนี้กลุ่ม</p>
+            </div>
+            <span className="material-symbols-outlined text-base" style={form.isPersonal ? { fontVariationSettings: "'FILL' 1", color: "var(--primary)" } : { color: "var(--on-surface-variant)" }} aria-hidden="true">
+              {form.isPersonal ? "lock" : "group"}
+            </span>
+          </div>
+
           {/* Paid by */}
-          <SelectPicker
-            label="ผู้จ่าย *"
-            options={memberOptions}
-            value={form.paidByFollowerId}
-            onChange={(v) => setForm((f) => ({ ...f, paidByFollowerId: v as string }))}
-            placeholder="-- เลือกผู้จ่าย --"
-            searchable={false}
-          />
+          {form.isPersonal ? (
+            <div>
+              <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ผู้จ่าย</p>
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-(--surface-variant)/40 border border-(--outline-variant)/30 rounded-xl">
+                <span className="material-symbols-outlined text-sm text-(--on-surface-variant)" aria-hidden="true">person</span>
+                <span className="text-sm text-(--on-surface)">{members.find((m) => m.id === myFollowerId)?.displayName ?? "ฉัน"}</span>
+                <span className="ml-auto text-[10px] text-(--on-surface-variant)">ตั้งค่าอัตโนมัติ</span>
+              </div>
+            </div>
+          ) : (
+            <SelectPicker
+              label="ผู้จ่าย" required
+              options={memberOptions}
+              value={form.paidByFollowerId}
+              onChange={(v) => setForm((f) => ({ ...f, paidByFollowerId: v as string }))}
+              placeholder="-- เลือกผู้จ่าย --"
+              searchable={false}
+            />
+          )}
 
           {/* Amount + currency */}
           <div className="flex gap-3">
             <div className="flex-1">
               <FormInput
-                label="จำนวนเงิน *"
+                label="จำนวนเงิน" required
                 type="number"
                 value={form.amount}
                 onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
@@ -1087,7 +1848,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
           {/* Description */}
           <FormInput
-            label="รายละเอียด *"
+            label="รายละเอียด" required
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="เช่น อาหารเย็น, ค่าแท็กซี่"
@@ -1101,6 +1862,9 @@ export default function FollowingDetailPage(): React.ReactNode {
             onChange={(v) => setForm((f) => ({ ...f, occurredOn: v }))}
           />
 
+          {/* Split mode — hidden for personal expenses */}
+          {!form.isPersonal && (
+          <>
           {/* Split mode */}
           <div>
             <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">วิธีหาร</p>
@@ -1117,7 +1881,7 @@ export default function FollowingDetailPage(): React.ReactNode {
 
           {/* Participants */}
           <div>
-            <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ผู้ร่วมจ่าย *</p>
+            <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ผู้ร่วมจ่าย <span className="text-red-500">*</span></p>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {members.map((m) => {
                 const checked = form.selectedParticipants.includes(m.id);
@@ -1148,6 +1912,8 @@ export default function FollowingDetailPage(): React.ReactNode {
               })}
             </div>
           </div>
+          </>
+          )}
         </div>
       </Drawer>
 
@@ -1162,6 +1928,17 @@ export default function FollowingDetailPage(): React.ReactNode {
         onClose={() => setDeleteTarget(null)}
       />
 
+      {/* Recommendation delete confirm */}
+      <ConfirmDialog
+        open={!!recDeleteTarget}
+        title="ลบรายการแนะนำ"
+        description="ต้องการลบรายการแนะนำนี้?"
+        confirmLabel="ลบ"
+        variant="danger"
+        onConfirm={confirmDeleteRecommendation}
+        onClose={() => setRecDeleteTarget(null)}
+      />
+
       {/* Discard changes confirm */}
       <ConfirmDialog
         open={showDiscardConfirm}
@@ -1172,6 +1949,114 @@ export default function FollowingDetailPage(): React.ReactNode {
         onConfirm={() => { setShowDiscardConfirm(false); setShowForm(false); setEditingId(null); }}
         onClose={() => setShowDiscardConfirm(false)}
       />
+
+      {/* ── Recommendation Form Drawer ── */}
+      <Drawer
+        open={showRecForm}
+        onClose={() => setShowRecForm(false)}
+        title="แนะนำสถานที่"
+        footer={
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => setShowRecForm(false)}>
+              ยกเลิก
+            </Button>
+            <Button variant="primary" className="flex-1" loading={recSubmitting} onClick={submitRecommendation}>
+              เพิ่มรายการ
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          {recFormError && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              <span className="material-symbols-outlined text-sm shrink-0">error</span>
+              {recFormError}
+            </div>
+          )}
+
+          {/* Saved places picker */}
+          {savedPlaces.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ดึงจากสถานที่บันทึกไว้</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {savedPlaces.slice(0, 10).map((place) => (
+                  <button
+                    key={place.id}
+                    type="button"
+                    onClick={() => fillFromSavedPlace(place)}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-(--outline-variant)/30 bg-white text-xs text-(--on-surface) hover:border-(--primary)/40 hover:bg-(--primary)/5 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm text-(--primary)" aria-hidden="true">bookmark</span>
+                    <span className="max-w-[120px] truncate">{place.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <p className="text-xs font-semibold text-(--on-surface-variant) mb-1.5">ชื่อสถานที่ <span className="text-red-500">*</span></p>
+            <PlaceAutocompleteInput
+              value={recForm.name}
+              apiKey={googleMapsApiKey}
+              onPlaceSelect={handlePlaceSelect}
+              onTextChange={(text) => setRecForm((f) => ({ ...f, name: text }))}
+              onBlur={() => {}}
+            />
+            {recForm.lat && recForm.lng && (
+              <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-(--on-surface-variant)">
+                <span className="material-symbols-outlined text-xs text-emerald-500" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">check_circle</span>
+                ดึงพิกัดจาก Google Maps แล้ว
+              </div>
+            )}
+          </div>
+
+          {recForm.imageUrl && (
+            <div className="relative rounded-xl overflow-hidden">
+              <img
+                src={recForm.imageUrl}
+                alt={recForm.name}
+                className="w-full h-40 object-cover"
+                loading="lazy"
+              />
+              <button
+                type="button"
+                onClick={() => setRecForm((f) => ({ ...f, imageUrl: "" }))}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+              <div className="absolute bottom-0 left-0 right-0 px-3 py-1.5 bg-black/40 text-[10px] text-white/80">
+                รูปปกจาก Google Maps
+              </div>
+            </div>
+          )}
+
+          <SelectPicker
+            label="หมวดหมู่"
+            options={REC_CATEGORIES.filter((c) => c.id !== "all").map((c) => ({ label: c.label, value: c.id }))}
+            value={recForm.category}
+            onChange={(v) => setRecForm((f) => ({ ...f, category: v as string }))}
+            searchable={false}
+          />
+
+          <FormInput
+            label="รายละเอียด"
+            value={recForm.description}
+            onChange={(e) => setRecForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder="อาหารอร่อย บรรยากาศดี..."
+            maxLength={1024}
+          />
+
+          <FormInput
+            label="ลิงก์ Google Maps"
+            value={recForm.mapsLink}
+            onChange={(e) => setRecForm((f) => ({ ...f, mapsLink: e.target.value }))}
+            placeholder="https://maps.google.com/..."
+            maxLength={1024}
+          />
+        </div>
+      </Drawer>
 
       {/* QR Code Modal */}
       <Modal open={showQR} onClose={() => setShowQR(false)} title="แชร์ทริปนี้" size="sm">

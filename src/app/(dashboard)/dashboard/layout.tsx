@@ -68,7 +68,7 @@ export default function DashboardLayout({
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="ml-0 md:ml-20 lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
           {/* Global Header */}
-          <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 md:px-8">
+          <header className="sticky top-0 z-40 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 md:px-8">
             <div className="flex items-center gap-4">
               <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2.5 -ml-2 rounded-lg hover:bg-slate-100 text-slate-500">
                 <span className="material-symbols-outlined">menu</span>
@@ -89,15 +89,22 @@ export default function DashboardLayout({
                     <p className="text-sm font-bold text-slate-900 leading-none">{displayUser ? `${displayUser.firstName} ${displayUser.lastName}` : "..."}</p>
                     <p className="text-[10px] text-slate-400">{user?.companyName || (user && !user.isOperator ? "สมาชิก" : "")}</p>
                   </div>
-                  <div className="w-9 h-9 rounded-full bg-(--primary) flex items-center justify-center text-white text-sm font-bold">
-                    {displayUser?.firstName?.charAt(0) || "?"}
-                  </div>
+                  {(() => {
+                    const avatarUrl = companies.find((c) => c.id === user?.companyId)?.logoUrl;
+                    return avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-100" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-(--primary) flex items-center justify-center text-white text-sm font-bold">
+                        {displayUser?.firstName?.charAt(0) || "?"}
+                      </div>
+                    );
+                  })()}
                 </button>
                 {/* Profile Dropdown */}
                 {profileOpen && (
                   <>
-                    <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setProfileOpen(false)} />
-                    <div className="absolute right-0 top-14 z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+                    <div className="fixed inset-0 z-[60] cursor-pointer" onClick={() => setProfileOpen(false)} />
+                    <div className="absolute right-0 top-14 z-[70] w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
                       <div className="p-4 border-b border-slate-100">
                         <p className="font-bold text-slate-900">{displayUser ? `${displayUser.firstName} ${displayUser.lastName}` : ""}</p>
                         <p className="text-xs text-slate-400">{displayUser?.email}</p>

@@ -141,22 +141,51 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
   const [tripStartDate, setTripStartDate] = useState<string | null>(null);
   const [tripEndDate, setTripEndDate] = useState<string | null>(null);
 
+  const isEnded = tripEndDate ? new Date(tripEndDate + "T23:59:59") < new Date() : false;
+
+  // Post-trip summary (loaded lazily when tab activated)
+  interface PostTripSummary {
+    memberCount: number; followerCount: number; reviewCount: number; responseRate: number;
+    scoreBreakdown: { avgOverall: number; avgGuide: number | null; avgItinerary: number | null; avgValue: number | null } | null;
+    scoreDistribution: { score: number; count: number }[] | null;
+    topRecommendations: { id: string; category: string; name: string; imageUrl: string | null; mapsLink: string | null; likeCount: number; createdByName: string }[];
+    recentFeedback: { comment: string; overallScore: number; createdAt: string; firstName: string; imageUrls: string[] }[];
+    channelBreakdown: { channel: string; count: number }[];
+  }
+  const [postTripSummary, setPostTripSummary] = useState<PostTripSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
   // Tab state lives in the URL so the page is shareable and survives
   // refresh. Falls back to "changelog" — the more important view since
   // unsent notifications need attention.
   const tabParam = searchParams.get("tab");
-  const activeTab: "followers" | "changelog" | "announcements" | "join-requests" =
+  const activeTab: "followers" | "changelog" | "announcements" | "join-requests" | "summary" =
     tabParam === "followers" ? "followers"
     : tabParam === "announcements" ? "announcements"
     : tabParam === "join-requests" ? "join-requests"
+    : tabParam === "summary" ? "summary"
     : "changelog";
-  const setActiveTab = (tab: "followers" | "changelog" | "announcements" | "join-requests"): void => {
+  const setActiveTab = (tab: "followers" | "changelog" | "announcements" | "join-requests" | "summary"): void => {
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "changelog") params.delete("tab");
     else params.set("tab", tab);
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   };
+
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab !== "summary" || !isEnded || postTripSummary) return;
+    setSummaryLoading(true);
+    setSummaryError(null);
+    api.get<PostTripSummary>(`/admin/trips/${tripId}/post-trip-summary`)
+      .then(setPostTripSummary)
+      .catch((err) => {
+        setSummaryError(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาดที่ไม่คาดคิด");
+      })
+      .finally(() => setSummaryLoading(false));
+  }, [activeTab, isEnded, tripId, postTripSummary]);
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [announcementMsg, setAnnouncementMsg] = useState("");
@@ -563,6 +592,21 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                 )}
               </button>
             )}
+
+            {/* สรุปทริป — only for ended trips */}
+            {isEnded && (
+              <button
+                onClick={() => setActiveTab("summary")}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                  activeTab === "summary"
+                    ? "bg-amber-500 text-white"
+                    : "bg-white border border-amber-200 text-amber-700 hover:bg-amber-50"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span>
+                สรุปทริป
+              </button>
+            )}
           </div>
         </div>
 
@@ -884,6 +928,178 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Post-trip summary tab */}
+        {activeTab === "summary" && isEnded && (
+          <div className="space-y-4">
+            {summaryLoading ? (
+              <div className="flex justify-center py-16">
+                <span className="w-8 h-8 border-3 border-(--primary) border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : !postTripSummary ? (
+              <div className="text-center py-12">
+                <EmptyState icon="insights" title="ไม่สามารถโหลดข้อมูลสรุปได้" description={summaryError ?? "ลองรีเฟรชหน้าอีกครั้ง"} />
+                <button
+                  onClick={() => { setPostTripSummary(null); setSummaryError(null); }}
+                  className="mt-4 px-4 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  ลองอีกครั้ง
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Stats cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { icon: "group", label: "สมาชิก", value: postTripSummary.memberCount, color: "text-blue-600 bg-blue-50" },
+                    { icon: "rate_review", label: "รีวิว", value: postTripSummary.reviewCount, color: "text-amber-600 bg-amber-50" },
+                    { icon: "percent", label: "อัตราตอบกลับ", value: `${postTripSummary.responseRate}%`, color: "text-emerald-600 bg-emerald-50" },
+                    { icon: "people", label: "ผู้ติดตามทั้งหมด", value: postTripSummary.followerCount, color: "text-violet-600 bg-violet-50" },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-white rounded-2xl border border-(--outline-variant)/30 p-4 text-center shadow-sm">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 ${s.color}`}>
+                        <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                      </div>
+                      <p className="text-2xl font-bold text-(--on-surface) tabular-nums">{s.value}</p>
+                      <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Score breakdown */}
+                {postTripSummary.scoreBreakdown && (
+                  <section className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
+                    <h3 className="text-sm font-bold text-(--on-surface) flex items-center gap-2 mb-4">
+                      <span className="material-symbols-outlined text-base text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      คะแนนจากสมาชิก
+                    </h3>
+                    <div className="flex items-center gap-5 mb-4">
+                      <p className="text-4xl font-extrabold text-amber-500 tabular-nums">
+                        {postTripSummary.scoreBreakdown.avgOverall.toFixed(1)}
+                      </p>
+                      <div className="flex-1 space-y-2">
+                        {[
+                          { label: "ภาพรวม", val: postTripSummary.scoreBreakdown.avgOverall },
+                          { label: "ไกด์ / ทีมงาน", val: postTripSummary.scoreBreakdown.avgGuide },
+                          { label: "แผนเดินทาง", val: postTripSummary.scoreBreakdown.avgItinerary },
+                          { label: "ความคุ้มค่า", val: postTripSummary.scoreBreakdown.avgValue },
+                        ].filter((d) => d.val !== null).map((d) => (
+                          <div key={d.label} className="flex items-center gap-2">
+                            <p className="text-xs text-(--on-surface-variant) w-24 shrink-0">{d.label}</p>
+                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-amber-400 rounded-full" style={{ width: `${((d.val ?? 0) / 5) * 100}%` }} />
+                            </div>
+                            <p className="text-xs font-bold text-amber-600 w-7 text-right tabular-nums">{d.val?.toFixed(1)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Score distribution */}
+                    {postTripSummary.scoreDistribution && (
+                      <div className="border-t border-(--outline-variant)/20 pt-3 mt-3">
+                        <p className="text-[10px] font-bold text-(--on-surface-variant) uppercase mb-2">การกระจายคะแนน</p>
+                        <div className="space-y-1">
+                          {[...postTripSummary.scoreDistribution].reverse().map((d) => (
+                            <div key={d.score} className="flex items-center gap-2">
+                              <span className="text-xs text-(--on-surface-variant) w-4 text-right tabular-nums">{d.score}</span>
+                              <span className="material-symbols-outlined text-xs text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-amber-400 rounded-full" style={{ width: postTripSummary.reviewCount > 0 ? `${(d.count / postTripSummary.reviewCount) * 100}%` : "0%" }} />
+                              </div>
+                              <span className="text-[10px] text-(--on-surface-variant) w-5 text-right tabular-nums">{d.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {/* Channel breakdown */}
+                {postTripSummary.channelBreakdown.length > 0 && (
+                  <section className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
+                    <h3 className="text-sm font-bold text-(--on-surface) flex items-center gap-2 mb-3">
+                      <span className="material-symbols-outlined text-base text-(--primary)">device_hub</span>
+                      ช่องทางติดตาม
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {postTripSummary.channelBreakdown.map((ch) => (
+                        <div key={ch.channel} className="flex items-center justify-between px-3 py-2 rounded-xl bg-(--surface-container-low)">
+                          <span className="text-xs font-medium text-(--on-surface-variant)">{ch.channel}</span>
+                          <span className="text-sm font-bold text-(--on-surface) tabular-nums">{ch.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Top recommendations */}
+                {postTripSummary.topRecommendations.length > 0 && (
+                  <section className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
+                    <h3 className="text-sm font-bold text-(--on-surface) flex items-center gap-2 mb-3">
+                      <span className="material-symbols-outlined text-base text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>explore</span>
+                      สถานที่แนะนำยอดนิยม
+                    </h3>
+                    <div className="space-y-2">
+                      {postTripSummary.topRecommendations.map((rec, i) => (
+                        <div key={rec.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-(--surface-container-low)">
+                          <span className="text-sm font-bold text-(--on-surface-variant) w-5 text-center tabular-nums">{i + 1}</span>
+                          {rec.imageUrl && <img src={rec.imageUrl} alt={rec.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-(--on-surface) truncate">{rec.name}</p>
+                            <p className="text-[10px] text-(--on-surface-variant)">โดย {rec.createdByName}</p>
+                          </div>
+                          <span className="text-xs text-rose-500 flex items-center gap-0.5 shrink-0">
+                            <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+                            {rec.likeCount}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Recent feedback */}
+                {postTripSummary.recentFeedback.length > 0 && (
+                  <section className="bg-white rounded-2xl border border-(--outline-variant)/30 p-5 shadow-sm">
+                    <h3 className="text-sm font-bold text-(--on-surface) flex items-center gap-2 mb-3">
+                      <span className="material-symbols-outlined text-base text-blue-600">chat</span>
+                      ความคิดเห็นล่าสุด
+                    </h3>
+                    <div className="space-y-3">
+                      {postTripSummary.recentFeedback.map((fb, i) => (
+                        <div key={i} className="px-4 py-3 rounded-xl bg-(--surface-container-low)">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-bold text-(--on-surface)">{fb.firstName}</span>
+                            <span className="flex items-center gap-0.5 text-amber-500">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <span key={s} className={`text-xs ${fb.overallScore >= s ? "text-amber-400" : "text-slate-200"}`}>★</span>
+                              ))}
+                            </span>
+                            <span className="text-[10px] text-(--outline)">{new Date(fb.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</span>
+                          </div>
+                          <p className="text-xs text-(--on-surface-variant) leading-relaxed">{fb.comment}</p>
+                          {fb.imageUrls?.length > 0 && (
+                            <div className="flex gap-1.5 mt-2">
+                              {fb.imageUrls.map((url, imgIdx) => (
+                                <img key={imgIdx} src={url} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* No reviews state */}
+                {postTripSummary.reviewCount === 0 && (
+                  <EmptyState icon="rate_review" title="ยังไม่มีรีวิว" description="สมาชิกยังไม่ได้ให้คะแนนทริปนี้" />
+                )}
+              </>
             )}
           </div>
         )}
