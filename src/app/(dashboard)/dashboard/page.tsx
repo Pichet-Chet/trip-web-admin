@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { StatusBadge, FilterTabs, IconButton, EmptyState, ConfirmDialog, OperatorUnlockModal } from "@/components/shared";
+import { FilterTabs, IconButton, EmptyState, ConfirmDialog, OperatorUnlockModal } from "@/components/shared";
 import { Badge } from "@pichetch08/trip-ui";
 import { api } from "@/lib/api";
 import { subscribe, type UserInfo } from "@/lib/auth";
@@ -180,6 +180,7 @@ function MemberDashboard({ user, onUnlock }: { user: UserInfo | null; onUnlock: 
 // ─── Operator dashboard ──────────────────────────────────────────────────────
 
 function OperatorDashboard({ user }: { user: UserInfo | null }) {
+  const router = useRouter();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -351,9 +352,21 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
                     : `${(usage?.tripQuotaUsed ?? 0) + (usage?.creditsUsed ?? 0)} / ${(usage?.tripQuotaLimit ?? 3) + (usage?.creditsTotal ?? 0)} ทริป`}
                 </span>
               </div>
-              <div className="mt-6">
-                <p className="text-white/60 text-xs font-medium mb-1">{user?.companyName}</p>
-                <p className="text-lg font-bold">{user ? `${user.firstName} ${user.lastName}` : "..."}</p>
+              <div className="mt-6 flex items-center gap-3">
+                {(() => {
+                  const avatarUrl = user?.companies?.find((c) => c.id === user.companyId)?.logoUrl;
+                  return avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20 shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      {user?.firstName?.charAt(0) || "?"}
+                    </div>
+                  );
+                })()}
+                <div>
+                  <p className="text-white/60 text-xs font-medium">{user?.companyName}</p>
+                  <p className="text-lg font-bold leading-tight">{user ? `${user.firstName} ${user.lastName}` : "..."}</p>
+                </div>
               </div>
             </div>
             <div className="relative z-10 flex justify-between items-end mt-6">
@@ -415,70 +428,118 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
               const effectiveStatus = isRejected ? "rejected" : trip.status.toLowerCase();
               const hasPublishedSnapshot = !!trip.publishedAt;
               return (
-                <div key={trip.id} className={`group bg-(--surface-container-lowest) hover:bg-white rounded-3xl p-4 md:p-6 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 border hover:shadow-2xl ${isRejected ? "border-red-200 hover:border-red-300 hover:shadow-red-100/50" : "border-(--outline-variant)/30 hover:border-(--primary)/30 hover:shadow-(--primary)/5"}`}>
-                  <div className={`w-full sm:w-48 h-40 sm:h-32 rounded-2xl overflow-hidden shrink-0 ${isDraft ? "grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" : ""}`}>
-                    {trip.coverImageUrl ? (
-                      <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={trip.coverImageUrl} alt={trip.title} />
-                    ) : (
-                      <div className="w-full h-full bg-(--surface-dim) flex items-center justify-center"><span className="material-symbols-outlined text-4xl text-(--outline)">photo_camera</span></div>
-                    )}
+                <div
+                  key={trip.id}
+                  onClick={() => router.push(`/dashboard/trips/new?id=${trip.id}`)}
+                  className={`group bg-white rounded-3xl overflow-hidden transition-all duration-300 flex flex-col sm:flex-row border hover:shadow-xl cursor-pointer ${isRejected ? "border-red-200 hover:border-red-300 hover:shadow-red-100/50" : "border-(--outline-variant)/30 hover:border-(--primary)/20 hover:shadow-(--primary)/5"}`}
+                >
+                  {/* Cover image — flush left, full height */}
+                  <div className={`sm:w-52 md:w-56 shrink-0 ${isDraft ? "grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" : ""}`}>
+                    <div className="h-44 sm:h-full min-h-[8rem] relative">
+                      {trip.coverImageUrl ? (
+                        <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src={trip.coverImageUrl} alt={trip.title} />
+                      ) : (
+                        <div className="w-full h-full bg-(--surface-dim) flex items-center justify-center">
+                          <span className="material-symbols-outlined text-4xl text-(--outline)">photo_camera</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center w-full">
-                    <div className="md:col-span-2">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <StatusBadge status={effectiveStatus} config={TRIP_STATUS_CONFIG} />
-                        {isDraft && hasPublishedSnapshot && (
-                          <Badge variant="success" size="sm" icon="public">เผยแพร่อยู่</Badge>
-                        )}
-                        {isRejected && (
-                          <Link
-                            href={`/dashboard/trips/${trip.id}/preview`}
-                            className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                            ดูรายการที่ต้องแก้ไข
-                          </Link>
-                        )}
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${trip.scope === "international" ? "bg-purple-50 text-purple-600" : "bg-emerald-50 text-emerald-600"}`}>
-                          {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}
+
+                  {/* Content */}
+                  <div className="flex-1 p-5 flex flex-col gap-2.5 min-w-0">
+                    {/* Status badges — all use Badge for consistent pill style */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge
+                        size="sm"
+                        variant={
+                          effectiveStatus === "rejected" ? "error"
+                          : effectiveStatus === "unpublished" ? "error"
+                          : effectiveStatus === "published" ? "success"
+                          : effectiveStatus === "archived" ? "default"
+                          : "warning"
+                        }
+                      >
+                        {TRIP_STATUS_CONFIG[effectiveStatus]?.label ?? effectiveStatus}
+                      </Badge>
+                      {isDraft && hasPublishedSnapshot && (
+                        <Badge variant="success" size="sm">เผยแพร่อยู่</Badge>
+                      )}
+                      <Badge variant={trip.scope === "international" ? "info" : "secondary"} size="sm">
+                        {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}
+                      </Badge>
+                      {isRejected && (
+                        <Link
+                          href={`/dashboard/trips/${trip.id}/preview`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-xs">warning</span>
+                          ต้องแก้ไข
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Title + destination */}
+                    <div>
+                      <h4 className="text-lg md:text-xl font-extrabold text-(--on-surface) leading-tight line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h4>
+                      <p className="text-(--on-surface-variant) text-sm mt-0.5 line-clamp-1">{trip.destination}</p>
+                    </div>
+
+                    {/* Date range */}
+                    {trip.startDate && (
+                      <div className="flex items-center gap-1 text-xs text-(--outline)">
+                        <span className="material-symbols-outlined text-sm">calendar_today</span>
+                        <span>
+                          {new Date(trip.startDate + "T00:00:00").toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
+                          {trip.endDate && (
+                            <> — {new Date(trip.endDate + "T00:00:00").toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</>
+                          )}
                         </span>
-                        {trip.startDate && (
-                          <span className="text-(--on-surface-variant) text-[10px] font-medium">
-                            {new Date(trip.startDate + "T00:00:00").toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
+                      </div>
+                    )}
+
+                    {/* Bottom bar: stats + actions */}
+                    <div className="flex items-center gap-3 mt-auto pt-3 border-t border-(--outline-variant)/20">
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <span className="text-xs text-(--outline) flex items-center gap-1 shrink-0">
+                          <span className="material-symbols-outlined text-sm">group</span>
+                          {trip.travelersCount} คน
+                        </span>
+                        {trip.followerCount > 0 && (
+                          <span className="text-xs text-(--outline) flex items-center gap-1 shrink-0">
+                            <span className="material-symbols-outlined text-sm">bookmark</span>
+                            {trip.followerCount}
+                          </span>
+                        )}
+                        {trip.viewCount > 0 && (
+                          <span className="text-xs text-(--outline) flex items-center gap-1 shrink-0">
+                            <span className="material-symbols-outlined text-sm">visibility</span>
+                            {trip.viewCount.toLocaleString()}
                           </span>
                         )}
                       </div>
-                      <h4 className="text-lg md:text-xl font-extrabold text-(--on-surface)">{trip.title}</h4>
-                      <p className="text-(--on-surface-variant) text-sm line-clamp-1">{trip.destination} · {trip.travelersCount} คน</p>
-                    </div>
-                    <div className="flex flex-row md:flex-col items-center justify-between md:justify-center">
-                      <p className="text-xs text-(--on-surface-variant) uppercase tracking-tighter mb-1 font-bold hidden md:block">ลูกทริป</p>
-                      {trip.followerCount > 0 ? (
-                        <div className="flex -space-x-2">
-                          {[...Array(Math.min(3, trip.followerCount))].map((_, i) => (
-                            <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-(--primary-container) flex items-center justify-center text-[10px] font-bold text-(--on-primary-container)">{String.fromCharCode(65 + i)}</div>
-                          ))}
-                          {trip.followerCount > 3 && <div className="w-8 h-8 rounded-full border-2 border-white bg-(--primary) text-white text-[10px] flex items-center justify-center font-bold">+{trip.followerCount - 3}</div>}
-                        </div>
-                      ) : <p className="text-sm font-bold text-(--on-surface-variant)">—</p>}
-                    </div>
-                    <div className="flex flex-row md:flex-col items-end justify-end gap-2">
-                      <Link href={`/dashboard/trips/new?id=${trip.id}`}>
-                        <IconButton icon="edit" variant="primary" />
-                      </Link>
-                      {(hasPublishedSnapshot || !isDraft) && (
-                        <Link href={`/dashboard/trips/${trip.id}/manage`}>
-                          <IconButton icon="manage_accounts" variant="ghost" title="จัดการทริป" />
+
+                      {/* Actions — stopPropagation so card click doesn't fire */}
+                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <Link href={`/dashboard/trips/new?id=${trip.id}`}>
+                          <IconButton icon="edit" variant="primary" />
                         </Link>
-                      )}
-                      {isDraft && !hasPublishedSnapshot && (
-                        <button
-                          onClick={() => setDeleteTarget(trip)}
-                          className="p-2 rounded-xl hover:bg-red-50 text-(--outline-variant) hover:text-red-500 transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-lg">delete</span>
-                        </button>
-                      )}
+                        {(hasPublishedSnapshot || !isDraft) && (
+                          <Link href={`/dashboard/trips/${trip.id}/manage`}>
+                            <IconButton icon="manage_accounts" variant="ghost" title="จัดการทริป" />
+                          </Link>
+                        )}
+                        {isDraft && !hasPublishedSnapshot && (
+                          <button
+                            onClick={() => setDeleteTarget(trip)}
+                            className="p-2 rounded-xl hover:bg-red-50 text-(--outline-variant) hover:text-red-500 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
