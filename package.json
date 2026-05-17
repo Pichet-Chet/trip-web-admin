@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
-    "@pichetch08/trip-ui": "^0.2.1",
+    "@pichetch08/trip-ui": "^0.2.2",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@types/dompurify": "^3.0.5",
@@ -31,7 +31,7 @@
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.74.0",
     "react-leaflet": "^5.0.0",
-    "tailwind-merge": "^2.6.0",
+    "tailwind-merge": "^3.6.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
