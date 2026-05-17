@@ -34,9 +34,13 @@ function deriveStatus(start: string, end: string): TripStatus {
 
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start + "T00:00:00");
-  const e = new Date(end + "T23:59:59");
-  const fmt = (d: Date) => d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
-  return `${fmt(s)} — ${fmt(e)}`;
+  const e = new Date(end + "T00:00:00");
+  const short = (d: Date) => d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+  const withYear = (d: Date) => d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  if (s.getFullYear() === e.getFullYear()) {
+    return `${short(s)} — ${withYear(e)}`;
+  }
+  return `${withYear(s)} — ${withYear(e)}`;
 }
 
 function getDaysUntil(start: string): number {

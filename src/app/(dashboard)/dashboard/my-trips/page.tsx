@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ConfirmDialog, useToast, EmptyState, OperatorUnlockModal } from "@/components/shared";
+import { Badge } from "@pichetch08/trip-ui";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -39,10 +40,14 @@ const QUOTA_SOURCE_LABEL: Record<string, { text: string; cls: string; icon: stri
 function formatDateRange(start: string | null, end: string | null): string {
   if (!start) return "ยังไม่กำหนดวัน";
   const s = new Date(start + "T00:00:00");
-  const fmt = (d: Date): string => d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
-  if (!end) return fmt(s);
+  const short = (d: Date): string => d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+  const withYear = (d: Date): string => d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  if (!end) return withYear(s);
   const e = new Date(end + "T00:00:00");
-  return `${fmt(s)} — ${fmt(e)}`;
+  if (s.getFullYear() === e.getFullYear()) {
+    return `${short(s)} — ${withYear(e)}`;
+  }
+  return `${withYear(s)} — ${withYear(e)}`;
 }
 
 export default function MyTripsPage(): React.ReactNode {
@@ -208,7 +213,7 @@ export default function MyTripsPage(): React.ReactNode {
                         <span className="material-symbols-outlined text-4xl text-(--outline-variant)">landscape</span>
                       </div>
                     )}
-                    {/* Single status badge — scope shown in body, quota source moved to body footer */}
+                    {/* Status badge */}
                     <span className={`absolute top-3 left-3 text-white text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm ${
                       isArchived ? "bg-(--outline)"
                       : isPendingReview ? "bg-orange-500"
@@ -222,9 +227,14 @@ export default function MyTripsPage(): React.ReactNode {
 
                   {/* Body */}
                   <div className="flex-1 p-4 flex flex-col">
-                    <Link href={`/dashboard/trips/new?id=${trip.id}`} className="min-w-0">
-                      <h3 className="font-bold text-[15px] text-(--on-surface) leading-snug line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h3>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/dashboard/trips/new?id=${trip.id}`} className="min-w-0 flex-1">
+                        <h3 className="font-bold text-[15px] text-(--on-surface) leading-snug line-clamp-1 group-hover:text-(--primary) transition-colors">{trip.title}</h3>
+                      </Link>
+                      {isDraft && hasPublishedSnapshot && (
+                        <Badge variant="success" size="sm" icon="public">เผยแพร่อยู่</Badge>
+                      )}
+                    </div>
                     <p className="text-[12px] text-(--outline) mt-1">
                       {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"} · {trip.destination} · {trip.travelersCount} คน
                     </p>

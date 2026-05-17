@@ -21,9 +21,10 @@ interface TripStepperHeaderProps {
   currentStep: 1 | 2 | 3;
   tripId: string;
   subtitle?: string;
+  allStepsClickable?: boolean;
 }
 
-export function TripStepperHeader({ currentStep, tripId, subtitle }: TripStepperHeaderProps): React.ReactNode {
+export function TripStepperHeader({ currentStep, tripId, subtitle, allStepsClickable }: TripStepperHeaderProps): React.ReactNode {
   return (
     <header className="sticky top-16 z-20 bg-white/80 backdrop-blur-xl px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between border-b border-(--outline-variant)/30">
       {/* Left: Title */}
@@ -49,7 +50,7 @@ export function TripStepperHeader({ currentStep, tripId, subtitle }: TripStepper
             <div key={step.num} className="flex items-center gap-2 md:gap-4">
               <Link
                 href={href}
-                className={`flex items-center gap-1.5 ${isFuture ? "opacity-40 pointer-events-none" : ""}`}
+                className={`flex items-center gap-1.5 ${isFuture && !allStepsClickable ? "opacity-40 pointer-events-none" : ""}`}
               >
                 <div
                   className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold transition-all ${

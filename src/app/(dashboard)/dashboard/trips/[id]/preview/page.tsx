@@ -448,11 +448,28 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
       return [{ name: a.name, lat: coords.lat, lng: coords.lng, time: a.time ?? undefined }];
     });
 
+  const isEnded = trip && new Date(trip.endDate + "T23:59:59") < new Date();
+
   return (
     <div className="flex flex-col min-h-screen">
-      <TripStepperHeader currentStep={3} tripId={id} subtitle="ดูตัวอย่าง" />
+      <TripStepperHeader currentStep={3} tripId={id} subtitle="ดูตัวอย่าง" allStepsClickable={!!isEnded} />
+
+      {/* ═══ Ended banner ═══ */}
+      {isEnded && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center justify-center gap-3">
+          <span className="material-symbols-outlined text-amber-600 text-xl">lock</span>
+          <span className="text-sm font-medium text-amber-800">ทริปนี้สิ้นสุดแล้ว — ดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้</span>
+          <button
+            onClick={() => router.push("/dashboard/my-trips")}
+            className="ml-2 px-3 py-1 text-xs font-semibold rounded-full bg-amber-600 text-white hover:bg-amber-700 transition"
+          >
+            กลับ
+          </button>
+        </div>
+      )}
 
       {/* ═══ Action Bar ═══ */}
+      {!isEnded && (
       <FooterActionBar
         backLabel="ย้อนกลับ"
         onBack={() => router.push(ROUTES.tripEdit(id))}
@@ -466,6 +483,7 @@ export default function TripPreviewPage({ params }: { params: Promise<{ id: stri
         onNext={() => !isPendingReview && setShowSubmitModal(true)}
         disabled={issues.length > 0 || isPendingReview}
       />
+      )}
 
       {/* ═══ Content ═══ */}
       <div className="flex-1 overflow-y-auto p-4 lg:p-8">

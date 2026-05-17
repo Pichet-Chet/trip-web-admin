@@ -640,6 +640,9 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
     }
   }, [id, days, toast]);
 
+  /* ─── Trip ended flag (read-only mode) ─── */
+  const isEnded = !loading && endDate && new Date(endDate + "T23:59:59") < new Date();
+
   /* ─── Loading state ─── */
   if (loading) {
     return (
@@ -669,18 +672,34 @@ export default function TripEditPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <TripStepperHeader currentStep={2} tripId={id} subtitle="กิจกรรม" />
+      <TripStepperHeader currentStep={2} tripId={id} subtitle="กิจกรรม" allStepsClickable={!!isEnded} />
+
+      {/* ═══ Ended banner ═══ */}
+      {isEnded && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center justify-center gap-3">
+          <span className="material-symbols-outlined text-amber-600 text-xl">lock</span>
+          <span className="text-sm font-medium text-amber-800">ทริปนี้สิ้นสุดแล้ว — ดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้</span>
+          <button
+            onClick={() => router.push("/dashboard/my-trips")}
+            className="ml-2 px-3 py-1 text-xs font-semibold rounded-full bg-amber-600 text-white hover:bg-amber-700 transition"
+          >
+            กลับ
+          </button>
+        </div>
+      )}
 
       {/* ═══ Action Bar (sticky under stepper) ═══ */}
-      <FooterActionBar
-        backLabel="ย้อนกลับ"
-        onBack={() => router.push(`/dashboard/trips/new?id=${id}`)}
-        onSaveDraft={handleSaveDraft}
-        savingDraft={saving}
-        nextLabel="ถัดไป: ดูตัวอย่าง"
-        onNext={handleNext}
-        loading={saving}
-      />
+      {!isEnded && (
+        <FooterActionBar
+          backLabel="ย้อนกลับ"
+          onBack={() => router.push(`/dashboard/trips/new?id=${id}`)}
+          onSaveDraft={handleSaveDraft}
+          savingDraft={saving}
+          nextLabel="ถัดไป: ดูตัวอย่าง"
+          onNext={handleNext}
+          loading={saving}
+        />
+      )}
 
       {/* ═══ Content Canvas ═══ */}
       <div
