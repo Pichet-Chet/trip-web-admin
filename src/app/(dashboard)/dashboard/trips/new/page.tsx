@@ -40,6 +40,7 @@ interface TripFormValues {
   scope: TripScopeLocal;
   title: string;
   destination: string;
+  countryCode: string;
   startDate: string;
   endDate: string;
   // String because <input type=number> binds as string; the basics
@@ -64,6 +65,7 @@ const FORM_DEFAULTS: TripFormValues = {
   scope: "domestic",
   title: "",
   destination: "",
+  countryCode: "",
   startDate: "",
   endDate: "",
   travelersCount: "",
@@ -126,6 +128,13 @@ export default function NewTripPage(): React.ReactNode {
   const [supportedLangs, setSupportedLangs] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [countries, setCountries] = useState<{ code: string; nameTh: string; flag: string }[]>([]);
+
+  useEffect(() => {
+    api.get<{ code: string; nameTh: string; flag: string }[]>("/meta/countries")
+      .then(setCountries)
+      .catch(() => {});
+  }, []);
 
   // ─── Form (react-hook-form) ───
   // One useForm owns every field the operator can edit. useFieldArray
@@ -146,6 +155,7 @@ export default function NewTripPage(): React.ReactNode {
   const tripScope = watch("scope");
   const title = watch("title");
   const destination = watch("destination");
+  const countryCode = watch("countryCode");
   const startDate = watch("startDate");
   const endDate = watch("endDate");
   const travelersCount = watch("travelersCount");
@@ -260,7 +270,7 @@ export default function NewTripPage(): React.ReactNode {
     // — kept narrow to what this page reads, not exhaustive.
     type TripDraftDto = {
       scope?: string; status?: string; dateChangeCount?: number;
-      title?: string; destination?: string;
+      title?: string; destination?: string; countryCode?: string | null;
       startDate?: string; endDate?: string;
       travelersCount?: number; language?: string;
       coverImageUrl?: string | null; importantNotes?: string | null;
@@ -320,6 +330,7 @@ export default function NewTripPage(): React.ReactNode {
           scope: (trip.scope || "domestic") as TripScopeLocal,
           title: trip.title || "",
           destination: trip.destination || "",
+          countryCode: trip.countryCode || "",
           startDate: trip.startDate || "",
           endDate: trip.endDate || "",
           travelersCount: String(trip.travelersCount || ""),
@@ -643,6 +654,7 @@ export default function NewTripPage(): React.ReactNode {
         scope: v.scope,
         title: v.title.trim() || "Untitled Trip",
         destination: v.destination.trim() || "TBD",
+        countryCode: v.countryCode || undefined,
         startDate: v.startDate || new Date().toISOString().split("T")[0],
         endDate: v.endDate || new Date().toISOString().split("T")[0],
         travelersCount: Number(v.travelersCount) || 1,
@@ -1014,8 +1026,25 @@ export default function NewTripPage(): React.ReactNode {
                   searchable={languageOptions.length > 6}
                 />
               </div>
-              <div className="md:col-span-1 lg:col-span-6">
+              <div className="md:col-span-1 lg:col-span-3">
                 <FormInput label="จุดหมายปลายทาง" placeholder="จังหวัด หรือ ประเทศ" icon="location_on" required value={destination} onChange={(e) => updateField("destination", e.target.value)} error={fieldErrors.destination} />
+              </div>
+              <div className="md:col-span-1 lg:col-span-3">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  ประเทศ{tripScope === "international" && <span className="ml-1 text-rose-500">*</span>}
+                </label>
+                <select
+                  value={countryCode}
+                  onChange={(e) => updateField("countryCode", e.target.value)}
+                  className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 px-4 text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) transition-all"
+                >
+                  <option value="">— เลือกประเทศ —{tripScope === "domestic" ? " (auto จากโปรไฟล์)" : ""}</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.nameTh}
+                    </option>
+                  ))}
+                </select>
               </div>
               {(() => {
                 const isPublished = tripStatus === "Published" || tripStatus === "Unpublished";

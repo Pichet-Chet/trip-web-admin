@@ -20,11 +20,19 @@ interface CompanyData {
   instagramUrl: string | null;
   websiteUrl: string | null;
   tatLicense: string | null;
+  countryCode: string | null;
   portfolioEnabled: boolean;
   portfolioSlug: string | null;
   portfolioBio: string | null;
   tier: string;
   tripQuotaUsed: number;
+}
+
+interface CountryOption {
+  code: string;
+  nameTh: string;
+  nameEn: string;
+  flag: string;
 }
 
 interface UsageSummary {
@@ -45,6 +53,7 @@ interface FormState {
   instagramUrl: string;
   websiteUrl: string;
   tatLicense: string;
+  countryCode: string;
   portfolioEnabled: boolean;
   portfolioSlug: string;
   portfolioBio: string;
@@ -73,6 +82,7 @@ const EMPTY_FORM: FormState = {
   instagramUrl: "",
   websiteUrl: "",
   tatLicense: "",
+  countryCode: "",
   portfolioEnabled: false,
   portfolioSlug: "",
   portfolioBio: "",
@@ -88,12 +98,14 @@ export default function ProfilePage(): React.ReactNode {
   const [original, setOriginal] = useState<FormState>(EMPTY_FORM);
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const [showAccountType, setShowAccountType] = useState(false);
+  const [countries, setCountries] = useState<CountryOption[]>([]);
 
   useEffect(() => {
     Promise.all([
       api.get<CompanyData>("/admin/company"),
       api.get<UsageSummary>("/admin/usage").catch(() => null),
-    ]).then(([data, u]) => {
+      api.get<CountryOption[]>("/meta/countries").catch(() => []),
+    ]).then(([data, u, ctrs]) => {
       const next: FormState = {
         name: data.name,
         accountType: (data.accountType?.toLowerCase() || "company") as AccountType,
@@ -104,6 +116,7 @@ export default function ProfilePage(): React.ReactNode {
         instagramUrl: data.instagramUrl || "",
         websiteUrl: data.websiteUrl || "",
         tatLicense: data.tatLicense || "",
+        countryCode: data.countryCode || "",
         portfolioEnabled: data.portfolioEnabled,
         portfolioSlug: data.portfolioSlug || "",
         portfolioBio: data.portfolioBio || "",
@@ -111,6 +124,7 @@ export default function ProfilePage(): React.ReactNode {
       setForm(next);
       setOriginal(next);
       if (u) setUsage(u);
+      setCountries(ctrs);
       setLoading(false);
     });
   }, []);
@@ -138,6 +152,7 @@ export default function ProfilePage(): React.ReactNode {
     const checks: boolean[] = [
       !!form.name,
       !!form.logoUrl,
+      !!form.countryCode,
       !!form.phone,
       !!form.lineId,
       !!(form.facebookUrl || form.instagramUrl || form.websiteUrl),
@@ -172,6 +187,7 @@ export default function ProfilePage(): React.ReactNode {
         instagramUrl: form.instagramUrl || undefined,
         websiteUrl: form.websiteUrl || undefined,
         tatLicense: form.tatLicense || undefined,
+        countryCode: form.countryCode || undefined,
         portfolioEnabled: form.portfolioEnabled,
         portfolioSlug: form.portfolioSlug || undefined,
         portfolioBio: form.portfolioBio || undefined,
@@ -342,6 +358,28 @@ export default function ProfilePage(): React.ReactNode {
               {!isPersonal && (
                 <FormInput label="เลขใบอนุญาต ททท." placeholder="11/XXXXX (ไม่บังคับ)" value={form.tatLicense} onChange={set("tatLicense")} />
               )}
+              {/* Country — source of truth for domestic trip auto-fill */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  ประเทศที่ตั้ง (บ้านเกิด)
+                  <span className="ml-1 text-rose-500">*</span>
+                </label>
+                <select
+                  value={form.countryCode}
+                  onChange={(e) => setForm((p) => ({ ...p, countryCode: e.target.value }))}
+                  className="w-full bg-(--surface-container-low) border border-transparent rounded-xl py-4 px-4 text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary) transition-all"
+                >
+                  <option value="">— เลือกประเทศ —</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.nameTh} ({c.nameEn})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1.5">
+                  ใช้กำหนดประเทศเริ่มต้นสำหรับทริปในประเทศที่สร้างใหม่
+                </p>
+              </div>
             </div>
           </section>
 

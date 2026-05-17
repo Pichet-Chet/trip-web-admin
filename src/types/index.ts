@@ -43,6 +43,7 @@ export type TripPlan = {
   scope: TripScope;
   transportType: TransportType;
   destination: string | null;
+  countryCode: string | null;
   startDate: string | null;
   endDate: string | null;
   coverImageUrl: string | null;

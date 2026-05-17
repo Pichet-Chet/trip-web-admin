@@ -18,6 +18,7 @@ interface Trip {
   title: string;
   scope: string;
   destination: string;
+  countryCode: string | null;
   startDate: string;
   endDate: string;
   coverImageUrl: string | null;
@@ -468,6 +469,9 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
                       <Badge variant={trip.scope === "international" ? "info" : "secondary"} size="sm">
                         {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}
                       </Badge>
+                      {trip.countryCode && (
+                        <Badge variant="default" size="sm">{trip.countryCode}</Badge>
+                      )}
                       {isRejected && (
                         <Link
                           href={`/dashboard/trips/${trip.id}/preview`}
