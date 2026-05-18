@@ -50,8 +50,9 @@ interface PlanCatalogItem {
 
 const TIER_FALLBACK: Record<string, number> = {
   per_trip: 49,
-  pack_5: 249,
+  pack_5: 199,
   subscription: 299,
+  subscription_annual: 2990,
 };
 
 function priceFor(catalog: PlanCatalogItem[] | null, code: string): number {

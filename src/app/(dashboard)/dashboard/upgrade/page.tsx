@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { PromoCodeWidget } from "@/components/features/promo-code-widget";
 
-type PlanCode = "per_trip" | "pack_5" | "subscription";
+type PlanCode = "per_trip" | "pack_5" | "subscription" | "subscription_annual";
 
 interface PlanCatalogItem {
   code: string;
@@ -50,7 +51,7 @@ const PLAN_META: Record<PlanCode, Omit<Plan, "code" | "price">> = {
     unit: "/ 5 ทริป",
     badge: "ประหยัดสุด",
     icon: "redeem",
-    features: ["5 ทริปเครดิต (ฉลี่ย ฿49.8/ทริป)", "ทุกฟีเจอร์เหมือนจ่ายต่อทริป", "ไม่มีวันหมดอายุ"],
+    features: ["5 ทริปเครดิต (เฉลี่ย ฿39.8/ทริป)", "ทุกฟีเจอร์เหมือนจ่ายต่อทริป", "ไม่มีวันหมดอายุ"],
   },
   subscription: {
     name: "Subscription รายเดือน",
@@ -59,6 +60,14 @@ const PLAN_META: Record<PlanCode, Omit<Plan, "code" | "price">> = {
     badge: null,
     icon: "workspace_premium",
     features: ["ทริปไม่จำกัด", "ผู้ติดตามไม่จำกัด", "Priority Support", "ยกเลิกได้ทุกเมื่อ"],
+  },
+  subscription_annual: {
+    name: "Subscription รายปี",
+    description: "เหมือนรายเดือน ประหยัดกว่า 16% — จ่ายครั้งเดียวตลอดปี",
+    unit: "/ ปี",
+    badge: "ประหยัดสุด",
+    icon: "stars",
+    features: ["ทริปไม่จำกัดตลอดปี", "ผู้ติดตามไม่จำกัด", "Priority Support", "เฉลี่ย ฿249/เดือน (ประหยัด ฿600/ปี)"],
   },
 };
 
@@ -71,7 +80,7 @@ function buildPlans(catalog: PlanCatalogItem[]): Plan[] {
       ...PLAN_META[c.code as PlanCode],
     }))
     .sort((a, b) => {
-      const order: PlanCode[] = ["per_trip", "pack_5", "subscription"];
+      const order: PlanCode[] = ["per_trip", "pack_5", "subscription", "subscription_annual"];
       return order.indexOf(a.code) - order.indexOf(b.code);
     });
 }
@@ -85,7 +94,7 @@ function UpgradeContent(): React.ReactNode {
   usePageTitle("อัปเกรดแพ็กเกจ");
   const searchParams = useSearchParams();
   const raw = searchParams.get("plan");
-  const validCodes: PlanCode[] = ["per_trip", "pack_5", "subscription"];
+  const validCodes: PlanCode[] = ["per_trip", "pack_5", "subscription", "subscription_annual"];
   const defaultPlan: PlanCode = validCodes.includes(raw as PlanCode) ? (raw as PlanCode) : "per_trip";
   const [selected, setSelected] = useState<PlanCode>(defaultPlan);
   const [loading, setLoading] = useState(false);
@@ -294,6 +303,10 @@ function UpgradeContent(): React.ReactNode {
 
             {/* Payment Section */}
             <div className="p-6 space-y-4">
+              <PromoCodeWidget />
+
+              <div className="border-t border-(--surface-container)" />
+
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3">
                   {error}
