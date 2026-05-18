@@ -129,10 +129,15 @@ export default function NewTripPage(): React.ReactNode {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [countries, setCountries] = useState<{ code: string; nameTh: string; flag: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; slug: string; nameTh: string; icon?: string }[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   useEffect(() => {
     api.get<{ code: string; nameTh: string; flag: string }[]>("/meta/countries")
       .then(setCountries)
+      .catch(() => {});
+    api.get<{ id: string; slug: string; nameTh: string; icon?: string }[]>("/meta/trip-categories")
+      .then(setCategories)
       .catch(() => {});
   }, []);
 
@@ -271,6 +276,7 @@ export default function NewTripPage(): React.ReactNode {
     type TripDraftDto = {
       scope?: string; status?: string; dateChangeCount?: number;
       title?: string; destination?: string; countryCode?: string | null;
+      categories?: { id: string }[];
       startDate?: string; endDate?: string;
       travelersCount?: number; language?: string;
       coverImageUrl?: string | null; importantNotes?: string | null;
@@ -307,6 +313,7 @@ export default function NewTripPage(): React.ReactNode {
         setDateChangeCount(trip.dateChangeCount || 0);
         setRejectionItems(trip.rejectionItems ?? []);
         setHasPublishedSnapshot(!!trip.publishedAt);
+        if (trip.categories) setSelectedCategoryIds(trip.categories.map((c) => c.id));
 
         // Load max date changes from system config
         try {
@@ -655,6 +662,7 @@ export default function NewTripPage(): React.ReactNode {
         title: v.title.trim() || "Untitled Trip",
         destination: v.destination.trim() || "TBD",
         countryCode: v.countryCode || undefined,
+        categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
         startDate: v.startDate || new Date().toISOString().split("T")[0],
         endDate: v.endDate || new Date().toISOString().split("T")[0],
         travelersCount: Number(v.travelersCount) || 1,
@@ -1046,6 +1054,46 @@ export default function NewTripPage(): React.ReactNode {
                   ))}
                 </select>
               </div>
+
+              {/* Category multi-select chips (max 3) */}
+              {categories.length > 0 && (
+                <div className="md:col-span-2 lg:col-span-6">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    ประเภททริป
+                    <span className="ml-2 font-normal normal-case text-slate-400">(เลือกได้สูงสุด 3 ประเภท)</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((cat) => {
+                      const selected = selectedCategoryIds.includes(cat.id);
+                      const disabled = !selected && selectedCategoryIds.length >= 3;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => {
+                            setSelectedCategoryIds((prev) =>
+                              prev.includes(cat.id)
+                                ? prev.filter((id) => id !== cat.id)
+                                : prev.length < 3 ? [...prev, cat.id] : prev
+                            );
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                            selected
+                              ? "bg-(--primary) text-white border-(--primary) shadow-sm"
+                              : disabled
+                                ? "bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed"
+                                : "bg-white text-slate-700 border-slate-200 hover:border-(--primary)/50 hover:text-(--primary)"
+                          }`}
+                        >
+                          {cat.icon && <span>{cat.icon}</span>}
+                          {cat.nameTh}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {(() => {
                 const isPublished = tripStatus === "Published" || tripStatus === "Unpublished";
                 const isDateLocked = isPublished && dateChangeCount >= maxDateChanges;

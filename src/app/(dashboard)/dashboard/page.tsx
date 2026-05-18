@@ -19,6 +19,7 @@ interface Trip {
   scope: string;
   destination: string;
   countryCode: string | null;
+  categories: { id: string; nameTh: string; icon?: string }[];
   startDate: string;
   endDate: string;
   coverImageUrl: string | null;
@@ -483,6 +484,18 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
                         </Link>
                       )}
                     </div>
+
+                    {/* Category chips */}
+                    {trip.categories?.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {trip.categories.slice(0, 3).map((cat) => (
+                          <span key={cat.id} className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            {cat.icon && <span>{cat.icon}</span>}
+                            {cat.nameTh}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Title + destination */}
                     <div>
