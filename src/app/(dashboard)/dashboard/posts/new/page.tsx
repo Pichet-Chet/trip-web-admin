@@ -6,6 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import { FormInput, FormTextarea, ImageUpload, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
+import { Button, IconButton } from "@pichetch08/trip-ui";
 
 interface CreatePostRequest {
   title: string;
@@ -106,10 +107,7 @@ export default function NewPostPage(): React.ReactNode {
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
       <div>
-        <button onClick={() => router.push("/dashboard/posts")} className="text-sm text-(--outline) hover:text-(--on-surface-variant) flex items-center gap-1 mb-4">
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
-          กลับหน้าแพ็กเกจ
-        </button>
+        <Button variant="ghost" icon="arrow_back" size="sm" onClick={() => router.push("/dashboard/posts")}>กลับหน้าแพ็กเกจ</Button>
         <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">สร้างแพ็กเกจทัวร์</h1>
       </div>
 
@@ -189,17 +187,12 @@ export default function NewPostPage(): React.ReactNode {
                 className="flex-1 bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               />
               {highlights.length > 1 && (
-                <button onClick={() => removeHighlight(idx)} className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline-variant) hover:text-red-500 transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
+                <IconButton icon="close" variant="ghost" size="sm" onClick={() => removeHighlight(idx)} aria-label="ลบไฮไลท์" />
               )}
             </div>
           ))}
           {highlights.length < 8 && (
-            <button onClick={addHighlight} className="text-xs text-(--primary) hover:opacity-80 font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">add</span>
-              เพิ่มไฮไลท์
-            </button>
+            <Button variant="ghost" icon="add" size="sm" onClick={addHighlight}>เพิ่มไฮไลท์</Button>
           )}
         </div>
 
@@ -219,20 +212,8 @@ export default function NewPostPage(): React.ReactNode {
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-(--outline-variant)/20">
-          <button
-            onClick={() => save("draft")}
-            disabled={saving}
-            className="flex-1 py-3.5 rounded-xl border border-(--outline-variant)/30 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) transition-colors disabled:opacity-50"
-          >
-            {saving ? "กำลังบันทึก..." : "บันทึกร่าง"}
-          </button>
-          <button
-            onClick={() => save("published")}
-            disabled={saving}
-            className="flex-1 py-3.5 rounded-xl bg-(--primary) text-white text-sm font-bold hover:opacity-95 transition-colors shadow-sm disabled:opacity-50"
-          >
-            {saving ? "กำลังบันทึก..." : "เผยแพร่แพ็กเกจ"}
-          </button>
+          <Button variant="outline" disabled={saving} loading={saving} onClick={() => save("draft")} size="lg">บันทึกร่าง</Button>
+          <Button variant="primary" disabled={saving} loading={saving} onClick={() => save("published")} size="lg">เผยแพร่แพ็กเกจ</Button>
         </div>
       </div>
     </div>

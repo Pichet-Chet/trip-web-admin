@@ -195,6 +195,21 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [shareCount, setShareCount] = useState<number>(() => (trip as unknown as { shareCount?: number }).shareCount ?? 0);
+
+  async function recordShare() {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api"}/client/t/${encodeURIComponent(trip.slug)}/share`, { method: "POST" });
+      if (res.ok) {
+        const json = await res.json();
+        setShareCount(json.data?.shareCount ?? json.shareCount ?? shareCount + 1);
+      } else {
+        setShareCount((c) => c + 1);
+      }
+    } catch {
+      setShareCount((c) => c + 1);
+    }
+  }
 
   function getShareUrl() {
     return `${window.location.origin}/t/${trip.slug}`;
@@ -205,12 +220,14 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
     const text = `${trip.title} — ${trip.destination}`;
     window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank", "noopener");
     setShowShareMenu(false);
+    recordShare();
   }
 
   function shareToFacebook() {
     const url = getShareUrl();
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank", "noopener,width=600,height=400");
     setShowShareMenu(false);
+    recordShare();
   }
 
   function shareToX() {
@@ -218,6 +235,7 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
     const text = `${trip.title} — ${trip.destination}`;
     window.open(`https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank", "noopener,width=600,height=400");
     setShowShareMenu(false);
+    recordShare();
   }
 
   async function copyShareLink() {
@@ -225,6 +243,7 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
     setShareCopied(true);
     setTimeout(() => setShareCopied(false), 2000);
     setShowShareMenu(false);
+    recordShare();
   }
 
   useEffect(() => {
@@ -628,6 +647,9 @@ function TripViewContent({ trip, activeLang, onLangChange, langLoading, availabl
             >
               <span className="material-symbols-outlined text-base">share</span>
               แชร์ทริปนี้
+              {shareCount > 0 && (
+                <span className="text-white/50 text-xs">{shareCount.toLocaleString()}</span>
+              )}
             </button>
 
             {showShareMenu && (

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FilterTabs, ConfirmDialog, useToast, EmptyState, OperatorUnlockModal } from "@/components/shared";
-import { Badge } from "@pichetch08/trip-ui";
+import { Badge, Button, IconButton } from "@pichetch08/trip-ui";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -13,11 +13,19 @@ import { getUser } from "@/lib/auth";
 
 type FilterTab = "all" | "draft" | "pending_review" | "published" | "unpublished" | "archived";
 
+interface TripCategory {
+  id: string;
+  slug: string;
+  nameTh: string;
+  icon?: string | null;
+}
+
 interface Trip {
   id: string;
   title: string;
   scope: string;
   destination: string;
+  countryCode: string | null;
   startDate: string;
   endDate: string;
   coverImageUrl: string | null;
@@ -28,6 +36,7 @@ interface Trip {
   /** H3.3 — Entitlement source consumed at create. */
   quotaSource?: string | null;
   publishedAt: string | null;
+  categories?: TripCategory[];
 }
 
 const QUOTA_SOURCE_LABEL: Record<string, { text: string; cls: string; icon: string }> = {
@@ -56,6 +65,9 @@ export default function MyTripsPage(): React.ReactNode {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [countryFilter, setCountryFilter] = useState<string>("");
+  const [availableCategories, setAvailableCategories] = useState<TripCategory[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
   const [quotaFull, setQuotaFull] = useState(false);
   const [cloning, setCloning] = useState<string | null>(null);
@@ -98,6 +110,12 @@ export default function MyTripsPage(): React.ReactNode {
   }
 
   useEffect(() => {
+    api.get<TripCategory[]>("/meta/trip-categories")
+      .then(setAvailableCategories)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     Promise.all([
       api.get<Trip[]>("/admin/trips"),
       api.get<{
@@ -127,7 +145,12 @@ export default function MyTripsPage(): React.ReactNode {
       return t.status.toLowerCase() === filter;
     })
     .filter((t) => search === "" || t.title.toLowerCase().includes(search.toLowerCase()) || t.destination.toLowerCase().includes(search.toLowerCase()))
+    .filter((t) => categoryFilter === "" || (t.categories ?? []).some((c) => c.slug === categoryFilter))
+    .filter((t) => countryFilter === "" || t.countryCode === countryFilter)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Unique countries from loaded trips (for filter dropdown)
+  const uniqueCountries = Array.from(new Set(trips.map((t) => t.countryCode).filter(Boolean))) as string[];
 
   if (loading) return (
     <div className="p-8 flex items-center justify-center min-h-[50vh]">
@@ -139,15 +162,53 @@ export default function MyTripsPage(): React.ReactNode {
     <>
       <div className="p-4 md:p-8 space-y-6">
         {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="relative w-full sm:w-72">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-(--outline) text-lg">search</span>
-            <input
-              className="w-full bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
-              placeholder="ค้นหาชื่อทริป หรือจุดหมาย..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="relative w-full sm:w-72">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-(--outline) text-lg">search</span>
+              <input
+                className="w-full bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
+                placeholder="ค้นหาชื่อทริป หรือจุดหมาย..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {/* Category filter */}
+              {availableCategories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  <Button
+                    variant={categoryFilter === "" ? "primary" : "outline"}
+                    size="sm"
+                    onClick={() => setCategoryFilter("")}
+                  >ทั้งหมด</Button>
+                  {availableCategories.map((cat) => (
+                    <Button
+                      key={cat.slug}
+                      variant={categoryFilter === cat.slug ? "primary" : "outline"}
+                      size="sm"
+                      icon={cat.icon ?? undefined}
+                      onClick={() => setCategoryFilter(categoryFilter === cat.slug ? "" : cat.slug)}
+                    >
+                      {cat.nameTh}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              {/* Country filter — only shown when operator has trips in multiple countries */}
+              {uniqueCountries.length > 1 && (
+                <select
+                  value={countryFilter}
+                  onChange={(e) => setCountryFilter(e.target.value)}
+                  className="px-3 py-1.5 border border-(--outline-variant) rounded-xl text-xs bg-white text-(--on-surface-variant) focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
+                >
+                  <option value="">ทุกประเทศ</option>
+                  {uniqueCountries.map((cc) => (
+                    <option key={cc} value={cc}>{cc}</option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
           <FilterTabs
             tabs={[
@@ -235,9 +296,23 @@ export default function MyTripsPage(): React.ReactNode {
                         <Badge variant="success" size="sm" icon="public">เผยแพร่อยู่</Badge>
                       )}
                     </div>
-                    <p className="text-[12px] text-(--outline) mt-1">
-                      {trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"} · {trip.destination} · {trip.travelersCount} คน
+                    <p className="text-[12px] text-(--outline) mt-1 flex items-center gap-1.5 flex-wrap">
+                      <span>{trip.scope === "international" ? "ต่างประเทศ" : "ในประเทศ"}</span>
+                      {trip.countryCode && (
+                        <span className="px-1.5 py-0.5 rounded bg-(--surface-variant)/60 font-mono text-[10px] text-(--on-surface-variant)">{trip.countryCode}</span>
+                      )}
+                      <span>· {trip.destination} · {trip.travelersCount} คน</span>
                     </p>
+                    {trip.categories && trip.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {trip.categories.map((cat) => (
+                          <span key={cat.id} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-(--surface-variant)/60 text-(--on-surface-variant) text-[10px] font-medium">
+                            {cat.icon && <span className="material-symbols-outlined text-[12px]">{cat.icon}</span>}
+                            {cat.nameTh}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {trip.followerCount > 0 && (
                       <p className="text-[11px] text-(--outline) mt-1">{trip.followerCount} ผู้ติดตาม</p>
                     )}
@@ -260,21 +335,22 @@ export default function MyTripsPage(): React.ReactNode {
                             <span className="material-symbols-outlined text-[16px]">manage_accounts</span>
                           </Link>
                         )}
-                        <button
-                          onClick={() => handleClone(trip)}
+                        <IconButton
+                          icon="content_copy"
+                          variant="ghost"
+                          size="sm"
                           disabled={cloning === trip.id || quotaFull}
-                          title={quotaFull ? "Quota เต็ม — ซื้อเครดิตเพิ่มก่อน" : "Clone ทริปนี้"}
-                          className="w-7 h-7 rounded-lg hover:bg-(--primary-container)/40 flex items-center justify-center text-(--outline) hover:text-(--primary) transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                        </button>
+                          aria-label={quotaFull ? "Quota เต็ม — ซื้อเครดิตเพิ่มก่อน" : "Clone ทริปนี้"}
+                          onClick={() => handleClone(trip)}
+                        />
                         {isDraft && !hasPublishedSnapshot && (
-                          <button
+                          <IconButton
+                            icon="delete"
+                            variant="danger"
+                            size="sm"
+                            aria-label="ลบทริป"
                             onClick={() => setDeleteTarget(trip)}
-                            className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline) hover:text-red-500 transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">delete</span>
-                          </button>
+                          />
                         )}
                       </div>
                     </div>
@@ -290,9 +366,7 @@ export default function MyTripsPage(): React.ReactNode {
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-(--outline-variant) mb-4 block">luggage</span>
             <p className="text-(--outline) mb-6">ยังไม่มีทริป</p>
-            <button onClick={handleCreateTrip} className="inline-flex items-center gap-2 bg-(--primary) text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all">
-              <span className="material-symbols-outlined">add</span> สร้างทริป
-            </button>
+            <Button variant="primary" icon="add" size="lg" onClick={handleCreateTrip}>สร้างทริป</Button>
           </div>
         )}
       </div>

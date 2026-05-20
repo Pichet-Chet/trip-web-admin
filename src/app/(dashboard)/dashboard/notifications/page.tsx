@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { EmptyState, ErrorState, Pagination, TableRowSkeleton, useToast } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { Button } from "@pichetch08/trip-ui";
 
 interface NotificationItem {
   id: string;
@@ -103,13 +104,7 @@ export default function NotificationsPage(): React.ReactNode {
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {data && data.unreadCount > 0 && (
-            <button
-              type="button"
-              onClick={markAllRead}
-              className="px-4 py-2 rounded-lg border border-(--outline-variant)/30 text-sm font-semibold text-(--on-surface) hover:bg-(--surface-container-low)"
-            >
-              อ่านทั้งหมด
-            </button>
+            <Button variant="outline" size="sm" onClick={markAllRead}>อ่านทั้งหมด</Button>
           )}
           <Link
             href="/dashboard/settings#notifications"
@@ -122,20 +117,20 @@ export default function NotificationsPage(): React.ReactNode {
       </div>
 
       <div className="flex gap-2">
-        <button
-          type="button"
+        <Button
+          variant={!unreadOnly ? "primary" : "outline"}
+          size="sm"
           onClick={() => { setUnreadOnly(false); setPage(1); }}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold ${!unreadOnly ? "bg-(--primary) text-white" : "bg-white border border-(--outline-variant)/30 text-(--on-surface)"}`}
         >
           ทั้งหมด
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant={unreadOnly ? "primary" : "outline"}
+          size="sm"
           onClick={() => { setUnreadOnly(true); setPage(1); }}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold ${unreadOnly ? "bg-(--primary) text-white" : "bg-white border border-(--outline-variant)/30 text-(--on-surface)"}`}
         >
           ยังไม่อ่าน {data?.unreadCount ? `(${data.unreadCount})` : ""}
-        </button>
+        </Button>
       </div>
 
       {loading ? (

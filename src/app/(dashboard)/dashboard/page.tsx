@@ -181,6 +181,84 @@ function MemberDashboard({ user, onUnlock }: { user: UserInfo | null; onUnlock: 
 
 // ─── Operator dashboard ──────────────────────────────────────────────────────
 
+// ─── Onboarding types ────────────────────────────────────────────────────────
+
+interface OnboardingItem {
+  key: string;
+  label: string;
+  points: number;
+  completed: boolean;
+  href: string;
+  hidden: boolean;
+}
+interface OnboardingData { score: number; items: OnboardingItem[]; }
+
+const ONBOARDING_HIDE_KEY = "onboarding_hidden_until";
+
+function OnboardingBanner({ data, onHide }: { data: OnboardingData; onHide: () => void }) {
+  const visible = data.items.filter(i => !i.hidden);
+  const done = visible.filter(i => i.completed).length;
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }}>checklist</span>
+          </div>
+          <div>
+            <p className="font-bold text-amber-900 text-sm">ตั้งค่าโปรไฟล์ให้สมบูรณ์ ({done}/{visible.length})</p>
+            <p className="text-xs text-amber-700 mt-0.5">เพื่อให้นักเดินทางเจอทริปของคุณได้ง่ายขึ้น</p>
+          </div>
+        </div>
+        <button
+          onClick={onHide}
+          className="text-amber-400 hover:text-amber-600 shrink-0"
+          aria-label="ซ่อน"
+        >
+          <span className="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="space-y-1">
+        <div className="flex justify-between text-xs text-amber-700">
+          <span>ความสมบูรณ์</span>
+          <span className="font-bold">{data.score}%</span>
+        </div>
+        <div className="h-2 rounded-full bg-amber-100 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-amber-500 transition-all duration-500"
+            style={{ width: `${data.score}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Checklist */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {visible.map(item => (
+          <Link
+            key={item.key}
+            href={item.completed ? "#" : item.href}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
+              item.completed
+                ? "bg-amber-100/60 text-amber-700 cursor-default pointer-events-none"
+                : "bg-white border border-amber-200 text-amber-900 hover:border-amber-400 hover:bg-amber-50"
+            }`}
+          >
+            <span className={`material-symbols-outlined text-base shrink-0 ${item.completed ? "text-emerald-500" : "text-amber-400"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+              {item.completed ? "check_circle" : "radio_button_unchecked"}
+            </span>
+            <span className="font-medium flex-1">{item.label}</span>
+            {!item.completed && <span className="text-xs text-amber-500">+{item.points}pts</span>}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Operator dashboard ───────────────────────────────────────────────────────
+
 function OperatorDashboard({ user }: { user: UserInfo | null }) {
   const router = useRouter();
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -189,6 +267,8 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
   const [filter, setFilter] = useState<FilterTab>("all");
   const [apiError, setApiError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
+  const [onboarding, setOnboarding] = useState<OnboardingData | null>(null);
+  const [onboardingVisible, setOnboardingVisible] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -202,7 +282,28 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
       setApiError(err instanceof Error ? err.message : "ไม่สามารถโหลดข้อมูลได้");
       setLoading(false);
     });
+
+    // Onboarding banner: fetch + check localStorage hide flag
+    const hiddenUntil = localStorage.getItem(ONBOARDING_HIDE_KEY);
+    const isHidden = hiddenUntil && new Date(hiddenUntil) > new Date();
+    if (!isHidden) {
+      api.get<OnboardingData>("/admin/me/onboarding")
+        .then(data => {
+          if (data.score < 100) {
+            setOnboarding(data);
+            setOnboardingVisible(true);
+          }
+        })
+        .catch(() => { /* non-blocking */ });
+    }
   }, []);
+
+  function handleHideOnboarding() {
+    const until = new Date();
+    until.setDate(until.getDate() + 7);
+    localStorage.setItem(ONBOARDING_HIDE_KEY, until.toISOString());
+    setOnboardingVisible(false);
+  }
 
   const filteredTrips = filter === "all"
     ? trips
@@ -249,6 +350,11 @@ function OperatorDashboard({ user }: { user: UserInfo | null }) {
           <p className="text-sm text-red-700 flex-1">{apiError}</p>
           <button onClick={() => setApiError("")} className="text-red-400 hover:text-red-600"><span className="material-symbols-outlined text-lg">close</span></button>
         </div>
+      )}
+
+      {/* Onboarding banner */}
+      {onboardingVisible && onboarding && (
+        <OnboardingBanner data={onboarding} onHide={handleHideOnboarding} />
       )}
 
       {/* Rejection alert banner */}

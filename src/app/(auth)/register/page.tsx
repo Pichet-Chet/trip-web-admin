@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
@@ -9,7 +9,7 @@ import { useToast } from "@/components/shared";
 import { AgreementModal } from "@/components/shared";
 import { register } from "@/lib/auth";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
-import { ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { RemoteLegalContent } from "@/components/legal/remote-legal-content";
 
 type Errors = Record<string, string>;
@@ -56,6 +56,7 @@ export default function RegisterPage(): React.ReactNode {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [termsReadAt, setTermsReadAt] = useState<string | null>(null);
   const [privacyReadAt, setPrivacyReadAt] = useState<string | null>(null);
+  const [countries, setCountries] = useState<{ code: string; nameTh: string; flag: string }[]>([]);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -64,6 +65,8 @@ export default function RegisterPage(): React.ReactNode {
     confirmPassword: "",
     termsRead: false,
     privacyRead: false,
+    marketingConsent: false,
+    countryCode: "",
   });
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,6 +74,12 @@ export default function RegisterPage(): React.ReactNode {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
   };
+
+  useEffect(() => {
+    api.get<{ code: string; nameTh: string; flag: string }[]>("/meta/countries")
+      .then(setCountries)
+      .catch(() => {});
+  }, []);
 
   const bothRead = form.termsRead && form.privacyRead;
 
@@ -90,6 +99,8 @@ export default function RegisterPage(): React.ReactNode {
         password: form.password,
         termsReadAt: termsReadAt!,
         privacyReadAt: privacyReadAt!,
+        marketingConsent: form.marketingConsent,
+        countryCode: form.countryCode || undefined,
       });
       router.push(`${ROUTES.verifyEmail}?email=${encodeURIComponent(form.email)}`);
     } catch (err) {
@@ -156,6 +167,27 @@ export default function RegisterPage(): React.ReactNode {
               <FormInput label="นามสกุล" placeholder="ใจดี" icon="person" value={form.lastName} onChange={set("lastName")} error={errors.lastName} required />
             </div>
 
+            {countries.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-(--on-surface-variant) mb-1.5">
+                  ประเทศ <span className="text-xs font-normal text-(--outline)">(ไม่บังคับ)</span>
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-(--on-surface-variant) text-lg pointer-events-none">public</span>
+                  <select
+                    value={form.countryCode}
+                    onChange={(e) => setForm((prev) => ({ ...prev, countryCode: e.target.value }))}
+                    className="w-full pl-10 pr-4 py-3 border border-(--outline-variant)/40 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/30 focus:border-(--primary) transition-all appearance-none"
+                  >
+                    <option value="">— เลือกประเทศที่ดำเนินธุรกิจ —</option>
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>{c.flag} {c.nameTh}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
             <FormInput label="อีเมล" placeholder="you@example.com" type="email" icon="mail" value={form.email} onChange={set("email")} error={errors.email} required />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -219,6 +251,31 @@ export default function RegisterPage(): React.ReactNode {
                 </p>
               )}
             </div>
+
+            {/* Marketing consent — opt-in, default unchecked */}
+            <label className="flex items-start gap-3 cursor-pointer select-none group">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={form.marketingConsent}
+                  onChange={set("marketingConsent")}
+                />
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                  form.marketingConsent
+                    ? "bg-(--primary) border-(--primary)"
+                    : "bg-white border-(--outline-variant) group-hover:border-(--primary)/60"
+                }`}>
+                  {form.marketingConsent && (
+                    <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1, 'wght' 700" }}>check</span>
+                  )}
+                </div>
+              </div>
+              <span className="text-sm text-(--on-surface-variant) leading-relaxed">
+                รับข่าวสาร โปรโมชัน และเคล็ดลับจาก TripApp ทางอีเมล
+                <span className="text-xs text-(--outline) block mt-0.5">ยกเลิกได้ทุกเมื่อ — ไม่บังคับ</span>
+              </span>
+            </label>
 
             {apiError && (
               <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">

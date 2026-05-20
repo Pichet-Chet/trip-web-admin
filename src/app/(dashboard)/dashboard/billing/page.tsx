@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { Banner, ConfirmDialog, DatePicker, EmptyState, ErrorState, FormTextarea, LoadingState, Modal, PageSkeleton, Pagination, SectionHeader, SelectPicker, StatCard, StatusBadge, useToast } from "@/components/shared";
+import { PromoCodeWidget } from "@/components/features/promo-code-widget";
 import type { StatusConfig } from "@pichetch08/trip-ui";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -555,6 +556,13 @@ function BillingContent(): React.ReactNode {
           ระบบออกใบเสร็จให้ทุกการชำระเงินอยู่แล้ว — ตั้งข้อมูลภาษี (TIN/ที่อยู่) เพื่อให้เป็นใบกำกับภาษีที่นำไปใช้เครดิตภาษีได้
         </Banner>
       )}
+
+      {/* ═══ Promo Code ═══ */}
+      <section className="bg-white rounded-2xl border border-(--outline-variant)/40 p-5 max-w-md">
+        <PromoCodeWidget
+          onApplied={() => api.get<UsageData>("/admin/usage").then(setUsage).catch(() => {})}
+        />
+      </section>
 
       {/* ═══ Payment Table ═══ */}
       <section className="space-y-4">

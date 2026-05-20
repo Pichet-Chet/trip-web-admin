@@ -256,7 +256,18 @@ export async function fetchFaq() {
 
 export async function trackView(slug: string) {
   try {
-    await api.post(`/client/t/${encodeURIComponent(slug)}/view`);
+    // Forward UTM params from current URL to the view endpoint for source tracking
+    const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content"] as const;
+    const search = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const utmParams = new URLSearchParams();
+    if (search) {
+      for (const k of utmKeys) {
+        const v = search.get(k);
+        if (v) utmParams.set(k, v);
+      }
+    }
+    const qs = utmParams.toString();
+    await api.post(`/client/t/${encodeURIComponent(slug)}/view${qs ? `?${qs}` : ""}`);
   } catch {
     // best-effort — don't break the page if view tracking fails
   }

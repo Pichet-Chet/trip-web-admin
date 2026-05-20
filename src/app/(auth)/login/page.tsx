@@ -9,6 +9,7 @@ import { useToast } from "@/components/shared";
 import { login, verifyTwoFactor, refreshAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { Button } from "@pichetch08/trip-ui";
 
 type Errors = Record<string, string>;
 
@@ -265,20 +266,20 @@ function LoginPageContent(): React.ReactNode {
                   <p className="text-sm text-red-700">{apiError}</p>
                 </div>
               )}
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="lg"
                 disabled={loading || !twoFaCode}
-                className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg hover:opacity-95 transition-all active:scale-[0.98] duration-200 text-center disabled:opacity-50"
+                loading={loading}
               >
-                {loading ? "กำลังตรวจสอบ..." : "ยืนยัน"}
-              </button>
+                ยืนยัน
+              </Button>
               <div className="flex items-center justify-between text-xs text-(--on-surface-variant)">
-                <button type="button" onClick={() => { setUseBackupCode(!useBackupCode); setTwoFaCode(""); setApiError(""); }} className="text-(--primary) hover:underline font-semibold">
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setUseBackupCode(!useBackupCode); setTwoFaCode(""); setApiError(""); }}>
                   {useBackupCode ? "← ใช้รหัสจากแอป Authenticator" : "ใช้รหัสสำรองแทน"}
-                </button>
-                <button type="button" onClick={cancelTwoFa} className="hover:underline">
-                  ยกเลิก
-                </button>
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={cancelTwoFa}>ยกเลิก</Button>
               </div>
               <div className="text-center pt-2 border-t border-(--outline-variant)/20">
                 <Link href="/forgot-2fa" className="text-xs text-(--on-surface-variant) hover:text-(--primary) hover:underline">
@@ -325,13 +326,15 @@ function LoginPageContent(): React.ReactNode {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={loading || blocked}
-              className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg hover:opacity-95 shadow-xl shadow-(--primary)/20 transition-all active:scale-[0.98] duration-200 text-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
             >
-              {loading ? "กำลังเข้าสู่ระบบ..." : blocked ? "กรุณารอ..." : "เข้าสู่ระบบ"}
-            </button>
+              {blocked ? "กรุณารอ..." : "เข้าสู่ระบบ"}
+            </Button>
           </form>
           )}
 

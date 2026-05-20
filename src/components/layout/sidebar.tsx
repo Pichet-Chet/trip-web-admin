@@ -11,11 +11,13 @@ const operatorItems = [
   { label: "ทริปของฉัน", href: "/dashboard/my-trips", icon: "luggage" },
   { label: "แพ็กเกจทัวร์", href: "/dashboard/posts", icon: "flight_takeoff" },
   { label: "คลังสื่อ", href: "/dashboard/media", icon: "photo_library" },
+  { label: "Analytics", href: "/dashboard/analytics", icon: "bar_chart" },
   { label: "การใช้งาน", href: ROUTES.usage, icon: "speed" },
   { label: "การชำระเงิน", href: "/dashboard/billing", icon: "receipt_long" },
 ] as const;
 
 const memberItems = [
+  { label: "ค้นหาทริป", href: "/dashboard/discover", icon: "travel_explore" },
   { label: "ทริปที่ติดตาม", href: "/dashboard/following", icon: "bookmark" },
   { label: "สถานที่บันทึก", href: "/dashboard/saved", icon: "favorite" },
   { label: "โปรไฟล์", href: ROUTES.profile, icon: "person" },

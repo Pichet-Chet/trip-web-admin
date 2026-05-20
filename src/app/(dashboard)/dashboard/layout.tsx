@@ -13,6 +13,7 @@ import { QuotaWarningBanner } from "@/components/app/quota-warning-banner";
 import { subscribe, logout, switchCompany, getImpersonationContext, type UserInfo, type CompanyInfo } from "@/lib/auth";
 import { useToast } from "@/components/shared";
 import { DashboardProvider } from "@/lib/contexts/dashboard-context";
+import { IconButton, Button } from "@pichetch08/trip-ui";
 
 const SidebarContext = createContext<{ openSidebar: () => void }>({ openSidebar: () => {} });
 export function useSidebar(): { openSidebar: () => void } { return useContext(SidebarContext); }
@@ -70,9 +71,7 @@ export default function DashboardLayout({
           {/* Global Header */}
           <header className="sticky top-0 z-40 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 md:px-8">
             <div className="flex items-center gap-4">
-              <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2.5 -ml-2 rounded-lg hover:bg-slate-100 text-slate-500">
-                <span className="material-symbols-outlined">menu</span>
-              </button>
+              <IconButton icon="menu" variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} aria-label="เปิดเมนู" className="md:hidden -ml-2" />
             </div>
             <div className="flex items-center gap-4">
               <NotificationBell
@@ -167,10 +166,7 @@ export default function DashboardLayout({
                         </a>
                       </nav>
                       <div className="border-t border-slate-100 py-2">
-                        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors w-full text-left">
-                          <span className="material-symbols-outlined text-lg">logout</span>
-                          ออกจากระบบ
-                        </button>
+                        <Button variant="danger" icon="logout" size="sm" onClick={handleLogout}>ออกจากระบบ</Button>
                       </div>
                     </div>
                   </>

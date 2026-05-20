@@ -8,6 +8,7 @@ import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/shared";
 import { AuthHero } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { Spinner } from "@pichetch08/trip-ui";
 
 function VerifyEmailContent(): React.ReactNode {
   usePageTitle("ยืนยันอีเมล");
@@ -129,7 +130,7 @@ function VerifyEmailContent(): React.ReactNode {
   if (status === "verifying") {
     return (
       <div className="text-center py-12">
-        <div className="w-12 h-12 border-4 border-(--primary)/20 border-t-(--primary) rounded-full animate-spin mx-auto mb-6" />
+        <div className="mx-auto mb-6 flex items-center justify-center"><Spinner size="lg" color="primary" /></div>
         <h2 className="font-(--font-jakarta) text-3xl font-bold text-(--on-surface) mb-2">กำลังยืนยัน</h2>
         <p className="text-(--on-surface-variant)">กรุณารอสักครู่</p>
       </div>

@@ -14,6 +14,7 @@ import {
 import type { PostStatus } from "@/types";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { useUnsavedChanges } from "@/lib/hooks/use-unsaved-changes";
+import { Button, IconButton } from "@pichetch08/trip-ui";
 
 interface PostResponse {
   id: string;
@@ -189,10 +190,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
       <div>
-        <button onClick={() => router.push("/dashboard/posts")} className="text-sm text-(--outline) hover:text-(--on-surface-variant) flex items-center gap-1 mb-4">
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
-          กลับหน้าแพ็กเกจ
-        </button>
+        <Button variant="ghost" icon="arrow_back" size="sm" onClick={() => router.push("/dashboard/posts")}>กลับหน้าแพ็กเกจ</Button>
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl md:text-3xl font-extrabold text-(--on-surface) tracking-tight">แก้ไขแพ็กเกจ</h1>
           <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md text-white ${
@@ -264,17 +262,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 className="flex-1 bg-white border border-(--outline-variant)/30 rounded-xl py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
               />
               {highlights.length > 1 && (
-                <button onClick={() => removeHighlight(idx)} className="w-10 h-10 min-w-[40px] rounded-lg hover:bg-red-50 flex items-center justify-center text-(--outline-variant) hover:text-red-500 transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
+                <IconButton icon="close" variant="ghost" size="sm" onClick={() => removeHighlight(idx)} aria-label="ลบไฮไลท์" />
               )}
             </div>
           ))}
           {highlights.length < 8 && (
-            <button onClick={addHighlight} className="text-xs text-(--primary) hover:opacity-80 font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">add</span>
-              เพิ่มไฮไลท์
-            </button>
+            <Button variant="ghost" icon="add" size="sm" onClick={addHighlight}>เพิ่มไฮไลท์</Button>
           )}
         </div>
 
@@ -295,48 +288,41 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         {/* Status actions */}
         <div className="flex flex-wrap gap-2 pt-4 border-t border-(--outline-variant)/20">
           {!isPublished && (
-            <button
-              onClick={() => setConfirmStatus("published")}
+            <Button
+              variant="secondary"
+              size="sm"
               disabled={saving}
-              className="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
+              onClick={() => setConfirmStatus("published")}
             >
               เปิดรับลูกค้า
-            </button>
+            </Button>
           )}
           {isPublished && (
-            <button
-              onClick={() => setConfirmStatus("closed")}
+            <Button
+              variant="secondary"
+              size="sm"
               disabled={saving}
-              className="px-4 py-2 bg-(--surface-variant) text-(--on-surface) text-sm font-bold rounded-lg hover:bg-(--outline-variant)/40 transition-colors disabled:opacity-50"
+              onClick={() => setConfirmStatus("closed")}
             >
               ปิดรับลูกค้า
-            </button>
+            </Button>
           )}
-          <button
-            onClick={() => setConfirmDelete(true)}
-            disabled={saving}
-            className="ml-auto px-4 py-2 bg-red-50 text-red-700 text-sm font-bold rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
-          >
-            ลบแพ็กเกจ
-          </button>
+          <div className="ml-auto">
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={saving}
+              onClick={() => setConfirmDelete(true)}
+            >
+              ลบแพ็กเกจ
+            </Button>
+          </div>
         </div>
 
         {/* Save */}
         <div className="flex gap-3">
-          <button
-            onClick={() => router.push("/dashboard/posts")}
-            disabled={saving}
-            className="flex-1 py-3.5 rounded-xl border border-(--outline-variant)/30 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) transition-colors disabled:opacity-50"
-          >
-            ยกเลิก
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 py-3.5 rounded-xl bg-(--primary) text-white text-sm font-bold hover:opacity-95 transition-colors shadow-sm disabled:opacity-50"
-          >
-            {saving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
-          </button>
+          <Button variant="outline" disabled={saving} onClick={() => router.push("/dashboard/posts")} size="lg">ยกเลิก</Button>
+          <Button variant="primary" disabled={saving} loading={saving} onClick={handleSave} size="lg">บันทึกการเปลี่ยนแปลง</Button>
         </div>
       </div>
 

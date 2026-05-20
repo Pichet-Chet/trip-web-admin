@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { FormInput, FormTextarea, ImageUpload, PageSkeleton, SectionHeader, ToggleSwitch, useToast } from "@/components/shared";
+import { Spinner } from "@pichetch08/trip-ui";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
@@ -480,7 +481,7 @@ export default function ProfilePage(): React.ReactNode {
               >
                 {saving ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-slate-400/40 border-t-slate-500 rounded-full animate-spin" />
+                    <Spinner size="xs" color="current" />
                     กำลังบันทึก...
                   </>
                 ) : (
@@ -641,7 +642,7 @@ function TeamSection(): React.ReactNode {
                 className="w-full h-full px-4 py-4 bg-(--primary) text-white rounded-xl text-sm font-bold hover:brightness-110 transition-colors disabled:opacity-50 whitespace-nowrap inline-flex items-center justify-center gap-1"
               >
                 {inviting ? (
-                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  <Spinner size="xs" color="white" />
                 ) : "ส่ง"}
               </button>
             </div>

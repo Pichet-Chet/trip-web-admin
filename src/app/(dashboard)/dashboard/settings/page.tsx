@@ -40,6 +40,35 @@ export default function SettingsPage(): React.ReactNode {
   const [pwError, setPwError] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
 
+  // Marketing consent
+  const [marketingConsent, setMarketingConsent] = useState<boolean | null>(null);
+  const [consentAt, setConsentAt] = useState<string | null>(null);
+  const [consentLoading, setConsentLoading] = useState(false);
+
+  useEffect(() => {
+    api.get<{ marketingConsent: boolean; marketingConsentAt: string | null }>("/admin/me/marketing-consent")
+      .then((d) => {
+        setMarketingConsent(d.marketingConsent);
+        setConsentAt(d.marketingConsentAt ?? null);
+      })
+      .catch(() => {});
+  }, []);
+
+  async function handleConsentToggle() {
+    if (marketingConsent === null) return;
+    setConsentLoading(true);
+    try {
+      const res = await api.put<{ consent: boolean; consentAt: string }>("/admin/me/marketing-consent", { consent: !marketingConsent });
+      setMarketingConsent(res.consent);
+      setConsentAt(res.consentAt ?? null);
+      toast.success(res.consent ? "เปิดรับอีเมลแล้ว" : "ปิดรับอีเมลแล้ว");
+    } catch (err) {
+      toast.error((err as Error).message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setConsentLoading(false);
+    }
+  }
+
   // Export
   const [exporting, setExporting] = useState(false);
 
@@ -184,6 +213,37 @@ export default function SettingsPage(): React.ReactNode {
       {isOperator && <SecuritySection />}
 
       {isOperator && <NotificationPreferencesSection />}
+
+      {/* Marketing Consent */}
+      <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">
+        <SectionHeader title="การแจ้งเตือนทางอีเมล" variant="bar" />
+        <p className="text-sm text-(--on-surface-variant)">
+          รับข่าวสาร โปรโมชัน และเคล็ดลับจาก TripApp ทางอีเมล ยกเลิกได้ทุกเมื่อ
+        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-(--on-surface)">รับ newsletter / โปรโมชัน</p>
+            {consentAt && (
+              <p className="text-xs text-(--outline) mt-0.5">
+                อัปเดตล่าสุด: {new Date(consentAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handleConsentToggle}
+            disabled={consentLoading || marketingConsent === null}
+            aria-checked={marketingConsent ?? false}
+            role="switch"
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-(--primary) disabled:opacity-50 ${
+              marketingConsent ? "bg-(--primary)" : "bg-(--outline-variant)"
+            }`}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+              marketingConsent ? "translate-x-6" : "translate-x-1"
+            }`} />
+          </button>
+        </div>
+      </div>
 
       {/* Export Data — PDPA */}
       <div className="bg-white rounded-2xl border border-(--outline-variant)/30 p-6 space-y-4">

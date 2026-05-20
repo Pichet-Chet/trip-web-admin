@@ -12,6 +12,8 @@ interface TripMeta {
   startDate: string;
   endDate: string;
   coverImageUrl: string | null;
+  travelersCount: number;
+  visibility: string;
   company: { name: string; logoUrl: string | null };
 }
 
@@ -47,14 +49,18 @@ export async function generateMetadata({
     return { title: "Trip not found" };
   }
 
+  const isPublic = trip.visibility === "marketplace";
   const title = `${trip.title} — ${trip.company.name}`;
-  const description = `${trip.destination} | ${formatDateRange(trip.startDate, trip.endDate)}`;
+  const description = `${trip.destination} | ${formatDateRange(trip.startDate, trip.endDate)} | ${trip.travelersCount} คน`;
   const ogImageUrl = `${API_URL}/client/t/${encodeURIComponent(slug)}/og-image.png`;
   const tripUrl = `${SITE_URL}/t/${slug}`;
 
   return {
     title,
     description,
+    robots: isPublic
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
     openGraph: {
       title,
       description,
@@ -85,6 +91,48 @@ interface LayoutProps {
 
 export default async function TripLayout({ children, params }: LayoutProps) {
   const { slug } = await params;
+  const trip = await fetchTripMeta(slug);
 
-  return <TripClientLayout slug={slug}>{children}</TripClientLayout>;
+  const isPublic = trip?.visibility === "marketplace";
+  const tripUrl = `${SITE_URL}/t/${slug}`;
+
+  const jsonLd = trip
+    ? {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "TouristTrip",
+            "@id": tripUrl,
+            name: trip.title,
+            description: `${trip.destination} | ${formatDateRange(trip.startDate, trip.endDate)} | ${trip.travelersCount} คน`,
+            touristType: "Leisure",
+            provider: {
+              "@type": "TravelAgency",
+              name: trip.company.name,
+            },
+            offers: { "@type": "Offer", url: tripUrl },
+            ...(trip.coverImageUrl ? { image: trip.coverImageUrl } : {}),
+          },
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "หน้าหลัก", item: SITE_URL },
+              { "@type": "ListItem", position: 2, name: trip.title, item: tripUrl },
+            ],
+          },
+        ],
+      }
+    : null;
+
+  return (
+    <>
+      {jsonLd && isPublic && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <TripClientLayout slug={slug}>{children}</TripClientLayout>
+    </>
+  );
 }

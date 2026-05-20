@@ -47,6 +47,8 @@ export interface RegisterPayload {
   password: string;
   termsReadAt: string;
   privacyReadAt: string;
+  marketingConsent?: boolean;
+  countryCode?: string;
 }
 
 export interface LoginPayload {

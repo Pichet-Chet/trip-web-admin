@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { ConfirmDialog, EmptyState, FormInput, Modal, useToast } from "@/components/shared";
+import { Button, IconButton } from "@pichetch08/trip-ui";
 
 interface SavedPlace {
   id: string;
@@ -182,13 +183,7 @@ export default function SavedPage(): React.ReactNode {
             className="w-full bg-white border border-(--outline-variant)/30 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--primary)/20 focus:border-(--primary)"
           />
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-1.5 bg-(--primary) text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:brightness-110 transition-all shrink-0"
-        >
-          <span className="material-symbols-outlined text-base">add</span>
-          เพิ่ม
-        </button>
+        <Button variant="primary" icon="add" onClick={openCreate}>เพิ่ม</Button>
       </div>
 
       {error && (
@@ -262,14 +257,8 @@ export default function SavedPage(): React.ReactNode {
                       <span className="material-symbols-outlined text-base">map</span>
                     </a>
                   )}
-                  <button onClick={() => openEdit(place)}
-                    className="p-1.5 rounded-lg hover:bg-(--surface-variant) text-(--on-surface-variant)" title="แก้ไข">
-                    <span className="material-symbols-outlined text-base">edit</span>
-                  </button>
-                  <button onClick={() => setDeleteTarget(place)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-400" title="ลบ">
-                    <span className="material-symbols-outlined text-base">delete</span>
-                  </button>
+                  <IconButton icon="edit" variant="ghost" size="sm" onClick={() => openEdit(place)} aria-label="แก้ไข" />
+                  <IconButton icon="delete" variant="danger" size="sm" onClick={() => setDeleteTarget(place)} aria-label="ลบ" />
                 </div>
               </div>
               {place.location && (
@@ -299,20 +288,10 @@ export default function SavedPage(): React.ReactNode {
         title={editTarget ? "แก้ไขสถานที่" : "เพิ่มสถานที่"}
         footer={
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowModal(false)}
-              disabled={saving}
-              className="flex-1 border border-(--outline-variant)/30 rounded-full py-3 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-container-low) disabled:opacity-50 transition-colors"
-            >
-              ยกเลิก
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1 bg-(--primary) text-white rounded-full py-3 text-sm font-bold hover:brightness-110 disabled:opacity-60 transition-all"
-            >
-              {saving ? "กำลังบันทึก..." : editTarget ? "บันทึก" : "เพิ่มสถานที่"}
-            </button>
+            <Button variant="outline" disabled={saving} onClick={() => setShowModal(false)} size="md">ยกเลิก</Button>
+            <Button variant="primary" disabled={saving} loading={saving} onClick={handleSave} size="md">
+              {editTarget ? "บันทึก" : "เพิ่มสถานที่"}
+            </Button>
           </div>
         }
       >

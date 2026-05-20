@@ -136,10 +136,16 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
 
   // Trip meta state
   const [tripTitle, setTripTitle] = useState<string>("");
+  const [tripSlug, setTripSlug] = useState<string | null>(null);
   const [tripCover, setTripCover] = useState<string | null>(null);
   const [tripDestination, setTripDestination] = useState<string>("");
   const [tripStartDate, setTripStartDate] = useState<string | null>(null);
   const [tripEndDate, setTripEndDate] = useState<string | null>(null);
+
+  // UTM link generator state
+  const [utmCampaign, setUtmCampaign] = useState("");
+  const [utmSource, setUtmSource] = useState("line");
+  const [utmLinkCopied, setUtmLinkCopied] = useState(false);
 
   const isEnded = tripEndDate ? new Date(tripEndDate + "T23:59:59") < new Date() : false;
 
@@ -263,6 +269,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
       api.get<{
         requiresApproval: boolean;
         title?: string;
+        slug?: string;
         coverImageUrl?: string;
         destination?: string;
         startDate?: string;
@@ -275,6 +282,7 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
     if (tripMeta) {
       setRequiresApproval(tripMeta.requiresApproval ?? false);
       setTripTitle(tripMeta.title ?? "");
+      setTripSlug(tripMeta.slug ?? null);
       setTripCover(tripMeta.coverImageUrl ?? null);
       setTripDestination(tripMeta.destination ?? "");
       setTripStartDate(tripMeta.startDate ?? null);
@@ -505,6 +513,65 @@ export default function ManagePage({ params }: { params: Promise<{ id: string }>
             </Link>
           </div>
         </div>
+
+        {/* ── UTM Link Generator ── */}
+        {tripSlug && (
+          <section className="bg-white rounded-2xl border border-(--outline-variant)/30 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-lg text-(--primary)">link</span>
+              <h3 className="text-sm font-semibold text-(--on-surface)">แชร์และติดตามผล</h3>
+            </div>
+            <p className="text-xs text-(--on-surface-variant) mb-4">สร้างลิงก์พร้อม UTM เพื่อติดตามว่า traffic มาจากช่องทางไหน</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {(["line", "facebook", "instagram", "x", "other"] as const).map((src) => (
+                <button
+                  key={src}
+                  onClick={() => setUtmSource(src)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    utmSource === src
+                      ? "bg-(--primary) text-(--on-primary)"
+                      : "bg-(--surface-variant) text-(--on-surface-variant) hover:bg-(--outline-variant)/30"
+                  }`}
+                >
+                  {src === "line" ? "LINE" : src === "facebook" ? "Facebook" : src === "instagram" ? "Instagram" : src === "x" ? "X (Twitter)" : "อื่น ๆ"}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={utmCampaign}
+                onChange={(e) => setUtmCampaign(e.target.value)}
+                placeholder="ชื่อแคมเปญ เช่น summer2026"
+                className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-(--outline-variant)/40 bg-(--surface-variant)/40 text-sm text-(--on-surface) placeholder:text-(--on-surface-variant)/50 focus:outline-none focus:ring-2 focus:ring-(--primary)/30"
+              />
+              <button
+                onClick={async () => {
+                  const base = `${window.location.origin}/t/${tripSlug}`;
+                  const params = new URLSearchParams({
+                    utm_source: utmSource,
+                    utm_medium: "social",
+                    ...(utmCampaign.trim() ? { utm_campaign: utmCampaign.trim() } : {}),
+                  });
+                  await navigator.clipboard.writeText(`${base}?${params}`);
+                  setUtmLinkCopied(true);
+                  setTimeout(() => setUtmLinkCopied(false), 2000);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-(--primary) text-(--on-primary) text-sm font-semibold hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
+              >
+                <span className="material-symbols-outlined text-base">
+                  {utmLinkCopied ? "check" : "content_copy"}
+                </span>
+                {utmLinkCopied ? "คัดลอกแล้ว!" : "คัดลอกลิงก์"}
+              </button>
+            </div>
+            {utmCampaign.trim() && (
+              <p className="mt-2 text-[11px] text-(--outline) truncate">
+                {window?.location?.origin}/t/{tripSlug}?utm_source={utmSource}&utm_medium=social&utm_campaign={utmCampaign.trim()}
+              </p>
+            )}
+          </section>
+        )}
 
         {/* ── Tab bar ── */}
         <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">

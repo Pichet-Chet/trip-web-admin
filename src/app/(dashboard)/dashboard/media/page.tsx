@@ -6,6 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/shared";
 import { Skeleton, ConfirmDialog, EmptyState, Pagination } from "@/components/shared";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { Button, IconButton } from "@pichetch08/trip-ui";
 
 /* ─── Types ─── */
 interface MediaItem {
@@ -298,20 +299,22 @@ export default function MediaPage(): React.ReactNode {
                   <>
                     <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setContextFolder(null)} />
                     <div className="absolute right-2 top-10 z-50 bg-white rounded-xl shadow-xl border border-(--outline-variant)/30 py-1 w-40">
-                      <button
+                      <Button
+                        variant="ghost"
+                        icon="edit"
+                        size="sm"
                         onClick={() => { setRenamingFolder(f); setRenameFolderValue(f); setContextFolder(null); }}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-(--on-surface) hover:bg-(--surface-variant)/50 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-base">edit</span>
                         เปลี่ยนชื่อ
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
+                        icon="delete"
+                        size="sm"
                         onClick={() => handleDeleteFolder(f)}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-base">delete</span>
                         ลบโฟลเดอร์
-                      </button>
+                      </Button>
                     </div>
                   </>
                 )}
@@ -332,18 +335,10 @@ export default function MediaPage(): React.ReactNode {
                   autoFocus
                   className="flex-1 px-3 py-2 rounded-lg bg-white border border-(--outline-variant)/30 text-xs font-medium text-(--on-surface) outline-none focus:border-(--primary) transition-all"
                 />
-                <button onClick={handleCreateFolder} className="w-8 h-8 rounded-lg bg-(--primary) text-(--on-primary) flex items-center justify-center">
-                  <span className="material-symbols-outlined text-sm">check</span>
-                </button>
+                <IconButton icon="check" variant="primary" size="sm" onClick={handleCreateFolder} aria-label="ยืนยันสร้างโฟลเดอร์" />
               </div>
             ) : (
-              <button
-                onClick={() => setShowNewFolder(true)}
-                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-(--on-surface-variant) hover:bg-(--surface-variant)/50 border border-dashed border-(--outline-variant)/30 transition-all"
-              >
-                <span className="material-symbols-outlined text-base">create_new_folder</span>
-                สร้างโฟลเดอร์
-              </button>
+              <Button variant="ghost" icon="create_new_folder" size="sm" onClick={() => setShowNewFolder(true)}>สร้างโฟลเดอร์</Button>
             )}
           </div>
         </div>
@@ -364,14 +359,16 @@ export default function MediaPage(): React.ReactNode {
             </div>
             <div className="ml-auto flex items-center gap-2">
               <span className="text-xs text-(--on-surface-variant) font-medium">{totalCount} ไฟล์</span>
-              <button
-                onClick={() => fileRef.current?.click()}
+              <Button
+                variant="primary"
+                icon={uploading ? "hourglass_top" : "cloud_upload"}
+                size="sm"
                 disabled={uploading}
-                className="flex items-center gap-2 px-4 py-2 bg-(--primary) text-(--on-primary) rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-all"
+                loading={uploading}
+                onClick={() => fileRef.current?.click()}
               >
-                <span className="material-symbols-outlined text-base">{uploading ? "hourglass_top" : "cloud_upload"}</span>
-                {uploading ? "อัปโหลด..." : "อัปโหลด"}
-              </button>
+                อัปโหลด
+              </Button>
             </div>
           </div>
 
@@ -390,12 +387,7 @@ export default function MediaPage(): React.ReactNode {
                   {folder ? `ยังไม่มีไฟล์ในโฟลเดอร์ "${folder}"` : "ยังไม่มีไฟล์ในคลังสื่อ"}
                 </p>
                 <p className="text-xs text-(--on-surface-variant) mt-1">ลากไฟล์มาวาง หรือกดปุ่มอัปโหลด</p>
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="mt-4 px-5 py-2.5 bg-(--primary) text-(--on-primary) rounded-xl text-sm font-bold hover:opacity-90 transition-all"
-                >
-                  อัปโหลดไฟล์
-                </button>
+                <Button variant="primary" icon="cloud_upload" size="md" onClick={() => fileRef.current?.click()}>อัปโหลดไฟล์</Button>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -430,27 +422,27 @@ export default function MediaPage(): React.ReactNode {
 
                     {/* Quick actions */}
                     <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
+                      <IconButton
+                        icon="download"
+                        variant="ghost"
+                        size="sm"
+                        aria-label="ดาวน์โหลด"
                         onClick={(e) => { e.stopPropagation(); downloadFile(item.url, item.fileName); }}
-                        className="w-7 h-7 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white"
-                        title="ดาวน์โหลด"
-                      >
-                        <span className="material-symbols-outlined text-xs text-(--on-surface)">download</span>
-                      </button>
-                      <button
+                      />
+                      <IconButton
+                        icon="content_copy"
+                        variant="ghost"
+                        size="sm"
+                        aria-label="คัดลอก URL"
                         onClick={(e) => { e.stopPropagation(); copyUrl(item.url); }}
-                        className="w-7 h-7 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white"
-                        title="คัดลอก URL"
-                      >
-                        <span className="material-symbols-outlined text-xs text-(--on-surface)">content_copy</span>
-                      </button>
-                      <button
+                      />
+                      <IconButton
+                        icon="delete"
+                        variant="danger"
+                        size="sm"
+                        aria-label="ลบ"
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(item); }}
-                        className="w-7 h-7 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white"
-                        title="ลบ"
-                      >
-                        <span className="material-symbols-outlined text-xs text-red-500">delete</span>
-                      </button>
+                      />
                     </div>
 
                     {/* File name */}
@@ -506,16 +498,9 @@ export default function MediaPage(): React.ReactNode {
                       <option key={f} value={f}>{f}</option>
                     ))}
                   </select>
-                  <button onClick={() => downloadFile(selectedItem.url, selectedItem.fileName)} className="px-3 py-2 rounded-lg bg-(--on-surface) text-(--surface) text-xs font-bold hover:opacity-90 transition-opacity flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-sm">download</span>
-                    ดาวน์โหลด
-                  </button>
-                  <button onClick={() => copyUrl(selectedItem.url)} className="px-3 py-2 rounded-lg bg-(--surface-variant)/50 text-(--on-surface-variant) text-xs font-bold hover:bg-(--surface-variant) transition-colors">
-                    คัดลอก URL
-                  </button>
-                  <button onClick={() => setDeleteTarget(selectedItem)} className="px-3 py-2 rounded-lg text-red-600 bg-red-50 text-xs font-bold hover:bg-red-100 transition-colors">
-                    ลบ
-                  </button>
+                  <Button variant="secondary" icon="download" size="sm" onClick={() => downloadFile(selectedItem.url, selectedItem.fileName)}>ดาวน์โหลด</Button>
+                  <Button variant="outline" size="sm" onClick={() => copyUrl(selectedItem.url)}>คัดลอก URL</Button>
+                  <Button variant="danger" size="sm" onClick={() => setDeleteTarget(selectedItem)}>ลบ</Button>
                 </div>
               </div>
             </div>
@@ -538,12 +523,8 @@ export default function MediaPage(): React.ReactNode {
               className="w-full px-4 py-3 rounded-xl bg-(--surface-container-low) border border-transparent text-sm font-medium text-(--on-surface) outline-none focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 transition-all"
             />
             <div className="flex gap-3">
-              <button onClick={() => setRenamingFolder(null)} className="flex-1 py-3 rounded-xl border border-(--outline-variant)/30 text-sm font-bold text-(--on-surface-variant) hover:bg-(--surface-variant)/50 transition-colors">
-                ยกเลิก
-              </button>
-              <button onClick={handleRenameFolder} className="flex-1 py-3 rounded-xl bg-(--primary) text-(--on-primary) text-sm font-bold hover:opacity-90 transition-opacity">
-                บันทึก
-              </button>
+              <Button variant="outline" size="md" onClick={() => setRenamingFolder(null)}>ยกเลิก</Button>
+              <Button variant="primary" size="md" onClick={handleRenameFolder}>บันทึก</Button>
             </div>
           </div>
         </div>

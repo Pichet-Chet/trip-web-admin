@@ -6,6 +6,7 @@ import { ROUTES } from "@/constants/routes";
 import { FormInput, AuthHero } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { Button } from "@pichetch08/trip-ui";
 
 export default function ForgotPasswordPage(): React.ReactNode {
   usePageTitle("ลืมรหัสผ่าน");
@@ -76,13 +77,15 @@ export default function ForgotPasswordPage(): React.ReactNode {
               <form onSubmit={handleSubmit} noValidate className="space-y-6">
                 <FormInput label="อีเมล" placeholder="admin@example.com" type="email" icon="mail" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} error={error} required />
 
-                <button
+                <Button
                   type="submit"
+                  variant="primary"
+                  size="lg"
                   disabled={loading}
-                  className="block w-full bg-(--primary) text-(--on-primary) py-4 px-6 rounded-xl font-bold text-lg hover:opacity-95 shadow-xl shadow-(--primary)/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  loading={loading}
                 >
-                  {loading ? "กำลังส่ง..." : "ส่งลิงก์รีเซ็ตรหัสผ่าน"}
-                </button>
+                  ส่งลิงก์รีเซ็ตรหัสผ่าน
+                </Button>
               </form>
 
               <div className="mt-12 text-center">
@@ -110,9 +113,7 @@ export default function ForgotPasswordPage(): React.ReactNode {
                   <li>ตรวจสอบโฟลเดอร์ Spam / Junk Mail</li>
                   <li>ลิงก์มีอายุ 1 ชั่วโมง</li>
                 </ul>
-                <button onClick={() => setSent(false)} className="text-sm text-(--primary) font-semibold hover:underline">
-                  ส่งอีกครั้ง
-                </button>
+                <Button variant="ghost" size="sm" onClick={() => setSent(false)}>ส่งอีกครั้ง</Button>
               </div>
 
               <div className="text-center">
