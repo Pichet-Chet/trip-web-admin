@@ -131,6 +131,7 @@ export default function NewTripPage(): React.ReactNode {
   const [countries, setCountries] = useState<{ code: string; nameTh: string; flag: string }[]>([]);
   const [categories, setCategories] = useState<{ id: string; slug: string; nameTh: string; icon?: string }[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [maxCategoriesPerTrip, setMaxCategoriesPerTrip] = useState(3);
 
   useEffect(() => {
     api.get<{ code: string; nameTh: string; flag: string }[]>("/meta/countries")
@@ -138,6 +139,9 @@ export default function NewTripPage(): React.ReactNode {
       .catch(() => {});
     api.get<{ id: string; slug: string; nameTh: string; icon?: string }[]>("/meta/trip-categories")
       .then(setCategories)
+      .catch(() => {});
+    api.get<{ maxCategoriesPerTrip: number }>("/meta/app-config")
+      .then((cfg) => setMaxCategoriesPerTrip(cfg.maxCategoriesPerTrip ?? 3))
       .catch(() => {});
   }, []);
 
@@ -1060,12 +1064,12 @@ export default function NewTripPage(): React.ReactNode {
                 <div className="md:col-span-2 lg:col-span-6">
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
                     ประเภททริป
-                    <span className="ml-2 font-normal normal-case text-slate-400">(เลือกได้สูงสุด 3 ประเภท)</span>
+                    <span className="ml-2 font-normal normal-case text-slate-400">(เลือกได้สูงสุด {maxCategoriesPerTrip} ประเภท)</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {categories.map((cat) => {
                       const selected = selectedCategoryIds.includes(cat.id);
-                      const disabled = !selected && selectedCategoryIds.length >= 3;
+                      const disabled = !selected && selectedCategoryIds.length >= maxCategoriesPerTrip;
                       return (
                         <button
                           key={cat.id}
@@ -1075,7 +1079,7 @@ export default function NewTripPage(): React.ReactNode {
                             setSelectedCategoryIds((prev) =>
                               prev.includes(cat.id)
                                 ? prev.filter((id) => id !== cat.id)
-                                : prev.length < 3 ? [...prev, cat.id] : prev
+                                : prev.length < maxCategoriesPerTrip ? [...prev, cat.id] : prev
                             );
                           }}
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
